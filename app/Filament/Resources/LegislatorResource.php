@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
-use App\Models\User;
+use App\Filament\Resources\LegislatorResource\Pages;
+use App\Filament\Resources\LegislatorResource\RelationManagers;
+use App\Models\Legislator;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -14,11 +14,10 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Hash;
 
-class UserResource extends Resource
+class LegislatorResource extends Resource
 {
-    protected static ?string $model = User::class;
+    protected static ?string $model = Legislator::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -27,14 +26,6 @@ class UserResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")->required(),
-                TextInput::make("email")
-                    ->email()
-                    ->required(),
-                TextInput::make("password")
-                    ->password()
-                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                    ->dehydrated(fn ($state) => filled($state))
-                    ->required(fn (string $context): bool => $context === 'create'),
             ]);
     }
 
@@ -42,8 +33,7 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("name"),
-                TextColumn::make("email")
+                TextColumn::make("name")
             ])
             ->filters([
                 //
@@ -69,9 +59,9 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            'index' => Pages\ListLegislators::route('/'),
+            'create' => Pages\CreateLegislator::route('/create'),
+            'edit' => Pages\EditLegislator::route('/{record}/edit'),
         ];
     }
 }
