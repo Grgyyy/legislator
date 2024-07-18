@@ -26,7 +26,8 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make("name")->required(),
+                TextInput::make("name")
+                    ->required(),
                 TextInput::make("email")
                     ->email()
                     ->required(),
@@ -42,8 +43,12 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("name"),
+                TextColumn::make("name")
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make("email")
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
