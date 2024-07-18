@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\LegislatorResource\Pages;
-use App\Filament\Resources\LegislatorResource\RelationManagers;
-use App\Models\Legislator;
+use App\Filament\Resources\RegionResource\Pages;
+use App\Filament\Resources\RegionResource\RelationManagers;
+use App\Models\Region;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -15,9 +15,9 @@ use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class LegislatorResource extends Resource
+class RegionResource extends Resource
 {
-    protected static ?string $model = Legislator::class;
+    protected static ?string $model = Region::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -33,7 +33,7 @@ class LegislatorResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("name")
+                TextColumn::make("name"),
             ])
             ->filters([
                 //
@@ -60,9 +60,9 @@ class LegislatorResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListLegislators::route('/'),
-            'create' => Pages\CreateLegislator::route('/create'),
-            'edit' => Pages\EditLegislator::route('/{record}/edit'),
+            'index' => Pages\ListRegions::route('/'),
+            'create' => Pages\CreateRegion::route('/create'),
+            'edit' => Pages\EditRegion::route('/{record}/edit'),
         ];
     }
 }
