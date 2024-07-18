@@ -36,7 +36,7 @@ class LegislatorResource extends Resource
                 TextColumn::make("name")
             ])
             ->filters([
-                //
+                Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -67,5 +67,13 @@ class LegislatorResource extends Resource
             'create' => Pages\CreateLegislator::route('/create'),
             'edit' => Pages\EditLegislator::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }
