@@ -25,7 +25,8 @@ class RegionResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make("name")->required(),
+                TextInput::make("name")
+                    ->required(),
             ]);
     }
 
@@ -33,13 +34,14 @@ class RegionResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("name"),
+                TextColumn::make("name")
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(), 
                 Tables\Actions\RestoreAction::make(), 
