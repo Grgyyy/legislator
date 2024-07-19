@@ -26,6 +26,8 @@ class AllocationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
+
     public static function form(Form $form): Form
     {
         return $form
