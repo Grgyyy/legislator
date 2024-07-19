@@ -2,29 +2,33 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\UserResource\Pages;
-use App\Filament\Resources\UserResource\RelationManagers;
-use App\Models\User;
+use App\Filament\Resources\TviResource\Pages;
+use App\Filament\Resources\TviResource\RelationManagers;
+use App\Models\Tvi;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use pxlrbt\FilamentExcel\Columns\Column;
 
-class UserResource extends Resource
+
+class TviResource extends Resource
 {
-    protected static ?string $model = User::class;
+    protected static ?string $model = Tvi::class;
 
-    protected static ?string $navigationGroup = "USER MANAGEMENT";
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-building-library';
+
+    protected static ?string $navigationLabel = 'TVI';
 
     public static function form(Form $form): Form
     {
@@ -32,14 +36,6 @@ class UserResource extends Resource
             ->schema([
                 TextInput::make("name")
                     ->required(),
-                TextInput::make("email")
-                    ->email()
-                    ->required(),
-                TextInput::make("password")
-                    ->password()
-                    ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                    ->dehydrated(fn ($state) => filled($state))
-                    ->required(fn (string $context): bool => $context === 'create'),
             ]);
     }
 
@@ -48,9 +44,6 @@ class UserResource extends Resource
         return $table
             ->columns([
                 TextColumn::make("name")
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make("email")
                     ->sortable()
                     ->searchable(),
             ])
@@ -63,7 +56,6 @@ class UserResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(), 
                 Tables\Actions\RestoreAction::make(), 
@@ -73,6 +65,14 @@ class UserResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(), 
                     Tables\Actions\RestoreBulkAction::make(), 
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                        ->withColumns([
+                            Column::make('name')->heading('TVI'),
+                            Column::make('created_at')->heading('Date Created'),
+                        ])
+                        ->withFilename(date('Y-m-d') . ' - TVI')
+                    ]),
                 ]),
             ]);
     }
@@ -87,9 +87,9 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit' => Pages\EditUser::route('/{record}/edit'),
+            'index' => Pages\ListTvis::route('/'),
+            'create' => Pages\CreateTvi::route('/create'),
+            'edit' => Pages\EditTvi::route('/{record}/edit'),
         ];
     }
 
@@ -98,7 +98,6 @@ class UserResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ])
-            ->where('id', '!=', Auth::id());
+            ]);
     }
 }
