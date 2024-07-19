@@ -9,4 +9,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateScholarshipProgram extends CreateRecord
 {
     protected static string $resource = ScholarshipProgramResource::class;
+
+    protected function getRedirectUrl(): string 
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

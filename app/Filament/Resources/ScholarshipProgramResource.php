@@ -33,6 +33,8 @@ class ScholarshipProgramResource extends Resource
                     ->options([
                         'STEP' => 'STEP',
                         'TWSP' => 'TWSP',
+                        'TTSP' => 'TTSP',
+                        'UAQTEA' => 'UAQTEA'
                     ])
                     ->required(),
                 TextInput::make("qualification_title")
