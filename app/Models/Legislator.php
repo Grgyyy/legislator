@@ -11,6 +11,7 @@ class Legislator extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name',
+        'legislator_name',
+        'particular'
     ];
 }
