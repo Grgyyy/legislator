@@ -24,7 +24,7 @@ class AllocationResource extends Resource
 {
     protected static ?string $model = Allocation::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-users';
 
     public static function form(Form $form): Form
     {
@@ -49,11 +49,15 @@ class AllocationResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("legislators.legislator_name"),
-                TextColumn::make("twsp_allocation"),
-                TextColumn::make("twsp_admin_cost"), 
-                TextColumn::make("step_allocation"),
-                TextColumn::make("step_admin_cost"),
+                TextColumn::make("legislator.legislator_name"),
+                TextColumn::make("twsp_allocation")
+                    ->label('TWSP Allocation'),
+                TextColumn::make("twsp_admin_cost")
+                    ->label('TWSP Admin Cost'),
+                TextColumn::make("step_allocation")
+                    ->label('STEP Allocation'),
+                TextColumn::make("step_admin_cost")
+                    ->label('STEP Admin Cost'),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
