@@ -24,7 +24,9 @@ class AllocationResource extends Resource
 {
     protected static ?string $model = Allocation::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
     public static function form(Form $form): Form
     {
