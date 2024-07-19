@@ -15,11 +15,16 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class ProvinceResource extends Resource
 {
     protected static ?string $model = Province::class;
 
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
+    
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -42,6 +47,7 @@ class ProvinceResource extends Resource
                 TextColumn::make("name")
                     ->sortable()
                     ->searchable(),
+                TextColumn::make("region.name")
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -54,6 +60,15 @@ class ProvinceResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                        ->withColumns([
+                            Column::make('name')->heading('Name'),
+                            Column::make('region.name')->heading('Region Name'),
+                            Column::make('created_at')->heading('Date Created'),
+                        ])
+                        ->withFilename(date('Y-m-d') . ' - Provinces')
+                    ]),
                 ]),
             ]);
     }

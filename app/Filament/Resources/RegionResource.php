@@ -14,10 +14,15 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class RegionResource extends Resource
 {
     protected static ?string $model = Region::class;
+
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -51,6 +56,14 @@ class RegionResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(), 
                     Tables\Actions\RestoreBulkAction::make(), 
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                        ->withColumns([
+                            Column::make('name')->heading('Region Name'),
+                            Column::make('created_at')->heading('Date Created'),
+                        ])
+                        ->withFilename(date('Y-m-d') . ' - Regions')
+                    ]),
                 ]),
             ]);
     }

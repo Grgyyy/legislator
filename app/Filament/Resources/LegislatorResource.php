@@ -14,12 +14,17 @@ use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class LegislatorResource extends Resource
 {
     protected static ?string $model = Legislator::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
     public static function form(Form $form): Form
     {
@@ -52,6 +57,14 @@ class LegislatorResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(), 
                     Tables\Actions\RestoreBulkAction::make(), 
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                        ->withColumns([
+                            Column::make('name')->heading('Region Name'),
+                            Column::make('created_at')->heading('Date Created'),
+                        ])
+                        ->withFilename(date('Y-m-d') . ' - Legislators')
+                    ]),
                 ]),
             ]);
     }
