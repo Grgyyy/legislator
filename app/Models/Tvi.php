@@ -6,16 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Legislator extends Model
+class Tvi extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'legislator_name',
-        'particular'
+        'name',
     ];
 
-    public function allocation(){
-        return $this->hasMany(Allocation::class);
-    }
 }
