@@ -15,8 +15,10 @@ use Filament\Tables;
 use Filament\Tables\Actions\ExportBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use GuzzleHttp\Psr7\Request;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Http\Client\Request as ClientRequest;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
@@ -35,14 +37,33 @@ class AllocationResource extends Resource
                 Select::make('legislator_id')
                     ->relationship("legislator", "legislator_name"),
 
-                Grid::make(2)->schema([
-                    TextInput::make("twsp_allocation")->required(),
-                    TextInput::make("twsp_admin_cost")->required(),
+                Grid::make(2)
+                ->schema([
+                    TextInput::make('twsp_allocation')
+                        ->label('TWSP Allocation')
+                        ->required()
+                        ->reactive()
+                        ->afterStateUpdated(function (callable $set, $state) {
+                            $set('twsp_admin_cost', $state * 2);
+                        }),
+                    TextInput::make('twsp_admin_cost')
+                        ->label('TWSP Admin Cost')
+                        ->readOnly()
+                        ->default('0'),
                 ]),
                 
                 Grid::make(2)->schema([
-                    TextInput::make("step_allocation")->required(),
-                    TextInput::make("step_admin_cost")->required(),
+                    TextInput::make("step_allocation")
+                        ->label('STEP Allocation')
+                        ->required()
+                        ->reactive()
+                        ->afterStateUpdated(function (callable $set, $state) {
+                            $set('step_admin_cost', $state * 2);
+                        }),
+                    TextInput::make("step_admin_cost")
+                        ->label('STEP Admin Cost')
+                        ->readOnly()
+                        ->default('0'),
                 ]),
             ]);
     }
