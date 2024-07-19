@@ -46,6 +46,8 @@ class LegislatorResource extends Resource
                     ->sortable()
                     ->searchable(),
                 TextColumn::make("particular")
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
