@@ -1,16 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\TviResource\Pages;
+namespace App\Filament\Resources\AllocationResource\Pages;
 
-use App\Filament\Resources\TviResource;
+use App\Filament\Resources\AllocationResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditTvi extends EditRecord
+class EditAllocation extends EditRecord
 {
-    protected static string $resource = TviResource::class;
-
-    protected static ?string $title = 'Edit TVI';
+    protected static string $resource = AllocationResource::class;
 
     protected function getHeaderActions(): array
     {
