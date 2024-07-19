@@ -6,16 +6,19 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Legislator extends Model
+class Allocation extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'legislator_name',
-        'particular'
+        'twsp_allocation',
+        'twsp_admin_cost',
+        'step_allocation',
+        'step_admin_cost',
+        'legislator_id',
     ];
 
-    public function allocation(){
-        return $this->hasMany(Allocation::class);
+    public function legislator(){
+        return $this->belongsTo(Legislator::class);
     }
 }
