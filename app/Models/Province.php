@@ -18,4 +18,8 @@ class Province extends Model
     public function region() {
         return $this->belongsTo(Region::class);
     }
+
+    public function target() {
+        return $this->hasMany(Target::class);
+    }
 }

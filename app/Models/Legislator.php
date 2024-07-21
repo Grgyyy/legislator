@@ -18,4 +18,8 @@ class Legislator extends Model
     public function allocation(){
         return $this->hasMany(Allocation::class);
     }
+
+    public function target() {
+        return $this->hasMany(Target::class);
+    }
 }

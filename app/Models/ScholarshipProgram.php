@@ -15,4 +15,8 @@ class ScholarshipProgram extends Model
         'training_cost',
         'toolkit_cost'
     ];
+
+    public function target() {
+        return $this->hasMany(Target::class);
+    }
 }
