@@ -11,12 +11,15 @@ class Legislator extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'legislator_name',
-        'particular'
+        'legislator_name'
     ];
 
     public function allocation(){
         return $this->hasMany(Allocation::class);
+    }
+
+    public function particular(){
+        return $this->hasMany(Particular::class);
     }
 
     public function target() {

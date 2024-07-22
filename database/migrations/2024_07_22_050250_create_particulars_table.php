@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('legislators', function (Blueprint $table) {
+        Schema::create('particulars', function (Blueprint $table) {
             $table->id();
-            $table->string("legislator_name");
+            $table->string("name");
             $table->timestamps();
             $table->softDeletes();
         });
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('legislators');
+        Schema::dropIfExists('particulars');
     }
 };
