@@ -73,16 +73,24 @@ class ScholarshipProgramResource extends Resource
                     ->formatStateUsing(fn ($state) => '₱ ' . $state),
             ])
             ->filters([
-                //
+                Tables\Filters\TrashedFilter::make(),
             ])
+            ->filtersTriggerAction(
+                fn (\Filament\Actions\StaticAction $action) => $action
+                    ->button()
+                    ->label('Filter'),
+            )
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make(), 
+                Tables\Actions\RestoreAction::make(), 
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(), 
+                    Tables\Actions\RestoreBulkAction::make(), 
                 ]),
             ]);
     }
