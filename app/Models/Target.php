@@ -9,6 +9,14 @@ class Target extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'legislator_id',
+        'province_id',
+        'scholarship_program_id',
+        'tvi_id',
+        'number_of_slots'
+    ];
+
     public function legislator() {
         return $this->belongsTo(Legislator::class);
     }

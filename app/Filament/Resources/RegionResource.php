@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\RegionResource\Pages;
 use App\Filament\Resources\RegionResource\RelationManagers;
+use App\Filament\Resources\RegionResource\RelationManagers\ProvincesRelationManager;
 use App\Models\Region;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+
 
 class RegionResource extends Resource
 {
@@ -77,7 +79,7 @@ class RegionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            ProvincesRelationManager::class
         ];
     }
 
