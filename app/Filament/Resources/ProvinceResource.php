@@ -24,6 +24,8 @@ class ProvinceResource extends Resource
 {
     protected static ?string $model = Province::class;
 
+    protected static ?string $slug                     = 'regions/provinces';
+
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
     
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
@@ -92,6 +94,8 @@ class ProvinceResource extends Resource
             'index' => Pages\ListProvinces::route('/'),
             'create' => Pages\CreateProvince::route('/create'),
             'edit' => Pages\EditProvince::route('/{record}/edit'),
+            'view_provinces' => Pages\ListProvinces::route('/{record}'),
+            'provinces.create'  => Pages\CreateProvince::route('/{record}/create')
         ];
     }
 
@@ -100,6 +104,8 @@ class ProvinceResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->where('region_id', request('record'));
+        
     }
 }
