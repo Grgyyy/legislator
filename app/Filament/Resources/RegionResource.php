@@ -1,25 +1,21 @@
 <?php
-
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\RegionResource\Pages;
-use App\Filament\Resources\RegionResource\RelationManagers;
-use App\Filament\Resources\RegionResource\RelationManagers\ProvincesRelationManager;
+use App\Models\Province;
 use App\Models\Region;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-
 
 class RegionResource extends Resource
 {
@@ -29,7 +25,7 @@ class RegionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-map';
 
-    public static function form(Form $form): Form
+    public static function form(Forms\Form $form): Forms\Form
     {
         return $form
             ->schema([
@@ -38,16 +34,22 @@ class RegionResource extends Resource
             ]);
     }
 
-    public static function table(Table $table): Table
+    public static function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns([
                 TextColumn::make("name")
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->action(function (Region $record) {
+                        $url = route('filament.admin.resources...view_provinces', ['record' => $record->id]);
+        
+                        // Return a redirect response to that URL
+                        return redirect()->to($url);
+                    }),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
             ->filtersTriggerAction(
                 fn (\Filament\Actions\StaticAction $action) => $action
@@ -58,9 +60,14 @@ class RegionResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(), 
                 Tables\Actions\RestoreAction::make(), 
-                Tables\Actions\Action::make('provinces')
-                ->label('View Provinces')
-                ->url(fn ($record): string => url("/regions/provinces/{$record->id}"))
+                // Tables\Actions\Action::make('provinces')
+                //     ->label('View Provinces')
+                //     ->action(function (Region $record) {
+                //         $url = route('filament.admin.resources...view_provinces', ['record' => $record->id]);
+        
+                //         // Return a redirect response to that URL
+                //         return redirect()->to($url);
+                //     })
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -92,7 +99,6 @@ class RegionResource extends Resource
             'index' => Pages\ListRegions::route('/'),
             'create' => Pages\CreateRegion::route('/create'),
             'edit' => Pages\EditRegion::route('/{record}/edit'),
-
         ];
     }
 
