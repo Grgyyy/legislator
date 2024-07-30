@@ -58,6 +58,9 @@ class RegionResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(), 
                 Tables\Actions\RestoreAction::make(), 
+                Tables\Actions\Action::make('view_provinces')
+                ->label('View Provinces')
+                ->url(fn ($record): string => url("/admin/regions/{$record->id}/provinces"))
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -79,7 +82,7 @@ class RegionResource extends Resource
     public static function getRelations(): array
     {
         return [
-            ProvincesRelationManager::class
+            ProvincesRelationManager::class,
         ];
     }
 

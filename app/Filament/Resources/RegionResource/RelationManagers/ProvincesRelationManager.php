@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class ProvincesRelationManager extends RelationManager
 {
     protected static string $relationship = 'provinces';
+    protected static ?string $label = 'Provinces';
+    protected static ?string $pluralLabel = 'Provinces';
 
     public function form(Form $form): Form
     {
