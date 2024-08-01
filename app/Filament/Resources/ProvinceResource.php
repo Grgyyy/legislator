@@ -54,7 +54,6 @@ class ProvinceResource extends Resource
             ])
             ->filtersTriggerAction(fn (\Filament\Actions\StaticAction $action) => $action->button()->label('Filter'))
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

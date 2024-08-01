@@ -12,10 +12,7 @@ class CreateProvince extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        // Get the region ID from the newly created record (or form input)
         $regionId = $this->record->region_id ?? request('region_id');
-
-        // Generate the URL for the view_provinces page with the region ID
-        return route('filament.resources.provinces.view_provinces', ['record' => $regionId]);
+        return route('filament.admin.resources...view_provinces', ['record' => $regionId]);
     }
 }
