@@ -18,7 +18,7 @@ class LegislatorImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         return new Legislator([
-            'legislator_name'  => $row['legislator_name'],
+            'name'  => $row['name'],
             'particular' => $row['particular']
         ]);
     }

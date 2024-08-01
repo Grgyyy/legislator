@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('legislators', function (Blueprint $table) {
             $table->id();
-            $table->string("legislator_name");
+            $table->string("name");
             $table->timestamps();
             $table->softDeletes();
         });
