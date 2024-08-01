@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('training_cost');
             $table->string('toolkit_cost');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
