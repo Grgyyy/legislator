@@ -8,6 +8,7 @@ use App\Models\Legislator;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ExportBulkAction as ActionsExportBulkAction;
@@ -33,6 +34,9 @@ class LegislatorResource extends Resource
         return $form
             ->schema([
                 TextInput::make("legislator_name")
+                    ->required(),
+                Select::make("particular")
+                    ->relationship("particular", "name")
                     ->required()
             ]);
     }
@@ -43,7 +47,8 @@ class LegislatorResource extends Resource
             ->columns([
                 TextColumn::make("legislator_name")
                     ->sortable()
-                    ->searchable()
+                    ->searchable(),
+                TextColumn::make("particular.name"),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
