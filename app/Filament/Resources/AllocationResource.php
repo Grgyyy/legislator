@@ -35,7 +35,7 @@ class AllocationResource extends Resource
         return $form
             ->schema([
                 Select::make('legislator_id')
-                    ->relationship("legislator", "legislator_name"),
+                    ->relationship("legislator", "name"),
 
                 Grid::make(2)
                 ->schema([
@@ -72,7 +72,7 @@ class AllocationResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("legislator.legislator_name"),
+                TextColumn::make("legislator.name"),
                 TextColumn::make("twsp_allocation")
                     ->label('TWSP Allocation'),
                 TextColumn::make("twsp_admin_cost")

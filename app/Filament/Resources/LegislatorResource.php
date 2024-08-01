@@ -32,7 +32,7 @@ class LegislatorResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make("legislator_name")
+                TextInput::make("name")
                     ->required()
             ]);
     }
@@ -41,7 +41,7 @@ class LegislatorResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("legislator_name")
+                TextColumn::make("name")
                     ->sortable()
                     ->searchable()
             ])
