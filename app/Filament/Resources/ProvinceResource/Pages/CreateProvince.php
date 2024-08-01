@@ -9,9 +9,10 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateProvince extends CreateRecord
 {
     protected static string $resource = ProvinceResource::class;
-    
-    protected function getRedirectUrl(): string 
+
+    protected function getRedirectUrl(): string
     {
-        return $this->getResource()::getUrl('index');
+        $regionId = $this->record->region_id ?? request('region_id');
+        return route('filament.admin.resources...view_provinces', ['record' => $regionId]);
     }
 }
