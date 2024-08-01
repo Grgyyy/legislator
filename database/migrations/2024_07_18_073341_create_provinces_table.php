@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('region_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->softDeletes();
         });
     }
 
