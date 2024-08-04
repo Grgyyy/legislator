@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ParticularResource\Pages;
 use App\Filament\Resources\ParticularResource\RelationManagers;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use App\Models\Particular;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -28,7 +29,11 @@ class ParticularResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required()
+                    ->required(),
+                Select::make('province_id')
+                    ->label("Province")
+                    ->relationship("province", "name")
+                    ->required(),
             ]);
     }
 
@@ -37,8 +42,15 @@ class ParticularResource extends Resource
         return $table
             ->columns([
                 TextColumn::make("name")
+                    ->label('Particular Name')
                     ->sortable()
-                    ->searchable()
+                    ->searchable(),
+                TextColumn::make("province.region.name")
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make("province.name")
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -49,7 +61,6 @@ class ParticularResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(), 
                 Tables\Actions\RestoreAction::make(), 

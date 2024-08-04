@@ -46,9 +46,12 @@ class LegislatorResource extends Resource
         return $table
             ->columns([
                 TextColumn::make("legislator_name")
+                    ->label('Legislator')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable(),  
                 TextColumn::make("particular.name"),
+                TextColumn::make("particular.province.name"),
+                TextColumn::make("particular.province.region.name"),    
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
@@ -59,7 +62,6 @@ class LegislatorResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(), 
                 Tables\Actions\RestoreAction::make(), 
