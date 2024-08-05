@@ -11,10 +11,15 @@ class Particular extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name'
+        'name',
+        'province_id',
     ];
 
     public function legislator() {
-        return $this->belongsTo(Legislator::class);
+        return $this->belongsToMany(Legislator::class, 'LegislatorParticular')->withTimestamps();
+    }
+
+    public function province() {
+        return $this->belongsTo(Province::class);
     }
 }

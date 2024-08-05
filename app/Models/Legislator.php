@@ -18,8 +18,8 @@ class Legislator extends Model
         return $this->hasMany(Allocation::class);
     }
 
-    public function particular(){
-        return $this->hasMany(Particular::class);
+    public function particular() {
+        return $this->belongsToMany(Particular::class, 'LegislatorParticular')->withTimestamps();
     }
 
     public function target() {
