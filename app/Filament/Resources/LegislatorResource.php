@@ -33,7 +33,8 @@ class LegislatorResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make("legislator_name")
+
+                TextInput::make("name")
                     ->required(),
                 Select::make("particular")
                     ->relationship("particular", "name")
@@ -45,7 +46,7 @@ class LegislatorResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("legislator_name")
+                TextColumn::make("name")
                     ->label('Legislator')
                     ->sortable()
                     ->searchable(),  

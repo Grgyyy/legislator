@@ -31,7 +31,7 @@ class TargetResource extends Resource
             ->schema([
                 Select::make("legislator_id")
                     ->required()
-                    ->relationship("legislator", "legislator_name"),
+                    ->relationship("legislator", "name"),
                 Select::make("legislator_id")
                     ->required()
                     ->relationship("legislator", "particular")
@@ -61,7 +61,7 @@ class TargetResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("legislator.legislator_name"),
+                TextColumn::make("legislator.name"),
                 TextColumn::make("legislator.particular")
                     ->label('Particular'),
                 TextColumn::make("province.name"),

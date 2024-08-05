@@ -19,14 +19,7 @@ class ProvinceResource extends Resource
 
     protected static ?string $slug = "/";
 
-    protected static ?string $navigationGroup = "TARGET DATA INPUT";
-
-    protected static ?string $navigationIcon = 'heroicon-o-map-pin';
-
-    public static function shouldRegisterNavigation(): bool
-    {
-        return false;
-    }
+    protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Forms\Form $form): Forms\Form
     {
@@ -52,7 +45,10 @@ class ProvinceResource extends Resource
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
-            ->filtersTriggerAction(fn (\Filament\Actions\StaticAction $action) => $action->button()->label('Filter'))
+            ->filtersTriggerAction(
+                fn (\Filament\Actions\StaticAction $action) => $action
+                    ->button()
+                    ->label('Filter'))
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
