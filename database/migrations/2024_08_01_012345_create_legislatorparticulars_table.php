@@ -17,8 +17,6 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(Legislator::class);
             $table->foreignIdFor(Particular::class);
-            $table->string('status')
-                ->default('active');
             $table->timestamps();
         });
     }
