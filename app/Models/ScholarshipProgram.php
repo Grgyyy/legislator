@@ -13,6 +13,7 @@ class ScholarshipProgram extends Model
     protected $fillable = [
         'name',
         'qualification_title',
+        'qualification_code',
         'training_cost',
         'toolkit_cost'
     ];

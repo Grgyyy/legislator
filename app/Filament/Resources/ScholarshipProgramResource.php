@@ -28,6 +28,10 @@ class ScholarshipProgramResource extends Resource
     {
         return $form
             ->schema([
+                TextInput::make("qualification_title")
+                    ->label('Qualification Title')
+                    ->required(),
+                TextInput::make("qualification_code"),
                 Select::make('name')
                     ->label("Scholarship Program")
                     ->options([
@@ -36,9 +40,6 @@ class ScholarshipProgramResource extends Resource
                         'TTSP' => 'TTSP',
                         'UAQTEA' => 'UAQTEA'
                     ])
-                    ->required(),
-                TextInput::make("qualification_title")
-                    ->label('Qualification Title')
                     ->required(),
                 TextInput::make("training_cost")
                     ->label('Training Cost PCC')
@@ -55,12 +56,17 @@ class ScholarshipProgramResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("name")
-                    ->label("Scholarship Program")
+                
+                TextColumn::make("qualification_code")
+                    ->label("Qualification Code")
                     ->sortable()
                     ->searchable(),
                 TextColumn::make("qualification_title")
                     ->label("Qualification Title")
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make("name")
+                    ->label("Scholarship Program")
                     ->sortable()
                     ->searchable(),
                 TextColumn::make("training_cost")
