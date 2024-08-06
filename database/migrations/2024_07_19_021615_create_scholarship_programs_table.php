@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('qualification_title');
             $table->string('qualification_code');
-            $table->string('training_cost');
-            $table->string('toolkit_cost');
+            $table->decimal('training_cost');
+            $table->decimal('toolkit_cost');
             $table->timestamps();
             $table->softDeletes();
         });

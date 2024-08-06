@@ -12,10 +12,20 @@ class Tvi extends Model
 
     protected $fillable = [
         'name',
+        'district',
+        'province_id',
+        'municipality_class',
+        'tvi_type',
+        'tvi_class',
+        'address',
     ];
 
     public function target() {
         return $this->hasMany(Target::class);
+    }
+
+    public function province() {
+        return $this->belongsTo(Province::class);
     }
 
 }
