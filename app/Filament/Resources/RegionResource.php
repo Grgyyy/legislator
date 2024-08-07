@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\Action;
+
 
 class RegionResource extends Resource
 {
@@ -41,12 +43,7 @@ class RegionResource extends Resource
                 TextColumn::make("name")
                     ->sortable()
                     ->searchable()
-                    ->action(function (Region $record) {
-                        $url = route('filament.admin.resources...view_provinces', ['record' => $record->id]);
-        
-                        // Return a redirect response to that URL
-                        return redirect()->to($url);
-                    }),
+                    ->url(fn (Region $record): string => route('filament.admin.resources.regions.provinceUnderRegion', ['record' => $record->id])),
             ])
             ->filters([
                 TrashedFilter::make(),
@@ -58,16 +55,8 @@ class RegionResource extends Resource
             )
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(), 
-                Tables\Actions\RestoreAction::make(), 
-                // Tables\Actions\Action::make('provinces')
-                //     ->label('View Provinces')
-                //     ->action(function (Region $record) {
-                //         $url = route('filament.admin.resources...view_provinces', ['record' => $record->id]);
-        
-                //         // Return a redirect response to that URL
-                //         return redirect()->to($url);
-                //     })
+                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -99,6 +88,7 @@ class RegionResource extends Resource
             'index' => Pages\ListRegions::route('/'),
             'create' => Pages\CreateRegion::route('/create'),
             'edit' => Pages\EditRegion::route('/{record}/edit'),
+            'provinceUnderRegion' => Pages\ProvinceUnderRegion::route('/{record}/province'),            
         ];
     }
 

@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
 use App\Filament\Resources\ProvinceResource;
-use Filament\Pages\Actions;
+use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditProvince extends EditRecord
@@ -14,14 +14,6 @@ class EditProvince extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
-            Actions\ForceDeleteAction::make(), 
-            Actions\RestoreAction::make(), 
         ];
-    }
-
-    protected function getRedirectUrl(): string 
-    {
-        // Ensure this route matches your routes definition
-        return $this->getResource()::getUrl('view_provinces', ['record' => $this->record->region_id]);
     }
 }
