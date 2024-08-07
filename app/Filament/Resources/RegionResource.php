@@ -43,7 +43,10 @@ class RegionResource extends Resource
                 TextColumn::make("name")
                     ->sortable()
                     ->searchable()
-                    ->url(fn (Region $record): string => route('filament.admin.resources.regions.provinceUnderRegion', ['record' => $record->id])),
+                    ->url(fn (Region $record): string => $record->name === 'NCR'
+                        ? route('filament.admin.resources.districts.index')
+                        : route('filament.admin.resources.regions.provinceUnderRegion', ['record' => $record->id]) 
+                     ),
             ])
             ->filters([
                 TrashedFilter::make(),
