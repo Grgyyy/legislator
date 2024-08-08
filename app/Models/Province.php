@@ -12,7 +12,8 @@ class Province extends Model
 
     protected $fillable = [
         'name',
-        'region_id'
+        'region_id',
+        'district_id'
     ];
 
     public function region() {
