@@ -3,10 +3,13 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProvinceResource\Pages;
+use App\Filament\Resources\ProvinceResource\RelationManagers;
 use App\Models\Province;
 use Filament\Forms;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -17,11 +20,11 @@ class ProvinceResource extends Resource
 {
     protected static ?string $model = Province::class;
 
-    protected static ?string $slug = "/";
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static bool $shouldRegisterNavigation = false;
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    public static function form(Forms\Form $form): Forms\Form
+    public static function form(Form $form): Form
     {
         return $form
             ->schema([
@@ -33,7 +36,7 @@ class ProvinceResource extends Resource
             ]);
     }
 
-    public static function table(Tables\Table $table): Tables\Table
+    public static function table(Table $table): Table
     {
         return $table
             ->columns([
@@ -45,10 +48,6 @@ class ProvinceResource extends Resource
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
-            ->filtersTriggerAction(
-                fn (\Filament\Actions\StaticAction $action) => $action
-                    ->button()
-                    ->label('Filter'))
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
@@ -69,23 +68,17 @@ class ProvinceResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            //
+        ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListProvinces::route('/provinces'),
-            'create' => Pages\CreateProvince::route('/provinces/create'),
-            // 'edit' => Pages\EditProvince::route('/provinces/{province}/edit'),
-            'view_provinces' => Pages\ListProvinces::route('/regions/{record}/provinces'),
+            'index' => Pages\ListProvinces::route('/'),
+            'create' => Pages\CreateProvince::route('/create'),
+            'edit' => Pages\EditProvince::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->where('region_id', request('record'));
     }
 }

@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\ProvinceResource\Pages;
+namespace App\Filament\Resources\DistrictResource\Pages;
 
-use App\Filament\Resources\ProvinceResource;
+use App\Filament\Resources\DistrictResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListProvinces extends ListRecords
+class ListDistricts extends ListRecords
 {
-    protected static string $resource = ProvinceResource::class;
+    protected static string $resource = DistrictResource::class;
 
     protected function getHeaderActions(): array
     {

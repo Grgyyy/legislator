@@ -7,6 +7,7 @@ use App\Filament\Resources\TviResource\RelationManagers;
 use App\Models\Tvi;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -36,6 +37,37 @@ class TviResource extends Resource
             ->schema([
                 TextInput::make("name")
                     ->required(),
+                TextInput::make("district")
+                    ->required(),
+                Select::make("province_id")
+                    ->relationship("province", "name")
+                    ->required(),
+                TextInput::make("municipality_class")
+                    ->label("Municipality Class")
+                    ->required(),
+                Select::make('tvi_type')
+                    ->label("Institution Type")
+                    ->options([
+                        'Private' => 'Private',
+                        'Public' => 'Public'
+                    ])
+                    ->required(),
+                Select::make('tvi_class')
+                    ->label("Classification")
+                    ->options([
+                        'TVI' => 'TVI',
+                        'HEI' => 'HEI',
+                        'Farm School' => 'Farm School',
+                        'TTI' => 'TTI',
+                        'LGU-Run' => 'LGU-Run',
+                        'SUC' => 'SUC',
+                        'HUC' => 'HUC',
+                        'NGO/NGA' => 'NGO/NGA',
+                        'GOCC' => 'GOCC',
+                    ])
+                    ->required(),
+                TextInput::make("address")
+                    ->required(),
             ]);
     }
 
@@ -44,6 +76,29 @@ class TviResource extends Resource
         return $table
             ->columns([
                 TextColumn::make("name")
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make("district")
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make("province.name")
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make("province.region.name")
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make("municipality_class")
+                    ->label("Municipality Class")
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make("tvi_type")
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make("tvi_class")
+                    ->label("Telephone Number")
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make("address")
                     ->sortable()
                     ->searchable(),
             ])

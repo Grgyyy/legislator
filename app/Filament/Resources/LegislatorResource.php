@@ -53,6 +53,7 @@ class LegislatorResource extends Resource
                 TextColumn::make("particular.name"),
                 TextColumn::make("particular.province.name"),
                 TextColumn::make("particular.province.region.name"),    
+                TextColumn::make("status"),   
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),

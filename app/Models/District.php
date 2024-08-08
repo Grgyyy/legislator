@@ -4,19 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Region extends Model
+class District extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'name',
+        'region_id'
     ];
 
 
-    public function district() {
-        return $this->hasMany(District::class);
+    public function region() {
+        return $this->belongsTo(Region::class);
     }
 
     public function provinces() {
