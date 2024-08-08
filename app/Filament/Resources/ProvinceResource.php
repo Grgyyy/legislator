@@ -30,7 +30,7 @@ class ProvinceResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required(),
-                
+
                 Forms\Components\Select::make('region_id')
                     ->label('Region')
                     ->relationship('region', 'name')
@@ -39,7 +39,7 @@ class ProvinceResource extends Resource
 
                 Forms\Components\Select::make('district_id')
                     ->label('District')
-                    ->options(fn ($get) => District::where('region_id', $get('region_id'))->pluck('name', 'id')->toArray())
+                    ->options(fn($get) => District::where('region_id', $get('region_id'))->pluck('name', 'id')->toArray())
                     ->required(),
             ]);
     }
@@ -57,7 +57,7 @@ class ProvinceResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->filtersTriggerAction(
-                fn (\Filament\Actions\StaticAction $action) => $action
+                fn(\Filament\Actions\StaticAction $action) => $action
                     ->button()
                     ->label('Filter'),
             )
@@ -77,7 +77,7 @@ class ProvinceResource extends Resource
                             Column::make('name')->heading('Name'),
                             Column::make('region.name')->heading('Region Name'),
                             Column::make('created_at')->heading('Date Created'),
-                        ])->withFilename(date('Y-m-d') . ' - Provinces'),
+                        ])->withFilename(date('m-d-Y') . ' - Provinces'),
                     ]),
                 ]),
             ]);
@@ -98,7 +98,7 @@ class ProvinceResource extends Resource
             'edit' => Pages\EditProvince::route('/{record}/edit'),
         ];
     }
-    
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
