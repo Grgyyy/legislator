@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Filament\Resources\RegionResource\Pages;
 
 use App\Filament\Resources\ProvinceResource;
@@ -13,36 +14,28 @@ class ProvinceUnderRegion extends ListRecords
 {
     protected static string $resource = ProvinceResource::class;
 
-    protected function getTableQuery(): ?Builder
+    public function getTitle(): string
     {
-        // Retrieve the region ID from the route parameter
-        return parent::getTableQuery()->where('region_id', $this->getRegionId());
-    }
-
-    public function getHeader(): ?View
-    {
-        // Retrieve the region ID from the route parameters
         $regionId = $this->getRegionId();
-        
-        // Fetch the region name based on the region ID
         $region = Region::find($regionId);
 
-        // Return a view with the header text or null
-        return ViewFacade::make('filament.region-header', [
-            'header' => $region ? "Provinces - {$region->name}" : "Provinces",
-        ]);
+        return $region ? "Provinces - {$region->name}" : "Provinces";
+    }
+
+    protected function getTableQuery(): ?Builder
+    {
+        return parent::getTableQuery()->where('region_id', $this->getRegionId());
     }
 
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()->label('New Province'),
+            CreateAction::make(),
         ];
     }
 
     protected function getRegionId(): ?int
     {
-        // Retrieve the region ID from the route parameters
         return (int) request()->route('record');
     }
 }

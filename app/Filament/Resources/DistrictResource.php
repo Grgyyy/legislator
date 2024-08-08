@@ -15,6 +15,9 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class DistrictResource extends Resource
 {
@@ -26,22 +29,20 @@ class DistrictResource extends Resource
 
     public static function form(Form $form): Form
     {
-        $regionId = Region::where('name', 'NCR')->value('id');
+    // Fetch the ID of the 'NCR' region
+    $ncrId = Region::where('name', 'NCR')->value('id');
 
-        return $form
-            ->schema([
-                TextInput::make('name')->required(),
-                Select::make('region_id')
-                    ->label('Region')
-                    ->options(
-                        Region::all()->pluck('name', 'id')->toArray() // Get regions as [id => name] array
-                    )
-                    ->default(
-                        Region::where('name', 'NCR')->value('id') // Set default ID
-                    )
-                    ->required()
-                    ->disabled(),
-            ]);
+    return $form
+        ->schema([
+            TextInput::make('name')->required(),
+            Select::make('region_id')
+                ->label('Region')
+                ->options([
+                    $ncrId => 'NCR'
+                ])
+                ->default($ncrId)
+                ->required(),
+        ]);
     }
 
     public static function table(Table $table): Table
@@ -61,10 +62,22 @@ class DistrictResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(), 
+                Tables\Actions\RestoreAction::make(), 
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(), 
+                    Tables\Actions\RestoreBulkAction::make(), 
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                        ->withColumns([
+                            Column::make('name')->heading('Region Name'),
+                            Column::make('created_at')->heading('Date Created'),
+                        ])
+                        ->withFilename(date('Y-m-d') . ' - Districts')
+                    ]),
                 ]),
             ]);
     }

@@ -12,11 +12,16 @@ class Province extends Model
 
     protected $fillable = [
         'name',
-        'region_id'
+        'region_id',
+        'district_id'
     ];
 
     public function region() {
         return $this->belongsTo(Region::class);
+    }
+
+    public function district() {
+        return $this->belongsTo(District::class);
     }
 
     public function particular() {
