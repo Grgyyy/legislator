@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -55,6 +56,11 @@ class ProvinceResource extends Resource
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
+            ->filtersTriggerAction(
+                fn (\Filament\Actions\StaticAction $action) => $action
+                    ->button()
+                    ->label('Filter'),
+            )
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
@@ -91,5 +97,13 @@ class ProvinceResource extends Resource
             'create' => Pages\CreateProvince::route('/create'),
             'edit' => Pages\EditProvince::route('/{record}/edit'),
         ];
+    }
+    
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

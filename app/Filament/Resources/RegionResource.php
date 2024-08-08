@@ -45,7 +45,7 @@ class RegionResource extends Resource
                     ->searchable()
                     ->url(fn (Region $record): string => $record->name === 'NCR'
                         ? route('filament.admin.resources.districts.index')
-                        : route('filament.admin.resources.regions.provinceUnderRegion', ['record' => $record->id]) 
+                        : route('filament.admin.resources.regions.show_provinces', ['record' => $record->id]) 
                      ),
             ])
             ->filters([
@@ -91,7 +91,7 @@ class RegionResource extends Resource
             'index' => Pages\ListRegions::route('/'),
             'create' => Pages\CreateRegion::route('/create'),
             'edit' => Pages\EditRegion::route('/{record}/edit'),
-            'provinceUnderRegion' => Pages\ProvinceUnderRegion::route('/{record}/province'),            
+            'show_provinces' => Pages\ShowProvinces::route('/{record}/province'),
         ];
     }
 
