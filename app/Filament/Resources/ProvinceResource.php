@@ -33,6 +33,10 @@ class ProvinceResource extends Resource
                     ->label("Region")
                     ->relationship("region", "name")
                     ->required(),
+                // Forms\Components\Select::make('district_id')
+                //     ->label("District")
+                //     ->relationship("district", "name")
+                //     ->required(),
             ]);
     }
 
