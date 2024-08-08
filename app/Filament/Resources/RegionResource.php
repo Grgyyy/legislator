@@ -43,16 +43,17 @@ class RegionResource extends Resource
                 TextColumn::make("name")
                     ->sortable()
                     ->searchable()
-                    ->url(fn (Region $record): string => $record->name === 'NCR'
+                    ->url(
+                        fn(Region $record): string => $record->name === 'NCR'
                         ? route('filament.admin.resources.districts.index')
-                        : route('filament.admin.resources.regions.show_provinces', ['record' => $record->id]) 
-                     ),
+                        : route('filament.admin.resources.regions.show_provinces', ['record' => $record->id])
+                    ),
             ])
             ->filters([
                 TrashedFilter::make(),
             ])
             ->filtersTriggerAction(
-                fn (\Filament\Actions\StaticAction $action) => $action
+                fn(\Filament\Actions\StaticAction $action) => $action
                     ->button()
                     ->label('Filter'),
             )
@@ -64,16 +65,19 @@ class RegionResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(), 
-                    Tables\Actions\RestoreBulkAction::make(), 
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                        ->withColumns([
-                            Column::make('name')->heading('Region Name'),
-                            Column::make('created_at')->heading('Date Created'),
-                        ])
-                        ->withFilename(date('Y-m-d') . ' - Regions')
-                    ]),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Region Name'),
+                                    Column::make('created_at')
+                                        ->heading('Date Created'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Regions')
+                        ]),
                 ]),
             ]);
     }

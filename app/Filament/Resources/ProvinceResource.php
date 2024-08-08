@@ -77,7 +77,7 @@ class ProvinceResource extends Resource
                             Column::make('name')->heading('Name'),
                             Column::make('region.name')->heading('Region Name'),
                             Column::make('created_at')->heading('Date Created'),
-                        ])->withFilename(date('Y-m-d') . ' - Provinces'),
+                        ])->withFilename(date('m-d-Y') . ' - Provinces'),
                     ]),
                 ]),
             ]);

@@ -24,7 +24,7 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 class LegislatorResource extends Resource
 {
     protected static ?string $model = Legislator::class;
-
+    // 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
@@ -49,37 +49,37 @@ class LegislatorResource extends Resource
                 TextColumn::make("name")
                     ->label('Legislator')
                     ->sortable()
-                    ->searchable(),  
+                    ->searchable(),
                 TextColumn::make("particular.name"),
                 TextColumn::make("particular.province.name"),
-                TextColumn::make("particular.province.region.name"),    
-                TextColumn::make("status"),   
+                TextColumn::make("particular.province.region.name"),
+                TextColumn::make("status"),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->filtersTriggerAction(
-                fn (\Filament\Actions\StaticAction $action) => $action
+                fn(\Filament\Actions\StaticAction $action) => $action
                     ->button()
                     ->label('Filter'),
             )
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(), 
-                Tables\Actions\RestoreAction::make(), 
+                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(), 
-                    Tables\Actions\RestoreBulkAction::make(), 
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
-                        ->withColumns([
-                            Column::make('name')->heading('Region Name'),
-                            Column::make('created_at')->heading('Date Created'),
-                        ])
-                        ->withFilename(date('Y-m-d') . ' - Legislators')
+                            ->withColumns([
+                                Column::make('name')->heading('Region Name'),
+                                Column::make('created_at')->heading('Date Created'),
+                            ])
+                            ->withFilename(date('Y-m-d') . ' - Legislators')
                     ]),
                 ]),
             ]);

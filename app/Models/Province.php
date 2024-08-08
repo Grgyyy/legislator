@@ -16,22 +16,27 @@ class Province extends Model
         'district_id'
     ];
 
-    public function region() {
+    public function region()
+    {
         return $this->belongsTo(Region::class);
     }
 
-    public function district() {
+    public function district()
+    {
         return $this->belongsTo(District::class);
     }
 
-    public function particular() {
+    public function particular()
+    {
         return $this->hasMany(Particular::class);
     }
 
-    public function tvi() {
+    public function tvi()
+    {
         return $this->hasMany(Tvi::class);
     }
-    public function target() {
+    public function target()
+    {
         return $this->hasMany(Target::class);
     }
 }
