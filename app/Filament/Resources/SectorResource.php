@@ -4,44 +4,35 @@ namespace App\Filament\Resources;
 
 use Filament\Forms;
 use Filament\Tables;
-use App\Models\TviType;
+use App\Models\Sector;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use function Laravel\Prompts\search;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
-
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\RestoreBulkAction;
-use App\Filament\Resources\TviTypeResource\Pages;
+use App\Filament\Resources\SectorResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\SectorResource\RelationManagers;
+use pxlrbt\FilamentExcel\Columns\Column;
 
-class TviTypeResource extends Resource
+class SectorResource extends Resource
 {
-    protected static ?string $model = TviType::class;
+    protected static ?string $model = Sector::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
-    protected static ?string $navigationParentItem = "TVI";
-    protected static ?string $navigationLabel = "TVI Types";
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
-
-    // public static function getNavigationParentItem(): ?string
-    // {
-    //     return __('filament/navigation.groups.tvi.items.tvi-types');
-    // }
-
+    protected static ?string $navigationLabel = "Sectors";
+    protected static ?string $navigationIcon = 'heroicon-o-cog-8-tooth';
 
     public static function form(Form $form): Form
     {
@@ -49,7 +40,7 @@ class TviTypeResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->required()
-                    ->label('TVI Type')
+                    ->label('Sector')
                     ->unique(ignoreRecord: true),
             ]);
     }
@@ -59,7 +50,7 @@ class TviTypeResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('TVI Types')
+                    ->label('Sector')
                     ->sortable()
                     ->searchable(),
             ])
@@ -86,11 +77,11 @@ class TviTypeResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('TVI Type'),
+                                        ->heading('Sector'),
                                     Column::make('created_at')
                                         ->heading('Date Created')
                                 ])
-                                ->withFilename(date('m-d-Y') . '- TVI Types')
+                                ->withFilename(date('m-d-Y') . '- Sectors')
                         ]),
                 ]),
             ]);
@@ -106,12 +97,11 @@ class TviTypeResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTviTypes::route('/'),
-            'create' => Pages\CreateTviType::route('/create'),
-            'edit' => Pages\EditTviType::route('/{record}/edit'),
+            'index' => Pages\ListSectors::route('/'),
+            'create' => Pages\CreateSector::route('/create'),
+            'edit' => Pages\EditSector::route('/{record}/edit'),
         ];
     }
-
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

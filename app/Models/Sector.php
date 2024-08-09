@@ -6,14 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ScholarshipProgram extends Model
+class Sector extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'code',
         'name',
-        'desc',
     ];
 
     public function qualificationTitle()
@@ -21,8 +19,4 @@ class ScholarshipProgram extends Model
         return $this->hasMany(QualificationTitle::class);
     }
 
-    public function target()
-    {
-        return $this->hasMany(Target::class);
-    }
 }

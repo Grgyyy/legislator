@@ -2,19 +2,26 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Forms;
+use Filament\Tables;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use App\Models\ScholarshipProgram;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use PhpOffice\PhpSpreadsheet\Calculation\LookupRef\Unique;
 use App\Filament\Resources\ScholarshipProgramResource\Pages;
 use App\Filament\Resources\ScholarshipProgramResource\RelationManagers;
-use App\Models\ScholarshipProgram;
-use Filament\Forms;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Forms\Components\Select;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ScholarshipProgramResource extends Resource
 {
@@ -28,10 +35,10 @@ class ScholarshipProgramResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make("qualification_title")
-                    ->label('Qualification Title')
-                    ->required(),
-                TextInput::make("qualification_code"),
+                TextInput::make("code")
+                    ->label('Scholarship Program Code')
+                    ->required()
+                    ->unique(ignoreRecord: true),
                 Select::make('name')
                     ->label("Scholarship Program")
                     ->options([
@@ -40,15 +47,12 @@ class ScholarshipProgramResource extends Resource
                         'TTSP' => 'TTSP',
                         'UAQTEA' => 'UAQTEA'
                     ])
-                    ->required(),
-                TextInput::make("training_cost")
-                    ->label('Training Cost PCC')
-                    ->numeric()
-                    ->required(),
-                TextInput::make("toolkit_cost")
-                    ->label('Cost of Toolkit PCC')
-                    ->numeric()
-                    ->required(),
+                    ->required()
+                    ->unique(ignoreRecord: true),
+                TextInput::make("desc")
+                    ->label('Description')
+                    ->required()
+                    ->unique(ignoreRecord: true),
             ]);
     }
 
@@ -56,47 +60,52 @@ class ScholarshipProgramResource extends Resource
     {
         return $table
             ->columns([
-                
-                TextColumn::make("qualification_code")
-                    ->label("Qualification Code")
-                    ->sortable()
-                    ->searchable(),
-                TextColumn::make("qualification_title")
-                    ->label("Qualification Title")
+
+                TextColumn::make("code")
+                    ->label("Scholarship Program Code")
                     ->sortable()
                     ->searchable(),
                 TextColumn::make("name")
                     ->label("Scholarship Program")
                     ->sortable()
                     ->searchable(),
-                TextColumn::make("training_cost")
-                    ->label("Training Cost PCC")
+                TextColumn::make("desc")
+                    ->label("Description")
                     ->sortable()
-                    ->formatStateUsing(fn ($state) => '₱ ' . $state),
-                TextColumn::make("toolkit_cost")
-                    ->label("Cost of Toolkit PCC")
-                    ->sortable()
-                    ->formatStateUsing(fn ($state) => '₱ ' . $state),
+                    ->searchable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->filtersTriggerAction(
-                fn (\Filament\Actions\StaticAction $action) => $action
+                fn(\Filament\Actions\StaticAction $action) => $action
                     ->button()
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                // Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(), 
-                Tables\Actions\RestoreAction::make(), 
+                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(), 
-                    Tables\Actions\RestoreBulkAction::make(), 
+                BulkActionGroup::make([
+                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('code')
+                                        ->heading('Scholarship Program Code'),
+                                    Column::make('name')
+                                        ->heading('Scholarship Program'),
+                                    Column::make('desc')
+                                        ->heading('Description'),
+                                    Column::make('created_at')
+                                        ->heading('Date Created'),
+                                ])->WithFilename(date('m-d-Y') . '- Scholarship Program'),
+                        ]),
                 ]),
             ]);
     }
@@ -115,5 +124,12 @@ class ScholarshipProgramResource extends Resource
             'create' => Pages\CreateScholarshipProgram::route('/create'),
             'edit' => Pages\EditScholarshipProgram::route('/{record}/edit'),
         ];
+    }
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }
