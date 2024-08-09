@@ -38,32 +38,52 @@ class AllocationResource extends Resource
                     ->relationship("legislator", "name"),
 
                 Grid::make(2)
-                ->schema([
-                    TextInput::make('twsp_allocation')
-                        ->label('TWSP Allocation')
-                        ->required()
-                        ->reactive()
-                        ->afterStateUpdated(function (callable $set, $state) {
-                            $set('twsp_admin_cost', $state * 2);
-                        }),
-                    TextInput::make('twsp_admin_cost')
-                        ->label('TWSP Admin Cost')
-                        ->readOnly()
-                        ->default('0'),
-                ]),
-                
+                    ->schema([
+                        TextInput::make('twsp_allocation')
+                            ->label('TWSP Allocation')
+                            ->required()
+                            ->numeric()
+                            ->default(0)
+                            ->prefix('₱')
+                            ->minValue(0)
+                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                            ->reactive()
+                            ->afterStateUpdated(function (callable $set, $state) {
+                                $set('twsp_admin_cost', $state * 2);
+                            }),
+                        TextInput::make('twsp_admin_cost')
+                            ->label('TWSP Admin Cost')
+                            ->required()
+                            ->numeric()
+                            ->default(0)
+                            ->prefix('₱')
+                            ->minValue(0)
+                            ->readOnly()
+                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                    ]),
+
                 Grid::make(2)->schema([
                     TextInput::make("step_allocation")
                         ->label('STEP Allocation')
                         ->required()
+                        ->numeric()
+                        ->default(0)
+                        ->prefix('₱')
+                        ->minValue(0)
+                        ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                         ->reactive()
                         ->afterStateUpdated(function (callable $set, $state) {
                             $set('step_admin_cost', $state * 2);
                         }),
                     TextInput::make("step_admin_cost")
                         ->label('STEP Admin Cost')
+                        ->required()
+                        ->numeric()
+                        ->default(0)
+                        ->prefix('₱')
+                        ->minValue(0)
                         ->readOnly()
-                        ->default('0'),
+                        ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
                 ]),
             ]);
     }
@@ -74,33 +94,49 @@ class AllocationResource extends Resource
             ->columns([
                 TextColumn::make("legislator.name"),
                 TextColumn::make("twsp_allocation")
-                    ->label('TWSP Allocation'),
+                    ->label('TWSP Allocation')
+                    ->sortable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    }),
                 TextColumn::make("twsp_admin_cost")
-                    ->label('TWSP Admin Cost'),
+                    ->label('TWSP Admin Cost')
+                    ->sortable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    }),
                 TextColumn::make("step_allocation")
-                    ->label('STEP Allocation'),
+                    ->label('STEP Allocation')
+                    ->sortable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    }),
                 TextColumn::make("step_admin_cost")
-                    ->label('STEP Admin Cost'),
+                    ->label('STEP Admin Cost')
+                    ->sortable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    }),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->filtersTriggerAction(
-                fn (\Filament\Actions\StaticAction $action) => $action
+                fn(\Filament\Actions\StaticAction $action) => $action
                     ->button()
                     ->label('Filter'),
             )
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(), 
-                Tables\Actions\RestoreAction::make(), 
+                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(), 
-                    Tables\Actions\RestoreBulkAction::make(), 
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ]);
     }

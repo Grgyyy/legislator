@@ -40,7 +40,8 @@ class TviClassResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label('TVI Class')
-                    ->required(),
+                    ->required()
+                    ->unique(ignoreRecord: true),
                 Select::make('tvi_type_id')
                     ->label('TVI Type')
                     ->relationship('tviType', 'name')

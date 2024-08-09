@@ -10,15 +10,15 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 class LegislatorImport implements ToModel, WithHeadingRow
 {
     use Importable;
-    /**
-    * @param array $row
-    *
-    * @return \Illuminate\Database\Eloquent\Model|null
-    */
+    /** 
+     * @param array $row
+     *
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
     public function model(array $row)
     {
         return new Legislator([
-            'name'  => $row['name'],
+            'name' => $row['name'],
             'particular' => $row['particular']
         ]);
     }
