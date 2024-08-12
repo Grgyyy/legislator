@@ -52,7 +52,8 @@ class SectorResource extends Resource
                 TextColumn::make('name')
                     ->label('Sector')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make()

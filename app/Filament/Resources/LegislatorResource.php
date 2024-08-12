@@ -33,7 +33,6 @@ class LegislatorResource extends Resource
     {
         return $form
             ->schema([
-
                 TextInput::make("name")
                     ->required(),
                 Select::make("particular")
@@ -49,11 +48,20 @@ class LegislatorResource extends Resource
                 TextColumn::make("name")
                     ->label('Legislator')
                     ->sortable()
-                    ->searchable(),
-                TextColumn::make("particular.name"),
-                TextColumn::make("particular.province.name"),
-                TextColumn::make("particular.province.region.name"),
-                TextColumn::make("status"),
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make("particular.name")
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make("particular.province.name")
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make("particular.province.region.name")
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make("status")
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),

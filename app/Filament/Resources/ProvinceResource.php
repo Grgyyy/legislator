@@ -50,8 +50,12 @@ class ProvinceResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('region.name'),
+                    ->searchable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('region.name')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),

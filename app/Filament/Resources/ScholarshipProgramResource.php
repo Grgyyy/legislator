@@ -64,15 +64,16 @@ class ScholarshipProgramResource extends Resource
                 TextColumn::make("code")
                     ->label("Scholarship Program Code")
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make("name")
                     ->label("Scholarship Program")
-                    ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make("desc")
                     ->label("Description")
-                    ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),

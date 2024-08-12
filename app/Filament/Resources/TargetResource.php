@@ -61,16 +61,29 @@ class TargetResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("legislator.name"),
+                TextColumn::make("legislator.name")
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make("legislator.particular")
-                    ->label('Particular'),
-                TextColumn::make("province.name"),
+                    ->label('Particular')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make("province.name")
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make("province.region.name")
-                    ->label('Region'),
-                TextColumn::make("scholarship_program.name"),
-                TextColumn::make("scholarship_program.name"),
+                    ->label('Region')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make("scholarship_program.name")
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make("tvi.name")
-                    ->label('Institution'),
+                    ->label('Institution')
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),

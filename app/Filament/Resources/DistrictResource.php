@@ -52,10 +52,12 @@ class DistrictResource extends Resource
                 TextColumn::make("name")
                     ->label('District Name')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make("region.name")
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 //

@@ -93,17 +93,14 @@ class QualificationTitleResource extends Resource
                     ->toggleable(),
                 TextColumn::make('title')
                     ->label('Qualification Title')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('scholarshipProgram.name')
                     ->label('Scholarship Program')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('sector.name')
                     ->label('Sector')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('duration')

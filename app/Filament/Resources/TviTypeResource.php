@@ -61,7 +61,8 @@ class TviTypeResource extends Resource
                 TextColumn::make('name')
                     ->label('TVI Types')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make()

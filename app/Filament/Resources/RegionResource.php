@@ -43,6 +43,7 @@ class RegionResource extends Resource
                 TextColumn::make("name")
                     ->sortable()
                     ->searchable()
+                    ->toggleable()
                     ->url(fn (Region $record): string => $record->name === 'NCR'
                         ? route('filament.admin.resources.districts.index')
                         : route('filament.admin.resources.regions.show_provinces', ['record' => $record->id]) 
