@@ -22,7 +22,7 @@ class ProvinceResource extends Resource
     protected static ?string $model = Province::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-map';
 
     public static function form(Form $form): Form
     {
@@ -50,8 +50,12 @@ class ProvinceResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->sortable()
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('region.name'),
+                    ->searchable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('region.name')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),

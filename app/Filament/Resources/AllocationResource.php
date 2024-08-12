@@ -92,28 +92,35 @@ class AllocationResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("legislator.name"),
+                TextColumn::make("legislator.name")
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make("twsp_allocation")
                     ->label('TWSP Allocation')
                     ->sortable()
+                    ->toggleable()
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
                     }),
                 TextColumn::make("twsp_admin_cost")
                     ->label('TWSP Admin Cost')
                     ->sortable()
+                    ->toggleable()
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
                     }),
                 TextColumn::make("step_allocation")
                     ->label('STEP Allocation')
                     ->sortable()
+                    ->toggleable()
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
                     }),
                 TextColumn::make("step_admin_cost")
                     ->label('STEP Admin Cost')
                     ->sortable()
+                    ->toggleable()
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
                     }),

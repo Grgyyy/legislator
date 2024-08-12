@@ -23,7 +23,7 @@ class DistrictResource extends Resource
 {
     protected static ?string $model = District::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
@@ -52,10 +52,12 @@ class DistrictResource extends Resource
                 TextColumn::make("name")
                     ->label('District Name')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make("region.name")
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 //
