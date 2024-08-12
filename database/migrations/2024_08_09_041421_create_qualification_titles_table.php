@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('qualification_titles', function (Blueprint $table) {
             $table->id();
-            $table->tinyText('code')->unique();
+            $table->string('code')->unique();
             $table->string('title');
             $table->foreignId('scholarship_program_id')
                 ->constrained()
