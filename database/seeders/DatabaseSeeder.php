@@ -12,10 +12,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-       // Call the RegionTableSeeder
-       $this->call(RegionTableSeeder::class);
-       $this->call(DistrictTableSeeder::class);
-       // You can call other seeders here as well
-       // $this->call(OtherSeeder::class);
+        // Call the RegionTableSeeder
+        $this->call(RegionTableSeeder::class);
+        $this->call(DistrictTableSeeder::class);
+        // You can call other seeders here as well
+        // $this->call(OtherSeeder::class);
     }
 }
