@@ -32,10 +32,10 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->colors([
                 'danger' => Color::Rose,
-            'gray' => Color::Gray,
-            'info' => Color::Blue,
-            'success' => Color::Emerald,
-            'warning' => Color::Orange,
+                'gray' => Color::Gray,
+                'info' => Color::Blue,
+                'success' => Color::Emerald,
+                'warning' => Color::Orange,
                 'primary' => '#3433dc',
             ])
             ->font('Poppins')
