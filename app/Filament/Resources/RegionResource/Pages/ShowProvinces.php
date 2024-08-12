@@ -20,9 +20,9 @@ class ShowProvinces extends ListRecords
     public function getBreadcrumbs(): array
     {
         $regionId = $this->getRegionId();
-        
+
         $region = Region::find($regionId);
-        
+
         return [
             'regions' => $region ? $region->name : 'Regions',
             'Provinces',
