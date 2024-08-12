@@ -30,18 +30,21 @@ class ProvinceResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required(),
-
                 Forms\Components\Select::make('region_id')
                     ->label('Region')
                     ->relationship('region', 'name')
+                    ->default(fn($get) => request()->get('region_id')) // Set the default value from the URL query parameter
                     ->reactive()
-                    ->required(),
+                    ->required()
+                    ->afterStateUpdated(fn($state, $set) => $set('district_id', District::where('region_id', $state)->first()?->id)),
 
                 Forms\Components\Select::make('district_id')
                     ->label('District')
                     ->options(fn($get) => District::where('region_id', $get('region_id'))->pluck('name', 'id')->toArray())
+                    ->default(fn($get) => District::where('region_id', $get('region_id'))->first()?->id)
                     ->required(),
-            ]);
+            ])
+            ->columns(2);
     }
 
     public static function table(Table $table): Table

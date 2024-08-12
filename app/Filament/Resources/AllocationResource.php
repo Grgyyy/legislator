@@ -32,10 +32,10 @@ class AllocationResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Select::make('legislator_id')
-                    ->relationship("legislator", "name"),
+    return $form
+        ->schema([
+            Select::make('legislator_id')
+                ->relationship("legislator", "legislator_name"),
 
                 Grid::make(2)
                     ->schema([
