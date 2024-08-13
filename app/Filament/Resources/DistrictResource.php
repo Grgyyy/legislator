@@ -99,4 +99,13 @@ class DistrictResource extends Resource
             'edit' => Pages\EditDistrict::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ])
+            ->where('name', '!=', 'Not Applicable');
+    }
 }
