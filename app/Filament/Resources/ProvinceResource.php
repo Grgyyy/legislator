@@ -24,6 +24,8 @@ class ProvinceResource extends Resource
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
     protected static ?string $navigationIcon = 'heroicon-o-map';
 
+    protected static ?string $navigationParentItem = "Regions";
+
     public static function form(Form $form): Form
     {
         return $form
