@@ -36,13 +36,6 @@ class ProvinceResource extends Resource
                     ->default(fn($get) => request()->get('region_id')) // Set the default value from the URL query parameter
                     ->reactive()
                     ->required()
-                    ->afterStateUpdated(fn($state, $set) => $set('district_id', District::where('region_id', $state)->first()?->id)),
-
-                Forms\Components\Select::make('district_id')
-                    ->label('District')
-                    ->options(fn($get) => District::where('region_id', $get('region_id'))->pluck('name', 'id')->toArray())
-                    ->default(fn($get) => District::where('region_id', $get('region_id'))->first()?->id)
-                    ->required(),
             ])
             ->columns(2);
     }
@@ -73,7 +66,7 @@ class ProvinceResource extends Resource
                 Tables\Actions\DeleteAction::make()
                     ->action(function ($record) {
                         $record->delete();
-                        return redirect()->route('filament.resources.provinces.index'); // Redirect to the index page of provinces
+                        return redirect()->route('filament.admin.resources.provinces.index'); 
                     }),
             ])
             ->bulkActions([
@@ -107,22 +100,22 @@ class ProvinceResource extends Resource
     }
 
     public static function getEloquentQuery(): Builder
-{
-    $query = parent::getEloquentQuery();
+    {
+        $query = parent::getEloquentQuery();
 
-    $query->withoutGlobalScopes([
-        SoftDeletingScope::class,
-    ]);
+        $query->withoutGlobalScopes([
+            SoftDeletingScope::class,
+        ]);
 
-    // Check if we're on the edit page by checking for the presence of 'record' in the route
-    $routeParameter = request()->route('record');
+        // Check if we're on the edit page by checking for the presence of 'record' in the route
+        $routeParameter = request()->route('record');
 
-    // If it's not an edit page or the 'record' parameter is not numeric, apply the filter
-    if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
-        $query->where('region_id', (int) $routeParameter);
+        // If it's not an edit page or the 'record' parameter is not numeric, apply the filter
+        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            $query->where('region_id', (int) $routeParameter);
+        }
+
+        return $query;
     }
-
-    return $query;
-}
 
 }

@@ -14,7 +14,6 @@ class DatabaseSeeder extends Seeder
     {
        // Call the RegionTableSeeder
        $this->call(RegionTableSeeder::class);
-       $this->call(DistrictTableSeeder::class);
        // You can call other seeders here as well
        // $this->call(OtherSeeder::class);
     }

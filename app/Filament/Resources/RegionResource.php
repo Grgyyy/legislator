@@ -44,10 +44,7 @@ class RegionResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->url(fn (Region $record): string => $record->name === 'NCR'
-                        ? route('filament.admin.resources.regions.show_districts', ['record' => $record->id])
-                        : route('filament.admin.resources.regions.show_provinces', ['record' => $record->id]) 
-                     ),
+                    ->url(fn ($record) => route('filament.admin.resources.regions.show_provinces', ['record' => $record->id])),
             ])
             ->filters([
                 TrashedFilter::make(),
@@ -93,7 +90,6 @@ class RegionResource extends Resource
             'create' => Pages\CreateRegion::route('/create'),
             'edit' => Pages\EditRegion::route('/{record}/edit'),
             'show_provinces' => Pages\ShowProvinces::route('/{record}/province'),
-            'show_districts' => Pages\ShowDistricts::route('/{record}/district'),
         ];
     }
 

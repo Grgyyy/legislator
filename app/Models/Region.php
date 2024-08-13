@@ -14,11 +14,6 @@ class Region extends Model
         'name',
     ];
 
-
-    public function district() {
-        return $this->hasMany(District::class);
-    }
-
     public function provinces() {
         return $this->hasMany(Province::class);
     }

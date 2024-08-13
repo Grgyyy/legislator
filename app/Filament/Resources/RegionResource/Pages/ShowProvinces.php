@@ -32,18 +32,18 @@ class ShowProvinces extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        $regionId = $this->getRegionId(); // Make sure $regionId is available here
+        $regionId = $this->getRegionId();
 
         return [
             CreateAction::make()
                 ->label('New Province')
-                ->url(route('filament.admin.resources.provinces.create', ['region_id' => $regionId])) // Pass region_id in the route
+                ->url(route('filament.admin.resources.provinces.create', ['region_id' => $regionId]))
         ];
     }
 
     protected function getRegionId(): ?int
     {
         // Retrieve the region ID from the route parameters
-        return (int) request()->route('region_id');
+        return (int) request()->route('record');
     }
 }

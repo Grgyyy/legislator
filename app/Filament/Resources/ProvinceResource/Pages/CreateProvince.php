@@ -3,9 +3,7 @@
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
 use App\Filament\Resources\ProvinceResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Facades\Request;
 
 class CreateProvince extends CreateRecord
 {
@@ -13,10 +11,10 @@ class CreateProvince extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        $regionId = Request::input('region_id');
+        $regionId = $this->record->region_id;
         
         if ($regionId) {
-            return route('filament.resources.provinces.provinces-under-region', ['record' => $regionId]);
+            return route('filament.admin.resources.regions.show_provinces', ['record' => $regionId]);
         }
 
         return $this->getResource()::getUrl('index');
