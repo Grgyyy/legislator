@@ -10,6 +10,11 @@ class EditDistrict extends EditRecord
 {
     protected static string $resource = DistrictResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+    
     protected function getHeaderActions(): array
     {
         return [

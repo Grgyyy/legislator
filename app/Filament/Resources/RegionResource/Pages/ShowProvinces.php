@@ -9,16 +9,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\View as ViewFacade;
 use App\Filament\Resources\RegionResource\Pages;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ShowProvinces extends ListRecords
 {
     protected static string $resource = ProvinceResource::class;
-
-    protected function getTableQuery(): ?Builder
-    {
-        // Retrieve the region ID from the route parameter
-        return parent::getTableQuery()->where('region_id', $this->getRegionId());
-    }
 
     protected ?string $heading = 'Provinces';
 
@@ -49,6 +44,6 @@ class ShowProvinces extends ListRecords
     protected function getRegionId(): ?int
     {
         // Retrieve the region ID from the route parameters
-        return (int) request()->route('record');
+        return (int) request()->route('region_id');
     }
 }

@@ -3,16 +3,15 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\DistrictResource\Pages;
-use App\Filament\Resources\DistrictResource\RelationManagers;
 use App\Models\Region;
 use App\Models\District;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -29,20 +28,20 @@ class DistrictResource extends Resource
 
     public static function form(Form $form): Form
     {
-    // Fetch the ID of the 'NCR' region
-    $ncrId = Region::where('name', 'NCR')->value('id');
+        // Fetch the ID of the 'NCR' region
+        $ncrId = Region::where('name', 'NCR')->value('id');
 
-    return $form
-        ->schema([
-            TextInput::make('name')->required(),
-            Select::make('region_id')
-                ->label('Region')
-                ->options([
-                    $ncrId => 'NCR'
-                ])
-                ->default($ncrId)
-                ->required(),
-        ]);
+        return $form
+            ->schema([
+                TextInput::make('name')->required(),
+                Select::make('region_id')
+                    ->label('Region')
+                    ->options([
+                        $ncrId => 'NCR'
+                    ])
+                    ->default($ncrId)
+                    ->required(),
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -75,7 +74,7 @@ class DistrictResource extends Resource
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                         ->withColumns([
-                            Column::make('name')->heading('Region Name'),
+                            Column::make('name')->heading('District Name'),
                             Column::make('created_at')->heading('Date Created'),
                         ])
                         ->withFilename(date('Y-m-d') . ' - Districts')
@@ -95,17 +94,33 @@ class DistrictResource extends Resource
     {
         return [
             'index' => Pages\ListDistricts::route('/'),
-            'create' => Pages\CreateDistrict::route('/create'),
             'edit' => Pages\EditDistrict::route('/{record}/edit'),
+            'create' => Pages\CreateDistrict::route('/create'),
+           
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
-            ->where('name', '!=', 'Not Applicable');
+        $query = parent::getEloquentQuery();
+
+        // Remove global scopes like SoftDeletingScope for the query
+        $query->withoutGlobalScopes([
+            SoftDeletingScope::class,
+        ]);
+
+        // Apply general filters
+        $query->where('name', '!=', 'Not Applicable');
+
+        // Check if the current route is for editing by looking for the 'edit' segment in the URL
+        // Adjust this pattern based on your route structure
+        if (!request()->is('*/edit') && $regionId = request()->route('record')) {
+            if (is_numeric($regionId)) {
+                $query->where('region_id', (int) $regionId);
+            }
+        }
+
+        return $query;
     }
+
 }

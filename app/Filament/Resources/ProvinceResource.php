@@ -107,10 +107,22 @@ class ProvinceResource extends Resource
     }
 
     public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+{
+    $query = parent::getEloquentQuery();
+
+    $query->withoutGlobalScopes([
+        SoftDeletingScope::class,
+    ]);
+
+    // Check if we're on the edit page by checking for the presence of 'record' in the route
+    $routeParameter = request()->route('record');
+
+    // If it's not an edit page or the 'record' parameter is not numeric, apply the filter
+    if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+        $query->where('region_id', (int) $routeParameter);
     }
+
+    return $query;
+}
+
 }
