@@ -47,7 +47,8 @@ class ProvinceResource extends Resource
                 Tables\Columns\TextColumn::make('name')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->url(fn ($record) => route('filament.admin.resources.provinces.showMunicipalities', ['record' => $record->id])),
                 Tables\Columns\TextColumn::make('region.name')
                     ->sortable()
                     ->searchable()
@@ -96,6 +97,7 @@ class ProvinceResource extends Resource
             'index' => Pages\ListProvinces::route('/'),
             'create' => Pages\CreateProvince::route('/create'),
             'edit' => Pages\EditProvince::route('/{record}/edit'),
+            'showMunicipalities' => Pages\ShowMunicipalities::route('/{record}/municipalities'),
         ];
     }
 

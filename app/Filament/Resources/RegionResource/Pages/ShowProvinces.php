@@ -43,7 +43,6 @@ class ShowProvinces extends ListRecords
 
     protected function getRegionId(): ?int
     {
-        // Retrieve the region ID from the route parameters
         return (int) request()->route('record');
     }
 }

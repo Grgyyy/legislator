@@ -20,6 +20,10 @@ class Province extends Model
         return $this->belongsTo(Region::class);
     }
 
+    public function municipality() {
+        return $this->hasMany(Municipality::class);
+    }
+
     public function particular()
     {
         return $this->hasMany(Particular::class);
