@@ -28,7 +28,7 @@ class TviClassResource extends Resource
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
     protected static ?string $navigationParentItem = "TVI";
-    protected static ?string $navigationLabel = "TVI Classes";
+    protected static ?string $navigationLabel = "TVI Classes (A)";
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
 
@@ -39,7 +39,7 @@ class TviClassResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
-                    ->label('TVI Class')
+                    ->label('TVI Class (A)')
                     ->required()
                     ->unique(ignoreRecord: true),
                 Select::make('tvi_type_id')
@@ -54,7 +54,7 @@ class TviClassResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->Label('TVI Classes')
+                    ->Label('TVI Classes (A)')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -83,12 +83,12 @@ class TviClassResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('TVI Class'),
+                                        ->heading('TVI Class (A)'),
                                     Column::make('tviType.name')
                                         ->heading('TVI Type'),
                                     Column::make('created_at')
                                         ->heading('Date Created'),
-                                ])->WithFilename(date('m-d-Y') . '- TVI Class'),
+                                ])->WithFilename(date('m-d-Y') . '- TVI Class (A)'),
                         ]),
                 ]),
             ]);
