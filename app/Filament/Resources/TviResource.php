@@ -32,7 +32,7 @@ class TviResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
 
-    protected static ?string $navigationLabel = 'TVI';
+    protected static ?string $navigationLabel = 'Provider';
 
 
 

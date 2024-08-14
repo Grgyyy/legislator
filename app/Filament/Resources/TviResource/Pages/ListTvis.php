@@ -10,7 +10,7 @@ class ListTvis extends ListRecords
 {
     protected static string $resource = TviResource::class;
 
-    protected static ?string $title = 'TVI';
+    protected static ?string $title = 'Provider';
 
     protected function getHeaderActions(): array
     {
