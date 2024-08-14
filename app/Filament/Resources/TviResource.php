@@ -45,32 +45,19 @@ class TviResource extends Resource
                     ->required(),
                 TextInput::make("district")
                     ->required(),
-                Select::make("province_id")
-                    ->relationship("province", "name")
-                    ->required(),
+                // Select::make("province_id")
+                //     ->relationship("province", "name")
+                //     ->required(),
                 TextInput::make("municipality_class")
                     ->label("Municipality Class")
                     ->required(),
-                Select::make('tvi_type')
-                    ->label("Institution Type")
-                    ->options([
-                        'Private' => 'Private',
-                        'Public' => 'Public'
-                    ])
-                    ->required(),
                 Select::make('tvi_class')
-                    ->label("Classification")
-                    ->options([
-                        'TVI' => 'TVI',
-                        'HEI' => 'HEI',
-                        'Farm School' => 'Farm School',
-                        'TTI' => 'TTI',
-                        'LGU-Run' => 'LGU-Run',
-                        'SUC' => 'SUC',
-                        'HUC' => 'HUC',
-                        'NGO/NGA' => 'NGO/NGA',
-                        'GOCC' => 'GOCC',
-                    ])
+                    ->label("TVI Class (A)")
+                    ->relationship('tviClass', 'name')
+                    ->required(),
+                Select::make('institution_class')
+                    ->label("TVI Class (B)")
+                    ->relationship('InstitutionClass', 'name')
                     ->required(),
                 TextInput::make("address")
                     ->required(),
