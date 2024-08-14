@@ -41,6 +41,7 @@ class InstitutionClassResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->required()
+                    ->autocomplete(false)
                     ->label('TVI Class (B)')
                     ->unique(ignoreRecord: true),
             ]);

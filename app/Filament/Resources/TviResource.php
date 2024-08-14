@@ -42,15 +42,18 @@ class TviResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 TextInput::make("district")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 // Select::make("province_id")
                 //     ->relationship("province", "name")
                 //     ->required(),
                 TextInput::make("municipality_class")
                     ->label("Municipality Class")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 Select::make('tvi_class')
                     ->label("TVI Class (A)")
                     ->relationship('tviClass', 'name')
@@ -60,7 +63,8 @@ class TviResource extends Resource
                     ->relationship('InstitutionClass', 'name')
                     ->required(),
                 TextInput::make("address")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
             ]);
     }
 

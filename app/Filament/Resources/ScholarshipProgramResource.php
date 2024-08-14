@@ -38,6 +38,7 @@ class ScholarshipProgramResource extends Resource
                 TextInput::make("code")
                     ->label('Scholarship Program Code')
                     ->required()
+                    ->autocomplete(false)
                     ->unique(ignoreRecord: true),
                 Select::make('name')
                     ->label("Scholarship Program")
@@ -52,6 +53,7 @@ class ScholarshipProgramResource extends Resource
                 TextInput::make("desc")
                     ->label('Description')
                     ->required()
+                    ->autocomplete(false)
                     ->unique(ignoreRecord: true),
             ]);
     }

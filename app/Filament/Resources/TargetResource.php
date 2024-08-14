@@ -52,6 +52,7 @@ class TargetResource extends Resource
                     ->label('Institution'),
                 TextInput::make('number_of_slots')
                     ->required()
+                    ->autocomplete(false)
                     ->numeric()
                     ->rules(['min:10', 'max:25'])
             ]);

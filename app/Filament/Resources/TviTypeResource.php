@@ -50,6 +50,7 @@ class TviTypeResource extends Resource
                 TextInput::make('name')
                     ->required()
                     ->label('TVI Type')
+                    ->autocomplete(false)
                     ->unique(ignoreRecord: true),
             ]);
     }

@@ -30,7 +30,8 @@ class MunicipalityResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 Select::make("province_id")
                     ->relationship("province", "name")
                     ->default(fn($get) => request()->get('province_id'))

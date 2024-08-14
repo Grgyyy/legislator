@@ -32,7 +32,8 @@ class RegionResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
             ]);
     }
 

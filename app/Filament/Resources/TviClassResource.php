@@ -41,6 +41,7 @@ class TviClassResource extends Resource
                 TextInput::make('name')
                     ->label('TVI Class (A)')
                     ->required()
+                    ->autocomplete(false)
                     ->unique(ignoreRecord: true),
                 Select::make('tvi_type_id')
                     ->label('TVI Type')

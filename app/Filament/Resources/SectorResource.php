@@ -41,6 +41,7 @@ class SectorResource extends Resource
                 TextInput::make('name')
                     ->required()
                     ->label('Sector')
+                    ->autocomplete(false)
                     ->unique(ignoreRecord: true),
             ]);
     }

@@ -31,7 +31,8 @@ class ProvinceResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 Forms\Components\Select::make('region_id')
                     ->label('Region')
                     ->relationship('region', 'name')
