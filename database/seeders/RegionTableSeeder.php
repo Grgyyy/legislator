@@ -17,7 +17,6 @@ class RegionTableSeeder extends Seeder
         $regions = [
             ['name' => 'NCR'],
             ['name' => 'CAR'],
-            ['name' => 'BARMM'],
             ['name' => 'Region I'],
             ['name' => 'Region II'],
             ['name' => 'Region III'],
@@ -31,7 +30,8 @@ class RegionTableSeeder extends Seeder
             ['name' => 'Region X'],
             ['name' => 'Region XI'],
             ['name' => 'Region XII'],
-            ['name' => 'Region XIII'],
+            ['name' => 'CARAGA'],
+            ['name' => 'BARMM'],
         ];
 
         foreach ($regions as $region) {
