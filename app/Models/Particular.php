@@ -12,14 +12,14 @@ class Particular extends Model
 
     protected $fillable = [
         'name',
-        'province_id',
+        'municipality_id',
     ];
 
     public function legislator() {
         return $this->belongsToMany(Legislator::class, 'LegislatorParticular')->withTimestamps();
     }
 
-    public function province() {
-        return $this->belongsTo(Province::class);
+    public function municipality() {
+        return $this->belongsTo(Municipality::class);
     }
 }

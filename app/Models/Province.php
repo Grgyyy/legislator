@@ -13,7 +13,6 @@ class Province extends Model
     protected $fillable = [
         'name',
         'region_id',
-        'district_id'
     ];
 
     public function region()
@@ -21,14 +20,8 @@ class Province extends Model
         return $this->belongsTo(Region::class);
     }
 
-    public function district()
-    {
-        return $this->belongsTo(District::class);
-    }
-
-    public function particular()
-    {
-        return $this->hasMany(Particular::class);
+    public function municipality() {
+        return $this->hasMany(Municipality::class);
     }
 
     public function tvi()

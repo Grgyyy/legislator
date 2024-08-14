@@ -30,9 +30,9 @@ class ParticularResource extends Resource
             ->schema([
                 TextInput::make("name")
                     ->required(),
-                Select::make('province_id')
-                    ->label("Province")
-                    ->relationship("province", "name")
+                Select::make('municipality_id')
+                    ->label("Municipality")
+                    ->relationship("municipality", "name")
                     ->required(),
             ]);
     }
@@ -46,11 +46,14 @@ class ParticularResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("province.region.name")
-                    ->sortable()
+                TextColumn::make("municipality.name")
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("province.name")
+                TextColumn::make("municipality.province.name")
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make("municipality.province.region.name")
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])

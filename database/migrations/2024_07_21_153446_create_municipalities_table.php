@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('particulars', function (Blueprint $table) {
+        Schema::create('municipalities', function (Blueprint $table) {
             $table->id();
-            $table->string("name");
-            $table->foreignId('municipality_id')
+            $table->string('name');
+            $table->foreignId('province_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('particulars');
+        Schema::dropIfExists('municipalities');
     }
 };

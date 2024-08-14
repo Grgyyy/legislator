@@ -14,13 +14,10 @@ return new class extends Migration
         Schema::create('provinces', function (Blueprint $table) {
             $table->id();
             $table->string("name")->unique();
-            $table->timestamps();
             $table->foreignId('region_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->foreignId('district_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->timestamps();
             $table->softDeletes();
         });
     }
