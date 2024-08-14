@@ -65,7 +65,8 @@ class ProvinceResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make()
                     ->action(function ($record) {
                         $record->delete();

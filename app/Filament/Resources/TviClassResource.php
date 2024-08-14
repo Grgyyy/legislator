@@ -72,7 +72,8 @@ class TviClassResource extends Resource
                     ->label('Filter')
             )
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 DeleteAction::make(),
             ])
             ->bulkActions([

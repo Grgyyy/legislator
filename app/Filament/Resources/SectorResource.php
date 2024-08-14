@@ -64,7 +64,8 @@ class SectorResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 DeleteAction::make(),
                 RestoreAction::make(),
             ])

@@ -60,7 +60,8 @@ class MunicipalityResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
