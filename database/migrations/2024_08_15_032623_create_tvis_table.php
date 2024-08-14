@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -19,8 +18,12 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
             $table->string('municipality_class');
-            $table->string('tvi_type');
-            $table->string('tvi_class');
+            $table->foreignId('tvi_class')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('institution_class')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->string('address');
             $table->timestamps();
             $table->softDeletes();

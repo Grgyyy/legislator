@@ -15,16 +15,26 @@ class Tvi extends Model
         'district',
         'province_id',
         'municipality_class',
-        'tvi_type',
-        'tvi_class',
+        'tvi_class_id',
+        'institution_class_id',
         'address',
     ];
 
-    public function target() {
+    public function tviClass()
+    {
+        return $this->belongsTo(TviClass::class);
+    }
+    public function InstitutionClass()
+    {
+        return $this->belongsTo(InstitutionClass::class);
+    }
+    public function target()
+    {
         return $this->hasMany(Target::class);
     }
 
-    public function province() {
+    public function province()
+    {
         return $this->belongsTo(Province::class);
     }
 

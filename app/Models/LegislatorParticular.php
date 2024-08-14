@@ -8,5 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class LegislatorParticular extends Model
 {
     use HasFactory;
-    
+
+
+
 }
