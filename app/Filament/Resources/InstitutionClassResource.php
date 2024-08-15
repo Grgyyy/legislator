@@ -41,6 +41,7 @@ class InstitutionClassResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->required()
+                    ->autocomplete(false)
                     ->label('TVI Class (B)')
                     ->unique(ignoreRecord: true),
             ]);
@@ -62,7 +63,8 @@ class InstitutionClassResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 DeleteAction::make(),
                 RestoreAction::make(),
             ])

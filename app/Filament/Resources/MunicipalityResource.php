@@ -25,12 +25,15 @@ class MunicipalityResource extends Resource
 
     protected static ?string $navigationParentItem = "Regions";
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 Select::make("province_id")
                     ->relationship("province", "name")
                     ->default(fn($get) => request()->get('province_id'))
@@ -60,7 +63,8 @@ class MunicipalityResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

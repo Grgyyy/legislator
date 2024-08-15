@@ -9,4 +9,11 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateTviType extends CreateRecord
 {
     protected static string $resource = TviTypeResource::class;
+
+    protected static ?string $title = 'Create Institution Type';
+
+    protected function getRedirectUrl(): string 
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

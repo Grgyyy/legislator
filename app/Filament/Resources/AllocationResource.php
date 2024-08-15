@@ -30,18 +30,21 @@ class AllocationResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
+    protected static ?int $navigationSort = 5;
+
     public static function form(Form $form): Form
     {
     return $form
         ->schema([
             Select::make('legislator_id')
-                ->relationship("legislator", "legislator_name"),
+                ->relationship("legislator", "name"),
 
                 Grid::make(2)
                     ->schema([
                         TextInput::make('twsp_allocation')
                             ->label('TWSP Allocation')
                             ->required()
+                            ->autocomplete(false)
                             ->numeric()
                             ->default(0)
                             ->prefix('₱')
@@ -66,6 +69,7 @@ class AllocationResource extends Resource
                     TextInput::make("step_allocation")
                         ->label('STEP Allocation')
                         ->required()
+                        ->autocomplete(false)
                         ->numeric()
                         ->default(0)
                         ->prefix('₱')
@@ -135,7 +139,8 @@ class AllocationResource extends Resource
             )
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
             ])

@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\LegislatorResource\Pages;
 
 use App\Filament\Resources\LegislatorResource;
-use App\Imports\LegislatorImport;
+use App\Imports\LegislatorsImport;
 use App\Models\Legislator;
 use Filament\Actions;
 use Filament\Actions\Action;
@@ -23,16 +23,6 @@ class ListLegislators extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->label('New Legislator'),
-            Action::make('importLegislators')
-                ->label('Import Legislator')
-                ->form([
-                    FileUpload::make('attachment'),
-                ])
-                ->action(function(array $data){
-                    $file = public_path('storage/' . $data['attachment']);
-
-                    Excel::import(new LegislatorImport, $file);
-                })
         ];
     }
 

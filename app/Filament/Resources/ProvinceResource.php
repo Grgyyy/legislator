@@ -25,13 +25,18 @@ class ProvinceResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-map';
 
     protected static ?string $navigationParentItem = "Regions";
+    
+    protected static ?int $navigationSort = 1;
+
+
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\TextInput::make('name')
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 Forms\Components\Select::make('region_id')
                     ->label('Region')
                     ->relationship('region', 'name')
@@ -65,7 +70,8 @@ class ProvinceResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make()
                     ->action(function ($record) {
                         $record->delete();

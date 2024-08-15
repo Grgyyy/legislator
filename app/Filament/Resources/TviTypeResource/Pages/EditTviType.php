@@ -10,10 +10,10 @@ class EditTviType extends EditRecord
 {
     protected static string $resource = TviTypeResource::class;
 
-    protected function getHeaderActions(): array
+    protected static ?string $title = 'Edit Institution Type';
+
+    protected function getRedirectUrl(): string 
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        return $this->getResource()::getUrl('index');
     }
 }

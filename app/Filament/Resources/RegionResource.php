@@ -27,12 +27,16 @@ class RegionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
+    protected static ?int $navigationSort = 1;
+
+
     public static function form(Forms\Form $form): Forms\Form
     {
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
             ]);
     }
 
@@ -55,7 +59,8 @@ class RegionResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
             ])

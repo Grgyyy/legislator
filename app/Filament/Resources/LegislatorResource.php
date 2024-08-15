@@ -29,12 +29,15 @@ class LegislatorResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
+    protected static ?int $navigationSort = 3;
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 Select::make("particular")
                     ->relationship("particular", "name")
                     ->required()
@@ -72,7 +75,8 @@ class LegislatorResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
             ])

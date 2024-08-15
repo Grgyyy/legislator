@@ -52,6 +52,7 @@ class TargetResource extends Resource
                     ->label('Institution'),
                 TextInput::make('number_of_slots')
                     ->required()
+                    ->autocomplete(false)
                     ->numeric()
                     ->rules(['min:10', 'max:25'])
             ]);
@@ -95,7 +96,8 @@ class TargetResource extends Resource
             )
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(), 
                 Tables\Actions\RestoreAction::make(), 
             ])

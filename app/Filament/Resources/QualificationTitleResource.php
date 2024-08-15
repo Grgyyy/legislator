@@ -34,6 +34,10 @@ class QualificationTitleResource extends Resource
 
     protected static ?string $navigationLabel = "Qualification Titles";
 
+    protected static ?string $navigationParentItem = "Scholarship Program";
+
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -43,10 +47,12 @@ class QualificationTitleResource extends Resource
                 TextInput::make('code')
                     ->label('Qualification Code')
                     ->required()
+                    ->autocomplete(false)
                     ->unique(ignoreRecord: true),
                 TextInput::make('title')
                     ->label('Qualification Title')
                     ->required()
+                    ->autocomplete(false)
                     ->unique(ignoreRecord: true),
                 Select::make('scholarship_program_id')
                     ->label('Scholarship Program')
@@ -59,6 +65,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('duration')
                     ->label('Duration')
                     ->required()
+                    ->autocomplete(false)
                     ->numeric()
                     ->default(0)
                     ->minValue(0)
@@ -66,6 +73,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('training_cost_pcc')
                     ->label('Training Cost PCC')
                     ->required()
+                    ->autocomplete(false)
                     ->numeric()
                     ->default(0)
                     ->prefix('₱')
@@ -74,6 +82,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('cost_of_toolkit_pcc')
                     ->label('Cost of Toolkit PCC')
                     ->required()
+                    ->autocomplete(false)
                     ->numeric()
                     ->default(0)
                     ->prefix('₱')
@@ -136,7 +145,8 @@ class QualificationTitleResource extends Resource
                     ->label('Filter')
             )
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 DeleteAction::make(),
             ])
             ->bulkActions([

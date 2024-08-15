@@ -10,16 +10,7 @@ class EditTvi extends EditRecord
 {
     protected static string $resource = TviResource::class;
 
-    protected static ?string $title = 'Edit TVI';
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\DeleteAction::make(),
-            Actions\ForceDeleteAction::make(), 
-            Actions\RestoreAction::make(), 
-        ];
-    }
+    protected static ?string $title = 'Edit Provider';
 
     protected function getRedirectUrl(): string 
     {

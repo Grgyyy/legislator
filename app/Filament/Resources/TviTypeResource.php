@@ -50,6 +50,7 @@ class TviTypeResource extends Resource
                 TextInput::make('name')
                     ->required()
                     ->label('TVI Type')
+                    ->autocomplete(false)
                     ->unique(ignoreRecord: true),
             ]);
     }
@@ -73,7 +74,8 @@ class TviTypeResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                EditAction::make(),
+                EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 DeleteAction::make(),
                 RestoreAction::make(),
             ])

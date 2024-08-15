@@ -24,12 +24,17 @@ class ParticularResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
+    protected static ?string $navigationParentItem = "Regions";
+
+    protected static ?int $navigationSort = 3;
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 Select::make('municipality_id')
                     ->label("Municipality")
                     ->relationship("municipality", "name")
@@ -66,7 +71,8 @@ class ParticularResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(), 
                 Tables\Actions\RestoreAction::make(), 
             ])

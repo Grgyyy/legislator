@@ -34,23 +34,25 @@ class TviResource extends Resource
 
     protected static ?string $navigationLabel = 'Provider';
 
-
-
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 TextInput::make("district")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 // Select::make("province_id")
                 //     ->relationship("province", "name")
                 //     ->required(),
                 TextInput::make("municipality_class")
                     ->label("Municipality Class")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 Select::make('tvi_class')
                     ->label("TVI Class (A)")
                     ->relationship('tviClass', 'name')
@@ -60,7 +62,8 @@ class TviResource extends Resource
                     ->relationship('InstitutionClass', 'name')
                     ->required(),
                 TextInput::make("address")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
             ]);
     }
 
@@ -106,7 +109,8 @@ class TviResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
             ])

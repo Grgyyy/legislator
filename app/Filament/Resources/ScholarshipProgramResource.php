@@ -31,27 +31,26 @@ class ScholarshipProgramResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
 
+    protected static ?int $navigationSort = 4;
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                TextInput::make('name')
+                    ->label("Scholarship Program")
+                    ->required()
+                    ->autocomplete(false)
+                    ->unique(ignoreRecord: true), 
                 TextInput::make("code")
                     ->label('Scholarship Program Code')
                     ->required()
-                    ->unique(ignoreRecord: true),
-                Select::make('name')
-                    ->label("Scholarship Program")
-                    ->options([
-                        'STEP' => 'STEP',
-                        'TWSP' => 'TWSP',
-                        'TTSP' => 'TTSP',
-                        'UAQTEA' => 'UAQTEA'
-                    ])
-                    ->required()
+                    ->autocomplete(false)
                     ->unique(ignoreRecord: true),
                 TextInput::make("desc")
                     ->label('Description')
                     ->required()
+                    ->autocomplete(false)
                     ->unique(ignoreRecord: true),
             ]);
     }
@@ -85,7 +84,8 @@ class ScholarshipProgramResource extends Resource
             )
             ->actions([
                 // Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
             ])

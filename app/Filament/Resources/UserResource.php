@@ -31,10 +31,12 @@ class UserResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 TextInput::make("email")
                     ->email()
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 TextInput::make("password")
                     ->password()
                     ->dehydrateStateUsing(fn($state) => Hash::make($state))
@@ -65,7 +67,8 @@ class UserResource extends Resource
             )
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
             ])
