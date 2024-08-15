@@ -35,7 +35,7 @@ class AllocationResource extends Resource
     return $form
         ->schema([
             Select::make('legislator_id')
-                ->relationship("legislator", "legislator_name"),
+                ->relationship("legislator", "name"),
 
                 Grid::make(2)
                     ->schema([
