@@ -14,13 +14,14 @@ class ScholarshipProgramSeeder extends Seeder
     public function run(): void
     {
         $programs = [
-            ['code' => '1', 'name' => 'TWSP', 'desc' => 'TWSP'],
-            ['code' => '2', 'name' => 'STEP', 'desc' => 'STEP'],
-            ['code' => '3', 'name' => 'TTSP', 'desc' => 'TTSP'],
-            ['code' => '3', 'name' => 'CFSP', 'desc' => 'CFSP'],
-            ['code' => '3', 'name' => 'PESFA', 'desc' => 'PESFA'],
-            ['code' => '3', 'name' => 'RESP', 'desc' => 'RESP'],
-            ['code' => '3', 'name' => 'UAQTEA', 'desc' => 'UAQTEA'],
+            ['code' => '1', 'name' => 'TWSP', 'desc' => 'Training for Work Scholarship'],
+            ['code' => '2', 'name' => 'STEP', 'desc' => 'Special Training for Employment Program'],
+            ['code' => '3', 'name' => 'TTSP', 'desc' => 'Tulong Trabaho Scholarship Program'],
+            ['code' => '3', 'name' => 'CFSP', 'desc' => 'Coconut Farmers Scholarships Program'],
+            ['code' => '3', 'name' => 'PESFA', 'desc' => 'Private Education Student Fund Assistance'],
+            ['code' => '3', 'name' => 'RESP', 'desc' => 'Rice Extension Services Program'],
+            ['code' => '3', 'name' => 'UAQTEA', 'desc' => 'Universal Access to Quality Tertiary Education Act'],
+            ['code' => '3', 'name' => 'BKSTP', 'desc' => 'Barangay Kabuhayan Skills Training Program'],
         ];
 
         foreach ($programs as $program) {
