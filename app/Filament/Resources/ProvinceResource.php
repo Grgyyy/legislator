@@ -2,19 +2,19 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProvinceResource\Pages;
-use App\Models\Province;
-use App\Models\District;
 use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
+use App\Models\District;
+use App\Models\Province;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Exports\ProvinceExporter;
+use Filament\Tables\Actions\ExportBulkAction;
+use App\Filament\Resources\ProvinceResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+
 
 
 class ProvinceResource extends Resource
@@ -25,7 +25,7 @@ class ProvinceResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-map';
 
     protected static ?string $navigationParentItem = "Regions";
-    
+
     protected static ?int $navigationSort = 1;
 
 
@@ -55,7 +55,7 @@ class ProvinceResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->url(fn ($record) => route('filament.admin.resources.provinces.showMunicipalities', ['record' => $record->id])),
+                    ->url(fn($record) => route('filament.admin.resources.provinces.showMunicipalities', ['record' => $record->id])),
                 Tables\Columns\TextColumn::make('region.name')
                     ->sortable()
                     ->searchable()
@@ -71,23 +71,18 @@ class ProvinceResource extends Resource
             )
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->hidden(fn ($record) => $record->trashed()),
+                    ->hidden(fn($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make()
                     ->action(function ($record) {
                         $record->delete();
-                        return redirect()->route('filament.admin.resources.provinces.index'); 
+                        return redirect()->route('filament.admin.resources.provinces.index');
                     }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()->withColumns([
-                            Column::make('name')->heading('Name'),
-                            Column::make('region.name')->heading('Region Name'),
-                            Column::make('created_at')->heading('Date Created'),
-                        ])->withFilename(date('m-d-Y') . ' - Provinces'),
-                    ]),
+                    ExportBulkAction::make()
+                        ->exporter(ProvinceExporter::class)
                 ]),
             ]);
     }

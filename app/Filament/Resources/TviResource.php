@@ -64,7 +64,6 @@ class TviResource extends Resource
             ]);
     }
 
-
     public static function table(Table $table): Table
     {
         return $table
@@ -117,7 +116,6 @@ class TviResource extends Resource
                     Tables\Actions\RestoreBulkAction::make(),
                     ExportBulkAction::make()
                         ->exporter(TVIExporter::class)
-
                 ]),
 
             ]);

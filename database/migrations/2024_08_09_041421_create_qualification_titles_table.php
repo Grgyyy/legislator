@@ -25,8 +25,8 @@ return new class extends Migration {
             $table->decimal('cost_of_toolkit_pcc', 10, 2)->default(0);
             $table->foreignId('status_id')
                 ->constrained()
-                ->cascadeOnDelete();
-            // ->default(1);
+                ->cascadeOnDelete()
+                ->default(1);
             $table->timestamps();
             $table->softDeletes();
         });

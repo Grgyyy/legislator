@@ -12,7 +12,6 @@ use function Laravel\Prompts\search;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -20,12 +19,13 @@ use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+
+use Filament\Tables\Actions\ExportBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use App\Filament\Resources\TviTypeResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+
 
 class TviTypeResource extends Resource
 {
@@ -75,7 +75,7 @@ class TviTypeResource extends Resource
             )
             ->actions([
                 EditAction::make()
-                    ->hidden(fn ($record) => $record->trashed()),
+                    ->hidden(fn($record) => $record->trashed()),
                 DeleteAction::make(),
                 RestoreAction::make(),
             ])
@@ -85,16 +85,7 @@ class TviTypeResource extends Resource
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                     ExportBulkAction::make()
-                        ->exports([
-                            ExcelExport::make()
-                                ->withColumns([
-                                    Column::make('name')
-                                        ->heading('TVI Type'),
-                                    Column::make('created_at')
-                                        ->heading('Date Created')
-                                ])
-                                ->withFilename(date('m-d-Y') . '- Institution Types')
-                        ]),
+                        ->exporter(TviTypeResource::class)
                 ]),
             ]);
     }
