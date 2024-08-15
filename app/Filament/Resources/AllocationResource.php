@@ -32,10 +32,10 @@ class AllocationResource extends Resource
 
     public static function form(Form $form): Form
     {
-    return $form
-        ->schema([
-            Select::make('legislator_id')
-                ->relationship("legislator", "legislator_name"),
+        return $form
+            ->schema([
+                Select::make('legislator_id')
+                    ->relationship("legislator", "name"),
 
                 Grid::make(2)
                     ->schema([
@@ -46,6 +46,7 @@ class AllocationResource extends Resource
                             ->default(0)
                             ->prefix('₱')
                             ->minValue(0)
+                            ->unique(ignoreRecord: true)
                             ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                             ->reactive()
                             ->afterStateUpdated(function (callable $set, $state) {
@@ -70,6 +71,7 @@ class AllocationResource extends Resource
                         ->default(0)
                         ->prefix('₱')
                         ->minValue(0)
+
                         ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                         ->reactive()
                         ->afterStateUpdated(function (callable $set, $state) {

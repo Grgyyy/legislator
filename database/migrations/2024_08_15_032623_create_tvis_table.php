@@ -14,14 +14,14 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('district');
-            $table->foreignId('province_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            // $table->foreignId('province_id')
+            //     ->constrained()
+            //     ->cascadeOnDelete();
             $table->string('municipality_class');
-            $table->foreignId('tvi_class')
+            $table->foreignId('tvi_class_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->foreignId('institution_class')
+            $table->foreignId('institution_class_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->string('address');

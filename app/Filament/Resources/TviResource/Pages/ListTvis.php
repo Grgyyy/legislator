@@ -16,7 +16,7 @@ class ListTvis extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New TVI'),
+                ->label('New Provider'),
         ];
     }
 }

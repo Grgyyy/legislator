@@ -8,19 +8,19 @@ use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use App\Filament\Exports\TVIExporter;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use Filament\Navigation\NavigationGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Columns\Layout\Panel;
-use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\TviResource\Pages;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ExportBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\TviResource\RelationManagers;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+
+
+
+
 
 
 class TviResource extends Resource
@@ -45,17 +45,14 @@ class TviResource extends Resource
                     ->required(),
                 TextInput::make("district")
                     ->required(),
-                // Select::make("province_id")
-                //     ->relationship("province", "name")
-                //     ->required(),
                 TextInput::make("municipality_class")
                     ->label("Municipality Class")
                     ->required(),
-                Select::make('tvi_class')
+                Select::make('tvi_class_id')
                     ->label("TVI Class (A)")
                     ->relationship('tviClass', 'name')
                     ->required(),
-                Select::make('institution_class')
+                Select::make('institution_class_id')
                     ->label("TVI Class (B)")
                     ->relationship('InstitutionClass', 'name')
                     ->required(),
@@ -63,6 +60,7 @@ class TviResource extends Resource
                     ->required(),
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
@@ -75,22 +73,16 @@ class TviResource extends Resource
                 TextColumn::make("district")
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("province.name")
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make("province.region.name")
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
                 TextColumn::make("municipality_class")
                     ->label("Municipality Class")
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("tvi_type")
+                TextColumn::make("tviClass.name")
+                    ->label('Institution Class(A)')
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("tvi_class")
-                    ->label("Telephone Number")
+                TextColumn::make("InstitutionClass.name")
+                    ->label("Institution Class(B)")
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make("address")
@@ -110,19 +102,17 @@ class TviResource extends Resource
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
             ])
+            // ->headerActions([
+            //     ExportAction::make()
+            //         ->exporter(TVIExporter::class)
+            // ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')->heading('TVI'),
-                                Column::make('created_at')->heading('Date Created'),
-                            ])
-                            ->withFilename(date('Y-m-d') . ' - TVI')
-                    ]),
+                    ExportBulkAction::make()
+                        ->exporter(TVIExporter::class)
                 ]),
             ]);
     }

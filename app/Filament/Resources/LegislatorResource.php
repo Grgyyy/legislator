@@ -24,7 +24,7 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 class LegislatorResource extends Resource
 {
     protected static ?string $model = Legislator::class;
-    // 
+    //
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
@@ -34,7 +34,8 @@ class LegislatorResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->unique(ignoreRecord: true),
                 Select::make("particular")
                     ->relationship("particular", "name")
                     ->required()

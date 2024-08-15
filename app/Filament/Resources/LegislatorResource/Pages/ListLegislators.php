@@ -28,7 +28,7 @@ class ListLegislators extends ListRecords
                 ->form([
                     FileUpload::make('attachment'),
                 ])
-                ->action(function(array $data){
+                ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
 
                     Excel::import(new LegislatorImport, $file);

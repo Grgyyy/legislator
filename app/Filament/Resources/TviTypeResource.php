@@ -32,8 +32,8 @@ class TviTypeResource extends Resource
     protected static ?string $model = TviType::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
-    protected static ?string $navigationParentItem = "TVI";
-    protected static ?string $navigationLabel = "TVI Types";
+    protected static ?string $navigationParentItem = "Provider";
+    protected static ?string $navigationLabel = "Institution Types";
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
 
@@ -91,7 +91,7 @@ class TviTypeResource extends Resource
                                     Column::make('created_at')
                                         ->heading('Date Created')
                                 ])
-                                ->withFilename(date('m-d-Y') . '- TVI Types')
+                                ->withFilename(date('m-d-Y') . '- Institution Types')
                         ]),
                 ]),
             ]);
