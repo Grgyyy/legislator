@@ -11,18 +11,21 @@ class Legislator extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name'
+        'name',
     ];
 
-    public function allocation(){
+    public function allocation()
+    {
         return $this->hasMany(Allocation::class);
     }
 
-    public function particular() {
+    public function particular()
+    {
         return $this->belongsToMany(Particular::class, 'LegislatorParticular')->withTimestamps();
     }
 
-    public function target() {
+    public function target()
+    {
         return $this->hasMany(Target::class);
     }
 }
