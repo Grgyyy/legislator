@@ -27,6 +27,9 @@ class RegionResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
+    protected static ?int $navigationSort = 1;
+
+
     public static function form(Forms\Form $form): Forms\Form
     {
         return $form

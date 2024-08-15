@@ -29,6 +29,8 @@ class LegislatorResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
+    protected static ?int $navigationSort = 3;
+
     public static function form(Form $form): Form
     {
         return $form

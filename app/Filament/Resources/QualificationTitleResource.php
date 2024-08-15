@@ -34,6 +34,10 @@ class QualificationTitleResource extends Resource
 
     protected static ?string $navigationLabel = "Qualification Titles";
 
+    protected static ?string $navigationParentItem = "Scholarship Program";
+
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

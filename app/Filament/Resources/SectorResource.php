@@ -34,6 +34,10 @@ class SectorResource extends Resource
     protected static ?string $navigationLabel = "Sectors";
     protected static ?string $navigationIcon = 'heroicon-o-cog-8-tooth';
 
+    protected static ?string $navigationParentItem = "Scholarship Program";
+
+    protected static ?int $navigationSort = 1;
+
     public static function form(Form $form): Form
     {
         return $form

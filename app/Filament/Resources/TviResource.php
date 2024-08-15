@@ -34,8 +34,7 @@ class TviResource extends Resource
 
     protected static ?string $navigationLabel = 'Provider';
 
-
-
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

@@ -23,7 +23,7 @@ class ShowMunicipalities extends ListRecords
         $province = Province::find($provinceId);
         
         return [
-            'regions' => $province->$region ? $province->$region->name : 'Regions',
+            'regions' => $region ? $region->name : 'Regions',
             'Provinces' => $province ? $province->name : 'Regions',
             'Municipalities',
             'List'
