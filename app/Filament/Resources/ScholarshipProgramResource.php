@@ -35,20 +35,15 @@ class ScholarshipProgramResource extends Resource
     {
         return $form
             ->schema([
+                TextInput::make('name')
+                    ->label("Scholarship Program")
+                    ->required()
+                    ->autocomplete(false)
+                    ->unique(ignoreRecord: true), 
                 TextInput::make("code")
                     ->label('Scholarship Program Code')
                     ->required()
                     ->autocomplete(false)
-                    ->unique(ignoreRecord: true),
-                Select::make('name')
-                    ->label("Scholarship Program")
-                    ->options([
-                        'STEP' => 'STEP',
-                        'TWSP' => 'TWSP',
-                        'TTSP' => 'TTSP',
-                        'UAQTEA' => 'UAQTEA'
-                    ])
-                    ->required()
                     ->unique(ignoreRecord: true),
                 TextInput::make("desc")
                     ->label('Description')
