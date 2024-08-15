@@ -113,7 +113,9 @@ class TviResource extends Resource
                     Tables\Actions\RestoreBulkAction::make(),
                     ExportBulkAction::make()
                         ->exporter(TVIExporter::class)
+
                 ]),
+
             ]);
     }
 
