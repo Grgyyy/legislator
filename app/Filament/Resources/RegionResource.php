@@ -1,21 +1,19 @@
 <?php
 namespace App\Filament\Resources;
 
-use Filament\Forms;
-use Filament\Tables;
-use App\Models\Region;
-use App\Models\Province;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
-use Filament\Tables\Columns\TextColumn;
-use App\Filament\Exports\RegionExporter;
-use Filament\Forms\Components\TextInput;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Actions\ExportBulkAction;
 use App\Filament\Resources\RegionResource\Pages;
+use App\Models\Province;
+use App\Models\Region;
+use Filament\Forms;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
+use Filament\Tables\Actions\Action;
 
 
 class RegionResource extends Resource
@@ -47,29 +45,27 @@ class RegionResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->url(fn($record) => route('filament.admin.resources.regions.show_provinces', ['record' => $record->id])),
+                    ->url(fn ($record) => route('filament.admin.resources.regions.show_provinces', ['record' => $record->id])),
             ])
             ->filters([
                 TrashedFilter::make(),
             ])
             ->filtersTriggerAction(
-                fn(\Filament\Actions\StaticAction $action) => $action
+                fn (\Filament\Actions\StaticAction $action) => $action
                     ->button()
                     ->label('Filter'),
             )
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->hidden(fn($record) => $record->trashed()),
+                    ->hidden(fn ($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(), 
                     Tables\Actions\RestoreBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exporter(RegionExporter::class)
                 ]),
             ]);
     }

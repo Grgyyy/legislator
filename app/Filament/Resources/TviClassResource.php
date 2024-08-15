@@ -12,14 +12,10 @@ use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\TrashedFilter;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\TviClassResource\Pages;
-use pxlrbt\FilamentExcel\Exports\Concerns\WithFilename;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TviClassResource extends Resource
@@ -80,18 +76,6 @@ class TviClassResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exports([
-                            ExcelExport::make()
-                                ->withColumns([
-                                    Column::make('name')
-                                        ->heading('Institution Class (A)'),
-                                    Column::make('tviType.name')
-                                        ->heading('Institution Type'),
-                                    Column::make('created_at')
-                                        ->heading('Date Created'),
-                                ])->WithFilename(date('m-d-Y') . '- Institution Class (A)'),
-                        ]),
                 ]),
             ]);
     }
