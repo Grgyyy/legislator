@@ -27,8 +27,8 @@ class TviClassResource extends Resource
     protected static ?string $model = TviClass::class;
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationParentItem = "TVI";
-    protected static ?string $navigationLabel = "TVI Classes (A)";
+    protected static ?string $navigationParentItem = "Provider";
+    protected static ?string $navigationLabel = "Institution Class (A)";
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
 
@@ -39,12 +39,12 @@ class TviClassResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
-                    ->label('TVI Class (A)')
+                    ->label('Institution Class (A)')
                     ->required()
                     ->autocomplete(false)
                     ->unique(ignoreRecord: true),
                 Select::make('tvi_type_id')
-                    ->label('TVI Type')
+                    ->label('Institution Type')
                     ->relationship('tviType', 'name')
                     ->required(),
             ]);
@@ -55,12 +55,12 @@ class TviClassResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->Label('TVI Classes (A)')
+                    ->Label('Institution Classes (A)')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('tviType.name')
-                    ->label('TVI Types')
+                    ->label('Institution Types')
                     ->searchable()
                     ->toggleable(),
             ])
@@ -85,12 +85,12 @@ class TviClassResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('TVI Class (A)'),
+                                        ->heading('Institution Class (A)'),
                                     Column::make('tviType.name')
-                                        ->heading('TVI Type'),
+                                        ->heading('Institution Type'),
                                     Column::make('created_at')
                                         ->heading('Date Created'),
-                                ])->WithFilename(date('m-d-Y') . '- TVI Class (A)'),
+                                ])->WithFilename(date('m-d-Y') . '- Institution Class (A)'),
                         ]),
                 ]),
             ]);

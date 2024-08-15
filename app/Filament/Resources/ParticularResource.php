@@ -66,21 +66,21 @@ class ParticularResource extends Resource
                 Tables\Filters\TrashedFilter::make(),
             ])
             ->filtersTriggerAction(
-                fn (\Filament\Actions\StaticAction $action) => $action
+                fn(\Filament\Actions\StaticAction $action) => $action
                     ->button()
                     ->label('Filter'),
             )
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->hidden(fn ($record) => $record->trashed()),
-                Tables\Actions\DeleteAction::make(), 
-                Tables\Actions\RestoreAction::make(), 
+                    ->hidden(fn($record) => $record->trashed()),
+                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\RestoreAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(), 
-                    Tables\Actions\RestoreBulkAction::make(), 
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
                 ]),
             ]);
     }

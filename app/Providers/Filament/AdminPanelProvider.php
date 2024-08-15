@@ -42,6 +42,7 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
                 'primary' => '#3433dc',
             ])
+            ->databaseNotifications()
             ->font('Poppins')
             ->brandName('Legislator App')
             ->favicon(asset('images/TESDA_logo.png'))
@@ -79,16 +80,16 @@ class AdminPanelProvider extends PanelProvider
                     ->setSort(1)
                     ->shouldShowDeleteAccountForm(true)
                     ->shouldShowBrowserSessionsForm(true)
-                    // ->shouldShowAvatarForm(
-                    //     value: true,
-                    //     directory: 'public/images/avatars',
-                    //     rules: 'mimes:jpeg,png|max:1024',
-                    // )
+                    ->shouldShowAvatarForm(
+                        value: true,
+                        directory: 'public/images/avatars',
+                        rules: 'mimes:jpeg,png|max:1024',
+                    )
             ])
             ->userMenuItems([
                 'profile' => MenuItem::make()
                     ->label(fn() => auth()->user()->name)
-                    ->url(fn (): string => EditProfilePage::getUrl())
+                    ->url(fn(): string => EditProfilePage::getUrl())
                     ->icon('heroicon-m-user-circle')
             ]);
     }

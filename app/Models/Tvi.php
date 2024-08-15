@@ -13,7 +13,7 @@ class Tvi extends Model
     protected $fillable = [
         'name',
         'district',
-        'province_id',
+        // 'province_id',
         'municipality_class',
         'tvi_class_id',
         'institution_class_id',

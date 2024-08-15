@@ -30,8 +30,8 @@ class InstitutionClassResource extends Resource
     protected static ?string $model = InstitutionClass::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
-    protected static ?string $navigationParentItem = "TVI";
-    protected static ?string $navigationLabel = "TVI Classes (B)";
+    protected static ?string $navigationParentItem = "Provider";
+    protected static ?string $navigationLabel = "Institution Class (B)";
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
 
@@ -42,7 +42,7 @@ class InstitutionClassResource extends Resource
                 TextInput::make('name')
                     ->required()
                     ->autocomplete(false)
-                    ->label('TVI Class (B)')
+                    ->label('Institution Class (B)')
                     ->unique(ignoreRecord: true),
             ]);
     }
@@ -52,7 +52,7 @@ class InstitutionClassResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('TVI Classes (B)')
+                    ->label('Institution Classes (B)')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -64,7 +64,7 @@ class InstitutionClassResource extends Resource
             )
             ->actions([
                 EditAction::make()
-                    ->hidden(fn ($record) => $record->trashed()),
+                    ->hidden(fn($record) => $record->trashed()),
                 DeleteAction::make(),
                 RestoreAction::make(),
             ])
@@ -78,11 +78,11 @@ class InstitutionClassResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('TVI Class (B)'),
+                                        ->heading('Institution Class (B)'),
                                     Column::make('created_at')
                                         ->heading('Date Created')
                                 ])
-                                ->withFilename(date('m-d-Y') . '- TVI Class (B)')
+                                ->withFilename(date('m-d-Y') . '- Institution Class (B)')
                         ]),
                 ]),
             ]);
