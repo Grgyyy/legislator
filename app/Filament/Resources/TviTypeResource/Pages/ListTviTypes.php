@@ -10,10 +10,13 @@ class ListTviTypes extends ListRecords
 {
     protected static string $resource = TviTypeResource::class;
 
+    protected static ?string $title = 'Institution Type';
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()
+                ->label('New Institution Type'),
         ];
     }
 }

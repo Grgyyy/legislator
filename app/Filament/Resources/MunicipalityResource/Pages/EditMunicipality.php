@@ -10,13 +10,6 @@ class EditMunicipality extends EditRecord
 {
     protected static string $resource = MunicipalityResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\DeleteAction::make(),
-        ];
-    }
-
     protected function getRedirectUrl(): string
     {
         $province_id = $this->record->province_id;

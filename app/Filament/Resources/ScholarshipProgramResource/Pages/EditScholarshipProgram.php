@@ -10,13 +10,6 @@ class EditScholarshipProgram extends EditRecord
 {
     protected static string $resource = ScholarshipProgramResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\DeleteAction::make(),
-        ];
-    }
-
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ProvinceResource\Pages;
 
 use App\Filament\Resources\MunicipalityResource;
 use App\Models\Province;
+use App\Models\Region;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;
 
@@ -15,13 +16,16 @@ class ShowMunicipalities extends ListRecords
 
     public function getBreadcrumbs(): array
     {
+        $regionId = $this->getRegionId();
         $provinceId = $this->getProvinceId();
-        
+    
+        $region = Region::find($regionId);
         $province = Province::find($provinceId);
         
         return [
-            'regions' => $province ? $province->name : 'Regions',
-            'Provinces',
+            'regions' => $province->$region ? $province->$region->name : 'Regions',
+            'Provinces' => $province ? $province->name : 'Regions',
+            'Municipalities',
             'List'
         ];
     }
@@ -38,6 +42,11 @@ class ShowMunicipalities extends ListRecords
     }
 
     protected function getProvinceId(): ?int
+    {
+        return (int) request()->route('record');
+    }
+
+    protected function getRegionId(): ?int
     {
         return (int) request()->route('record');
     }

@@ -10,10 +10,8 @@ class EditSector extends EditRecord
 {
     protected static string $resource = SectorResource::class;
 
-    protected function getHeaderActions(): array
+    protected function getRedirectUrl(): string 
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        return $this->getResource()::getUrl('index');
     }
 }
