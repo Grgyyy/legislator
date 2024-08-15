@@ -8,6 +8,7 @@ use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
+use Filament\Actions\ImportAction;
 use Filament\Actions\StaticAction;
 use Filament\Forms\Components\Mask;
 use Filament\Forms\Components\Select;
@@ -18,13 +19,15 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Exports\QualificationTitleExporter;
 use App\Filament\Resources\QualificationTitleResource\Pages;
 use App\Filament\Resources\QualificationTitleResource\RelationManagers;
-use Filament\Actions\ImportAction;
+
+use function Laravel\Prompts\select;
 
 class QualificationTitleResource extends Resource
 {
@@ -34,7 +37,7 @@ class QualificationTitleResource extends Resource
 
     protected static ?string $navigationLabel = "Qualification Titles";
 
-    protected static ?string $navigationParentItem = "Scholarship Program";
+    protected static ?string $navigationParentItem = "Scholarship Programs";
 
     protected static ?int $navigationSort = 2;
 
@@ -88,6 +91,10 @@ class QualificationTitleResource extends Resource
                     ->prefix('₱')
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                Select::make('status_id')
+                    ->relationship('status', 'desc')
+                    // ->default('status', 'active')
+                    ->hidden()
             ]);
     }
 
@@ -146,7 +153,7 @@ class QualificationTitleResource extends Resource
             )
             ->actions([
                 EditAction::make()
-                    ->hidden(fn ($record) => $record->trashed()),
+                    ->hidden(fn($record) => $record->trashed()),
                 DeleteAction::make(),
             ])
             ->bulkActions([
@@ -154,29 +161,7 @@ class QualificationTitleResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                     ExportBulkAction::make()
-                        ->exports([
-                            ExcelExport::make()
-                                ->withColumns([
-                                    Column::make('code')
-                                        ->heading('Qualification Code'),
-                                    Column::make('title')
-                                        ->heading('Qualification Title'),
-                                    Column::make('scholarshipProgram.name')
-                                        ->heading('Scholarship Program'),
-                                    Column::make('sector.name')
-                                        ->heading('Sector'),
-                                    Column::make('duration')
-                                        ->heading('Duration'),
-                                    Column::make('training_cost_pcc')
-                                        ->heading('Training Cost PCC'),
-                                    Column::make('cost_of_toolkit_pcc')
-                                        ->heading('Cost of Toolkit PCC'),
-                                    Column::make('created_at')
-                                        ->heading('Date Created'),
-                                ])->WithFilename(date('m-d-Y') . '- Qualification Titles'),
-
-
-                        ]),
+                        ->exporter(QualificationTitleExporter::class)
                 ]),
             ]);
     }

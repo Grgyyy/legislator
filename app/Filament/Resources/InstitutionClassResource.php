@@ -11,19 +11,15 @@ use Filament\Resources\Resource;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\RestoreBulkAction;
+use App\Filament\Exports\InstitutionClassExporter;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\InstitutionClassResource\Pages;
-use App\Filament\Resources\InstitutionClassResource\RelationManagers;
+use Filament\Tables\Actions\ExportBulkAction;
 
 class InstitutionClassResource extends Resource
 {
@@ -74,16 +70,7 @@ class InstitutionClassResource extends Resource
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
                     ExportBulkAction::make()
-                        ->exports([
-                            ExcelExport::make()
-                                ->withColumns([
-                                    Column::make('name')
-                                        ->heading('Institution Class (B)'),
-                                    Column::make('created_at')
-                                        ->heading('Date Created')
-                                ])
-                                ->withFilename(date('m-d-Y') . '- Institution Class (B)')
-                        ]),
+                        ->exporter(InstitutionClassExporter::class)
                 ]),
             ]);
     }

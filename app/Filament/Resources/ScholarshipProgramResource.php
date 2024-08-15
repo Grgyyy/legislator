@@ -11,14 +11,13 @@ use App\Models\ScholarshipProgram;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use pxlrbt\FilamentExcel\Columns\Column;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ExportBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Exports\ScholarshipProgramExporter;
 use PhpOffice\PhpSpreadsheet\Calculation\LookupRef\Unique;
 use App\Filament\Resources\ScholarshipProgramResource\Pages;
 use App\Filament\Resources\ScholarshipProgramResource\RelationManagers;
@@ -41,7 +40,7 @@ class ScholarshipProgramResource extends Resource
                     ->label("Scholarship Program")
                     ->required()
                     ->autocomplete(false)
-                    ->unique(ignoreRecord: true), 
+                    ->unique(ignoreRecord: true),
                 TextInput::make("code")
                     ->label('Scholarship Program Code')
                     ->required()
@@ -85,7 +84,7 @@ class ScholarshipProgramResource extends Resource
             ->actions([
                 // Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
-                    ->hidden(fn ($record) => $record->trashed()),
+                    ->hidden(fn($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
                 Tables\Actions\RestoreAction::make(),
             ])
@@ -94,19 +93,7 @@ class ScholarshipProgramResource extends Resource
                     RestoreBulkAction::make(),
                     DeleteBulkAction::make(),
                     ExportBulkAction::make()
-                        ->exports([
-                            ExcelExport::make()
-                                ->withColumns([
-                                    Column::make('code')
-                                        ->heading('Scholarship Program Code'),
-                                    Column::make('name')
-                                        ->heading('Scholarship Program'),
-                                    Column::make('desc')
-                                        ->heading('Description'),
-                                    Column::make('created_at')
-                                        ->heading('Date Created'),
-                                ])->WithFilename(date('m-d-Y') . '- Scholarship Program'),
-                        ]),
+                        ->exporter(ScholarshipProgramExporter::class)
                 ]),
             ]);
     }

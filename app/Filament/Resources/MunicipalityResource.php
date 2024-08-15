@@ -2,19 +2,22 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\MunicipalityResource\Pages;
-use App\Filament\Resources\MunicipalityResource\RelationManagers;
-use App\Models\Municipality;
+use App\Filament\Exports\MunicipalityExporter;
 use Filament\Forms;
+use Filament\Tables;
 use Filament\Forms\Form;
+use Filament\Tables\Table;
+use App\Models\Municipality;
+use Filament\Resources\Resource;
+use App\Filament\Exports\TVIExporter;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ExportBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\MunicipalityResource\Pages;
+use App\Filament\Resources\MunicipalityResource\RelationManagers;
 
 class MunicipalityResource extends Resource
 {
@@ -64,12 +67,14 @@ class MunicipalityResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->hidden(fn ($record) => $record->trashed()),
+                    ->hidden(fn($record) => $record->trashed()),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exporter(MunicipalityExporter::class)
                 ]),
             ]);
     }
