@@ -21,14 +21,19 @@ class ShowMunicipalities extends ListRecords
     
         $region = Region::find($regionId);
         $province = Province::find($provinceId);
+
+        $region_id = $province->region->id;
         
         return [
-            'regions' => $region ? $region->name : 'Regions',
-            'Provinces' => $province ? $province->name : 'Regions',
+
+            route('filament.admin.resources.regions.show_provinces', ['record' => $region_id]) => $province ? $province->region->name : 'Regions',
+            route('filament.admin.resources.provinces.showMunicipalities', ['record' => $provinceId]) => $province ? $province->name : 'Provinces',
             'Municipalities',
             'List'
         ];
     }
+
+    // route('filament.admin.resources.provinces.create', ['region_id' => $regionId])
 
     protected function getHeaderActions(): array
     {

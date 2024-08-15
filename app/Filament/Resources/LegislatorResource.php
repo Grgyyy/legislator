@@ -32,41 +32,55 @@ class LegislatorResource extends Resource
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
-    {
-        return $form
-            ->schema([
-                TextInput::make("name")
-                    ->required()
-                    ->autocomplete(false)
-                    ->unique(ignoreRecord: true),
-                Select::make("particular")
-                    ->relationship("particular", "name")
-                    ->required()
-            ]);
-    }
+{
+    return $form
+        ->schema([
+            TextInput::make("name")
+                ->required(),
+            Select::make("particular")
+                ->multiple()
+                ->relationship("particular", "name")
+                ->required()
+                ->options(function () {
+                    // Fetching particular options with municipality name concatenation
+                    return \App\Models\Particular::query()
+                        ->with('municipality') // Eager load the municipality
+                        ->get()
+                        ->mapWithKeys(function ($item) {
+                            return [$item->id => $item->name . ' - ' . ($item->municipality ? $item->municipality->name : 'N/A')];
+                        })
+                        ->toArray();
+                }),
+        ]);
+}
 
     public static function table(Table $table): Table
     {
         return $table
-            ->columns([
-                TextColumn::make("name")
-                    ->label('Legislator')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make("particular.name")
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make("particular.province.name")
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make("particular.province.region.name")
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make("status")
-                    ->toggleable(),
-            ])
+        ->columns([
+            TextColumn::make("name")
+                ->label('Legislator')
+                ->sortable()
+                ->searchable()
+                ->toggleable(),
+                
+            TextColumn::make('particular_name')
+                ->label('Particular')
+                ->getStateUsing(function ($record) {
+                    // Assuming `particular` is a many-to-many relationship and it's a collection
+                    $particulars = $record->particular;
+
+                    return $particulars->map(function ($particular) {
+                        $municipalityName = $particular->municipality ? $particular->municipality->name : 'N/A';
+                        return $particular->name . ' - ' . $municipalityName;
+                    })->join(', '); // Join all particulars with a comma separator
+                })
+                ->searchable()
+                ->toggleable(),
+                
+            TextColumn::make("status")
+                ->toggleable(),
+        ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
