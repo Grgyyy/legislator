@@ -7,6 +7,8 @@ use Filament\Actions\Exports\ExportColumn;
 use Filament\Actions\Exports\Exporter;
 use Filament\Actions\Exports\Models\Export;
 
+
+
 class TVIExporter extends Exporter
 {
     protected static ?string $model = TVI::class;
@@ -35,4 +37,9 @@ class TVIExporter extends Exporter
 
         return $body;
     }
+    public function getFileName(Export $export): string
+    {
+        return 'Provider';
+    }
+
 }
