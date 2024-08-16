@@ -20,8 +20,8 @@ class Municipality extends Model
         return $this->belongsTo(Province::class);
     }
 
-    public function particular()
+    public function district()
     {
-        return $this->hasMany(Particular::class);
+        return $this->hasMany(District::class);
     }
 }
