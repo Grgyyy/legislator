@@ -58,6 +58,7 @@ class TviTypeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No TVI type yet')
             ->columns([
                 TextColumn::make('name')
                     ->label('TVI Types')

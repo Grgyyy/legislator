@@ -48,6 +48,7 @@ class UserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No users yet')
             ->columns([
                 TextColumn::make("name")
                     ->sortable()

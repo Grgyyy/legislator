@@ -50,6 +50,7 @@ class ProvinceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No provinces yet')
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->sortable()

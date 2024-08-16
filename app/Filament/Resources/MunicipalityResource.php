@@ -48,6 +48,7 @@ class MunicipalityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No municipalities yet')
             ->columns([
                 TextColumn::make("name")
                     ->sortable()

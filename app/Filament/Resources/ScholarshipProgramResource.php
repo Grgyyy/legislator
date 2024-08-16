@@ -57,6 +57,7 @@ class ScholarshipProgramResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No scholarship programs yet')
             ->columns([
 
                 TextColumn::make("code")

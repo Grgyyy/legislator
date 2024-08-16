@@ -97,6 +97,7 @@ class AllocationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No allocations yet')
             ->columns([
                 TextColumn::make("legislator.name")
                     ->sortable()

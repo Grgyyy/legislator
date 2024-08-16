@@ -54,6 +54,7 @@ class LegislatorResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+        ->emptyStateHeading('No legislators yet')
         ->columns([
             TextColumn::make("name")
                 ->label('Legislator')

@@ -101,6 +101,7 @@ class QualificationTitleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No qualification titles yet')
             ->columns([
                 TextColumn::make('code')
                     ->label('Qualification Code')

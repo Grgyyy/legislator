@@ -52,6 +52,7 @@ class SectorResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No sectors yet')
             ->columns([
                 TextColumn::make('name')
                     ->label('Sector')

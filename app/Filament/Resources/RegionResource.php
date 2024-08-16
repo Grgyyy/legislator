@@ -40,6 +40,7 @@ class RegionResource extends Resource
     public static function table(Tables\Table $table): Tables\Table
     {
         return $table
+            ->emptyStateHeading('No regions yet')
             ->columns([
                 TextColumn::make("name")
                     ->sortable()

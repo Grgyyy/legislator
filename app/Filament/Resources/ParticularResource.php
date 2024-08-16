@@ -43,6 +43,7 @@ class ParticularResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No particulars yet')
             ->columns([
                 TextColumn::make("name")
                     ->label('Particular Name')

@@ -61,6 +61,7 @@ class TargetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No targets yet')
             ->columns([
                 TextColumn::make("legislator.name")
                     ->sortable()

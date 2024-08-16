@@ -67,6 +67,7 @@ class TviResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No institutions yet')
             ->columns([
                 TextColumn::make("name")
                     ->sortable()
