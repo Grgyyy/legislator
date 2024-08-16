@@ -293,17 +293,13 @@
         {
             "name": "blade-ui-kit/blade-icons",
             "version": "1.7.1",
-            "version": "1.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/blade-ui-kit/blade-icons.git",
                 "reference": "8f787baf09d88cdfd6ec4dbaba11ebfa885f0595"
-                "reference": "8f787baf09d88cdfd6ec4dbaba11ebfa885f0595"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/blade-ui-kit/blade-icons/zipball/8f787baf09d88cdfd6ec4dbaba11ebfa885f0595",
-                "reference": "8f787baf09d88cdfd6ec4dbaba11ebfa885f0595",
                 "url": "https://api.github.com/repos/blade-ui-kit/blade-icons/zipball/8f787baf09d88cdfd6ec4dbaba11ebfa885f0595",
                 "reference": "8f787baf09d88cdfd6ec4dbaba11ebfa885f0595",
                 "shasum": ""
@@ -373,7 +369,6 @@
                     "type": "paypal"
                 }
             ],
-            "time": "2024-08-14T14:25:11+00:00"
             "time": "2024-08-14T14:25:11+00:00"
         },
         {
@@ -5081,73 +5076,6 @@
                 "source": "https://github.com/bobthecow/psysh/tree/v0.12.4"
             },
             "time": "2024-06-10T01:18:23+00:00"
-        },
-        {
-            "name": "pxlrbt/filament-excel",
-            "version": "v2.3.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/pxlrbt/filament-excel.git",
-                "reference": "0d6f3f252ce7d998e5f92fc8703a241b6816fcb9"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/pxlrbt/filament-excel/zipball/0d6f3f252ce7d998e5f92fc8703a241b6816fcb9",
-                "reference": "0d6f3f252ce7d998e5f92fc8703a241b6816fcb9",
-                "shasum": ""
-            },
-            "require": {
-                "anourvalar/eloquent-serialize": "^1.2",
-                "filament/filament": "^3.0.0-stable",
-                "maatwebsite/excel": "^3.1",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "laravel/pint": "^1.10"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "pxlrbt\\FilamentExcel\\FilamentExcelServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "pxlrbt\\FilamentExcel\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Dennis Koch",
-                    "email": "info@pixelarbeit.de"
-                }
-            ],
-            "description": "Supercharged Excel exports for Filament Resources",
-            "keywords": [
-                "PHPExcel",
-                "actions",
-                "filament",
-                "laravel",
-                "laravel-filament",
-                "phpspreadsheet"
-            ],
-            "support": {
-                "issues": "https://github.com/pxlrbt/filament-excel/issues",
-                "source": "https://github.com/pxlrbt/filament-excel/tree/v2.3.3"
-            },
-            "funding": [
-                {
-                    "url": "https://github.com/pxlrbt",
-                    "type": "github"
-                }
-            ],
-            "time": "2024-08-12T08:25:24+00:00"
         },
         {
             "name": "ralouphie/getallheaders",
@@ -10957,5 +10885,5 @@
         "php": "^8.1"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }
