@@ -91,6 +91,11 @@ class AdminPanelProvider extends PanelProvider
                     ->label(fn() => auth()->user()->name)
                     ->url(fn(): string => EditProfilePage::getUrl())
                     ->icon('heroicon-m-user-circle')
+            ])
+            ->navigationGroups([
+                'TARGET DATA INPUT',
+                'MANAGE TARGET',
+                'USER MANAGEMENT',
             ]);
     }
 }

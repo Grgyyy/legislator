@@ -36,7 +36,7 @@ class TviTypeResource extends Resource
     protected static ?string $navigationLabel = "Institution Types";
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-
+    protected static ?int $navigationSort = 3;
     // public static function getNavigationParentItem(): ?string
     // {
     //     return __('filament/navigation.groups.tvi.items.tvi-types');
