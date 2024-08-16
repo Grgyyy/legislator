@@ -27,7 +27,7 @@ class TviClassResource extends Resource
     protected static ?string $navigationLabel = "Institution Class (A)";
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-
+    protected static ?int $navigationSort = 1;
     // protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
