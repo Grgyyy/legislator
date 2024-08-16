@@ -24,9 +24,7 @@ class ParticularResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
-    // protected static ?string $navigationParentItem = "Regions";
-
-    // protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
