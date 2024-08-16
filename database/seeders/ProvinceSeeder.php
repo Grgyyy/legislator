@@ -134,12 +134,12 @@ class ProvinceSeeder extends Seeder
             ['Tawi-Tawi', 17],
         ];
 
-        // Insert provinces into the 'provinces' table
+        // Insert or update provinces in the 'provinces' table
         foreach ($provinces as [$name, $region]) {
-            DB::table('provinces')->insert([
-                'name' => $name,
-                'region_id' => $region,
-            ]);
+            DB::table('provinces')->updateOrInsert(
+                ['name' => $name],
+                ['region_id' => $region]
+            );
         }
     }
 }

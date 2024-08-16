@@ -21,7 +21,7 @@ class InstitutionClassSeeder extends Seeder
         ];
 
         foreach ($instiClasses as $instiClass) {
-            DB::table('institution_classes')->insert($instiClass);
+            DB::table('institution_classes')->updateOrInsert($instiClass);
         }
 
     }
