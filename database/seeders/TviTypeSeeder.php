@@ -20,7 +20,7 @@ class TviTypeSeeder extends Seeder
         ];
 
         foreach ($types as $type) {
-            DB::table('tvi_types')->insert($type);
+            DB::table('tvi_types')->updateOrInsert($type);
         }
 
     }

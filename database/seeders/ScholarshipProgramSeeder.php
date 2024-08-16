@@ -24,7 +24,7 @@ class ScholarshipProgramSeeder extends Seeder
         ];
 
         foreach ($programs as $program) {
-            DB::table('scholarship_programs')->insert($program);
+            DB::table('scholarship_programs')->updateOrInsert($program);
         }
 
     }

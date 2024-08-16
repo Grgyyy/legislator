@@ -35,7 +35,7 @@ class RegionTableSeeder extends Seeder
         ];
 
         foreach ($regions as $region) {
-            DB::table('regions')->insert($region);
+            DB::table('regions')->updateOrInsert($region);
         }
     }
 }

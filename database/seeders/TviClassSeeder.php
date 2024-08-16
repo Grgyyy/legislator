@@ -25,7 +25,7 @@ class TviClassSeeder extends Seeder
         ];
 
         foreach ($classes as $class) {
-            DB::table('tvi_classes')->insert($class);
+            DB::table('tvi_classes')->updateOrInsert($class);
         }
     }
 }
