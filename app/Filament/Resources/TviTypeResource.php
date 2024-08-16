@@ -32,7 +32,7 @@ class TviTypeResource extends Resource
     protected static ?string $model = TviType::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
-    protected static ?string $navigationParentItem = "Provider";
+    protected static ?string $navigationParentItem = "Institution";
     protected static ?string $navigationLabel = "Institution Types";
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 

@@ -23,7 +23,7 @@ class TviClassResource extends Resource
     protected static ?string $model = TviClass::class;
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationParentItem = "Provider";
+    protected static ?string $navigationParentItem = "Institution";
     protected static ?string $navigationLabel = "Institution Class (A)";
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 

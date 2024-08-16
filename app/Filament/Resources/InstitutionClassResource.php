@@ -26,7 +26,7 @@ class InstitutionClassResource extends Resource
     protected static ?string $model = InstitutionClass::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
-    protected static ?string $navigationParentItem = "Provider";
+    protected static ?string $navigationParentItem = "Institution";
     protected static ?string $navigationLabel = "Institution Class (B)";
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 

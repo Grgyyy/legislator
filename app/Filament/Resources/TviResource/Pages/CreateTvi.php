@@ -10,7 +10,7 @@ class CreateTvi extends CreateRecord
 {
     protected static string $resource = TviResource::class;
 
-    protected static ?string $title = 'Create Provider';
+    protected static ?string $title = 'Create Institution';
 
     protected function getRedirectUrl(): string 
     {
