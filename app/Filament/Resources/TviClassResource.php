@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use Filament\Tables;
 use App\Models\TviClass;
 use Filament\Forms\Form;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Actions\StaticAction;
@@ -70,9 +71,12 @@ class TviClassResource extends Resource
                     ->label('Filter')
             )
             ->actions([
-                EditAction::make()
-                    ->hidden(fn ($record) => $record->trashed()),
-                DeleteAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->hidden(fn ($record) => $record->trashed()),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

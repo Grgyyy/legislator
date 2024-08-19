@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use App\Models\InstitutionClass;
 use Filament\Resources\Resource;
@@ -61,10 +62,12 @@ class InstitutionClassResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                EditAction::make()
-                    ->hidden(fn($record) => $record->trashed()),
-                DeleteAction::make(),
-                RestoreAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->hidden(fn ($record) => $record->trashed()),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([

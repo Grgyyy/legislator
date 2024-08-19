@@ -7,6 +7,7 @@ use Filament\Tables;
 use App\Models\District;
 use App\Models\Province;
 use Filament\Forms\Form;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Illuminate\Database\Eloquent\Builder;
@@ -71,13 +72,16 @@ class ProvinceResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->hidden(fn($record) => $record->trashed()),
-                Tables\Actions\DeleteAction::make()
-                    ->action(function ($record) {
-                        $record->delete();
-                        return redirect()->route('filament.admin.resources.provinces.index');
-                    }),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->hidden(fn($record) => $record->trashed()),
+                    Tables\Actions\DeleteAction::make()
+                        ->action(function ($record) {
+                            $record->delete();
+                            return redirect()->route('filament.admin.resources.provinces.index');
+                        }),
+                    Tables\Actions\RestoreAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

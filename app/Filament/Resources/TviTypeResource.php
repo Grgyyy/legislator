@@ -6,6 +6,7 @@ use Filament\Forms;
 use Filament\Tables;
 use App\Models\TviType;
 use Filament\Forms\Form;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use function Laravel\Prompts\search;
@@ -75,10 +76,12 @@ class TviTypeResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                EditAction::make()
-                    ->hidden(fn($record) => $record->trashed()),
-                DeleteAction::make(),
-                RestoreAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->hidden(fn ($record) => $record->trashed()),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
