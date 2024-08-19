@@ -10,11 +10,12 @@ use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Illuminate\Database\Eloquent\Builder;
-use App\Filament\Exports\ProvinceExporter;
-use Filament\Tables\Actions\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\ProvinceResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 
 
@@ -86,6 +87,18 @@ class ProvinceResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('name')
+                                    ->heading('Province'),
+                                Column::make('region.name')
+                                    ->heading('Region'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Province')
+                    ]),
 
                 ]),
             ]);

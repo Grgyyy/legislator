@@ -2,26 +2,21 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Models\ScholarshipProgram;
-use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ExportBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Exports\ScholarshipProgramExporter;
-use PhpOffice\PhpSpreadsheet\Calculation\LookupRef\Unique;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\ScholarshipProgramResource\Pages;
-use App\Filament\Resources\ScholarshipProgramResource\RelationManagers;
 
 class ScholarshipProgramResource extends Resource
 {
@@ -93,8 +88,21 @@ class ScholarshipProgramResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    RestoreBulkAction::make(),
-                    DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('code')
+                                    ->heading('Scholarship Program Code'),
+                                Column::make('name')
+                                    ->heading('Scholarship Program'),
+                                Column::make('desc')
+                                    ->heading('Description'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Scholarship Program')
+                    ]),
 
                 ]),
             ]);

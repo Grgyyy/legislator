@@ -9,23 +9,19 @@ use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use function Laravel\Prompts\search;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
-
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-
-use Filament\Tables\Actions\ExportBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\TviTypeResource\Pages;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
 
 
 class TviTypeResource extends Resource
@@ -85,11 +81,18 @@ class TviTypeResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exporter(TviTypeResource::class)
+                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('name')
+                                    ->heading('Institution Type'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Institution Class (B)')
+                    ]),
+
                 ]),
             ]);
     }

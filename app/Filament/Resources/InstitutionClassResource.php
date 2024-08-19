@@ -80,7 +80,7 @@ class InstitutionClassResource extends Resource
                         ExcelExport::make()
                             ->withColumns([
                                 Column::make('name')
-                                    ->heading('Institution Class (B) Name'),
+                                    ->heading('Institution Class (B)'),
                             ])
                             ->withFilename(date('m-d-Y') . ' - Institution Class (B)')
                     ]),
