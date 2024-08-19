@@ -82,8 +82,6 @@ class SectorResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exporter(SectorExporter::class)
                 ]),
             ]);
     }

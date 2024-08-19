@@ -71,12 +71,18 @@ class TviClassResource extends Resource
                     ->label('Filter')
             )
             ->actions([
+<<<<<<< HEAD
                 ActionGroup::make([
                     Tables\Actions\EditAction::make()
                         ->hidden(fn ($record) => $record->trashed()),
                     Tables\Actions\DeleteAction::make(),
                     Tables\Actions\RestoreAction::make(),
                 ])
+=======
+                EditAction::make()
+                    ->hidden(fn($record) => $record->trashed()),
+                DeleteAction::make(),
+>>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

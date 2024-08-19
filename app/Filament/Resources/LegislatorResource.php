@@ -2,22 +2,32 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\LegislatorResource\Pages;
-use App\Filament\Resources\LegislatorResource\RelationManagers;
-use App\Models\Legislator;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Resources\Resource;
 use Filament\Tables;
+<<<<<<< HEAD
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ExportBulkAction as ActionsExportBulkAction;
+=======
+use Filament\Forms\Form;
+use App\Models\Legislator;
+>>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
+<<<<<<< HEAD
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+=======
+use Filament\Forms\Components\TextInput;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Imports\LegislatorImporter;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\LegislatorResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+>>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
 
 class LegislatorResource extends Resource
 {
@@ -30,31 +40,31 @@ class LegislatorResource extends Resource
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
-{
-    return $form
-        ->schema([
-            TextInput::make("name")
-                ->required(),
-            Select::make("particular")
-                ->multiple()
-                ->relationship("particular", "name")
-                ->required()
-                ->options(function () {
-                    // Fetching particular options with municipality name concatenation
-                    return \App\Models\Particular::query()
-                        ->with('municipality') // Eager load the municipality
-                        ->get()
-                        ->mapWithKeys(function ($item) {
-                            return [$item->id => $item->name . ' - ' . ($item->municipality ? $item->municipality->name : 'N/A')];
-                        })
-                        ->toArray();
-                }),
-        ]);
-}
+    {
+        return $form
+            ->schema([
+                TextInput::make("name")
+                    ->required(),
+                Select::make("particular")
+                    ->multiple()
+                    ->relationship("particular", "name")
+                    ->required()
+                    ->options(function () {
+                        return \App\Models\Particular::query()
+                            ->with('municipality')
+                            ->get()
+                            ->mapWithKeys(function ($item) {
+                                return [$item->id => $item->name . ' - ' . ($item->municipality ? $item->municipality->name : 'N/A')];
+                            })
+                            ->toArray();
+                    }),
+            ]);
+    }
 
     public static function table(Table $table): Table
     {
         return $table
+<<<<<<< HEAD
         ->emptyStateHeading('No legislators yet')
         ->columns([
             TextColumn::make("name")
@@ -68,18 +78,31 @@ class LegislatorResource extends Resource
                 ->getStateUsing(function ($record) {
                     // Assuming `particular` is a many-to-many relationship and it's a collection
                     $particulars = $record->particular;
+=======
+            ->columns([
+                TextColumn::make("name")
+                    ->label('Legislator')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+>>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
 
-                    return $particulars->map(function ($particular) {
-                        $municipalityName = $particular->municipality ? $particular->municipality->name : 'N/A';
-                        return $particular->name . ' - ' . $municipalityName;
-                    })->join(', '); // Join all particulars with a comma separator
-                })
-                ->searchable()
-                ->toggleable(),
-                
-            TextColumn::make("status")
-                ->toggleable(),
-        ])
+                TextColumn::make('particular_name')
+                    ->label('Particular')
+                    ->getStateUsing(function ($record) {
+                        $particulars = $record->particular;
+
+                        return $particulars->map(function ($particular) {
+                            $municipalityName = $particular->municipality ? $particular->municipality->name : 'N/A';
+                            return $particular->name . ' - ' . $municipalityName;
+                        })->join(', ');
+                    })
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make("status")
+                    ->toggleable(),
+            ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),
             ])
@@ -101,6 +124,17 @@ class LegislatorResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
+<<<<<<< HEAD
+=======
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('name')
+                                    ->heading('Legislator Name'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Legislator')
+                    ]),
+>>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
                 ]),
             ]);
     }

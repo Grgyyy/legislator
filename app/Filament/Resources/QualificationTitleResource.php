@@ -163,10 +163,6 @@ class QualificationTitleResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exporter(QualificationTitleExporter::class)
                 ]),
             ]);
     }

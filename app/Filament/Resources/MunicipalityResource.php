@@ -2,23 +2,21 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Exports\MunicipalityExporter;
-use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use App\Models\Municipality;
 use Filament\Resources\Resource;
-use App\Filament\Exports\TVIExporter;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\MunicipalityResource\Pages;
-use App\Filament\Resources\MunicipalityResource\RelationManagers;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class MunicipalityResource extends Resource
 {
@@ -78,8 +76,18 @@ class MunicipalityResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exporter(MunicipalityExporter::class)
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('name')
+                                    ->heading('Legislator Name'),
+                                Column::make('province.name')
+                                    ->heading('Province'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Municipality')
+                    ]),
                 ]),
             ]);
     }

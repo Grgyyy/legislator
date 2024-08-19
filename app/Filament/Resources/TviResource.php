@@ -3,21 +3,24 @@
 namespace App\Filament\Resources;
 
 use App\Models\Tvi;
-use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use App\Filament\Exports\TVIExporter;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use Filament\Tables\Actions\ExportAction;
+use League\CommonMark\Extension\CommonMark\Node\Block\Heading;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Filters\TrashedFilter;
 use App\Filament\Resources\TviResource\Pages;
-use Filament\Tables\Actions\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Maatwebsite\Excel\Facades\Excel;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 
 
@@ -109,18 +112,34 @@ class TviResource extends Resource
                     Tables\Actions\RestoreAction::make(),
                 ])
             ])
-            // ->headerActions([
-            //     ExportAction::make()
-            //         ->exporter(TVIExporter::class)
-            // ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exporter(TVIExporter::class)
-                ]),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('name')
+                                    ->heading('Institution Name'),
+                                Column::make('district')
+                                    ->heading('District'),
+                                Column::make('municipality_class')
+                                    ->heading('Municipality'),
+                                Column::make('tviClass.name')
+                                    ->heading('Institution Class (A)'),
+                                Column::make('InstitutionClass.name')
+                                    ->heading('Institution Class (B)'),
+                                Column::make('address')
+                                    ->heading('Address'),
+                                Column::make('created_at')
+                                    ->heading('Date Created'),
+
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Institution')
+                    ]),
+                ])
+
 
             ]);
     }

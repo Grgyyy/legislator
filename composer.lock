@@ -300,8 +300,13 @@
             },
             "dist": {
                 "type": "zip",
+<<<<<<< HEAD
                 "reference": "8f787baf09d88cdfd6ec4dbaba11ebfa885f0595",
                 "url": "https://api.github.com/repos/blade-ui-kit/blade-icons/zipball/8f787baf09d88cdfd6ec4dbaba11ebfa885f0595",
+=======
+                "url": "https://api.github.com/repos/blade-ui-kit/blade-icons/zipball/8f787baf09d88cdfd6ec4dbaba11ebfa885f0595",
+                "reference": "8f787baf09d88cdfd6ec4dbaba11ebfa885f0595",
+>>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
                 "shasum": ""
             },
             "require": {
@@ -3028,6 +3033,7 @@
         },
         {
             "name": "league/commonmark",
+<<<<<<< HEAD
             "version": "2.5.2",
             "source": {
                 "type": "git",
@@ -3038,6 +3044,18 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/df09d5b6a4188f8f3c3ab2e43a109076a5eeb767",
                 "reference": "df09d5b6a4188f8f3c3ab2e43a109076a5eeb767",
+=======
+            "version": "2.5.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/thephpleague/commonmark.git",
+                "reference": "b650144166dfa7703e62a22e493b853b58d874b0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/thephpleague/commonmark/zipball/b650144166dfa7703e62a22e493b853b58d874b0",
+                "reference": "b650144166dfa7703e62a22e493b853b58d874b0",
+>>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
                 "shasum": ""
             },
             "require": {
@@ -3050,8 +3068,8 @@
             },
             "require-dev": {
                 "cebe/markdown": "^1.0",
-                "commonmark/cmark": "0.31.0",
-                "commonmark/commonmark.js": "0.31.0",
+                "commonmark/cmark": "0.31.1",
+                "commonmark/commonmark.js": "0.31.1",
                 "composer/package-versions-deprecated": "^1.8",
                 "embed/embed": "^4.4",
                 "erusev/parsedown": "^1.0",
@@ -3130,7 +3148,11 @@
                     "type": "tidelift"
                 }
             ],
+<<<<<<< HEAD
             "time": "2024-08-14T10:56:57+00:00"
+=======
+            "time": "2024-08-16T11:46:16+00:00"
+>>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
         },
         {
             "name": "league/config",
@@ -5078,6 +5100,76 @@
             "time": "2024-06-10T01:18:23+00:00"
         },
         {
+<<<<<<< HEAD
+=======
+            "name": "pxlrbt/filament-excel",
+            "version": "v2.3.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pxlrbt/filament-excel.git",
+                "reference": "0d6f3f252ce7d998e5f92fc8703a241b6816fcb9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pxlrbt/filament-excel/zipball/0d6f3f252ce7d998e5f92fc8703a241b6816fcb9",
+                "reference": "0d6f3f252ce7d998e5f92fc8703a241b6816fcb9",
+                "shasum": ""
+            },
+            "require": {
+                "anourvalar/eloquent-serialize": "^1.2",
+                "filament/filament": "^3.0.0-stable",
+                "maatwebsite/excel": "^3.1",
+                "php": "^8.1"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.10"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "pxlrbt\\FilamentExcel\\FilamentExcelServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "pxlrbt\\FilamentExcel\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Dennis Koch",
+                    "email": "info@pixelarbeit.de"
+                }
+            ],
+            "description": "Supercharged Excel exports for Filament Resources",
+            "keywords": [
+                "PHPExcel",
+                "actions",
+                "filament",
+                "laravel",
+                "laravel-filament",
+                "phpspreadsheet"
+            ],
+            "support": {
+                "issues": "https://github.com/pxlrbt/filament-excel/issues",
+                "source": "https://github.com/pxlrbt/filament-excel/tree/v2.3.3"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/pxlrbt",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-08-12T08:25:24+00:00"
+        },
+        {
+>>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
             "name": "ralouphie/getallheaders",
             "version": "3.0.3",
             "source": {

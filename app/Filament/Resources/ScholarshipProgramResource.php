@@ -95,8 +95,7 @@ class ScholarshipProgramResource extends Resource
                 BulkActionGroup::make([
                     RestoreBulkAction::make(),
                     DeleteBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exporter(ScholarshipProgramExporter::class)
+
                 ]),
             ]);
     }
