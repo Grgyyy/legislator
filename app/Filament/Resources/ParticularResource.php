@@ -2,20 +2,19 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ParticularResource\Pages;
-use App\Filament\Resources\ParticularResource\RelationManagers;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use App\Models\Particular;
-use Filament\Forms;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Forms\Form;
+use App\Models\Particular;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\TextInput;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use App\Filament\Resources\ParticularResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class ParticularResource extends Resource
 {
@@ -37,7 +36,8 @@ class ParticularResource extends Resource
                 Select::make('municipality_id')
                     ->label("Municipality")
                     ->relationship("municipality", "name")
-                    ->required(),
+                    ->required()
+                    ->preload(),
             ]);
     }
 
@@ -73,7 +73,7 @@ class ParticularResource extends Resource
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     Tables\Actions\DeleteAction::make(),
                     Tables\Actions\RestoreAction::make(),
                 ])
@@ -83,6 +83,21 @@ class ParticularResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('name')
+                                    ->heading('Legislator Name'),
+                                Column::make('municipality.name')
+                                    ->heading('Municipality'),
+                                Column::make('municipality.province.name')
+                                    ->heading('Province'),
+                                Column::make('municipality.province.region.name')
+                                    ->heading('Region'),
+
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Municipality')
+                    ]),
                 ]),
             ]);
     }

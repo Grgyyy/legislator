@@ -42,7 +42,6 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Orange,
                 'primary' => '#3433dc',
             ])
-            ->databaseNotifications()
             ->font('Poppins')
             ->brandName('Legislator App')
             ->favicon(asset('images/TESDA_logo.png'))

@@ -5,7 +5,6 @@ namespace App\Filament\Resources;
 use Filament\Tables;
 use App\Models\TviClass;
 use Filament\Forms\Form;
-use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Actions\StaticAction;
@@ -13,11 +12,17 @@ use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\TviClassResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Exports\Concerns\WithFilename;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class TviClassResource extends Resource
 {
@@ -73,14 +78,27 @@ class TviClassResource extends Resource
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     Tables\Actions\DeleteAction::make(),
                     Tables\Actions\RestoreAction::make(),
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
+                BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('name')
+                                    ->heading('Institution Class (A)'),
+                                Column::make('tviType.name')
+                                    ->heading('Institution Type'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Institution Class (A)')
+                    ]),
+
                 ]),
             ]);
     }

@@ -15,11 +15,13 @@ class Particular extends Model
         'municipality_id',
     ];
 
-    public function legislator() {
+    public function legislator()
+    {
         return $this->belongsToMany(Legislator::class, 'LegislatorParticular')->withTimestamps();
     }
 
-    public function municipality() {
+    public function municipality()
+    {
         return $this->belongsTo(Municipality::class);
     }
 }

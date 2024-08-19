@@ -9,9 +9,8 @@ use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
-use Filament\Actions\ImportAction;
 use Filament\Actions\StaticAction;
-use Filament\Forms\Components\Mask;
+use function Laravel\Prompts\select;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
@@ -20,15 +19,12 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Actions\ExportBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Exports\QualificationTitleExporter;
-use App\Filament\Resources\QualificationTitleResource\Pages;
-use App\Filament\Resources\QualificationTitleResource\RelationManagers;
 
-use function Laravel\Prompts\select;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\QualificationTitleResource\Pages;
 
 class QualificationTitleResource extends Resource
 {
@@ -164,9 +160,28 @@ class QualificationTitleResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exporter(QualificationTitleExporter::class)
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('code')
+                                    ->heading('Qualification Code'),
+                                Column::make('title')
+                                    ->heading('Qualification Title'),
+                                Column::make('scholarshipProgram.name')
+                                    ->heading('Scholarship Program'),
+                                Column::make('sector.name')
+                                    ->heading('Sector'),
+                                Column::make('duration')
+                                    ->heading('Duration'),
+                                Column::make('training_cost_pcc')
+                                    ->heading('Training Cost PCC'),
+                                Column::make('cost_of_toolkit_pcc')
+                                    ->heading('Cost of Toolkit PCC'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Qualification Title')
+                    ]),
                 ]),
             ]);
     }

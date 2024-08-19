@@ -12,15 +12,17 @@ use Filament\Resources\Resource;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\RestoreBulkAction;
-use App\Filament\Exports\InstitutionClassExporter;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\InstitutionClassResource\Pages;
-use Filament\Tables\Actions\ExportBulkAction;
 
 class InstitutionClassResource extends Resource
 {
@@ -74,8 +76,14 @@ class InstitutionClassResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exporter(InstitutionClassExporter::class)
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('name')
+                                    ->heading('Institution Class (B)'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Institution Class (B)')
+                    ]),
                 ]),
             ]);
     }

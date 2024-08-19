@@ -11,19 +11,17 @@ use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
-use App\Filament\Exports\SectorExporter;
 use Filament\Forms\Components\TextInput;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ExportBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\SectorResource\Pages;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 
 class SectorResource extends Resource
@@ -79,11 +77,18 @@ class SectorResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                    ExportBulkAction::make()
-                        ->exporter(SectorExporter::class)
+                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('name')
+                                    ->heading('Sector'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Sector')
+                    ]),
+
                 ]),
             ]);
     }
