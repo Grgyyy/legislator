@@ -3,31 +3,23 @@
 namespace App\Filament\Resources;
 
 use Filament\Tables;
-<<<<<<< HEAD
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\ExportBulkAction as ActionsExportBulkAction;
-=======
 use Filament\Forms\Form;
 use App\Models\Legislator;
->>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
-<<<<<<< HEAD
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-=======
 use Filament\Forms\Components\TextInput;
 use pxlrbt\FilamentExcel\Columns\Column;
-use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Imports\LegislatorImporter;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\LegislatorResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
->>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
 
 class LegislatorResource extends Resource
 {
@@ -64,29 +56,20 @@ class LegislatorResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-<<<<<<< HEAD
-        ->emptyStateHeading('No legislators yet')
-        ->columns([
-            TextColumn::make("name")
-                ->label('Legislator')
-                ->sortable()
-                ->searchable()
-                ->toggleable(),
-                
-            TextColumn::make('particular_name')
-                ->label('Particular')
-                ->getStateUsing(function ($record) {
-                    // Assuming `particular` is a many-to-many relationship and it's a collection
-                    $particulars = $record->particular;
-=======
+            ->emptyStateHeading('No legislators yet')
             ->columns([
                 TextColumn::make("name")
                     ->label('Legislator')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
->>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
 
+                TextColumn::make('particular_name')
+                    ->label('Particular')
+                    ->getStateUsing(function ($record) {
+                        // Assuming `particular` is a many-to-many relationship and it's a collection
+                        $particulars = $record->particular;
+                    }),
                 TextColumn::make('particular_name')
                     ->label('Particular')
                     ->getStateUsing(function ($record) {
@@ -99,7 +82,6 @@ class LegislatorResource extends Resource
                     })
                     ->searchable()
                     ->toggleable(),
-
                 TextColumn::make("status")
                     ->toggleable(),
             ])
@@ -114,7 +96,7 @@ class LegislatorResource extends Resource
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     Tables\Actions\DeleteAction::make(),
                     Tables\Actions\RestoreAction::make(),
                 ])
@@ -124,17 +106,16 @@ class LegislatorResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
-<<<<<<< HEAD
-=======
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
                                 Column::make('name')
                                     ->heading('Legislator Name'),
+                                Column::make('province.name')
+                                    ->heading('Province'),
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Legislator')
+                            ->withFilename(date('m-d-Y') . ' - Municipality')
                     ]),
->>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
                 ]),
             ]);
     }

@@ -3,12 +3,9 @@
 namespace App\Filament\Resources;
 
 use Filament\Tables;
-<<<<<<< HEAD
 use Filament\Tables\Actions\ActionGroup;
-=======
 use Filament\Forms\Form;
 use App\Models\Particular;
->>>>>>> cc2605e (Feat: Created export features using pxlrbt plugins)
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
@@ -76,7 +73,7 @@ class ParticularResource extends Resource
             ->actions([
                 ActionGroup::make([
                     Tables\Actions\EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     Tables\Actions\DeleteAction::make(),
                     Tables\Actions\RestoreAction::make(),
                 ])
