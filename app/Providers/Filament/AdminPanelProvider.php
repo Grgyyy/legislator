@@ -76,6 +76,7 @@ class AdminPanelProvider extends PanelProvider
                     ->slug('my-profile')
                     ->setTitle('My Profile')
                     ->setNavigationLabel('My Profile')
+                    ->setNavigationGroup('USER MANAGEMENT')
                     ->setIcon('heroicon-o-user')
                     ->setSort(1)
                     ->shouldShowDeleteAccountForm(true)

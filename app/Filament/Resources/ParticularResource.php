@@ -11,6 +11,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,9 +25,7 @@ class ParticularResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
-    // protected static ?string $navigationParentItem = "Regions";
-
-    // protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -45,6 +44,7 @@ class ParticularResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No particulars yet')
             ->columns([
                 TextColumn::make("name")
                     ->label('Particular Name')
@@ -71,10 +71,12 @@ class ParticularResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->hidden(fn($record) => $record->trashed()),
-                Tables\Actions\DeleteAction::make(),
-                Tables\Actions\RestoreAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->hidden(fn ($record) => $record->trashed()),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

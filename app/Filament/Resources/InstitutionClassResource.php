@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use App\Models\InstitutionClass;
 use Filament\Resources\Resource;
@@ -26,7 +27,7 @@ class InstitutionClassResource extends Resource
     protected static ?string $model = InstitutionClass::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
-    protected static ?string $navigationParentItem = "Provider";
+    protected static ?string $navigationParentItem = "Institution";
     protected static ?string $navigationLabel = "Institution Class (B)";
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -47,6 +48,7 @@ class InstitutionClassResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No institution class yet')
             ->columns([
                 TextColumn::make('name')
                     ->label('Institution Classes (B)')
@@ -60,10 +62,12 @@ class InstitutionClassResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                EditAction::make()
-                    ->hidden(fn($record) => $record->trashed()),
-                DeleteAction::make(),
-                RestoreAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->hidden(fn ($record) => $record->trashed()),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([

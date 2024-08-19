@@ -6,6 +6,7 @@ use Filament\Forms;
 use Filament\Tables;
 use App\Models\Sector;
 use Filament\Forms\Form;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\EditAction;
@@ -52,6 +53,7 @@ class SectorResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No sectors yet')
             ->columns([
                 TextColumn::make('name')
                     ->label('Sector')
@@ -68,10 +70,12 @@ class SectorResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                EditAction::make()
-                    ->hidden(fn($record) => $record->trashed()),
-                DeleteAction::make(),
-                RestoreAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->hidden(fn ($record) => $record->trashed()),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([

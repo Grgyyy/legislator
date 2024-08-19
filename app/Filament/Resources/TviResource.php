@@ -6,6 +6,7 @@ use App\Models\Tvi;
 use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Filament\Exports\TVIExporter;
@@ -32,9 +33,9 @@ class TviResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
 
-    protected static ?string $navigationLabel = 'Provider';
+    protected static ?string $navigationLabel = 'Institution';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
@@ -67,6 +68,7 @@ class TviResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No institutions yet')
             ->columns([
                 TextColumn::make("name")
                     ->sortable()
@@ -100,10 +102,12 @@ class TviResource extends Resource
                     ->label('Filter'),
             )
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->hidden(fn($record) => $record->trashed()),
-                Tables\Actions\DeleteAction::make(),
-                Tables\Actions\RestoreAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->hidden(fn ($record) => $record->trashed()),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                ])
             ])
             // ->headerActions([
             //     ExportAction::make()

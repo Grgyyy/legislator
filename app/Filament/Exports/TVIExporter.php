@@ -39,7 +39,7 @@ class TVIExporter extends Exporter
     }
     public function getFileName(Export $export): string
     {
-        return 'Provider';
+        return 'Institution';
     }
 
 }

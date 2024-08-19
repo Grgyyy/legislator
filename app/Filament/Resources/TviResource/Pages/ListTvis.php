@@ -10,13 +10,13 @@ class ListTvis extends ListRecords
 {
     protected static string $resource = TviResource::class;
 
-    protected static ?string $title = 'Provider';
+    protected static ?string $title = 'Institution';
 
     protected function getHeaderActions(): array
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Provider'),
+                ->label('New Institution'),
         ];
     }
 }

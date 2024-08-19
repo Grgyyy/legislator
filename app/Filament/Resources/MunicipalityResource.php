@@ -6,6 +6,7 @@ use App\Filament\Exports\MunicipalityExporter;
 use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
+use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Table;
 use App\Models\Municipality;
 use Filament\Resources\Resource;
@@ -48,6 +49,7 @@ class MunicipalityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No municipalities yet')
             ->columns([
                 TextColumn::make("name")
                     ->sortable()
@@ -66,9 +68,12 @@ class MunicipalityResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->hidden(fn($record) => $record->trashed()),
-                Tables\Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\EditAction::make()
+                        ->hidden(fn ($record) => $record->trashed()),
+                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

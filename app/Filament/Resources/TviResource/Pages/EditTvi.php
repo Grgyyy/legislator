@@ -10,7 +10,7 @@ class EditTvi extends EditRecord
 {
     protected static string $resource = TviResource::class;
 
-    protected static ?string $title = 'Edit Provider';
+    protected static ?string $title = 'Edit Institution';
 
     protected function getRedirectUrl(): string 
     {
