@@ -43,10 +43,10 @@ class LegislatorResource extends Resource
                     ->required()
                     ->options(function () {
                         return \App\Models\Particular::query()
-                            ->with('municipality')
+                            ->with('district')
                             ->get()
                             ->mapWithKeys(function ($item) {
-                                return [$item->id => $item->name . ' - ' . ($item->municipality ? $item->municipality->name : 'N/A')];
+                                return [$item->id => $item->name . ' - ' . ($item->district ? $item->district->name : 'N/A') . ', ' . ($item->district->municipality ? $item->district->municipality->name : 'N/A')];
                             })
                             ->toArray();
                     }),
@@ -67,7 +67,6 @@ class LegislatorResource extends Resource
                 TextColumn::make('particular_name')
                     ->label('Particular')
                     ->getStateUsing(function ($record) {
-                        // Assuming `particular` is a many-to-many relationship and it's a collection
                         $particulars = $record->particular;
                     }),
                 TextColumn::make('particular_name')
@@ -76,7 +75,7 @@ class LegislatorResource extends Resource
                         $particulars = $record->particular;
 
                         return $particulars->map(function ($particular) {
-                            $municipalityName = $particular->municipality ? $particular->municipality->name : 'N/A';
+                            $municipalityName = $particular->district->name . ', ' . $particular->district->municipality->name;
                             return $particular->name . ' - ' . $municipalityName;
                         })->join(', ');
                     })

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms\Form;
+use App\Models\District;
 use App\Models\Particular;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
@@ -33,9 +34,17 @@ class ParticularResource extends Resource
                 TextInput::make("name")
                     ->required()
                     ->autocomplete(false),
-                Select::make('municipality_id')
-                    ->label("Municipality")
-                    ->relationship("municipality", "name")
+                Select::make('district_id')
+                    ->label('District')
+                    ->options(function () {
+                        return District::all()->mapWithKeys(function (District $district) {
+                            $label = $district->name . ' - ' .
+                                     $district->municipality->name . ', ' .
+                                     $district->municipality->province->name;
+    
+                            return [$district->id => $label];
+                        })->toArray();
+                    })
                     ->required()
                     ->preload(),
             ]);
@@ -51,13 +60,17 @@ class ParticularResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("municipality.name")
+                TextColumn::make("district.name")
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("municipality.province.name")
+                TextColumn::make("district.municipality.name")
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("municipality.province.region.name")
+                TextColumn::make("district.municipality.province.name")
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make("district.municipality.province.region.name")
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
