@@ -16,6 +16,9 @@ return new class extends Migration
             $table->foreignId('legislator_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('particular_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->foreignId('scholarship_program_id')
                 ->constrained()
                 ->cascadeOnDelete();

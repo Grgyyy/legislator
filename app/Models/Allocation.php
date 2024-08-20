@@ -12,6 +12,7 @@ class Allocation extends Model
 
     protected $fillable = [
         'legislator_id',
+        'particular_id',
         'scholarship_program_id',
         'allocation',
         'admin_cost',
@@ -23,5 +24,9 @@ class Allocation extends Model
 
     public function scholarship_program(){
         return $this->belongsTo(ScholarshipProgram::class);
+    }
+
+    public function particular() {
+        return $this->belongsTo(Particular::class);
     }
 }
