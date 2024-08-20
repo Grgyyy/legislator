@@ -3,15 +3,20 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\DistrictResource\Pages;
-use App\Filament\Resources\DistrictResource\RelationManagers;
 use App\Models\District;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -22,11 +27,11 @@ class DistrictResource extends Resource
 {
     protected static ?string $model = District::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
     protected static ?string $navigationParentItem = "Regions";
+
+    protected static ?string $navigationIcon = 'heroicon-o-map-pin';
 
     protected static ?int $navigationSort = 3;
 
@@ -34,10 +39,10 @@ class DistrictResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
                     ->required()
                     ->autocomplete(false),
-                Forms\Components\Select::make('municipality_id')
+                Select::make('municipality_id')
                     ->label('Municipality')
                     ->relationship('municipality', 'name')
                     ->required()
@@ -53,42 +58,39 @@ class DistrictResource extends Resource
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('municipality.name')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('municipality.province.name')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('municipality.province.region.name')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-
             ])
             ->filters([
-                //
+                TrashedFilter::make(),
             ])
+            ->filtersTriggerAction(
+                fn(\Filament\Actions\StaticAction $action) => $action
+                    ->button()
+                    ->label('Filter'),
+            )
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->hidden(fn ($record) => $record->trashed()),
-                    Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\RestoreAction::make(),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
@@ -98,5 +100,13 @@ class DistrictResource extends Resource
             'create' => Pages\CreateDistrict::route('/create'),
             'edit' => Pages\EditDistrict::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

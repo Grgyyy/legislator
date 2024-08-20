@@ -9,4 +9,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateDistrict extends CreateRecord
 {
     protected static string $resource = DistrictResource::class;
+    
+    protected function getRedirectUrl(): string 
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
