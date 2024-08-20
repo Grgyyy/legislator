@@ -63,9 +63,9 @@ class MunicipalityResource extends Resource
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make("province.region.name")
-                ->sortable()
-                ->searchable()
-                ->toggleable(),
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make(),

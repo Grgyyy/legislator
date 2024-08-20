@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms\Form;
 use App\Models\District;
@@ -77,7 +76,6 @@ class ParticularResource extends Resource
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make("district.municipality.province.name")
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make("district.municipality.province.region.name")

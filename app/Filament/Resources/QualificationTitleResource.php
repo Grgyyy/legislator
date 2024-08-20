@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;

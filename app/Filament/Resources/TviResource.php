@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Models\Tvi;
 use App\Models\District;
-use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -55,20 +54,20 @@ class TviResource extends Resource
                     ->relationship('InstitutionClass', 'name')
                     ->required(),
                 Select::make('district_id')
-                ->label('District')
-                ->options(function () {
-                    return District::all()->mapWithKeys(function (District $district) {
-                            $label = $district->name . ' - ' .
-                                    $district->municipality->name . ', ' .
-                                    $district->municipality->province->name;
+                    ->label('District')
+                    ->options(function () {
+                        return District::all()->mapWithKeys(function (District $district) {
+                                $label = $district->name . ' - ' .
+                                        $district->municipality->name . ', ' .
+                                        $district->municipality->province->name;
 
-                            return [$district->id => $label];
-                        })->toArray();
-                    })
+                                return [$district->id => $label];
+                            })->toArray();
+                        })
                     ->preload()
                     ->required(),
                 TextInput::make("address")
-                ->label("Full Address")
+                    ->label("Full Address")
                     ->required()
                     ->autocomplete(false),
             ]);
@@ -96,16 +95,13 @@ class TviResource extends Resource
                     ->getStateUsing(function ($record) {
                         $district = $record->district;
                 
-                        // Ensure that the district and its relationships are available
                         if (!$district) {
                             return 'No District Information';
                         }
+
+                        $municipality = $district->municipality;
+                        $province = $district->municipality->province;
                 
-                        // Access related data
-                        $municipality = $district->municipality; // Make sure this relationship exists
-                        $province = $district->municipality->province; // Make sure this relationship exists
-                
-                        // Format the district, municipality, and province names
                         $districtName = $district->name;
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
                         $provinceName = $province ? $province->name : 'Unknown Province';

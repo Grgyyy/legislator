@@ -64,11 +64,6 @@ class SectorResource extends Resource
             ->filters([
                 TrashedFilter::make()
             ])
-            ->filtersTriggerAction(
-                fn(\Filament\Actions\StaticAction $action) => $action
-                    ->button()
-                    ->label('Filter'),
-            )
             ->actions([
                 ActionGroup::make([
                     EditAction::make()

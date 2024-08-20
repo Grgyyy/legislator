@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms\Form;
 use App\Models\Legislator;
@@ -49,7 +48,7 @@ class LegislatorResource extends Resource
                     ->relationship("particular", "name")
                     ->required()
                     ->options(function () {
-                        return \App\Models\Particular::query()
+                        return Particular::query()
                             ->with('district')
                             ->get()
                             ->mapWithKeys(function ($item) {

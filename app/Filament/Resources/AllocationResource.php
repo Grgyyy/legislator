@@ -4,12 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\AllocationResource\Pages;
 use App\Models\Allocation;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -42,18 +40,15 @@ class AllocationResource extends Resource
                     ->relationship('legislator', 'name')
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state) {
-                        $set('particular_id', null); // Reset particular when legislator changes
-                        $set('particular_options', self::getParticularOptions($state)); // Set particular options
+                        $set('particular_id', null);
+                        $set('particular_options', self::getParticularOptions($state));
                     }),
-
-                    Select::make('particular_id')
+                Select::make('particular_id')
                     ->options(fn ($get) => self::getParticularOptions($get('legislator_id')))
                     ->reactive()
                     ->searchable(),
-
                 Select::make('scholarship_program_id')
                     ->relationship("scholarship_program", "name"),
-
                 TextInput::make('allocation')
                     ->label('Allocation')
                     ->required()
@@ -68,7 +63,6 @@ class AllocationResource extends Resource
                     ->afterStateUpdated(function (callable $set, $state) {
                         $set('admin_cost', $state * 0.02);
                     }),
-
                 TextInput::make('admin_cost')
                     ->label('Admin Cost')
                     ->required()
@@ -87,7 +81,6 @@ class AllocationResource extends Resource
             return [];
         }
         
-        // Fetch the legislator with their particulars and related data
         $legislator = \App\Models\Legislator::with('particular.district.municipality')
             ->find($legislatorId);
         
@@ -95,7 +88,6 @@ class AllocationResource extends Resource
             return [];
         }
     
-        // Create an array of particulars with the formatted string and their ID
         return $legislator->particular->mapWithKeys(function ($particular) {
             $districtName = $particular->district->name ?? 'Unknown District';
             $municipalityName = $particular->district->municipality->name ?? 'Unknown Municipality';
@@ -104,8 +96,6 @@ class AllocationResource extends Resource
             return [$particular->id => $formattedName];
         })->toArray();
     }
-    
-    
 
     public static function table(Table $table): Table
     {
@@ -116,7 +106,6 @@ class AllocationResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-
                 TextColumn::make("particular.name")
                     ->getStateUsing(function ($record) {
                         $particular = $record->particular;
@@ -133,19 +122,16 @@ class AllocationResource extends Resource
 
                         return $formattedName;
                     })
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make("scholarship_program.name")
                     ->label('Scholarship Program')
-                    ->sortable()
+                    ->searchable()
                     ->toggleable(),
-
                 TextColumn::make("allocation")
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ',')),
-
                 TextColumn::make("admin_cost")
                     ->label('Admin Cost')
                     ->sortable()
