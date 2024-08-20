@@ -13,13 +13,14 @@ return new class extends Migration
     {
         Schema::create('allocations', function (Blueprint $table) {
             $table->id();
-            $table->decimal('twsp_allocation', 10, 2);
-            $table->decimal('twsp_admin_cost', 10, 2)->default(0);
-            $table->decimal('step_allocation', 10, 2);
-            $table->decimal('step_admin_cost', 10, 2)->default(0);
             $table->foreignId('legislator_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('scholarship_program_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->decimal('allocation', 10, 2);
+            $table->decimal('admin_cost', 10, 2)->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

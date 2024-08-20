@@ -11,14 +11,17 @@ class Allocation extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'twsp_allocation',
-        'twsp_admin_cost',
-        'step_allocation',
-        'step_admin_cost',
         'legislator_id',
+        'scholarship_program_id',
+        'allocation',
+        'admin_cost',
     ];
 
     public function legislator(){
         return $this->belongsTo(Legislator::class);
+    }
+
+    public function scholarship_program(){
+        return $this->belongsTo(ScholarshipProgram::class);
     }
 }

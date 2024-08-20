@@ -39,59 +39,86 @@ class AllocationResource extends Resource
             ->schema([
                 Select::make('legislator_id')
                     ->relationship("legislator", "name"),
+                
+                Select::make('scholarship_program_id')
+                    ->relationship("scholarship_program", "name"),
 
-                Grid::make(2)
-                    ->schema([
-                        TextInput::make('twsp_allocation')
-                            ->label('TWSP Allocation')
-                            ->required()
-                            ->autocomplete(false)
-                            ->numeric()
-                            ->default(0)
-                            ->prefix('₱')
-                            ->minValue(0)
-                            ->unique(ignoreRecord: true)
-                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                            ->reactive()
-                            ->afterStateUpdated(function (callable $set, $state) {
-                                $set('twsp_admin_cost', $state * 2);
-                            }),
-                        TextInput::make('twsp_admin_cost')
-                            ->label('TWSP Admin Cost')
-                            ->required()
-                            ->numeric()
-                            ->default(0)
-                            ->prefix('₱')
-                            ->minValue(0)
-                            ->readOnly()
-                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                    ]),
+                TextInput::make('allocation')
+                    ->label('Allocation')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->unique(ignoreRecord: true)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        $set('admin_cost', $state * 0.02);
+                    }),
+                TextInput::make('admin_cost')
+                    ->label('Admin Cost')
+                    ->required()
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->readOnly()
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
 
-                Grid::make(2)->schema([
-                    TextInput::make("step_allocation")
-                        ->label('STEP Allocation')
-                        ->required()
-                        ->autocomplete(false)
-                        ->numeric()
-                        ->default(0)
-                        ->prefix('₱')
-                        ->minValue(0)
+                // Grid::make(2)
+                //     ->schema([
+                //         TextInput::make('twsp_allocation')
+                //             ->label('TWSP Allocation')
+                //             ->required()
+                //             ->autocomplete(false)
+                //             ->numeric()
+                //             ->default(0)
+                //             ->prefix('₱')
+                //             ->minValue(0)
+                //             ->unique(ignoreRecord: true)
+                //             ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                //             ->reactive()
+                //             ->afterStateUpdated(function (callable $set, $state) {
+                //                 $set('twsp_admin_cost', $state * 2);
+                //             }),
+                //         TextInput::make('twsp_admin_cost')
+                //             ->label('TWSP Admin Cost')
+                //             ->required()
+                //             ->numeric()
+                //             ->default(0)
+                //             ->prefix('₱')
+                //             ->minValue(0)
+                //             ->readOnly()
+                //             ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                //     ]),
 
-                        ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                        ->reactive()
-                        ->afterStateUpdated(function (callable $set, $state) {
-                            $set('step_admin_cost', $state * 2);
-                        }),
-                    TextInput::make("step_admin_cost")
-                        ->label('STEP Admin Cost')
-                        ->required()
-                        ->numeric()
-                        ->default(0)
-                        ->prefix('₱')
-                        ->minValue(0)
-                        ->readOnly()
-                        ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                ]),
+                // Grid::make(2)->schema([
+                //     TextInput::make("step_allocation")
+                //         ->label('STEP Allocation')
+                //         ->required()
+                //         ->autocomplete(false)
+                //         ->numeric()
+                //         ->default(0)
+                //         ->prefix('₱')
+                //         ->minValue(0)
+
+                //         ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                //         ->reactive()
+                //         ->afterStateUpdated(function (callable $set, $state) {
+                //             $set('step_admin_cost', $state * 2);
+                //         }),
+                //     TextInput::make("step_admin_cost")
+                //         ->label('STEP Admin Cost')
+                //         ->required()
+                //         ->numeric()
+                //         ->default(0)
+                //         ->prefix('₱')
+                //         ->minValue(0)
+                //         ->readOnly()
+                //         ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                // ]),
             ]);
     }
 
@@ -104,29 +131,18 @@ class AllocationResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("twsp_allocation")
-                    ->label('TWSP Allocation')
+                TextColumn::make("scholarship_program.name")
+                    ->label('Scholarship Program')
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make("allocation")
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
                     }),
-                TextColumn::make("twsp_admin_cost")
-                    ->label('TWSP Admin Cost')
-                    ->sortable()
-                    ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        return number_format($state, 2, '.', ',');
-                    }),
-                TextColumn::make("step_allocation")
-                    ->label('STEP Allocation')
-                    ->sortable()
-                    ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        return number_format($state, 2, '.', ',');
-                    }),
-                TextColumn::make("step_admin_cost")
-                    ->label('STEP Admin Cost')
+                TextColumn::make("admin_cost")
+                    ->label('Admin Cost')
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(function ($state) {

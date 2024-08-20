@@ -16,6 +16,11 @@ class ScholarshipProgram extends Model
         'desc',
     ];
 
+
+    public function allocation() {
+        return $this->hasMany(Allocation::class);
+    }
+
     public function qualificationTitle()
     {
         return $this->hasMany(QualificationTitle::class);
