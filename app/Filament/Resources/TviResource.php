@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\Tvi;
+use App\Models\District;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
@@ -47,13 +48,6 @@ class TviResource extends Resource
                 TextInput::make("name")
                     ->required()
                     ->autocomplete(false),
-                TextInput::make("district")
-                    ->required()
-                    ->autocomplete(false),
-                TextInput::make("municipality_class")
-                    ->label("Municipality Class")
-                    ->required()
-                    ->autocomplete(false),
                 Select::make('tvi_class_id')
                     ->label("TVI Class (A)")
                     ->relationship('tviClass', 'name')
@@ -62,7 +56,21 @@ class TviResource extends Resource
                     ->label("TVI Class (B)")
                     ->relationship('InstitutionClass', 'name')
                     ->required(),
+                Select::make('district_id')
+                ->label('District')
+                ->options(function () {
+                    return District::all()->mapWithKeys(function (District $district) {
+                            $label = $district->name . ' - ' .
+                                    $district->municipality->name . ', ' .
+                                    $district->municipality->province->name;
+
+                            return [$district->id => $label];
+                        })->toArray();
+                    })
+                    ->preload()
+                    ->required(),
                 TextInput::make("address")
+                ->label("Full Address")
                     ->required()
                     ->autocomplete(false),
             ]);
@@ -76,14 +84,7 @@ class TviResource extends Resource
                 TextColumn::make("name")
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
-                TextColumn::make("district")
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make("municipality_class")
-                    ->label("Municipality Class")
-                    ->searchable()
-                    ->toggleable(),
+                    ->toggleable(),               
                 TextColumn::make("tviClass.name")
                     ->label('Institution Class(A)')
                     ->searchable()
@@ -92,6 +93,29 @@ class TviResource extends Resource
                     ->label("Institution Class(B)")
                     ->searchable()
                     ->toggleable(),
+                TextColumn::make('district.name')
+                    ->label('District')
+                    ->getStateUsing(function ($record) {
+                        $district = $record->district;
+                
+                        // Ensure that the district and its relationships are available
+                        if (!$district) {
+                            return 'No District Information';
+                        }
+                
+                        // Access related data
+                        $municipality = $district->municipality; // Make sure this relationship exists
+                        $province = $district->municipality->province; // Make sure this relationship exists
+                
+                        // Format the district, municipality, and province names
+                        $districtName = $district->name;
+                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                        $provinceName = $province ? $province->name : 'Unknown Province';
+                
+                        return "{$districtName} - {$municipalityName}, {$provinceName}";
+                    })
+                    ->searchable()
+                    ->toggleable(), 
                 TextColumn::make("address")
                     ->searchable()
                     ->toggleable(),

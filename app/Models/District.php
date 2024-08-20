@@ -20,7 +20,11 @@ class District extends Model
         return $this->belongsTo(Municipality::class);
     }
 
-    public function district() {
-        return $this->belongsTo(District::class);
+    public function particular() {
+        return $this->belongsTo(Particular::class);
+    }
+
+    public function tvi() {
+        return $this->hasMany(Tvi::class);
     }
 }

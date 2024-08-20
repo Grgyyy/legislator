@@ -13,11 +13,9 @@ return new class extends Migration {
         Schema::create('tvis', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('district');
-            // $table->foreignId('province_id')
-            //     ->constrained()
-            //     ->cascadeOnDelete();
-            $table->string('municipality_class');
+            $table->foreignId('district_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->foreignId('tvi_class_id')
                 ->constrained()
                 ->cascadeOnDelete();

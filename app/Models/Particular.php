@@ -20,6 +20,11 @@ class Particular extends Model
         return $this->belongsToMany(Legislator::class, 'LegislatorParticular')->withTimestamps();
     }
 
+    public function allocation() 
+    {
+        return $this->hasMany(Allocation::class);
+    }
+
     public function district()
     {
         return $this->belongsTo(District::class);

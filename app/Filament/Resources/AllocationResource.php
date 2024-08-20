@@ -3,25 +3,18 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AllocationResource\Pages;
-use App\Filament\Resources\AllocationResource\RelationManagers;
 use App\Models\Allocation;
 use Filament\Forms;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\ExportBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use GuzzleHttp\Psr7\Request;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Http\Client\Request as ClientRequest;
-use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class AllocationResource extends Resource
 {
@@ -38,62 +31,73 @@ class AllocationResource extends Resource
         return $form
             ->schema([
                 Select::make('legislator_id')
-                    ->relationship("legislator", "name"),
+                    ->relationship('legislator', 'name')
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        $set('particular_id', null); // Reset particular when legislator changes
+                        $set('particular_options', self::getParticularOptions($state)); // Set particular options
+                    }),
 
-                Grid::make(2)
-                    ->schema([
-                        TextInput::make('twsp_allocation')
-                            ->label('TWSP Allocation')
-                            ->required()
-                            ->autocomplete(false)
-                            ->numeric()
-                            ->default(0)
-                            ->prefix('₱')
-                            ->minValue(0)
-                            ->unique(ignoreRecord: true)
-                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                            ->reactive()
-                            ->afterStateUpdated(function (callable $set, $state) {
-                                $set('twsp_admin_cost', $state * 2);
-                            }),
-                        TextInput::make('twsp_admin_cost')
-                            ->label('TWSP Admin Cost')
-                            ->required()
-                            ->numeric()
-                            ->default(0)
-                            ->prefix('₱')
-                            ->minValue(0)
-                            ->readOnly()
-                            ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                    ]),
+                    Select::make('particular_id')
+                    ->options(fn ($get) => self::getParticularOptions($get('legislator_id')))
+                    ->reactive()
+                    ->searchable(),
 
-                Grid::make(2)->schema([
-                    TextInput::make("step_allocation")
-                        ->label('STEP Allocation')
-                        ->required()
-                        ->autocomplete(false)
-                        ->numeric()
-                        ->default(0)
-                        ->prefix('₱')
-                        ->minValue(0)
+                Select::make('scholarship_program_id')
+                    ->relationship("scholarship_program", "name"),
 
-                        ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                        ->reactive()
-                        ->afterStateUpdated(function (callable $set, $state) {
-                            $set('step_admin_cost', $state * 2);
-                        }),
-                    TextInput::make("step_admin_cost")
-                        ->label('STEP Admin Cost')
-                        ->required()
-                        ->numeric()
-                        ->default(0)
-                        ->prefix('₱')
-                        ->minValue(0)
-                        ->readOnly()
-                        ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                ]),
+                TextInput::make('allocation')
+                    ->label('Allocation')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->unique(ignoreRecord: true)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        $set('admin_cost', $state * 0.02);
+                    }),
+
+                TextInput::make('admin_cost')
+                    ->label('Admin Cost')
+                    ->required()
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->readOnly()
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
             ]);
     }
+
+    private static function getParticularOptions($legislatorId)
+    {
+        if (!$legislatorId) {
+            return [];
+        }
+        
+        // Fetch the legislator with their particulars and related data
+        $legislator = \App\Models\Legislator::with('particular.district.municipality')
+            ->find($legislatorId);
+        
+        if (!$legislator) {
+            return [];
+        }
+    
+        // Create an array of particulars with the formatted string and their ID
+        return $legislator->particular->mapWithKeys(function ($particular) {
+            $districtName = $particular->district->name ?? 'Unknown District';
+            $municipalityName = $particular->district->municipality->name ?? 'Unknown Municipality';
+            $formattedName = "{$particular->name} - {$districtName}, {$municipalityName}";
+            
+            return [$particular->id => $formattedName];
+        })->toArray();
+    }
+    
+    
 
     public static function table(Table $table): Table
     {
@@ -104,34 +108,41 @@ class AllocationResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("twsp_allocation")
-                    ->label('TWSP Allocation')
+
+                TextColumn::make("particular.name")
+                    ->getStateUsing(function ($record) {
+                        $particular = $record->particular;
+
+                        if (!$particular) {
+                            return 'No Particular Available';
+                        }
+
+                        $district = $particular->district;
+                        $municipality = $district ? $district->municipality : null;
+                        $districtName = $district ? $district->name : 'Unknown District';
+                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                        $formattedName = "{$particular->name} - {$districtName}, {$municipalityName}";
+
+                        return $formattedName;
+                    })
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make("scholarship_program.name")
+                    ->label('Scholarship Program')
+                    ->sortable()
+                    ->toggleable(),
+
+                TextColumn::make("allocation")
                     ->sortable()
                     ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        return number_format($state, 2, '.', ',');
-                    }),
-                TextColumn::make("twsp_admin_cost")
-                    ->label('TWSP Admin Cost')
+                    ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ',')),
+
+                TextColumn::make("admin_cost")
+                    ->label('Admin Cost')
                     ->sortable()
                     ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        return number_format($state, 2, '.', ',');
-                    }),
-                TextColumn::make("step_allocation")
-                    ->label('STEP Allocation')
-                    ->sortable()
-                    ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        return number_format($state, 2, '.', ',');
-                    }),
-                TextColumn::make("step_admin_cost")
-                    ->label('STEP Admin Cost')
-                    ->sortable()
-                    ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        return number_format($state, 2, '.', ',');
-                    }),
+                    ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ',')),
             ])
             ->filters([
                 Tables\Filters\TrashedFilter::make(),

@@ -23,11 +23,6 @@ class Province extends Model
     public function municipality() {
         return $this->hasMany(Municipality::class);
     }
-
-    public function tvi()
-    {
-        return $this->hasMany(Tvi::class);
-    }
     public function target()
     {
         return $this->hasMany(Target::class);
