@@ -7,37 +7,35 @@ use App\Models\District;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use League\CommonMark\Extension\CommonMark\Node\Block\Heading;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\TrashedFilter;
 use App\Filament\Resources\TviResource\Pages;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Maatwebsite\Excel\Facades\Excel;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-
-
-
-
-
 
 class TviResource extends Resource
 {
     protected static ?string $model = Tvi::class;
 
-
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationIcon = 'heroicon-o-building-library';
-
     protected static ?string $navigationLabel = 'Institution';
+
+    protected static ?string $navigationIcon = 'heroicon-o-building-library';
 
     protected static ?int $navigationSort = 4;
 
@@ -121,26 +119,21 @@ class TviResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->filtersTriggerAction(
-                fn(\Filament\Actions\StaticAction $action) => $action
-                    ->button()
-                    ->label('Filter'),
-            )
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->hidden(fn ($record) => $record->trashed()),
-                    Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\RestoreAction::make(),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -163,16 +156,7 @@ class TviResource extends Resource
                             ->withFilename(date('m-d-Y') . ' - Institution')
                     ]),
                 ])
-
-
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array

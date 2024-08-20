@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Table;
 use App\Models\Municipality;
 use Filament\Resources\Resource;
@@ -16,13 +19,16 @@ use Illuminate\Database\Eloquent\Builder;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\MunicipalityResource\Pages;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class MunicipalityResource extends Resource
 {
     protected static ?string $model = Municipality::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
     protected static ?string $navigationParentItem = "Regions";
@@ -53,31 +59,30 @@ class MunicipalityResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("province.region.name")
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
                 TextColumn::make("province.name")
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
+                TextColumn::make("province.region.name")
+                ->sortable()
+                ->searchable()
+                ->toggleable(),
             ])
             ->filters([
-                //
+                TrashedFilter::make(),
             ])
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->hidden(fn ($record) => $record->trashed()),
-                    Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\RestoreAction::make(),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -90,13 +95,6 @@ class MunicipalityResource extends Resource
                     ]),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array

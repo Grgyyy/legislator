@@ -8,7 +8,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -31,8 +30,6 @@ class DistrictResource extends Resource
 
     protected static ?string $navigationParentItem = "Regions";
 
-    protected static ?string $navigationIcon = 'heroicon-o-map-pin';
-
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
@@ -41,7 +38,8 @@ class DistrictResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->unique(ignoreRecord: true),
                 Select::make('municipality_id')
                     ->label('Municipality')
                     ->relationship('municipality', 'name')
@@ -71,11 +69,6 @@ class DistrictResource extends Resource
             ->filters([
                 TrashedFilter::make(),
             ])
-            ->filtersTriggerAction(
-                fn(\Filament\Actions\StaticAction $action) => $action
-                    ->button()
-                    ->label('Filter'),
-            )
             ->actions([
                 ActionGroup::make([
                     EditAction::make()

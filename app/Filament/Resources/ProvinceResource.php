@@ -2,44 +2,47 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
-use Filament\Tables;
-use App\Models\District;
 use App\Models\Province;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Illuminate\Database\Eloquent\Builder;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\ProvinceResource\Pages;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-
-
 
 class ProvinceResource extends Resource
 {
     protected static ?string $model = Province::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
-    protected static ?string $navigationIcon = 'heroicon-o-map';
 
     protected static ?string $navigationParentItem = "Regions";
 
     protected static ?int $navigationSort = 1;
 
-
-
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
                     ->required()
                     ->autocomplete(false),
-                Forms\Components\Select::make('region_id')
+                Select::make('region_id')
                     ->label('Region')
                     ->relationship('region', 'name')
                     ->default(fn($get) => request()->get('region_id'))
@@ -54,41 +57,36 @@ class ProvinceResource extends Resource
         return $table
             ->emptyStateHeading('No provinces yet')
             ->columns([
-                Tables\Columns\TextColumn::make('name')
+                TextColumn::make('name')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
                     ->url(fn($record) => route('filament.admin.resources.provinces.showMunicipalities', ['record' => $record->id])),
-                Tables\Columns\TextColumn::make('region.name')
+                TextColumn::make('region.name')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->filtersTriggerAction(
-                fn(\Filament\Actions\StaticAction $action) => $action
-                    ->button()
-                    ->label('Filter'),
-            )
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    Tables\Actions\DeleteAction::make()
+                    DeleteAction::make()
                         ->action(function ($record) {
                             $record->delete();
                             return redirect()->route('filament.admin.resources.provinces.index');
                         }),
-                    Tables\Actions\RestoreAction::make(),
+                    RestoreAction::make(),
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -102,13 +100,6 @@ class ProvinceResource extends Resource
 
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            // Define any relations if necessary
-        ];
     }
 
     public static function getPages(): array
@@ -129,15 +120,12 @@ class ProvinceResource extends Resource
             SoftDeletingScope::class,
         ]);
 
-        // Check if we're on the edit page by checking for the presence of 'record' in the route
         $routeParameter = request()->route('record');
 
-        // If it's not an edit page or the 'record' parameter is not numeric, apply the filter
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('region_id', (int) $routeParameter);
         }
 
         return $query;
     }
-
 }

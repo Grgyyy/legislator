@@ -4,30 +4,36 @@ namespace App\Filament\Resources;
 
 use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\ExportBulkAction as ActionsExportBulkAction;
 use Filament\Forms\Form;
 use App\Models\Legislator;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;
 use pxlrbt\FilamentExcel\Columns\Column;
-use App\Filament\Imports\LegislatorImporter;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\LegislatorResource\Pages;
+use App\Models\Particular;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class LegislatorResource extends Resource
 {
     protected static ?string $model = Legislator::class;
-    //
-    protected static ?string $navigationIcon = 'heroicon-o-user-group';
-
+    
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
+
+    protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
     protected static ?int $navigationSort = 3;
 
@@ -36,7 +42,8 @@ class LegislatorResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false),
                 Select::make("particular")
                     ->multiple()
                     ->relationship("particular", "name")
@@ -63,12 +70,6 @@ class LegislatorResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-
-                TextColumn::make('particular_name')
-                    ->label('Particular')
-                    ->getStateUsing(function ($record) {
-                        $particulars = $record->particular;
-                    }),
                 TextColumn::make('particular_name')
                     ->label('Particular')
                     ->getStateUsing(function ($record) {
@@ -85,26 +86,21 @@ class LegislatorResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->filtersTriggerAction(
-                fn(\Filament\Actions\StaticAction $action) => $action
-                    ->button()
-                    ->label('Filter'),
-            )
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\RestoreAction::make(),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -117,13 +113,6 @@ class LegislatorResource extends Resource
                     ]),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array

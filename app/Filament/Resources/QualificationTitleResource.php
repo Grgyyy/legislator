@@ -2,29 +2,29 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
-use Filament\Actions\StaticAction;
-use function Laravel\Prompts\select;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\TrashedFilter;
-
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\QualificationTitleResource\Pages;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 
 class QualificationTitleResource extends Resource
 {
@@ -32,13 +32,11 @@ class QualificationTitleResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationLabel = "Qualification Titles";
-
     protected static ?string $navigationParentItem = "Scholarship Programs";
 
-    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationLabel = "Qualification Titles";
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -90,7 +88,6 @@ class QualificationTitleResource extends Resource
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
                 Select::make('status_id')
                     ->relationship('status', 'desc')
-                    // ->default('status', 'active')
                     ->hidden()
             ]);
     }
@@ -139,29 +136,23 @@ class QualificationTitleResource extends Resource
                         return number_format($state, 2, '.', ',');
                     })
                     ->prefix('₱ ')
-
             ])
             ->filters([
                 TrashedFilter::make(),
             ])
-            ->filtersTriggerAction(
-                fn(StaticAction $action) => $action
-                    ->button()
-                    ->label('Filter')
-            )
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->hidden(fn ($record) => $record->trashed()),
-                    Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\RestoreAction::make(),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -184,13 +175,6 @@ class QualificationTitleResource extends Resource
                     ]),
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array

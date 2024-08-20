@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
 use Filament\Tables;
 use App\Models\TviType;
 use Filament\Forms\Form;
@@ -19,26 +18,24 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\TviTypeResource\Pages;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-
 
 class TviTypeResource extends Resource
 {
     protected static ?string $model = TviType::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
+
     protected static ?string $navigationParentItem = "Institution";
+
     protected static ?string $navigationLabel = "Institution Types";
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     protected static ?int $navigationSort = 3;
-    // public static function getNavigationParentItem(): ?string
-    // {
-    //     return __('filament/navigation.groups.tvi.items.tvi-types');
-    // }
-
 
     public static function form(Form $form): Form
     {
@@ -66,24 +63,19 @@ class TviTypeResource extends Resource
             ->filters([
                 TrashedFilter::make()
             ])
-            ->filtersTriggerAction(
-                fn(\Filament\Actions\StaticAction $action) => $action
-                    ->button()
-                    ->label('Filter'),
-            )
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->hidden(fn ($record) => $record->trashed()),
-                    Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\RestoreAction::make(),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -95,13 +87,6 @@ class TviTypeResource extends Resource
 
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
