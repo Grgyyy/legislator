@@ -2,14 +2,15 @@
 
 namespace App\Filament\Resources\AllocationResource\Pages;
 
-use App\Filament\Resources\AllocationResource;
-use App\Imports\AllocationsImport;
-use App\Models\Allocation;
 use Filament\Actions;
 use Filament\Actions\Action;
+use App\Imports\AllocationImport;
+use Maatwebsite\Excel\Facades\Excel;
+use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Filament\Resources\AllocationResource;
+
 
 class ListAllocations extends ListRecords
 {
@@ -20,8 +21,24 @@ class ListAllocations extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
-              
+                ->label('New'),
+
+            Action::make('AllocationImport')
+                ->label('Import')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('attachment'),
+                ])
+                ->action(function (array $data) {
+                    $file = storage_path('app/public/' . $data['attachment']);
+
+                    Excel::import(new AllocationImport, $file);
+
+                    Notification::make()
+                        ->title('Municipality Imported')
+                        ->success()
+                        ->send();
+                })
         ];
     }
 }

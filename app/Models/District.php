@@ -15,15 +15,18 @@ class District extends Model
         'municipality_id',
     ];
 
-    public function municipality() {
+    public function municipality()
+    {
         return $this->belongsTo(Municipality::class);
     }
 
-    public function particular() {
+    public function particular()
+    {
         return $this->belongsTo(Particular::class);
     }
 
-    public function tvi() {
+    public function tvi()
+    {
         return $this->hasMany(Tvi::class);
     }
 }

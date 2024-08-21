@@ -75,7 +75,7 @@ class MunicipalityResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
                 ])
@@ -89,9 +89,11 @@ class MunicipalityResource extends Resource
                         ExcelExport::make()
                             ->withColumns([
                                 Column::make('name')
-                                    ->heading('Legislator Name'),
+                                    ->heading('Municipality'),
                                 Column::make('province.name')
                                     ->heading('Province'),
+                                Column::make('province.region.name')
+                                    ->heading('Region'),
                             ])
                             ->withFilename(date('m-d-Y') . ' - Municipality')
                     ]),
