@@ -14,13 +14,13 @@ class ScholarshipProgramSeeder extends Seeder
     public function run(): void
     {
         $programs = [
-            ['code' => '1', 'name' => 'TWSP', 'desc' => 'Training for Work Scholarship'],
-            ['code' => '2', 'name' => 'STEP', 'desc' => 'Special Training for Employment Program'],
-            ['code' => '3', 'name' => 'TTSP', 'desc' => 'Tulong Trabaho Scholarship Program'],
-            ['code' => '3', 'name' => 'CFSP', 'desc' => 'Coconut Farmers Scholarships Program'],
-            ['code' => '3', 'name' => 'PESFA', 'desc' => 'Private Education Student Fund Assistance'],
-            ['code' => '3', 'name' => 'RESP', 'desc' => 'Rice Extension Services Program'],
-            ['code' => '3', 'name' => 'UAQTEA', 'desc' => 'Universal Access to Quality Tertiary Education Act'],
+            ['code' => 'TWSP', 'name' => 'TWSP', 'desc' => 'Training for Work Scholarship'],
+            ['code' => 'STEP', 'name' => 'STEP', 'desc' => 'Special Training for Employment Program'],
+            ['code' => 'TTSP', 'name' => 'TTSP', 'desc' => 'Tulong Trabaho Scholarship Program'],
+            ['code' => 'CFSP', 'name' => 'CFSP', 'desc' => 'Coconut Farmers Scholarships Program'],
+            ['code' => 'PESF', 'name' => 'PESFA', 'desc' => 'Private Education Student Fund Assistance'],
+            ['code' => 'RESP', 'name' => 'RESP', 'desc' => 'Rice Extension Services Program'],
+            ['code' => 'UAQD', 'name' => 'UAQTEA', 'desc' => 'Universal Access to Quality Tertiary Education Act'],
             ['code' => '3', 'name' => 'BKSTP', 'desc' => 'Barangay Kabuhayan Skills Training Program'],
         ];
 
