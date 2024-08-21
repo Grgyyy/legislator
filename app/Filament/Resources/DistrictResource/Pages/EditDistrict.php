@@ -12,6 +12,12 @@ class EditDistrict extends EditRecord
 
     protected function getRedirectUrl(): string 
     {
+        $municipality_id = $this->record->municipality_id;
+        
+        if ($municipality_id) {
+            return route('filament.admin.resources.municipalities.showDistricts', ['record' => $municipality_id]);
+        }
+
         return $this->getResource()::getUrl('index');
     }
 }
