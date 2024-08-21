@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Models\ScholarshipProgram;
@@ -17,6 +19,10 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\ScholarshipProgramResource\Pages;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\TrashedFilter;
 
 class ScholarshipProgramResource extends Resource
 {
@@ -55,7 +61,6 @@ class ScholarshipProgramResource extends Resource
         return $table
             ->emptyStateHeading('No scholarship programs yet')
             ->columns([
-
                 TextColumn::make("code")
                     ->label("Scholarship Program Code")
                     ->sortable()
@@ -71,26 +76,21 @@ class ScholarshipProgramResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                Tables\Filters\TrashedFilter::make(),
+                TrashedFilter::make(),
             ])
-            ->filtersTriggerAction(
-                fn(\Filament\Actions\StaticAction $action) => $action
-                    ->button()
-                    ->label('Filter'),
-            )
             ->actions([
                 ActionGroup::make([
-                    Tables\Actions\EditAction::make()
+                    EditAction::make()
                         ->hidden(fn ($record) => $record->trashed()),
-                    Tables\Actions\DeleteAction::make(),
-                    Tables\Actions\RestoreAction::make(),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    Tables\Actions\ForceDeleteBulkAction::make(),
-                    Tables\Actions\RestoreBulkAction::make(),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -106,13 +106,6 @@ class ScholarshipProgramResource extends Resource
 
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
