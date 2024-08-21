@@ -43,6 +43,8 @@ class DistrictResource extends Resource
                 Select::make('municipality_id')
                     ->label('Municipality')
                     ->relationship('municipality', 'name')
+                    ->default(fn($get) => request()->get('municipality_id'))
+                    ->reactive()
                     ->required()
             ]);
     }
@@ -97,9 +99,18 @@ class DistrictResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+        $query = parent::getEloquentQuery();
+
+        $query->withoutGlobalScopes([
+            SoftDeletingScope::class,
+        ]);
+
+        $routeParameter = request()->route('record');
+
+        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            $query->where('municipality_id', (int) $routeParameter);
+        }
+
+        return $query;
     }
 }
