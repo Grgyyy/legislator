@@ -24,6 +24,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->decimal('allocation', 10, 2);
             $table->decimal('admin_cost', 10, 2)->default(0);
+            $table->decimal('balance', 10, 2)->default(0);
             $table->timestamps();
             $table->softDeletes();
         });
