@@ -57,11 +57,11 @@ class AllocationResource extends Resource
                     ->default(0)
                     ->prefix('₱')
                     ->minValue(0)
-                    ->unique(ignoreRecord: true)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state) {
                         $set('admin_cost', $state * 0.02);
+                        $set('balance', $state);
                     }),
                 TextInput::make('admin_cost')
                     ->label('Admin Cost')
@@ -72,8 +72,24 @@ class AllocationResource extends Resource
                     ->minValue(0)
                     ->readOnly()
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('year')
+                    ->label('Year')
+                    ->required()
+                    ->numeric(),
+                TextInput::make('balance')
+                    ->label('')
+                    ->required()
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                    ->extraAttributes(['style' => 'display: none;'])
+                    ->reactive(),
             ]);
     }
+    
+
 
     private static function getParticularOptions($legislatorId)
     {
@@ -137,6 +153,9 @@ class AllocationResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ',')),
+                TextColumn::make("year")
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make(),

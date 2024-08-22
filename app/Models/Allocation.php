@@ -16,6 +16,8 @@ class Allocation extends Model
         'scholarship_program_id',
         'allocation',
         'admin_cost',
+        'balance',
+        'year'
     ];
 
     public function legislator(){

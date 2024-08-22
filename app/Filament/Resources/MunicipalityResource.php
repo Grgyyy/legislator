@@ -58,7 +58,8 @@ class MunicipalityResource extends Resource
                 TextColumn::make("name")
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->url(fn($record) => route('filament.admin.resources.municipalities.showDistricts', ['record' => $record->id])),
                 TextColumn::make("province.name")
                     ->searchable()
                     ->toggleable(),
@@ -103,6 +104,7 @@ class MunicipalityResource extends Resource
             'index' => Pages\ListMunicipalities::route('/'),
             'create' => Pages\CreateMunicipality::route('/create'),
             'edit' => Pages\EditMunicipality::route('/{record}/edit'),
+            'showDistricts' => Pages\ShowDistrict::route('/{record}/municipality'),
         ];
     }
 
