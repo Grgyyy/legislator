@@ -15,6 +15,11 @@ class Status extends Model
     ];
 
 
+    public function legislator() {
+        return $this->hasMany(Legislator::class);
+    }
+
+
     public function sector()
     {
         return $this->hasMany(Sector::class);

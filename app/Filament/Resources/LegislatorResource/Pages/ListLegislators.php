@@ -33,17 +33,17 @@ class ListLegislators extends ListRecords
             'All' => Tab::make(),
             'Active' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
-                    $query->where('status', 'Active');
+                    $query->where('status_id', 1);
                 })
                 ->badge(function () {
-                    return Legislator::where('status', 'Active')->count();
+                    return Legislator::where('status_id', 1)->count();
                 }),
             'Inactive' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
-                    $query->where('status', 'Inactive');
+                    $query->where('status_id', 2);
                 })
                 ->badge(function () {
-                    return Legislator::where('status', 'Inactive')->count();
+                    return Legislator::where('status_id', 2)->count();
                 }),
         ];
     }

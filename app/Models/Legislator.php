@@ -12,7 +12,12 @@ class Legislator extends Model
 
     protected $fillable = [
         'name',
+        'status_id'
     ];
+
+    public function status() {
+        return $this->belongsTo(Status::class);
+    }
 
     public function allocation()
     {
