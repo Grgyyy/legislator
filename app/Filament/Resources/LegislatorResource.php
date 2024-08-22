@@ -56,6 +56,10 @@ class LegislatorResource extends Resource
                             })
                             ->toArray();
                     }),
+                Select::make('status_id')
+                    ->label('Status')
+                    ->default(1)
+                    ->relationship('status', 'desc')
             ]);
     }
 
@@ -81,7 +85,7 @@ class LegislatorResource extends Resource
                     })
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("status")
+                TextColumn::make("status.desc")
                     ->toggleable(),
             ])
             ->filters([

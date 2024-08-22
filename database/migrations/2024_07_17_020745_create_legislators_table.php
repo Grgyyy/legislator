@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('legislators', function (Blueprint $table) {
             $table->id();
             $table->string("name");
-            $table->string('status')
-                ->default('Active');
+            $table->foreignId('status_id')
+                ->default(1)
+                ->constrained()
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });
