@@ -14,7 +14,8 @@ class ListTargets extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Target'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 }

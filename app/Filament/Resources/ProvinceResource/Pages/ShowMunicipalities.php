@@ -41,7 +41,8 @@ class ShowMunicipalities extends ListRecords
 
         return [
             CreateAction::make()
-                ->label('New Municipality')
+                ->icon('heroicon-m-plus')
+                ->label('New')
                 ->url(route('filament.admin.resources.municipalities.create', ['province_id' => $provinceId]))
         ];
     }

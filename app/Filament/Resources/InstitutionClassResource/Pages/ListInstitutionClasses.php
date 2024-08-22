@@ -14,7 +14,8 @@ class ListInstitutionClasses extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Class'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 }

@@ -16,7 +16,8 @@ class ListRegions extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Region'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
     // public function getTabs(): array

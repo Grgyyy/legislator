@@ -22,7 +22,8 @@ class ListLegislators extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Legislator'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 

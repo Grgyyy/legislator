@@ -14,7 +14,8 @@ class ListScholarshipPrograms extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Scholarship Program'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 }

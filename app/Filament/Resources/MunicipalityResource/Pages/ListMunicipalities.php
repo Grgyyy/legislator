@@ -14,7 +14,8 @@ class ListMunicipalities extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Municipality'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 }
