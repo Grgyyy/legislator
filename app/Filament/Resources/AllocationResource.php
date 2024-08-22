@@ -72,8 +72,12 @@ class AllocationResource extends Resource
                     ->minValue(0)
                     ->readOnly()
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('year')
+                    ->label('Year')
+                    ->required()
+                    ->numeric(),
                 TextInput::make('balance')
-                    ->label('Balance')
+                    ->label('')
                     ->required()
                     ->numeric()
                     ->default(0)
@@ -149,6 +153,9 @@ class AllocationResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ',')),
+                TextColumn::make("year")
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make(),
