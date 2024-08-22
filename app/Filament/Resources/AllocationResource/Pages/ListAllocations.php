@@ -19,7 +19,9 @@ class ListAllocations extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Allocation'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
+              
         ];
     }
 }

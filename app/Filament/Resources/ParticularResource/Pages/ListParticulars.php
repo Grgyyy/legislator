@@ -14,7 +14,8 @@ class ListParticulars extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Particular'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 }

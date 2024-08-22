@@ -14,7 +14,8 @@ class ListDistricts extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 }

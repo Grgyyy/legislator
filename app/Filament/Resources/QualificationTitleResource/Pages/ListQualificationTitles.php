@@ -21,17 +21,8 @@ class ListQualificationTitles extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Qualification Title'),
-            // Action::make('importQualificationTitles')
-            //     ->label('Import Qualification Title')
-            //     ->form([
-            //         FileUpload::make('attachment'),
-            //     ])
-            //     ->action(function (array $data) {
-            //         $file = public_path('storage/' . $data['attachment']);
-
-            //         Excel::import(new QualificationTitleImport, $file);
-            //     })
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 
