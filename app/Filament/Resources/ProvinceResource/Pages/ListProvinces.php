@@ -14,7 +14,8 @@ class ListProvinces extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Province'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 }

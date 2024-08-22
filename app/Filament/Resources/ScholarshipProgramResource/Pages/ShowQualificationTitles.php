@@ -36,7 +36,8 @@ class ShowQualificationTitles extends ListRecords
 
         return [
             CreateAction::make()
-                ->label('New Qualification Titles')
+                ->icon('heroicon-m-plus')
+                ->label('New')
                 ->url(route('filament.admin.resources.qualification_titles.create', ['scholarshipProgram_id' => $scholarshipProgramId]))
         ];
     }

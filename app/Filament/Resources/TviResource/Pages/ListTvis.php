@@ -16,7 +16,8 @@ class ListTvis extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Institution'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 }

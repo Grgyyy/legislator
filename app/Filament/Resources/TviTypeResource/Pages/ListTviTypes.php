@@ -16,7 +16,8 @@ class ListTviTypes extends ListRecords
     {
         return [
             Actions\CreateAction::make()
-                ->label('New Institution Type'),
+                ->icon('heroicon-m-plus')
+                ->label('New')
         ];
     }
 }
