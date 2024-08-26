@@ -79,6 +79,7 @@ class TviResource extends Resource
             ->emptyStateHeading('No institutions yet')
             ->columns([
                 TextColumn::make("name")
+                    ->label("Institution")
                     ->sortable()
                     ->searchable()
                     ->toggleable(),               

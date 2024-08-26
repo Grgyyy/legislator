@@ -56,6 +56,7 @@ class MunicipalityResource extends Resource
             ->emptyStateHeading('No municipalities yet')
             ->columns([
                 TextColumn::make("name")
+                    ->label("Municipality")
                     ->sortable()
                     ->searchable()
                     ->toggleable()

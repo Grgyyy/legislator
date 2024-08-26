@@ -42,7 +42,6 @@ class QualificationTitleResource extends Resource
         return $form
             ->schema([
                 TextInput::make('code')
-                    ->label('Qualification Code')
                     ->required()
                     ->autocomplete(false)
                     ->unique(ignoreRecord: true),

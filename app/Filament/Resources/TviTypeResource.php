@@ -51,10 +51,10 @@ class TviTypeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No TVI type yet')
+            ->emptyStateHeading('No institution type yet')
             ->columns([
                 TextColumn::make('name')
-                    ->label('TVI Types')
+                    ->label('Institution Types')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
