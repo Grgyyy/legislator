@@ -38,17 +38,21 @@ class AllocationResource extends Resource
             ->schema([
                 Select::make('legislator_id')
                     ->relationship('legislator', 'name')
+                    ->required()
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state) {
                         $set('particular_id', null);
                         $set('particular_options', self::getParticularOptions($state));
                     }),
                 Select::make('particular_id')
+                    ->label('Particular')
                     ->options(fn ($get) => self::getParticularOptions($get('legislator_id')))
+                    ->required()
                     ->reactive()
                     ->searchable(),
                 Select::make('scholarship_program_id')
-                    ->relationship("scholarship_program", "name"),
+                    ->relationship("scholarship_program", "name")
+                    ->required(),
                 TextInput::make('allocation')
                     ->label('Allocation')
                     ->required()
@@ -72,10 +76,13 @@ class AllocationResource extends Resource
                     ->minValue(0)
                     ->readOnly()
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                TextInput::make('year')
+                Select::make('year')
                     ->label('Year')
                     ->required()
-                    ->numeric(),
+                    ->options(
+                        collect(range(date('Y'), 2015))->mapWithKeys(fn ($year) => [$year => $year])
+                    )
+                    ->default(date('Y')),
                 TextInput::make('balance')
                     ->label('')
                     ->required()
@@ -89,7 +96,6 @@ class AllocationResource extends Resource
             ]);
     }
     
-
 
     private static function getParticularOptions($legislatorId)
     {
@@ -147,15 +153,18 @@ class AllocationResource extends Resource
                 TextColumn::make("allocation")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱')
                     ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make("admin_cost")
                     ->label('Admin Cost')
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱')
                     ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make("year")
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->sortable(),
             ])
             ->filters([
                 TrashedFilter::make(),
@@ -192,5 +201,10 @@ class AllocationResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    protected function getTableQuery(): Builder
+    {
+        return parent::getTableQuery()->orderBy('year', 'desc');
     }
 }
