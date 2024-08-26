@@ -104,7 +104,7 @@ class MunicipalityResource extends Resource
             'index' => Pages\ListMunicipalities::route('/'),
             'create' => Pages\CreateMunicipality::route('/create'),
             'edit' => Pages\EditMunicipality::route('/{record}/edit'),
-            'showDistricts' => Pages\ShowDistrict::route('/{record}/municipality'),
+            'showDistricts' => Pages\ShowDistrict::route('/{record}/districts'),
         ];
     }
 

@@ -89,7 +89,7 @@ class RegionResource extends Resource
             'index' => Pages\ListRegions::route('/'),
             'create' => Pages\CreateRegion::route('/create'),
             'edit' => Pages\EditRegion::route('/{record}/edit'),
-            'show_provinces' => Pages\ShowProvinces::route('/{record}/province'),
+            'show_provinces' => Pages\ShowProvinces::route('/{record}/provinces'),
         ];
     }
 
