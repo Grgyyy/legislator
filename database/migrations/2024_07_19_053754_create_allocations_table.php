@@ -22,9 +22,9 @@ return new class extends Migration
             $table->foreignId('scholarship_program_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->decimal('allocation', 10, 2);
-            $table->decimal('admin_cost', 10, 2)->default(0);
-            $table->decimal('balance', 10, 2)->default(0);
+            $table->decimal('allocation', 15, 2);
+            $table->decimal('admin_cost', 15, 2)->default(0);
+            $table->decimal('balance', 15, 2)->default(0);
             $table->integer('year');
             $table->timestamps();
             $table->softDeletes();
