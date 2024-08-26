@@ -16,7 +16,7 @@ class ProvinceSeeder extends Seeder
         $provinces = [
             // National Capital Region (NCR)
             ['CaMaNaVa', 1],
-            ['MuntiParLasTapat', 1],
+            ['MuntiParLasTaPat', 1],
             ['PaMaMariSan', 1],
             ['Quezon City', 1],
             ['Manila City', 1],
