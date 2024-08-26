@@ -30,11 +30,11 @@ class TviTypeResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationParentItem = "Institution";
+    protected static ?string $navigationParentItem = "Institutions";
 
     protected static ?string $navigationLabel = "Institution Types";
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -42,7 +42,7 @@ class TviTypeResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->required()
-                    ->label('TVI Type')
+                    ->label('Institution Type')
                     ->autocomplete(false)
                     ->unique(ignoreRecord: true),
             ]);
@@ -55,9 +55,6 @@ class TviTypeResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->label('Institution Types')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make()

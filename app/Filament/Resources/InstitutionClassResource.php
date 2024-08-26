@@ -31,11 +31,11 @@ class InstitutionClassResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationParentItem = "Institution";
+    protected static ?string $navigationParentItem = "Institutions";
 
-    protected static ?string $navigationLabel = "Institution Class (B)";
+    protected static ?string $navigationLabel = "Institution Classes (B)";
     
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
@@ -56,9 +56,6 @@ class InstitutionClassResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->label('Institution Classes (B)')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make(),

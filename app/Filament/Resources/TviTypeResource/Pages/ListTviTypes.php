@@ -10,7 +10,7 @@ class ListTviTypes extends ListRecords
 {
     protected static string $resource = TviTypeResource::class;
 
-    protected static ?string $title = 'Institution Type';
+    protected static ?string $title = 'Institution Types';
 
     protected function getHeaderActions(): array
     {
@@ -18,6 +18,14 @@ class ListTviTypes extends ListRecords
             Actions\CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New')
+        ];
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            'Institution Types',
+            'List'
         ];
     }
 }

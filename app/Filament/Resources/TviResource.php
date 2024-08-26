@@ -32,7 +32,7 @@ class TviResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationLabel = 'Institution';
+    protected static ?string $navigationLabel = 'Institutions';
 
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
 
@@ -46,11 +46,11 @@ class TviResource extends Resource
                     ->required()
                     ->autocomplete(false),
                 Select::make('tvi_class_id')
-                    ->label("TVI Class (A)")
+                    ->label("Institution Class (A)")
                     ->relationship('tviClass', 'name')
                     ->required(),
                 Select::make('institution_class_id')
-                    ->label("TVI Class (B)")
+                    ->label("Institution Class (B)")
                     ->relationship('InstitutionClass', 'name')
                     ->required(),
                 Select::make('district_id')

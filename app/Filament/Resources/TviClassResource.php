@@ -31,11 +31,11 @@ class TviClassResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationParentItem = "Institution";
+    protected static ?string $navigationParentItem = "Institutions";
 
-    protected static ?string $navigationLabel = "Institution Class (A)";
+    protected static ?string $navigationLabel = "Institution Classes (A)";
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
