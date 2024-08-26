@@ -10,7 +10,7 @@ class ListTvis extends ListRecords
 {
     protected static string $resource = TviResource::class;
 
-    protected static ?string $title = 'Institution';
+    protected static ?string $title = 'Institutions';
 
     protected function getHeaderActions(): array
     {
@@ -18,6 +18,14 @@ class ListTvis extends ListRecords
             Actions\CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New')
+        ];
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            'Institutions',
+            'List'
         ];
     }
 }

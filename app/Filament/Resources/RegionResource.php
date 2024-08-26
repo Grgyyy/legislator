@@ -6,6 +6,7 @@ use Filament\Resources\Resource;
 use App\Models\Region;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
@@ -49,6 +50,7 @@ class RegionResource extends Resource
             ->emptyStateHeading('No regions yet')
             ->columns([
                 TextColumn::make("name")
+                    ->label("Region")
                     ->sortable()
                     ->searchable()
                     ->toggleable()
@@ -63,6 +65,7 @@ class RegionResource extends Resource
                         ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
@@ -70,15 +73,15 @@ class RegionResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('Region'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Region')
-                    ]),
-
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Region'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Region')
+                        ])
                 ]),
             ]);
     }

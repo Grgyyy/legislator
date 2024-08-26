@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\TviTypeResource\Pages;
 
 use App\Filament\Resources\TviTypeResource;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditTviType extends EditRecord
@@ -15,5 +14,13 @@ class EditTviType extends EditRecord
     protected function getRedirectUrl(): string 
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            'Institution Types',
+            'Edit'
+        ];
     }
 }

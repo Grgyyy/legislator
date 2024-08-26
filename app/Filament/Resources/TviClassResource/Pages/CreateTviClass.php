@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\TviClassResource\Pages;
 
 use App\Filament\Resources\TviClassResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateTviClass extends CreateRecord
@@ -15,5 +14,13 @@ class CreateTviClass extends CreateRecord
     protected function getRedirectUrl(): string 
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            'Institution Classes',
+            'Create'
+        ];
     }
 }

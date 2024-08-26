@@ -62,7 +62,6 @@ class ScholarshipProgramResource extends Resource
             ->emptyStateHeading('No scholarship programs yet')
             ->columns([
                 TextColumn::make("code")
-                    ->label("Scholarship Program Code")
                     ->sortable()
                     ->searchable()
                     ->toggleable(),

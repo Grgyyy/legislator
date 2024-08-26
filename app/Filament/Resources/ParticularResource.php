@@ -65,7 +65,7 @@ class ParticularResource extends Resource
             ->emptyStateHeading('No particulars yet')
             ->columns([
                 TextColumn::make("name")
-                    ->label('Particular Name')
+                    ->label('Particular')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),

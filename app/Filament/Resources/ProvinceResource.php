@@ -58,6 +58,7 @@ class ProvinceResource extends Resource
             ->emptyStateHeading('No provinces yet')
             ->columns([
                 TextColumn::make('name')
+                    ->label('Province')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
