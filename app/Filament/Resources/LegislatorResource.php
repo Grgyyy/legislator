@@ -19,6 +19,8 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\LegislatorResource\Pages;
 use App\Models\Particular;
+use Filament\Pages\Page;
+use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
@@ -60,6 +62,7 @@ class LegislatorResource extends Resource
                     ->label('Status')
                     ->default(1)
                     ->relationship('status', 'desc')
+                    ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),
             ]);
     }
 

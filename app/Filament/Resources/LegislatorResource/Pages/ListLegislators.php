@@ -26,26 +26,4 @@ class ListLegislators extends ListRecords
                 ->label('New')
         ];
     }
-
-    public function getTabs(): array
-    {
-        return [
-            'All' => Tab::make(),
-            'Active' => Tab::make()
-                ->modifyQueryUsing(function ($query) {
-                    $query->where('status_id', 1);
-                })
-                ->badge(function () {
-                    return Legislator::where('status_id', 1)->count();
-                }),
-            'Inactive' => Tab::make()
-                ->modifyQueryUsing(function ($query) {
-                    $query->where('status_id', 2);
-                })
-                ->badge(function () {
-                    return Legislator::where('status_id', 2)->count();
-                }),
-        ];
-    }
 }
-
