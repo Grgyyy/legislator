@@ -38,7 +38,8 @@ class ShowDistrict extends ListRecords
 
         return [
             CreateAction::make()
-                ->label('New Municipality')
+                ->icon('heroicon-m-plus')
+                ->label('New')
                 ->url(route('filament.admin.resources.districts.create', ['municipality_id' => $municipalityId]))
         ];
     }
