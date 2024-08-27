@@ -43,6 +43,7 @@ class TviResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
+                    ->label('Institution')
                     ->required()
                     ->autocomplete(false),
                 Select::make('tvi_class_id')

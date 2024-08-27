@@ -21,6 +21,7 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\QualificationTitleResource\Pages;
+use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
@@ -85,7 +86,7 @@ class QualificationTitleResource extends Resource
                     ->label('Status')
                     ->default(1)
                     ->relationship('status', 'desc')
-                    // ->hidden(fn (Page $livewire) => $livewire instanceof Pages\CreateQualificationTitle)     
+                    ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),     
             ]);
     }
 
@@ -128,7 +129,9 @@ class QualificationTitleResource extends Resource
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
                     })
-                    ->prefix('₱ ')
+                    ->prefix('₱ '),
+                TextColumn::make("status.desc")
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make(),

@@ -40,9 +40,21 @@ class ParticularResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make("name")
+                Select::make("name")
+                    ->label('Particular')
                     ->required()
-                    ->autocomplete(false),
+                    ->options([
+                        'District' => 'District',
+                        'Party List' => 'Party List',
+                        'Senator' => 'Senator',
+                        'Vetted' => 'Vetted',
+                        'regular' => 'Regular',
+                        'Star Rated' => 'Star Rated',
+                        'APACC' => 'APACC',
+                        'EO79' => 'EO79',
+                        'EO70' => 'EO70',
+                        'KIA/WIA' => 'KIA/WIA',
+                    ]),
                 Select::make('district_id')
                     ->label('District')
                     ->options(function () {

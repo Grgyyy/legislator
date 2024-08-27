@@ -46,6 +46,7 @@ class LegislatorResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
+                    ->label('Legislator')
                     ->required()
                     ->autocomplete(false),
                 Select::make("particular")
