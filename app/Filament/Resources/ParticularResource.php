@@ -44,16 +44,16 @@ class ParticularResource extends Resource
                     ->label('Particular')
                     ->required()
                     ->options([
-                        'district' => 'District',
-                        'partyList' => 'Party List',
-                        'senator' => 'Senator',
-                        'vetted' => 'Vetted',
+                        'District' => 'District',
+                        'Party List' => 'Party List',
+                        'Senator' => 'Senator',
+                        'Vetted' => 'Vetted',
                         'regular' => 'Regular',
-                        'starRated' => 'Star Rated',
-                        'apacc' => 'APACC',
-                        'eo79' => 'EO79',
-                        'eo70' => 'EO70',
-                        'kiaWia' => 'KIA/WIA',
+                        'Star Rated' => 'Star Rated',
+                        'APACC' => 'APACC',
+                        'EO79' => 'EO79',
+                        'EO70' => 'EO70',
+                        'KIA/WIA' => 'KIA/WIA',
                     ]),
                 Select::make('district_id')
                     ->label('District')
