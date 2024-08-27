@@ -52,10 +52,20 @@ class QualificationTitleResource extends Resource
                     ->required()
                     ->autocomplete(false)
                     ->unique(ignoreRecord: true),
+<<<<<<< HEAD
                 Select::make('scholarship_program_id')
                     ->label('Scholarship Program')
                     ->relationship('scholarshipProgram', 'name')
                     ->required(),
+=======
+                // Many-to-many relationship field
+                Select::make('scholarshipPrograms')
+                    ->label('Scholarship Programs')
+                    ->multiple()
+                    ->relationship('scholarshipPrograms', 'name')
+                    ->preload()
+                    ->searchable(),
+>>>>>>> d0f515d (fix: Qualification Title Creation and Table Rendering)
                 TextInput::make('duration')
                     ->label('Duration')
                     ->required()
@@ -86,10 +96,12 @@ class QualificationTitleResource extends Resource
                     ->label('Status')
                     ->default(1)
                     ->relationship('status', 'desc')
+<<<<<<< HEAD
                     ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),     
+=======
+>>>>>>> d0f515d (fix: Qualification Title Creation and Table Rendering)
             ]);
     }
-
 
     public static function table(Table $table): Table
     {
@@ -97,7 +109,7 @@ class QualificationTitleResource extends Resource
             ->emptyStateHeading('No qualification titles yet')
             ->columns([
                 TextColumn::make('code')
-                    ->label('Qualification Code')
+                    ->label('Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -105,6 +117,10 @@ class QualificationTitleResource extends Resource
                     ->label('Qualification Title')
                     ->searchable()
                     ->toggleable(),
+                TextColumn::make('scholarshipPrograms.name')
+                    ->label('Scholarship Programs')
+                    ->formatStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', '))
+                    ,
                 TextColumn::make('duration')
                     ->label('Duration')
                     ->sortable()
@@ -153,7 +169,7 @@ class QualificationTitleResource extends Resource
                                     ->heading('Qualification Code'),
                                 Column::make('title')
                                     ->heading('Qualification Title'),
-                                Column::make('scholarshipProgram.name')
+                                Column::make('scholarshipPrograms.name')
                                     ->heading('Scholarship Program'),
                                 Column::make('duration')
                                     ->heading('Duration'),
