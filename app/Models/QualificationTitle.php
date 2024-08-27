@@ -25,15 +25,10 @@ class QualificationTitle extends Model
     {
         return $this->belongsTo(ScholarshipProgram::class);
     }
-    public function sector()
-    {
-        return $this->belongsTo(Sector::class);
-    }
+  
     public function status()
     {
         return $this->belongsTo(Status::class);
     }
-
-
 }
 

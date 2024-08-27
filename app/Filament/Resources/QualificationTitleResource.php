@@ -11,6 +11,7 @@ use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use Filament\Forms\Components\Select;
+use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -54,10 +55,6 @@ class QualificationTitleResource extends Resource
                     ->label('Scholarship Program')
                     ->relationship('scholarshipProgram', 'name')
                     ->required(),
-                Select::make('sector_id')
-                    ->label('Sector')
-                    ->relationship('sector', 'name')
-                    ->required(),
                 TextInput::make('duration')
                     ->label('Duration')
                     ->required()
@@ -85,8 +82,10 @@ class QualificationTitleResource extends Resource
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
                 Select::make('status_id')
+                    ->label('Status')
+                    ->default(1)
                     ->relationship('status', 'desc')
-                    ->hidden()
+                    // ->hidden(fn (Page $livewire) => $livewire instanceof Pages\CreateQualificationTitle)     
             ]);
     }
 
@@ -106,10 +105,6 @@ class QualificationTitleResource extends Resource
                     ->toggleable(),
                 TextColumn::make('scholarshipProgram.name')
                     ->label('Scholarship Program')
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make('sector.name')
-                    ->label('Sector')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('duration')
@@ -160,8 +155,6 @@ class QualificationTitleResource extends Resource
                                     ->heading('Qualification Title'),
                                 Column::make('scholarshipProgram.name')
                                     ->heading('Scholarship Program'),
-                                Column::make('sector.name')
-                                    ->heading('Sector'),
                                 Column::make('duration')
                                     ->heading('Duration'),
                                 Column::make('training_cost_pcc')

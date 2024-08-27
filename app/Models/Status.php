@@ -20,10 +20,6 @@ class Status extends Model
     }
 
 
-    public function sector()
-    {
-        return $this->hasMany(Sector::class);
-    }
     public function qualificationTitle()
     {
         return $this->hasMany(QualificationTitle::class);
