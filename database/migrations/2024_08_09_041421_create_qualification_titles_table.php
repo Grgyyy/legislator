@@ -17,16 +17,13 @@ return new class extends Migration {
             $table->foreignId('scholarship_program_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->foreignId('sector_id')
-                ->constrained()
-                ->cascadeOnDelete();
             $table->integer('duration')->default(0);
             $table->decimal('training_cost_pcc', 10, 2)->default(0);
             $table->decimal('cost_of_toolkit_pcc', 10, 2)->default(0);
             $table->foreignId('status_id')
+                ->default(1)
                 ->constrained()
-                ->cascadeOnDelete()
-                ->default(1);
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });
