@@ -26,7 +26,8 @@ class Legislator extends Model
 
     public function particular()
     {
-        return $this->belongsToMany(Particular::class, 'LegislatorParticular')->withTimestamps();
+        return $this->belongsToMany(Particular::class, 'LegislatorParticular')
+            ->withTimestamps();
     }
 
     public function target()

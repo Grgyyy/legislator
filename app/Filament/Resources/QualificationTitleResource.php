@@ -90,6 +90,7 @@ class QualificationTitleResource extends Resource
             ]);
     }
 
+
     public static function table(Table $table): Table
     {
         return $table
@@ -102,10 +103,6 @@ class QualificationTitleResource extends Resource
                     ->toggleable(),
                 TextColumn::make('title')
                     ->label('Qualification Title')
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make('scholarshipProgram.name')
-                    ->label('Scholarship Program')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('duration')

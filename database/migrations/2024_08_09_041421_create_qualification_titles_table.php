@@ -14,9 +14,6 @@ return new class extends Migration {
             $table->id();
             $table->string('code')->unique();
             $table->string('title');
-            $table->foreignId('scholarship_program_id')
-                ->constrained()
-                ->cascadeOnDelete();
             $table->integer('duration')->default(0);
             $table->decimal('training_cost_pcc', 10, 2)->default(0);
             $table->decimal('cost_of_toolkit_pcc', 10, 2)->default(0);
