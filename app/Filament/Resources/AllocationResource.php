@@ -76,12 +76,11 @@ class AllocationResource extends Resource
                     ->minValue(0)
                     ->readOnly()
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                Select::make('year')
+                TextInput::make('year')
                     ->label('Year')
                     ->required()
-                    ->options(
-                        collect(range(date('Y'), 2015))->mapWithKeys(fn ($year) => [$year => $year])
-                    )
+                    ->numeric()
+                    ->rules(['min:' . date('Y')])
                     ->default(date('Y')),
                 TextInput::make('balance')
                     ->label('')
