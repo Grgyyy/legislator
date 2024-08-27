@@ -34,7 +34,7 @@ class InstitutionClassResource extends Resource
     protected static ?string $navigationParentItem = "Institutions";
 
     protected static ?string $navigationLabel = "Institution Classes (B)";
-    
+
     protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
@@ -63,7 +63,7 @@ class InstitutionClassResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
                 ])

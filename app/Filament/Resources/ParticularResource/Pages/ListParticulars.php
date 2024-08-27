@@ -2,9 +2,15 @@
 
 namespace App\Filament\Resources\ParticularResource\Pages;
 
-use App\Filament\Resources\ParticularResource;
 use Filament\Actions;
+use Filament\Actions\Action;
+use App\Imports\ParticularImport;
+use Maatwebsite\Excel\Facades\Excel;
+use Filament\Notifications\Notification;
+use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\ParticularResource;
+
 
 class ListParticulars extends ListRecords
 {
@@ -15,7 +21,28 @@ class ListParticulars extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
+                ->label('New'),
+
+
+            Action::make('ParticularImport')
+                ->label('Import')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('attachment'),
+                ])
+                ->action(function (array $data) {
+                    $file = storage_path('app/public/' . $data['attachment']);
+
+                    Excel::import(new ParticularImport, $file);
+
+                    Notification::make()
+                        ->title('Particular Imported')
+                        ->success()
+                        ->send();
+                })
         ];
+
+
+
     }
 }

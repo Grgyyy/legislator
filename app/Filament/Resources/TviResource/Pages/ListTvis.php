@@ -2,8 +2,13 @@
 
 namespace App\Filament\Resources\TviResource\Pages;
 
-use App\Filament\Resources\TviResource;
 use Filament\Actions;
+use App\Imports\TviImport;
+use Filament\Actions\Action;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Filament\Resources\TviResource;
+use Filament\Notifications\Notification;
+use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 
 class ListTvis extends ListRecords
@@ -17,7 +22,24 @@ class ListTvis extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
+                ->label('New'),
+
+            Action::make('TviImport')
+                ->label('Import')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('attachment'),
+                ])
+                ->action(function (array $data) {
+                    $file = storage_path('app/public/' . $data['attachment']);
+
+                    Excel::import(new TviImport, $file);
+
+                    Notification::make()
+                        ->title('TVI Imported')
+                        ->success()
+                        ->send();
+                })
         ];
     }
 

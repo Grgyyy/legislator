@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\ExportBulkAction as ActionsExportBulkAction;
 use Filament\Forms\Form;
 use App\Models\Legislator;
 use Filament\Tables\Actions\DeleteAction;
@@ -12,6 +14,7 @@ use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;
@@ -31,7 +34,7 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 class LegislatorResource extends Resource
 {
     protected static ?string $model = Legislator::class;
-    
+
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
@@ -72,7 +75,7 @@ class LegislatorResource extends Resource
             ->emptyStateHeading('No legislators yet')
             ->columns([
                 TextColumn::make("name")
-                    ->label('Legislator')
+                    ->label('Name')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -115,7 +118,7 @@ class LegislatorResource extends Resource
                                 Column::make('province.name')
                                     ->heading('Province'),
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Municipality')
+                            ->withFilename(date('m-d-Y') . ' - Legislator')
                     ]),
                 ]),
             ]);

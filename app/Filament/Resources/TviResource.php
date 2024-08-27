@@ -57,13 +57,13 @@ class TviResource extends Resource
                     ->label('District')
                     ->options(function () {
                         return District::all()->mapWithKeys(function (District $district) {
-                                $label = $district->name . ' - ' .
-                                        $district->municipality->name . ', ' .
-                                        $district->municipality->province->name;
+                            $label = $district->name . ' - ' .
+                                $district->municipality->name . ', ' .
+                                $district->municipality->province->name;
 
-                                return [$district->id => $label];
-                            })->toArray();
-                        })
+                            return [$district->id => $label];
+                        })->toArray();
+                    })
                     ->preload()
                     ->required(),
                 TextInput::make("address")
@@ -82,7 +82,7 @@ class TviResource extends Resource
                     ->label("Institution")
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),               
+                    ->toggleable(),
                 TextColumn::make("tviClass.name")
                     ->label('Institution Class(A)')
                     ->searchable()
@@ -95,22 +95,22 @@ class TviResource extends Resource
                     ->label('District')
                     ->getStateUsing(function ($record) {
                         $district = $record->district;
-                
+
                         if (!$district) {
                             return 'No District Information';
                         }
 
                         $municipality = $district->municipality;
                         $province = $district->municipality->province;
-                
+
                         $districtName = $district->name;
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
                         $provinceName = $province ? $province->name : 'Unknown Province';
-                
+
                         return "{$districtName} - {$municipalityName}, {$provinceName}";
                     })
                     ->searchable()
-                    ->toggleable(), 
+                    ->toggleable(),
                 TextColumn::make("address")
                     ->searchable()
                     ->toggleable(),
@@ -121,7 +121,7 @@ class TviResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
                 ])

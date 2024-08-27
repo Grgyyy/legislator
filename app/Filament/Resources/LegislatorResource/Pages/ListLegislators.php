@@ -2,17 +2,19 @@
 
 namespace App\Filament\Resources\LegislatorResource\Pages;
 
-use App\Filament\Resources\LegislatorResource;
-use App\Imports\LegislatorsImport;
-use App\Models\Legislator;
 use Filament\Actions;
+use App\Models\Legislator;
 use Filament\Actions\Action;
-use Filament\Forms\Components\FileUpload;
+use App\Imports\LegislatorsImport;
+use Maatwebsite\Excel\Facades\Excel;
 use Filament\Resources\Components\Tab;
+use Filament\Notifications\Notification;
+use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables\Actions\CreateAction;
 use Illuminate\Database\Eloquent\Builder;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Filament\Resources\LegislatorResource;
+use App\Imports\LegislatorImport;
 
 class ListLegislators extends ListRecords
 {
@@ -23,7 +25,25 @@ class ListLegislators extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
+                ->label('New'),
+
+
+            Action::make('InstitutionClassImport')
+                ->label('Import')
+                ->form([
+                    FileUpload::make('attachment'),
+                ])
+                ->action(function (array $data) {
+                    $file = public_path('storage/' . $data['attachment']);
+
+
+                    Excel::import(new LegislatorImport, $file);
+
+                    Notification::make()
+                        ->title('Legislators Imported')
+                        ->success()
+                        ->send();
+                })
         ];
     }
 }
