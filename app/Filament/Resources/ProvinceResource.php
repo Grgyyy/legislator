@@ -40,6 +40,7 @@ class ProvinceResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
+                    ->label('Province')
                     ->required()
                     ->autocomplete(false),
                 Select::make('region_id')

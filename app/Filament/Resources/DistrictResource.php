@@ -37,6 +37,7 @@ class DistrictResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
+                    ->label('District')
                     ->required()
                     ->autocomplete(false)
                     ->unique(ignoreRecord: true),
