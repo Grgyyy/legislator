@@ -66,7 +66,7 @@ class LegislatorResource extends Resource
                     ->label('Status')
                     ->default(1)
                     ->relationship('status', 'desc')
-                    ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),
+                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord),
             ]);
     }
 
@@ -115,9 +115,9 @@ class LegislatorResource extends Resource
                         ExcelExport::make()
                             ->withColumns([
                                 Column::make('name')
-                                    ->heading('Legislator Name'),
-                                Column::make('province.name')
-                                    ->heading('Province'),
+                                    ->heading('Legislator'),
+                                Column::make('particular_name')
+                                    ->heading('Particular'),
                             ])
                             ->withFilename(date('m-d-Y') . ' - Legislator')
                     ]),
