@@ -80,7 +80,7 @@ class AllocationResource extends Resource
                     ->label('Year')
                     ->required()
                     ->numeric()
-                    ->rules(['min:' . date('Y')])
+                    ->rules(['min:' . date('Y'), 'digits: 4',])
                     ->default(date('Y')),
                 TextInput::make('balance')
                     ->label('')
