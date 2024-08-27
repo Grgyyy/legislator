@@ -36,7 +36,7 @@ class ListTvis extends ListRecords
                     Excel::import(new TviImport, $file);
 
                     Notification::make()
-                        ->title('Municipality Imported')
+                        ->title('TVI Imported')
                         ->success()
                         ->send();
                 })

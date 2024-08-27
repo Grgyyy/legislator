@@ -35,7 +35,7 @@ class ListAllocations extends ListRecords
                     Excel::import(new AllocationImport, $file);
 
                     Notification::make()
-                        ->title('Municipality Imported')
+                        ->title('Allocation Imported')
                         ->success()
                         ->send();
                 })

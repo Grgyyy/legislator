@@ -21,23 +21,6 @@ class ListInstitutionClasses extends ListRecords
             Actions\CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
-
-            Action::make('InstitutionClassImport')
-                ->label('Import')
-                ->form([
-                    FileUpload::make('attachment'),
-                ])
-                ->action(function (array $data) {
-                    $file = public_path('storage/' . $data['attachment']);
-
-
-                    Excel::import(new InstitutionClassImport, $file);
-
-                    Notification::make()
-                        ->title('Institution Class Imported')
-                        ->success()
-                        ->send();
-                })
         ];
     }
 }

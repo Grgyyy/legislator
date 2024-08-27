@@ -40,7 +40,7 @@ class ListLegislators extends ListRecords
                     Excel::import(new LegislatorImport, $file);
 
                     Notification::make()
-                        ->title('Institution Class Imported')
+                        ->title('Legislators Imported')
                         ->success()
                         ->send();
                 })

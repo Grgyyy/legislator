@@ -33,15 +33,9 @@ class InstitutionClassResource extends Resource
 
     protected static ?string $navigationParentItem = "Institutions";
 
-<<<<<<< HEAD
     protected static ?string $navigationLabel = "Institution Classes (B)";
-    
-    protected static ?int $navigationSort = 3;
-=======
-    protected static ?string $navigationLabel = "Institution Class (B)";
 
-    protected static ?int $navigationSort = 2;
->>>>>>> 51197a1 (Feat: Created a Import for District, Institution Class, Legislator, Municipality, Particular and TVI resource)
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {

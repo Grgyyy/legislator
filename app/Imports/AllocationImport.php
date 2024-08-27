@@ -4,14 +4,16 @@ namespace App\Imports;
 
 use App\Models\Allocation;
 use App\Models\Legislator;
-use App\Models\LegislatorParticular;
 use App\Models\Particular;
 use App\Models\ScholarshipProgram;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use App\Models\LegislatorParticular;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Illuminate\Validation\ValidationException;
 
 class AllocationImport implements ToModel, WithHeadingRow
 {
@@ -24,64 +26,60 @@ class AllocationImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
-        $legislator_id = self::getLegislatorId($row['legislator']);
-        $particular_id = self::getParticularId($legislator_id, $row['particular']);
-        $scholarship_program_id = self::getScholarshipProgramId($row['scholarship_program']);
+        try {
+            $data = Validator::make($row, [
+                'allocation' => 'required|regex:/^\d+(\.\d{1})?$/',
+                'admin_cost' => 'required|regex:/^\d+(\.\d{1})?$/',
+            ])->validate();
 
-        $allocation = Allocation::create([
-            'legislator_id' => $legislator_id,
-            'particular_id' => $particular_id,
-            'scholarship_program_id' => $scholarship_program_id,
-            'allocation' => $row['allocation'],
-            'admin_cost' => $row['admin_cost'],
-        ]);
+            $particular_id = self::getParticularId($row['particular']);
+            $legislator_id = self::getLegislatorId($particular_id, $row['legislator']);
+            $schopro_id = self::getSpId($row['scholarship_program']);
 
-        // Optional: If these relationships exist and need to be synced
-        $allocation->particular()->syncWithoutDetaching([$particular_id]);
-        $allocation->legislator()->syncWithoutDetaching([$legislator_id]);
-        $allocation->scholarship_program()->syncWithoutDetaching([$scholarship_program_id]);
-
-        return $allocation;
+            return new Allocation([
+                'legislator_id' => $legislator_id,
+                'particular_id' => $particular_id,
+                'scholarship_program_id' => $schopro_id,
+                'allocation' => $data['allocation'],
+                'admin_cost' => $data['admin_cost'],
+            ]);
+        } catch (ValidationException $e) {
+            Log::error('Validation failed for row: ' . json_encode($row) . ' - Errors: ' . json_encode($e->errors()));
+            return null;
+        }
     }
 
-    public static function getLegislatorId(string $legislator)
+    public static function getParticularId(string $particular)
     {
-        $legislatorRecord = Legislator::where('name', $legislator)->first();
-
-        return $legislatorRecord->id;
-
+        return Particular::where('name', $particular)
+            ->first()
+            ->id;
     }
+    // public static function getLegislatorId(int $particularId, string $legislatorName)
+    // {
+    //     return Legislator::where('name', $legislatorName)
+    //         ->where('particular_id', $particularId)
+    //         ->first()
+    //         ->id;
+    // }
 
-    public static function getParticularId(int $legislator, string $particular)
+    public static function getLegislatorId(int $particularId, string $legislatorName)
     {
-        // $particularRecord = LegislatorParticular::where('name', $particular)
-        //     ->where('legislator_id', $legislator)
-        //     ->first();
-        // if ($particularRecord) {
-        //     return $particularRecord->id;
-        // }
-
-        // // Handle the case where no particular is found (return null or handle as needed)
-        // return null;
-
-
-        // $LegislatorRecords = LegislatorParticular::where('legislator_id', $legislator)->get();
-
-        $ParticularRecords = Particular::where('name', $particular)
-            ->get();
-        $legislatorRecords = LegislatorParticular::where('legislator_id', $legislator)
-            ->whereIn('particular_id', $ParticularRecords)
-            ->get();
-
-
+        return Legislator::where('name', $legislatorName)
+            ->whereHas('particular', function ($query) use ($particularId) {
+                $query->where('particular_id', $particularId);
+            })
+            ->first()
+            ->id;
     }
 
-    public static function getScholarshipProgramId(string $scholarshipProgram)
+
+    public static function getSpId(string $SchoproName)
     {
-        $scholarshipProgramRecord = ScholarshipProgram::where('name', $scholarshipProgram)->first();
-
-        return $scholarshipProgramRecord->id;
-
+        return ScholarshipProgram::where('name', $SchoproName)
+            ->first()
+            ->id;
     }
+
 }
 

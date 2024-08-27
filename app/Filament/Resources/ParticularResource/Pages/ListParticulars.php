@@ -36,7 +36,7 @@ class ListParticulars extends ListRecords
                     Excel::import(new ParticularImport, $file);
 
                     Notification::make()
-                        ->title('Municipality Imported')
+                        ->title('Particular Imported')
                         ->success()
                         ->send();
                 })

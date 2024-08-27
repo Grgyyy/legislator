@@ -46,10 +46,11 @@ class AllocationResource extends Resource
                     }),
                 Select::make('particular_id')
                     ->label('Particular')
-                    ->options(fn ($get) => self::getParticularOptions($get('legislator_id')))
+                    ->options(fn($get) => self::getParticularOptions($get('legislator_id')))
                     ->required()
                     ->reactive()
-                    ->searchable(),
+                    ->searchable()
+                    ->label('Particular'),
                 Select::make('scholarship_program_id')
                     ->relationship("scholarship_program", "name")
                     ->required(),
@@ -80,7 +81,7 @@ class AllocationResource extends Resource
                     ->label('Year')
                     ->required()
                     ->options(
-                        collect(range(date('Y'), 2015))->mapWithKeys(fn ($year) => [$year => $year])
+                        collect(range(date('Y'), 2015))->mapWithKeys(fn($year) => [$year => $year])
                     )
                     ->default(date('Y')),
                 TextInput::make('balance')
@@ -95,26 +96,27 @@ class AllocationResource extends Resource
                     ->reactive(),
             ]);
     }
-    
+
+
 
     private static function getParticularOptions($legislatorId)
     {
         if (!$legislatorId) {
             return [];
         }
-        
+
         $legislator = \App\Models\Legislator::with('particular.district.municipality')
             ->find($legislatorId);
-        
+
         if (!$legislator) {
             return [];
         }
-    
+
         return $legislator->particular->mapWithKeys(function ($particular) {
             $districtName = $particular->district->name ?? 'Unknown District';
             $municipalityName = $particular->district->municipality->name ?? 'Unknown Municipality';
             $formattedName = "{$particular->name} - {$districtName}, {$municipalityName}";
-            
+
             return [$particular->id => $formattedName];
         })->toArray();
     }
@@ -154,13 +156,13 @@ class AllocationResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->prefix('₱')
-                    ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ',')),
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make("admin_cost")
                     ->label('Admin Cost')
                     ->sortable()
                     ->toggleable()
                     ->prefix('₱')
-                    ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ',')),
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make("year")
                     ->searchable()
                     ->toggleable()
@@ -172,7 +174,7 @@ class AllocationResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
                 ])
