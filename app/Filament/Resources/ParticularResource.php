@@ -41,6 +41,7 @@ class ParticularResource extends Resource
         return $form
             ->schema([
                 Select::make("name")
+                    ->label('Particular')
                     ->required()
                     ->options([
                         'district' => 'District',
