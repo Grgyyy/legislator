@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AdbbResource\Pages;
-use App\Filament\Resources\AdbbResource\RelationManagers;
-use App\Models\Adbb;
+use App\Filament\Resources\TvetResource\Pages;
+use App\Filament\Resources\TvetResource\RelationManagers;
+use App\Models\Tvet;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -15,22 +15,20 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class AdbbResource extends Resource
+class TvetResource extends Resource
 {
-    protected static ?string $model = Adbb::class;
+    protected static ?string $model = Tvet::class;
+
+    protected static ?string $navigationLabel = "TVET Sectors";
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
-
-    protected static ?string $navigationLabel = "ADBB Sectors";
-
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make("name")
-                    ->required(),
+                TextInput::make('name')
+                ->required(),
             ]);
     }
 
@@ -38,11 +36,11 @@ class AdbbResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("name")
+                TextColumn::make('name')
                     ->label('Sector Name')
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable(),
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 //
@@ -68,9 +66,9 @@ class AdbbResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAdbbs::route('/'),
-            'create' => Pages\CreateAdbb::route('/create'),
-            'edit' => Pages\EditAdbb::route('/{record}/edit'),
+            'index' => Pages\ListTvets::route('/'),
+            'create' => Pages\CreateTvet::route('/create'),
+            'edit' => Pages\EditTvet::route('/{record}/edit'),
         ];
     }
 }
