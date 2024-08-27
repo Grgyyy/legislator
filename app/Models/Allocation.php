@@ -20,15 +20,18 @@ class Allocation extends Model
         'year'
     ];
 
-    public function legislator(){
+    public function legislator()
+    {
         return $this->belongsTo(Legislator::class);
     }
 
-    public function scholarship_program(){
+    public function scholarship_program()
+    {
         return $this->belongsTo(ScholarshipProgram::class);
     }
 
-    public function particular() {
+    public function particular()
+    {
         return $this->belongsTo(Particular::class);
     }
 }

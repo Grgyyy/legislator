@@ -20,6 +20,7 @@ class TviImport implements ToModel, WithHeadingRow
         $institution_class = self::getInstitutionClass($row['institution_class_b']);
         $district_id = self::getDistrictId($row['district']);
 
+
         return new Tvi([
             'name' => $row['name'],
             'tvi_class_id' => $tvi_class,
