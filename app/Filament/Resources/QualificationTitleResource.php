@@ -52,12 +52,6 @@ class QualificationTitleResource extends Resource
                     ->required()
                     ->autocomplete(false)
                     ->unique(ignoreRecord: true),
-<<<<<<< HEAD
-                Select::make('scholarship_program_id')
-                    ->label('Scholarship Program')
-                    ->relationship('scholarshipProgram', 'name')
-                    ->required(),
-=======
                 // Many-to-many relationship field
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Programs')
@@ -65,7 +59,6 @@ class QualificationTitleResource extends Resource
                     ->relationship('scholarshipPrograms', 'name')
                     ->preload()
                     ->searchable(),
->>>>>>> d0f515d (fix: Qualification Title Creation and Table Rendering)
                 TextInput::make('duration')
                     ->label('Duration')
                     ->required()
@@ -96,10 +89,7 @@ class QualificationTitleResource extends Resource
                     ->label('Status')
                     ->default(1)
                     ->relationship('status', 'desc')
-<<<<<<< HEAD
                     ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),     
-=======
->>>>>>> d0f515d (fix: Qualification Title Creation and Table Rendering)
             ]);
     }
 
