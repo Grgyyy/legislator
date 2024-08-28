@@ -21,6 +21,7 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\InstitutionClassResource\Pages;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -66,6 +67,7 @@ class InstitutionClassResource extends Resource
                         ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
