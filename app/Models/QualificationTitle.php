@@ -18,10 +18,12 @@ class QualificationTitle extends Model
         'status_id',
     ];
 
+    public function trainingPrograms() {
+        return $this->belongsTo(TrainingProgram::class);
+    }
     public function scholarshipPrograms()
     {
-        return $this->belongsTo(ScholarshipProgram::class)
-            ->withTimestamps();
+        return $this->belongsTo(ScholarshipProgram::class);
     }
 
     public function status()

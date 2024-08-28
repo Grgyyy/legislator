@@ -10,6 +10,7 @@ use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
+use App\Models\ScholarshipProgram;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
@@ -43,21 +44,21 @@ class QualificationTitleResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('code')
+                Select::make('trainingPrograms')
+                    ->label('Training Program')
+                    ->relationship('trainingPrograms', 'title')
                     ->required()
-                    ->autocomplete(false)
-                    ->unique(ignoreRecord: true),
-                TextInput::make('title')
-                    ->label('Qualification Title')
-                    ->required()
-                    ->autocomplete(false)
-                    ->unique(ignoreRecord: true),
-                // Many-to-many relationship field
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        $set('scholarshipPrograms', null);
+                        $set('scholarshipProgramsOptions', self::getScholarshipProgramsOptions($state));
+                    }),
+
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Programs')
-                    ->multiple()
-                    ->relationship('scholarshipPrograms', 'name')
-                    ->preload()
+                    ->options(fn($get) => self::getScholarshipProgramsOptions($get('trainingPrograms')))
+                    ->required()
+                    ->reactive()
                     ->searchable(),
                 TextInput::make('duration')
                     ->label('Duration')
@@ -89,7 +90,7 @@ class QualificationTitleResource extends Resource
                     ->label('Status')
                     ->default(1)
                     ->relationship('status', 'desc')
-                    ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),     
+                    ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),
             ]);
     }
 
@@ -189,5 +190,24 @@ class QualificationTitleResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    /**
+     * Get available scholarship programs options based on selected training program.
+     *
+     * @param int|null $trainingProgramId
+     * @return array
+     */
+    public static function getScholarshipProgramsOptions($trainingProgramId): array
+    {
+        if (!$trainingProgramId) {
+            return [];
+        }
+
+        return ScholarshipProgram::whereHas('trainingPrograms', function ($query) use ($trainingProgramId) {
+            $query->where('training_programs.id', $trainingProgramId);
+        })
+        ->pluck('name', 'id')
+        ->toArray();
     }
 }
