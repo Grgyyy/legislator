@@ -52,10 +52,13 @@ class QualificationTitleResource extends Resource
                     ->required()
                     ->autocomplete(false)
                     ->unique(ignoreRecord: true),
-                Select::make('scholarship_program_id')
-                    ->label('Scholarship Program')
-                    ->relationship('scholarshipProgram', 'name')
-                    ->required(),
+                // Many-to-many relationship field
+                Select::make('scholarshipPrograms')
+                    ->label('Scholarship Programs')
+                    ->multiple()
+                    ->relationship('scholarshipPrograms', 'name')
+                    ->preload()
+                    ->searchable(),
                 TextInput::make('duration')
                     ->label('Duration')
                     ->required()
@@ -96,7 +99,7 @@ class QualificationTitleResource extends Resource
             ->emptyStateHeading('No qualification titles yet')
             ->columns([
                 TextColumn::make('code')
-                    ->label('Qualification Code')
+                    ->label('Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -104,10 +107,10 @@ class QualificationTitleResource extends Resource
                     ->label('Qualification Title')
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('scholarshipProgram.name')
-                    ->label('Scholarship Program')
-                    ->searchable()
-                    ->toggleable(),
+                TextColumn::make('scholarshipPrograms.name')
+                    ->label('Scholarship Programs')
+                    ->formatStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', '))
+                    ,
                 TextColumn::make('duration')
                     ->label('Duration')
                     ->sortable()
@@ -156,7 +159,7 @@ class QualificationTitleResource extends Resource
                                     ->heading('Qualification Code'),
                                 Column::make('title')
                                     ->heading('Qualification Title'),
-                                Column::make('scholarshipProgram.name')
+                                Column::make('scholarshipPrograms.name')
                                     ->heading('Scholarship Program'),
                                 Column::make('duration')
                                     ->heading('Duration'),

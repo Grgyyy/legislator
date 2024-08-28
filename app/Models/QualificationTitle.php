@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -13,22 +12,20 @@ class QualificationTitle extends Model
     protected $fillable = [
         'code',
         'title',
-        'scholarship_program_id',
-        'sector_id',
         'duration',
         'training_cost_pcc',
         'cost_of_toolkit_pcc',
         'status_id',
     ];
 
-    public function scholarshipProgram()
+    public function scholarshipPrograms()
     {
-        return $this->belongsTo(ScholarshipProgram::class);
+        return $this->belongsToMany(ScholarshipProgram::class, 'qualification_scholarships')
+            ->withTimestamps();
     }
-  
+
     public function status()
     {
         return $this->belongsTo(Status::class);
     }
 }
-
