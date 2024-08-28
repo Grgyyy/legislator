@@ -5,11 +5,6 @@ use App\Filament\Resources\QualificationTitleResource;
 use App\Models\ScholarshipProgram;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\View as ViewFacade;
-use App\Filament\Resources\RegionResource\Pages;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ShowQualificationTitles extends ListRecords
 {

@@ -2,9 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\ExportBulkAction as ActionsExportBulkAction;
 use Filament\Forms\Form;
 use App\Models\Legislator;
 use Filament\Tables\Actions\DeleteAction;
@@ -14,7 +12,6 @@ use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;

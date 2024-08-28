@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
 use App\Filament\Resources\ProvinceResource;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditProvince extends EditRecord

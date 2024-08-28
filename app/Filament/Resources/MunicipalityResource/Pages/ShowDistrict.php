@@ -3,8 +3,6 @@
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
 use App\Filament\Resources\DistrictResource;
-use App\Filament\Resources\MunicipalityResource;
-use App\Models\District;
 use App\Models\Municipality;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;

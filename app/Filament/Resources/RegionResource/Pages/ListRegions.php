@@ -3,10 +3,8 @@
 namespace App\Filament\Resources\RegionResource\Pages;
 
 use App\Filament\Resources\RegionResource;
-use App\Models\Region;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Resources\Components\Tab;
 
 class ListRegions extends ListRecords
 {

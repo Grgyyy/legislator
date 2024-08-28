@@ -5,11 +5,6 @@ use App\Filament\Resources\ProvinceResource;
 use App\Models\Region;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\View as ViewFacade;
-use App\Filament\Resources\RegionResource\Pages;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ShowProvinces extends ListRecords
 {

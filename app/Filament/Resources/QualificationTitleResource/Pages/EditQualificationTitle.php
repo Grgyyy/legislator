@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\QualificationTitleResource\Pages;
 
 use App\Filament\Resources\QualificationTitleResource;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditQualificationTitle extends EditRecord
