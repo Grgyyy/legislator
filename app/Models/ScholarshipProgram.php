@@ -27,9 +27,9 @@ class ScholarshipProgram extends Model
             ->withTimestamps();
     }
 
-    public function TrainingProgram()
+    public function trainingPrograms()
     {
-        return $this->belongsToMany(TrainingProgram::class, 'ScholarshipTraining');
+        return $this->belongsToMany(TrainingProgram::class, 'scholarship_trainings');
     }
 
     public function target()

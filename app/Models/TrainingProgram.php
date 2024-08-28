@@ -14,8 +14,8 @@ class TrainingProgram extends Model
         'title',
     ];
 
-    public function scholarshipProgram()
+    public function scholarshipPrograms()
     {
-        return $this->belongsToMany(ScholarshipProgram::class, 'ScholarshipTraining');
+        return $this->belongsToMany(ScholarshipProgram::class, 'scholarship_trainings');
     }
 }
