@@ -27,6 +27,11 @@ class ScholarshipProgram extends Model
             ->withTimestamps();
     }
 
+    public function TrainingProgram()
+    {
+        return $this->belongsToMany(TrainingProgram::class, 'ScholarshipTraining');
+    }
+
     public function target()
     {
         return $this->hasMany(Target::class);
