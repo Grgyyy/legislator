@@ -20,7 +20,7 @@ class QualificationTitle extends Model
 
     public function scholarshipPrograms()
     {
-        return $this->belongsToMany(ScholarshipProgram::class, 'qualification_scholarships')
+        return $this->belongsTo(ScholarshipProgram::class)
             ->withTimestamps();
     }
 
