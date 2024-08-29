@@ -35,19 +35,22 @@ class AllocationImport implements ToModel, WithHeadingRow
 
     private function getLegislatorId(string $legislatorName)
     {
-        $legislator = Legislator::where('name', $legislatorName)->firstOrFail();
+        $legislator = Legislator::where('name', $legislatorName)
+            ->firstOrFail();
         return $legislator->id;
     }
 
     private function getParticularId(string $particularName)
     {
-        $particular = Particular::where('name', $particularName)->firstOrFail();
+        $particular = Particular::where('name', $particularName)
+            ->firstOrFail();
         return $particular->id;
     }
 
     private function getSchoproId(string $schoproName)
     {
-        $scholarship = ScholarshipProgram::where('name', $schoproName)->firstOrFail();
+        $scholarship = ScholarshipProgram::where('name', $schoproName)
+            ->firstOrFail();
         return $scholarship->id;
     }
 }
