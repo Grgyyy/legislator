@@ -26,6 +26,7 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
@@ -112,7 +113,31 @@ class LegislatorResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                TrashedFilter::make(),
+                Filter::make('status')
+                ->form([
+                    Select::make('status_id')
+                        ->label('Status')
+                        // ->relationship('status', 'desc')
+                        ->options([
+                            'all' => 'All',
+                            '1' => 'Active',
+                            '2' => 'Inactive',
+                        'deleted' => 'Recently Deleted',
+                        ])
+                        ->default('all')
+                        ->selectablePlaceholder(false),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when(
+                            $data['status_id'] === 'deleted',
+                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
+                        )
+                        ->when(
+                            $data['status_id'] !== '' && $data['status_id'] !== 'deleted',
+                            fn (Builder $query, $statusId): Builder => $query->where('status_id', $statusId)
+                        );
+                }),
             ])
             ->actions([
                 ActionGroup::make([
