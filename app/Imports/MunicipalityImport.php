@@ -26,7 +26,7 @@ class MunicipalityImport implements ToModel, WithHeadingRow
         $province_id = self::getProvinceId($region_id, $row['province']);
 
         return new Municipality([
-            'name' => $row['name'],
+            'name' => $row['municipality'],
             'region_id' => $region_id,
             'province_id' => $province_id,
         ]);

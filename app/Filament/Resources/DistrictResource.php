@@ -42,8 +42,8 @@ class DistrictResource extends Resource
                 TextInput::make('name')
                     ->label('District')
                     ->required()
-                    ->autocomplete(false)
-                    ->unique(ignoreRecord: true),
+                    ->autocomplete(false),
+                // ->unique(ignoreRecord: true),
                 Select::make('municipality_id')
                     ->label('Municipality')
                     ->relationship('municipality', 'name')

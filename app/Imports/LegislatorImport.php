@@ -21,26 +21,38 @@ class LegislatorImport implements ToModel, WithHeadingRow
      */
 
 
+
     public function model(array $row)
     {
+        $particular_ids = self::getParticularIds($row['particular']);
 
+        if (empty($particular_ids)) {
+            Log::warning("No valid particulars found for: " . $row['particular']);
+            return null;
+        }
 
-        $particular_id = self::getParticularId($row['particular']);
+        $legislator = Legislator::create(['name' => $row['legislator']]);
 
-        $legislator = Legislator::create(
-            ['name' => $row['name']],
-        );
-
-        $legislator->particular()->syncWithoutDetaching([$particular_id]);
+        $legislator->particular()->syncWithoutDetaching($particular_ids);
 
         return $legislator;
     }
 
-    public static function getParticularId(string $particular)
+    public static function getParticularIds(string $particulars)
     {
-        return Particular::where('name', $particular)
-            ->first()
-            ->id;
+        $particularNames = explode(',', $particulars);
+        $particularIds = [];
+
+        foreach (array_map('trim', $particularNames) as $name) {
+            $particular = Particular::where('name', $name)->first();
+            if ($particular) {
+                $particularIds[] = $particular->id;
+            } else {
+                Log::warning("Particular not found: " . $name);
+            }
+        }
+
+        return $particularIds;
     }
 
 }

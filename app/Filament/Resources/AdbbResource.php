@@ -22,7 +22,7 @@ class AdbbResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
 
-    protected static ?string $navigationLabel = "ADBB Sectors";
+    protected static ?string $navigationLabel = "ABDD Sectors";
 
 
     public static function form(Form $form): Form
@@ -40,9 +40,9 @@ class AdbbResource extends Resource
             ->columns([
                 TextColumn::make("name")
                     ->label('Sector Name')
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable(),
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 //

@@ -30,7 +30,7 @@ class ParticularImport implements ToModel, WithHeadingRow
         $district_id = self::getDistrictId($municipality_id, $row['district']);
 
         return new Particular([
-            'name' => $row['name'],
+            'name' => $row['particular'],
             'district_id' => $district_id,
             'municipality_id' => $municipality_id,
             'province_id' => $province_id,
