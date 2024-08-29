@@ -22,6 +22,8 @@ class PriorityResource extends Resource
 
     protected static ?string $navigationLabel = "Ten Priority Sectors";
 
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     public static function form(Form $form): Form
     {
         return $form

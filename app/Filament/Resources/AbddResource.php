@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AdbbResource\Pages;
-use App\Filament\Resources\AdbbResource\RelationManagers;
-use App\Models\Adbb;
+use App\Filament\Resources\AbddResource\Pages;
+use App\Filament\Resources\AbddResource\RelationManagers;
+use App\Models\Abdd;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -15,21 +15,19 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class AdbbResource extends Resource
+class AbddResource extends Resource
 {
-    protected static ?string $model = Adbb::class;
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    protected static ?string $model = Abdd::class;
 
     protected static ?string $navigationLabel = "ABDD Sectors";
 
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make("name")
+                TextInput::make('name')
                     ->required(),
             ]);
     }
@@ -38,18 +36,13 @@ class AdbbResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make("name")
-                    ->label('Sector Name')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
+                TextColumn::make('name')
             ])
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -68,9 +61,9 @@ class AdbbResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListAdbbs::route('/'),
-            'create' => Pages\CreateAdbb::route('/create'),
-            'edit' => Pages\EditAdbb::route('/{record}/edit'),
+            'index' => Pages\ListAbdds::route('/'),
+            'create' => Pages\CreateAbdd::route('/create'),
+            'edit' => Pages\EditAbdd::route('/{record}/edit'),
         ];
     }
 }

@@ -13,7 +13,7 @@ class CreatePriority extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/priorities/create' => 'Top Ten Priority Sectors',
+            '/priorities' => 'Top Ten Priority Sectors',
             'Create'
         ];
     }

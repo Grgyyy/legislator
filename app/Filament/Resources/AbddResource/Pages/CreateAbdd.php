@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Filament\Resources\TvetResource\Pages;
+namespace App\Filament\Resources\AbddResource\Pages;
 
-use App\Filament\Resources\TvetResource;
+use App\Filament\Resources\AbddResource;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
-class CreateTvet extends CreateRecord
+class CreateAbdd extends CreateRecord
 {
-    protected static string $resource = TvetResource::class;
+    protected static string $resource = AbddResource::class;
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvets' => 'TVET Sectors',
+            '/abdds' => 'ABDD Sectors',
             'Create'
         ];
     }

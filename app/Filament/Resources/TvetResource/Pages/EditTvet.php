@@ -13,8 +13,8 @@ class EditTvet extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [
-            'TVET Sectors',
-            'Create'
+            '/tvets' => 'TVET Sectors',
+            'Edit'
         ];
     }
 
