@@ -10,10 +10,21 @@ class ListTvets extends ListRecords
 {
     protected static string $resource = TvetResource::class;
 
+    protected static ?string $title = 'TVET Sectors';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/tvets' => 'TVET Sectors',
+            'List'
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
             Actions\CreateAction::make(),
         ];
     }
+    
 }

@@ -10,10 +10,23 @@ class EditPriority extends EditRecord
 {
     protected static string $resource = PriorityResource::class;
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            'Top Ten Priority Sectors',
+            'Edit'
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
             Actions\DeleteAction::make(),
         ];
+    }
+
+    protected function getRedirectUrl(): string 
+    {
+        return $this->getResource()::getUrl('index');
     }
 }

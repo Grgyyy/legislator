@@ -10,10 +10,23 @@ class EditTvet extends EditRecord
 {
     protected static string $resource = TvetResource::class;
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            'TVET Sectors',
+            'Create'
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
             Actions\DeleteAction::make(),
         ];
+    }
+
+    protected function getRedirectUrl(): string 
+    {
+        return $this->getResource()::getUrl('index');
     }
 }

@@ -46,7 +46,7 @@ class QualificationTitleResource extends Resource
             ->schema([
                 Select::make('training_program_id')
                     ->label('Training Program')
-                    ->relationship('trainingProgram', 'title') // Adjusted from 'trainingPrograms'
+                    ->relationship('trainingProgram', 'title')
                     ->required()
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state) {
@@ -60,15 +60,6 @@ class QualificationTitleResource extends Resource
                     ->required()
                     ->reactive()
                     ->searchable(),
-                // TextInput::make('training_cost_pcc')
-                //     ->label('Training Cost PCC')
-                //     ->required()
-                //     ->autocomplete(false)
-                //     ->numeric()
-                //     ->default(0)
-                //     ->prefix('₱')
-                //     ->minValue(0)
-                //     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
                 TextInput::make('training_cost_pcc')
                     ->label('Training Cost PCC')
                     ->required()
