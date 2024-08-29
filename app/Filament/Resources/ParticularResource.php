@@ -54,6 +54,7 @@ class ParticularResource extends Resource
                         'EO79' => 'EO79',
                         'EO70' => 'EO70',
                         'KIA/WIA' => 'KIA/WIA',
+                        'House Speaker' => 'House Speaker',
                     ]),
                 Select::make('district_id')
                     ->label('District')

@@ -17,10 +17,10 @@ class Particular extends Model
 
     public function legislator()
     {
-        return $this->belongsToMany(Legislator::class, 'LegislatorParticular')->withTimestamps();
+        return $this->belongsToMany(Legislator::class, 'legislator_particular')->withTimestamps();
     }
 
-    public function allocation() 
+    public function allocation()
     {
         return $this->hasMany(Allocation::class);
     }
