@@ -10,6 +10,7 @@ use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
+use App\Models\ScholarshipProgram;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
@@ -33,44 +34,35 @@ class QualificationTitleResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationParentItem = "Scholarship Programs";
-
     protected static ?string $navigationLabel = "Qualification Titles";
 
-    protected static ?int $navigationSort = 2;
-
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    
+    protected static ?int $navigationSort = 5;
+    
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                TextInput::make('code')
+                Select::make('training_program_id')
+                    ->label('Training Program')
+                    ->relationship('trainingProgram', 'title')
                     ->required()
-                    ->autocomplete(false)
-                    ->unique(ignoreRecord: true),
-                TextInput::make('title')
-                    ->label('Qualification Title')
-                    ->required()
-                    ->autocomplete(false)
-                    ->unique(ignoreRecord: true),
-                // Many-to-many relationship field
-                Select::make('scholarshipPrograms')
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        $set('scholarship_program_id', null);
+                        $set('scholarshipProgramsOptions', self::getScholarshipProgramsOptions($state));
+                    }),
+
+                Select::make('scholarship_program_id')
                     ->label('Scholarship Programs')
-                    ->multiple()
-                    ->relationship('scholarshipPrograms', 'name')
-                    ->preload()
-                    ->searchable(),
-                TextInput::make('duration')
-                    ->label('Duration')
+                    ->options(fn($get) => self::getScholarshipProgramsOptions($get('training_program_id')))
                     ->required()
-                    ->autocomplete(false)
-                    ->numeric()
-                    ->default(0)
-                    ->minValue(0)
-                    ->suffix('hrs'),
+                    ->reactive()
+                    ->searchable(),
                 TextInput::make('training_cost_pcc')
                     ->label('Training Cost PCC')
                     ->required()
-                    ->autocomplete(false)
                     ->numeric()
                     ->default(0)
                     ->prefix('₱')
@@ -85,11 +77,73 @@ class QualificationTitleResource extends Resource
                     ->prefix('₱')
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('training_support_fund')
+                    ->label('Training Support Fund')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('assessment_fee')
+                    ->label('Assessment Fee')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('entrepeneurship_fee')
+                    ->label('Entrepeneurship Fee')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('new_normal_assisstance')
+                    ->label('New Normal Assisstance')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('accident_insurance')
+                    ->label('Accident Insurance')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('book_allowance')
+                    ->label('Book Allowance')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('duration')
+                    ->label('Duration')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0)
+                    ->suffix('hrs'),
                 Select::make('status_id')
                     ->label('Status')
                     ->default(1)
                     ->relationship('status', 'desc')
-                    ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),     
+                    ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),
             ]);
     }
 
@@ -98,25 +152,19 @@ class QualificationTitleResource extends Resource
         return $table
             ->emptyStateHeading('No qualification titles yet')
             ->columns([
-                TextColumn::make('code')
+                TextColumn::make('trainingProgram.code')
                     ->label('Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('title')
+                TextColumn::make('trainingProgram.title')
                     ->label('Qualification Title')
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('scholarshipPrograms.name')
-                    ->label('Scholarship Programs')
-                    ->formatStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', '))
-                    ,
-                TextColumn::make('duration')
-                    ->label('Duration')
-                    ->sortable()
+                TextColumn::make('scholarshipProgram.name')
+                    ->label('Scholarship Program')
                     ->searchable()
-                    ->toggleable()
-                    ->suffix(' hrs'),
+                    ->toggleable(),
                 TextColumn::make("training_cost_pcc")
                     ->label("Training Cost PCC")
                     ->sortable()
@@ -133,6 +181,52 @@ class QualificationTitleResource extends Resource
                         return number_format($state, 2, '.', ',');
                     })
                     ->prefix('₱ '),
+                TextColumn::make("training_support_fund")
+                    ->label("Training Support Fund")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("assessment_fee")
+                    ->label("Assessment Fee")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("entrepeneurship_fee")
+                    ->label("Entrepeneurship Fee")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("new_normal_assisstance")
+                    ->label("New Normal Assistance")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("book_allowance")
+                    ->label("Entrepeneurship Fee")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make('duration')
+                    ->label('Duration')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->suffix(' hrs'),
                 TextColumn::make("status.desc")
                     ->toggleable(),
             ])
@@ -189,5 +283,24 @@ class QualificationTitleResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    /**
+     * Get available scholarship programs options based on selected training program.
+     *
+     * @param int|null $trainingProgramId
+     * @return array
+     */
+    public static function getScholarshipProgramsOptions($trainingProgramId): array
+    {
+        if (!$trainingProgramId) {
+            return [];
+        }
+
+        return ScholarshipProgram::whereHas('trainingPrograms', function ($query) use ($trainingProgramId) {
+            $query->where('training_programs.id', $trainingProgramId);
+        })
+        ->pluck('name', 'id')
+        ->toArray();
     }
 }

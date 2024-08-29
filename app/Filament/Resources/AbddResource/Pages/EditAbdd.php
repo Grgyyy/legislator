@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Filament\Resources\PriorityResource\Pages;
+namespace App\Filament\Resources\AbddResource\Pages;
 
-use App\Filament\Resources\PriorityResource;
+use App\Filament\Resources\AbddResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditPriority extends EditRecord
+class EditAbdd extends EditRecord
 {
-    protected static string $resource = PriorityResource::class;
+    protected static string $resource = AbddResource::class;
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/priorities' => 'Top Ten Priority Sectors',
+            '/abdds' => 'ABDD Sectors',
             'Edit'
         ];
     }

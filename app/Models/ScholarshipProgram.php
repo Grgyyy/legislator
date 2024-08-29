@@ -23,8 +23,12 @@ class ScholarshipProgram extends Model
 
     public function qualificationTitle()
     {
-        return $this->belongsToMany(QualificationTitle::class, 'QualificationScholarship')
-            ->withTimestamps();
+        return $this->hasMany(QualificationTitle::class);
+    }
+
+    public function trainingPrograms()
+    {
+        return $this->belongsToMany(TrainingProgram::class, 'scholarship_trainings');
     }
 
     public function target()

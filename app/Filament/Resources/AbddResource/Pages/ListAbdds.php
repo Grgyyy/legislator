@@ -1,24 +1,25 @@
 <?php
 
-namespace App\Filament\Resources\TvetResource\Pages;
+namespace App\Filament\Resources\AbddResource\Pages;
 
-use App\Filament\Resources\TvetResource;
+use App\Filament\Resources\AbddResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 
-class ListTvets extends ListRecords
+class ListAbdds extends ListRecords
 {
-    protected static string $resource = TvetResource::class;
+    protected static string $resource = AbddResource::class;
 
-    protected static ?string $title = 'TVET Sectors';
+    protected static ?string $title = 'ABDD Sectors';
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvets' => 'TVET Sectors',
+            '/abdds' => 'ABDD Sectors',
             'List'
         ];
     }
+
 
     protected function getHeaderActions(): array
     {
@@ -26,5 +27,4 @@ class ListTvets extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
-    
 }

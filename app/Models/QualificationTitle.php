@@ -10,22 +10,32 @@ class QualificationTitle extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'code',
-        'title',
-        'duration',
+        'training_program_id',
+        'scholarship_program_id',
         'training_cost_pcc',
         'cost_of_toolkit_pcc',
+        'training_support_fund',
+        'assessment_fee',
+        'entrepeneurship_fee',
+        'new_normal_assisstance',
+        'accident_insurance',
+        'book_allowance',
+        'duration',
         'status_id',
     ];
 
-    public function scholarshipPrograms()
+    public function trainingProgram()
     {
-        return $this->belongsToMany(ScholarshipProgram::class, 'qualification_scholarships')
-            ->withTimestamps();
+        return $this->belongsTo(TrainingProgram::class, 'training_program_id');
+    }
+
+    public function scholarshipProgram()
+    {
+        return $this->belongsTo(ScholarshipProgram::class, 'scholarship_program_id');
     }
 
     public function status()
     {
-        return $this->belongsTo(Status::class);
+        return $this->belongsTo(Status::class, 'status_id');
     }
 }
