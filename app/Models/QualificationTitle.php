@@ -24,25 +24,18 @@ class QualificationTitle extends Model
         'status_id',
     ];
 
-    public function trainingPrograms() {
-        return $this->belongsTo(TrainingProgram::class);
-    }
-
-    public function tvet() {
-        return $this->belongsTo(Tvet::class);
-    }
-
-    public function priority() {
-        return $this->belongsTo(Priority::class);
-    }
-
-    public function scholarshipPrograms()
+    public function trainingProgram()
     {
-        return $this->belongsTo(ScholarshipProgram::class);
+        return $this->belongsTo(TrainingProgram::class, 'training_program_id');
+    }
+
+    public function scholarshipProgram()
+    {
+        return $this->belongsTo(ScholarshipProgram::class, 'scholarship_program_id');
     }
 
     public function status()
     {
-        return $this->belongsTo(Status::class);
+        return $this->belongsTo(Status::class, 'status_id');
     }
 }

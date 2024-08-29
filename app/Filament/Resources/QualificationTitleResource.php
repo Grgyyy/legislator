@@ -46,11 +46,10 @@ class QualificationTitleResource extends Resource
             ->schema([
                 Select::make('training_program_id')
                     ->label('Training Program')
-                    ->relationship('trainingPrograms', 'title')
+                    ->relationship('trainingProgram', 'title') // Adjusted from 'trainingPrograms'
                     ->required()
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state) {
-                        // Reset the scholarship program field and update its options
                         $set('scholarship_program_id', null);
                         $set('scholarshipProgramsOptions', self::getScholarshipProgramsOptions($state));
                     }),
@@ -61,10 +60,18 @@ class QualificationTitleResource extends Resource
                     ->required()
                     ->reactive()
                     ->searchable(),
+                // TextInput::make('training_cost_pcc')
+                //     ->label('Training Cost PCC')
+                //     ->required()
+                //     ->autocomplete(false)
+                //     ->numeric()
+                //     ->default(0)
+                //     ->prefix('₱')
+                //     ->minValue(0)
+                //     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
                 TextInput::make('training_cost_pcc')
                     ->label('Training Cost PCC')
                     ->required()
-                    ->autocomplete(false)
                     ->numeric()
                     ->default(0)
                     ->prefix('₱')
@@ -154,25 +161,19 @@ class QualificationTitleResource extends Resource
         return $table
             ->emptyStateHeading('No qualification titles yet')
             ->columns([
-                TextColumn::make('code')
+                TextColumn::make('trainingProgram.code')
                     ->label('Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('title')
+                TextColumn::make('trainingProgram.title')
                     ->label('Qualification Title')
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('scholarshipPrograms.name')
-                    ->label('Scholarship Programs')
-                    ->formatStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', '))
-                    ,
-                TextColumn::make('duration')
-                    ->label('Duration')
-                    ->sortable()
+                TextColumn::make('scholarshipProgram.name')
+                    ->label('Scholarship Program')
                     ->searchable()
-                    ->toggleable()
-                    ->suffix(' hrs'),
+                    ->toggleable(),
                 TextColumn::make("training_cost_pcc")
                     ->label("Training Cost PCC")
                     ->sortable()
@@ -189,6 +190,52 @@ class QualificationTitleResource extends Resource
                         return number_format($state, 2, '.', ',');
                     })
                     ->prefix('₱ '),
+                TextColumn::make("training_support_fund")
+                    ->label("Training Support Fund")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("assessment_fee")
+                    ->label("Assessment Fee")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("entrepeneurship_fee")
+                    ->label("Entrepeneurship Fee")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("new_normal_assisstance")
+                    ->label("New Normal Assistance")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("book_allowance")
+                    ->label("Entrepeneurship Fee")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make('duration')
+                    ->label('Duration')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->suffix(' hrs'),
                 TextColumn::make("status.desc")
                     ->toggleable(),
             ])

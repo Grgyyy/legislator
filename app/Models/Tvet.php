@@ -12,8 +12,4 @@ class Tvet extends Model
     protected $fillable = [
         'name',
     ];
-
-    public function qualificationTitles() {
-        return $this->hasMany(QualificationTitle::class);
-    }
 }
