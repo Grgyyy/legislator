@@ -12,4 +12,8 @@ class Priority extends Model
     protected $fillable = [
         'name',
     ];
+
+    public function QualificationTitles() {
+        return $this->hasMany(QualificationTitle::class);
+    }
 }

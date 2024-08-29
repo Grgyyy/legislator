@@ -44,30 +44,23 @@ class QualificationTitleResource extends Resource
     {
         return $form
             ->schema([
-                Select::make('trainingPrograms')
+                Select::make('training_program_id')
                     ->label('Training Program')
                     ->relationship('trainingPrograms', 'title')
                     ->required()
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state) {
-                        $set('scholarshipPrograms', null);
+                        // Reset the scholarship program field and update its options
+                        $set('scholarship_program_id', null);
                         $set('scholarshipProgramsOptions', self::getScholarshipProgramsOptions($state));
                     }),
 
-                Select::make('scholarshipPrograms')
+                Select::make('scholarship_program_id')
                     ->label('Scholarship Programs')
-                    ->options(fn($get) => self::getScholarshipProgramsOptions($get('trainingPrograms')))
+                    ->options(fn($get) => self::getScholarshipProgramsOptions($get('training_program_id')))
                     ->required()
                     ->reactive()
                     ->searchable(),
-                TextInput::make('duration')
-                    ->label('Duration')
-                    ->required()
-                    ->autocomplete(false)
-                    ->numeric()
-                    ->default(0)
-                    ->minValue(0)
-                    ->suffix('hrs'),
                 TextInput::make('training_cost_pcc')
                     ->label('Training Cost PCC')
                     ->required()
@@ -86,6 +79,68 @@ class QualificationTitleResource extends Resource
                     ->prefix('₱')
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('training_support_fund')
+                    ->label('Training Support Fund')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('assessment_fee')
+                    ->label('Assessment Fee')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('entrepeneurship_fee')
+                    ->label('Entrepeneurship Fee')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('new_normal_assisstance')
+                    ->label('New Normal Assisstance')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('accident_insurance')
+                    ->label('Accident Insurance')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('book_allowance')
+                    ->label('Book Allowance')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('duration')
+                    ->label('Duration')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0)
+                    ->suffix('hrs'),
                 Select::make('status_id')
                     ->label('Status')
                     ->default(1)
