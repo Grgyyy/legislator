@@ -130,12 +130,20 @@ class LegislatorResource extends Resource
                 ->query(function (Builder $query, array $data): Builder {
                     return $query
                         ->when(
+                            $data['status_id'] === 'all',
+                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
+                        )
+                        ->when(
                             $data['status_id'] === 'deleted',
                             fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
                         )
                         ->when(
-                            $data['status_id'] !== '' && $data['status_id'] !== 'deleted',
-                            fn (Builder $query, $statusId): Builder => $query->where('status_id', $statusId)
+                            $data['status_id'] === '1',
+                            fn (Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
+                        )
+                        ->when(
+                            $data['status_id'] === '2',
+                            fn (Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
                         );
                 }),
             ])
