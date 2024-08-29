@@ -21,7 +21,11 @@ class TrainingProgramResource extends Resource
 {
     protected static ?string $model = TrainingProgram::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
+
+    protected static ?string $navigationParentItem = "Qualification Titles";
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {

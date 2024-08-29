@@ -20,9 +20,7 @@ class TvetResource extends Resource
     protected static ?string $model = Tvet::class;
 
     protected static ?string $navigationLabel = "TVET Sectors";
-
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
+    
     public static function form(Form $form): Form
     {
         return $form
