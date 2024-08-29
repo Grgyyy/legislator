@@ -15,7 +15,8 @@ class Legislator extends Model
         'status_id'
     ];
 
-    public function status() {
+    public function status()
+    {
         return $this->belongsTo(Status::class);
     }
 

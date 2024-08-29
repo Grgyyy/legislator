@@ -2,25 +2,30 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AllocationResource\Pages;
-use App\Models\Allocation;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
+use App\Models\Allocation;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\AllocationResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+
+
 
 class AllocationResource extends Resource
 {
@@ -63,7 +68,7 @@ class AllocationResource extends Resource
                     ->prefix('₱')
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                    ->reactive()
+                    ->debounce(300)
                     ->afterStateUpdated(function (callable $set, $state) {
                         $set('admin_cost', $state * 0.02);
                         $set('balance', $state);
@@ -162,6 +167,12 @@ class AllocationResource extends Resource
                     ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                TextColumn::make("balance")
+                    ->label('Balance')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make("year")
                     ->searchable()
                     ->toggleable()
@@ -183,6 +194,27 @@ class AllocationResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('legislator.name')
+                                    ->heading('Legislator'),
+                                Column::make('particular.name')
+                                    ->heading('Particular'),
+                                Column::make('scholarship_program.name')
+                                    ->heading('Scholarship Program'),
+                                Column::make('allocation')
+                                    ->heading('Allocation'),
+                                Column::make('admin_cost')
+                                    ->heading('Admin Cost'),
+                                Column::make('balance')
+                                    ->heading('Balance'),
+                                Column::make('year')
+                                    ->heading('Year'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Allocation')
+                    ]),
+
                 ]),
             ]);
     }

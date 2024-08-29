@@ -6,80 +6,53 @@ use App\Models\Allocation;
 use App\Models\Legislator;
 use App\Models\Particular;
 use App\Models\ScholarshipProgram;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use App\Models\LegislatorParticular;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Illuminate\Validation\ValidationException;
 
 class AllocationImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
     public function model(array $row)
     {
-        try {
-            $data = Validator::make($row, [
-                'allocation' => 'required|regex:/^\d+(\.\d{1})?$/',
-                'admin_cost' => 'required|regex:/^\d+(\.\d{1})?$/',
-            ])->validate();
+        $legislator_id = $this->getLegislatorId($row['legislator']);
+        $particular_id = $this->getParticularId($row['particular']);
+        $schopro_id = $this->getSchoproId($row['scholarship_program']);
+        $allocation = $row['allocation'];
+        $admin_cost = $allocation * 0.02;
 
-            $particular_id = self::getParticularId($row['particular']);
-            $legislator_id = self::getLegislatorId($particular_id, $row['legislator']);
-            $schopro_id = self::getSpId($row['scholarship_program']);
-
-            return new Allocation([
-                'legislator_id' => $legislator_id,
-                'particular_id' => $particular_id,
-                'scholarship_program_id' => $schopro_id,
-                'allocation' => $data['allocation'],
-                'admin_cost' => $data['admin_cost'],
-            ]);
-        } catch (ValidationException $e) {
-            Log::error('Validation failed for row: ' . json_encode($row) . ' - Errors: ' . json_encode($e->errors()));
-            return null;
-        }
+        return new Allocation([
+            'legislator_id' => $legislator_id,
+            'particular_id' => $particular_id,
+            'scholarship_program_id' => $schopro_id,
+            'allocation' => $allocation,
+            'admin_cost' => $admin_cost,
+            'balance' => $allocation,
+            'year' => $row['year']
+        ]);
     }
 
-    public static function getParticularId(string $particular)
+    private function getLegislatorId(string $legislatorName)
     {
-        return Particular::where('name', $particular)
-            ->first()
-            ->id;
+        $legislator = Legislator::where('name', $legislatorName)
+            ->firstOrFail();
+        return $legislator->id;
     }
-    // public static function getLegislatorId(int $particularId, string $legislatorName)
-    // {
-    //     return Legislator::where('name', $legislatorName)
-    //         ->where('particular_id', $particularId)
-    //         ->first()
-    //         ->id;
-    // }
 
-    public static function getLegislatorId(int $particularId, string $legislatorName)
+    private function getParticularId(string $particularName)
     {
-        return Legislator::where('name', $legislatorName)
-            ->whereHas('particular', function ($query) use ($particularId) {
-                $query->where('particular_id', $particularId);
-            })
-            ->first()
-            ->id;
+        $particular = Particular::where('name', $particularName)
+            ->firstOrFail();
+        return $particular->id;
     }
 
-
-    public static function getSpId(string $SchoproName)
+    private function getSchoproId(string $schoproName)
     {
-        return ScholarshipProgram::where('name', $SchoproName)
-            ->first()
-            ->id;
+        $scholarship = ScholarshipProgram::where('name', $schoproName)
+            ->firstOrFail();
+        return $scholarship->id;
     }
-
 }
+
 

@@ -60,9 +60,9 @@ class ParticularResource extends Resource
                     ->options(function () {
                         return District::all()->mapWithKeys(function (District $district) {
                             $label = $district->name . ' - ' .
-                                     $district->municipality->name . ', ' .
-                                     $district->municipality->province->name;
-    
+                                $district->municipality->name . ', ' .
+                                $district->municipality->province->name;
+
                             return [$district->id => $label];
                         })->toArray();
                     })
@@ -115,16 +115,18 @@ class ParticularResource extends Resource
                         ExcelExport::make()
                             ->withColumns([
                                 Column::make('name')
-                                    ->heading('Legislator Name'),
-                                Column::make('municipality.name')
+                                    ->heading('Legislator'),
+                                Column::make('district.municipality.name')
+                                    ->heading('District'),
+                                Column::make('district.name')
                                     ->heading('Municipality'),
-                                Column::make('municipality.province.name')
+                                Column::make('district.municipality.province.name')
                                     ->heading('Province'),
-                                Column::make('municipality.province.region.name')
+                                Column::make('district.municipality.province.region.name')
                                     ->heading('Region'),
 
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Municipality')
+                            ->withFilename(date('m-d-Y') . ' - Particulars')
                     ]),
                 ]),
             ]);

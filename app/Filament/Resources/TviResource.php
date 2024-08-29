@@ -137,14 +137,12 @@ class TviResource extends Resource
                             ->withColumns([
                                 Column::make('name')
                                     ->heading('Institution Name'),
-                                Column::make('district')
-                                    ->heading('District'),
-                                Column::make('municipality_class')
-                                    ->heading('Municipality'),
                                 Column::make('tviClass.name')
                                     ->heading('Institution Class (A)'),
                                 Column::make('InstitutionClass.name')
                                     ->heading('Institution Class (B)'),
+                                Column::make('district.name')
+                                    ->heading('District'),
                                 Column::make('address')
                                     ->heading('Address'),
                                 Column::make('created_at')
