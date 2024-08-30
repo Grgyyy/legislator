@@ -47,7 +47,6 @@ class LegislatorResource extends Resource
                 TextInput::make("name")
                     ->label('Legislator')
                     ->required()
-                    ->unique(ignoreRecord: true)
                     ->autocomplete(false),
                 Select::make("particular")
                     ->multiple()
@@ -76,7 +75,7 @@ class LegislatorResource extends Resource
             ->emptyStateHeading('No legislators yet')
             ->columns([
                 TextColumn::make("name")
-                    ->label('Legislator Name')
+                    ->label('Name')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -85,27 +84,10 @@ class LegislatorResource extends Resource
                     ->getStateUsing(function ($record) {
                         $particulars = $record->particular;
 
-                        // return $particulars->map(function ($particular) {
-                        //     $municipalityName =
-                        //         $particular
-                        //             ->district
-                        //             ->name . ', ' .
-                        //         $particular
-                        //             ->district
-                        //             ->municipality
-                        //             ->name;
-                        //     return $particular->name . ' - ' . $municipalityName;
-                        // })->join(', ');
-            
-
                         return $particulars->map(function ($particular) {
-                            $districtName = $particular->district->name;
-                            $municipalityName = $particular->district->municipality->name;
-                            // $provinceName = $particular->district->municipality->province->name;
-            
-                            return $particular->name . ' - ' . $districtName . ' ' . $municipalityName;
+                            $municipalityName = $particular->district->name . ', ' . $particular->district->municipality->name;
+                            return $particular->name . ' - ' . $municipalityName;
                         })->join(', ');
-
                     })
                     ->searchable()
                     ->toggleable(),

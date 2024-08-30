@@ -18,7 +18,6 @@ class LegislatorImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
-        // Validate the row data
         $validator = Validator::make($row, [
             'legislator' => 'required|string',
             'particular' => 'required|string',
@@ -27,7 +26,6 @@ class LegislatorImport implements ToModel, WithHeadingRow
             'province' => 'required|string',
         ]);
 
-        // If validation fails, log a warning and skip this row
         if ($validator->fails()) {
             Log::warning("Validation failed for row: " . json_encode($row) . " with errors: " . json_encode($validator->errors()->all()));
             return null;
@@ -39,7 +37,6 @@ class LegislatorImport implements ToModel, WithHeadingRow
         $municipalityName = $row['municipality'];
         $provinceName = $row['province'];
 
-        // Find the existing province, municipality, and district
         $province = Province::where('name', $provinceName)->first();
 
         if (!$province) {
@@ -57,7 +54,6 @@ class LegislatorImport implements ToModel, WithHeadingRow
             'municipality_id' => $municipality->id,
         ]);
 
-        // Find the particular associated with the district
         $particular = Particular::where([
             ['name', $particularName],
             ['district_id', $district->id],
@@ -68,10 +64,8 @@ class LegislatorImport implements ToModel, WithHeadingRow
             return null;
         }
 
-        // Find or create the legislator
         $legislator = Legislator::firstOrCreate(['name' => $legislatorName]);
 
-        // Associate the legislator with the particular
         $legislator->particular()->syncWithoutDetaching([$particular->id]);
 
         return $legislator;

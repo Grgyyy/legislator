@@ -2,9 +2,18 @@
 
 namespace App\Filament\Resources\RegionResource\Pages;
 
-use App\Filament\Resources\RegionResource;
 use Filament\Actions;
+use App\Models\Region;
+use Filament\Actions\Action;
+use App\Imports\RegionImport;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\RegionResource;
+use Maatwebsite\Excel\Facades\Excel;
+use Filament\Notifications\Notification;
+use Filament\Forms\Components\FileUpload;
+
+
+
 
 class ListRegions extends ListRecords
 {
@@ -15,7 +24,25 @@ class ListRegions extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
+                ->label('New'),
+
+
+            Action::make('RegionImport')
+                ->label('Import')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('attachment'),
+                ])
+                ->action(function (array $data) {
+                    $file = storage_path('app/public/' . $data['attachment']);
+
+                    Excel::import(new RegionImport, $file);
+
+                    Notification::make()
+                        ->title('Region Imported')
+                        ->success()
+                        ->send();
+                })
         ];
     }
     // public function getTabs(): array
@@ -50,4 +77,6 @@ class ListRegions extends ListRecords
     //             }),
     //     ];
     // }
+
+
 }
