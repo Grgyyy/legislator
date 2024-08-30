@@ -20,7 +20,9 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\InstitutionClassResource\Pages;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -58,7 +60,28 @@ class InstitutionClassResource extends Resource
                     ->label('Institution Classes (B)')
             ])
             ->filters([
-                TrashedFilter::make(),
+                Filter::make('status')
+                ->form([
+                    Select::make('status_id')
+                        ->label('Status')
+                        ->options([
+                            'all' => 'All',
+                        'deleted' => 'Recently Deleted',
+                        ])
+                        ->default('all')
+                        ->selectablePlaceholder(false),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when(
+                            $data['status_id'] === 'all',
+                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
+                        )
+                        ->when(
+                            $data['status_id'] === 'deleted',
+                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
+                        );
+                }),
             ])
             ->actions([
                 ActionGroup::make([
