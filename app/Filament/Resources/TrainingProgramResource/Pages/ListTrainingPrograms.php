@@ -10,8 +10,8 @@ use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\TrainingProgramResource;
-
-
+use Illuminate\Support\Facades\Redirect;
+use Exception;
 
 class ListTrainingPrograms extends ListRecords
 {
@@ -29,15 +29,22 @@ class ListTrainingPrograms extends ListRecords
                     FileUpload::make('attachment'),
                 ])
                 ->action(function (array $data) {
-                    $file = storage_path('app/public/' . $data['attachment']);
-
-                    Excel::import(new TrainingProgramsImport, $file);
-
-                    Notification::make()
-                        ->title('Region Imported')
-                        ->success()
-                        ->send();
-                })
+                    $file = public_path('storage/' . $data['attachment']);
+                    try {
+                        Excel::import(new TrainingProgramsImport, $file);
+                        Notification::make()
+                            ->title('Import Successful')
+                            ->body('Training Program Import successful!')
+                            ->success()
+                            ->send();
+                    } catch (Exception $e) {
+                        Notification::make()
+                            ->title('Import Failed')
+                            ->body('Training Program Import failed: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
         ];
     }
 }
