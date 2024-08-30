@@ -25,6 +25,7 @@ use App\Filament\Resources\QualificationTitleResource\Pages;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 
@@ -239,6 +240,7 @@ class QualificationTitleResource extends Resource
                         ->hidden(fn ($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([

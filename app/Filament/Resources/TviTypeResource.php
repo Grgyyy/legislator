@@ -18,6 +18,7 @@ use Filament\Tables\Actions\BulkActionGroup;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\TviTypeResource\Pages;
 use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -65,6 +66,7 @@ class TviTypeResource extends Resource
                         ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([

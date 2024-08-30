@@ -9,7 +9,6 @@ use Filament\Actions\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
-use App\Imports\LegislatorImport;
 use App\Imports\MunicipalityImport;
 
 class ListMunicipalities extends ListRecords

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
 use App\Filament\Resources\MunicipalityResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateMunicipality extends CreateRecord

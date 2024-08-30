@@ -2,9 +2,7 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\ExportBulkAction as ActionsExportBulkAction;
 use Filament\Forms\Form;
 use App\Models\Legislator;
 use Filament\Tables\Actions\DeleteAction;
@@ -14,7 +12,6 @@ use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;
@@ -26,8 +23,10 @@ use Filament\Pages\Page;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
@@ -114,7 +113,39 @@ class LegislatorResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                TrashedFilter::make(),
+                Filter::make('status')
+                ->form([
+                    Select::make('status_id')
+                        ->label('Status')
+                        // ->relationship('status', 'desc')
+                        ->options([
+                            'all' => 'All',
+                            '1' => 'Active',
+                            '2' => 'Inactive',
+                        'deleted' => 'Recently Deleted',
+                        ])
+                        ->default('all')
+                        ->selectablePlaceholder(false),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when(
+                            $data['status_id'] === 'all',
+                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
+                        )
+                        ->when(
+                            $data['status_id'] === 'deleted',
+                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
+                        )
+                        ->when(
+                            $data['status_id'] === '1',
+                            fn (Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
+                        )
+                        ->when(
+                            $data['status_id'] === '2',
+                            fn (Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
+                        );
+                }),
             ])
             ->actions([
                 ActionGroup::make([
@@ -122,6 +153,7 @@ class LegislatorResource extends Resource
                         ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
