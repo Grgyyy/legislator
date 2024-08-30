@@ -38,9 +38,9 @@ class QualificationTitleResource extends Resource
     protected static ?string $navigationLabel = "Qualification Titles";
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    
+
     protected static ?int $navigationSort = 5;
-    
+
     public static function form(Form $form): Form
     {
         return $form
@@ -144,7 +144,7 @@ class QualificationTitleResource extends Resource
                     ->label('Status')
                     ->default(1)
                     ->relationship('status', 'desc')
-                    ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),
+                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord),
             ]);
     }
 
@@ -237,7 +237,7 @@ class QualificationTitleResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),
@@ -302,7 +302,7 @@ class QualificationTitleResource extends Resource
         return ScholarshipProgram::whereHas('trainingPrograms', function ($query) use ($trainingProgramId) {
             $query->where('training_programs.id', $trainingProgramId);
         })
-        ->pluck('name', 'id')
-        ->toArray();
+            ->pluck('name', 'id')
+            ->toArray();
     }
 }

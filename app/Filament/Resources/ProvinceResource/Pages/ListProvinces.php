@@ -38,7 +38,7 @@ class ListProvinces extends ListRecords
                     Excel::import(new ProvinceImport, $file);
 
                     Notification::make()
-                        ->title('Region Imported')
+                        ->title('Province Imported')
                         ->success()
                         ->send();
                 })
