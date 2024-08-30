@@ -8,6 +8,15 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
@@ -15,11 +24,8 @@ use Filament\Forms\Form;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TrainingProgramResource extends Resource
 {
@@ -83,13 +89,19 @@ class TrainingProgramResource extends Resource
                 }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
+                ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     RestoreBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -106,13 +118,6 @@ class TrainingProgramResource extends Resource
             ]);
     }
 
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
     public static function getPages(): array
     {
         return [
@@ -123,21 +128,22 @@ class TrainingProgramResource extends Resource
     }
 
     public static function getEloquentQuery(): Builder
-{
-    $query = parent::getEloquentQuery();
+    {
+        
+        $query = parent::getEloquentQuery();
 
-    $routeParameter = request()->route('record');
+        $query->withoutGlobalScopes([
+            SoftDeletingScope::class,
+        ]);
 
-    if ($routeParameter && is_numeric($routeParameter)) {
-        $query->whereHas('scholarshipPrograms', function (Builder $query) use ($routeParameter) {
-            $query->where('scholarship_programs.id', $routeParameter); // Disambiguate column name
-        });
-    }
+        $routeParameter = request()->route('record');
 
-    \Log::info('SQL Query:', ['query' => $query->toSql(), 'bindings' => $query->getBindings()]);
+        if ($routeParameter && is_numeric($routeParameter)) {
+            $query->whereHas('scholarshipPrograms', function (Builder $query) use ($routeParameter) {
+                $query->where('scholarship_programs.id', $routeParameter); // Disambiguate column name
+            });
+        }
 
     return $query;
-}
-
-
+} 
 }
