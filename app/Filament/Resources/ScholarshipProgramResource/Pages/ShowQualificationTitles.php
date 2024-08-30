@@ -42,3 +42,4 @@ class ShowQualificationTitles extends ListRecords
         return (int) request()->route('record');
     }
 }
+

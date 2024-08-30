@@ -53,10 +53,9 @@ class TrainingProgramResource extends Resource
                 TextColumn::make('scholarshipPrograms.name')
                     ->label('Scholarship Programs')
                     ->formatStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', '))
-                    ,
             ])
             ->filters([
-                //
+                // Define any filters if needed
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -84,4 +83,23 @@ class TrainingProgramResource extends Resource
             'edit' => Pages\EditTrainingProgram::route('/{record}/edit'),
         ];
     }
+
+    public static function getEloquentQuery(): Builder
+{
+    $query = parent::getEloquentQuery();
+
+    $routeParameter = request()->route('record');
+
+    if ($routeParameter && is_numeric($routeParameter)) {
+        $query->whereHas('scholarshipPrograms', function (Builder $query) use ($routeParameter) {
+            $query->where('scholarship_programs.id', $routeParameter); // Disambiguate column name
+        });
+    }
+
+    \Log::info('SQL Query:', ['query' => $query->toSql(), 'bindings' => $query->getBindings()]);
+
+    return $query;
+}
+
+    
 }
