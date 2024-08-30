@@ -239,6 +239,8 @@ class QualificationTitleResource extends Resource
                         ->label('Status')
                         ->options([
                             'all' => 'All',
+                            '1' => 'Active',
+                            '2' => 'Inactive',
                         'deleted' => 'Recently Deleted',
                         ])
                         ->default('all')
@@ -253,6 +255,14 @@ class QualificationTitleResource extends Resource
                         ->when(
                             $data['status_id'] === 'deleted',
                             fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
+                        )
+                        ->when(
+                            $data['status_id'] === '1',
+                            fn (Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
+                        )
+                        ->when(
+                            $data['status_id'] === '2',
+                            fn (Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
                         );
                 }),
             ])
