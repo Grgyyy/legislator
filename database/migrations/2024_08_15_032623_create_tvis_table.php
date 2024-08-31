@@ -22,6 +22,11 @@ return new class extends Migration {
             $table->foreignId('institution_class_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('status_id')
+                ->default(1)
+                ->constrained()
+                ->cascadeOnDelete()
+                ->unique();
             $table->string('address');
             $table->timestamps();
             $table->softDeletes();
