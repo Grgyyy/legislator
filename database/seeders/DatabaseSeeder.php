@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Call the RegionTableSeeder
+        $this->call(StatusSeeder::class);
         $this->call(RegionTableSeeder::class);
         $this->call(ProvinceSeeder::class);
         $this->call(TviTypeSeeder::class);
@@ -24,7 +25,6 @@ class DatabaseSeeder extends Seeder
         $this->call(InstitutionClassSeeder::class);
         $this->call(ScholarshipProgramSeeder::class);
         $this->call(ProvinceSeeder::class);
-        $this->call(StatusSeeder::class);
 
         // You can call other seeders here as well
         // $this->call(OtherSeeder::class);
