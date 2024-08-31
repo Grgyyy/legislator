@@ -65,6 +65,7 @@ class ScholarshipProgramResource extends Resource
                 TextColumn::make("code")
                     ->sortable()
                     ->searchable()
+                    ->url(fn($record) => route('filament.admin.resources.scholarship-programs.showTrainingPrograms', ['record' => $record->id]))
                     ->toggleable(),
                 TextColumn::make("name")
                     ->label("Scholarship Program")
@@ -115,6 +116,7 @@ class ScholarshipProgramResource extends Resource
             'index' => Pages\ListScholarshipPrograms::route('/'),
             'create' => Pages\CreateScholarshipProgram::route('/create'),
             'edit' => Pages\EditScholarshipProgram::route('/{record}/edit'),
+            'showTrainingPrograms' => Pages\ShowTrainingPrograms::route('/{record}/trainingPrograms')
         ];
     }
     public static function getEloquentQuery(): Builder

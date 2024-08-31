@@ -33,6 +33,7 @@ class ShowProvinces extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New')
+                ->url(route('filament.admin.resources.provinces.create', ['region_id' => $regionId]))
         ];
     }
 
