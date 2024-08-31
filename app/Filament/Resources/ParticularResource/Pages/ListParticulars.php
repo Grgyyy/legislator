@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\ParticularResource;
+use Exception;
 
 
 class ListParticulars extends ListRecords
@@ -23,7 +24,6 @@ class ListParticulars extends ListRecords
                 ->icon('heroicon-m-plus')
                 ->label('New'),
 
-
             Action::make('ParticularImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -31,18 +31,23 @@ class ListParticulars extends ListRecords
                     FileUpload::make('attachment'),
                 ])
                 ->action(function (array $data) {
-                    $file = storage_path('app/public/' . $data['attachment']);
-
-                    Excel::import(new ParticularImport, $file);
-
-                    Notification::make()
-                        ->title('Particular Imported')
-                        ->success()
-                        ->send();
-                })
+                    $file = public_path('storage/' . $data['attachment']);
+                    try {
+                        Excel::import(new ParticularImport, $file);
+                        Notification::make()
+                            ->title('Import Successful')
+                            ->body('Particulars Import successful!')
+                            ->success()
+                            ->send();
+                    } catch (Exception $e) {
+                        Notification::make()
+                            ->title('Import Failed')
+                            ->body('Particulars Import failed: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
         ];
-
-
 
     }
 }

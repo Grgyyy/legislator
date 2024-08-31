@@ -1,13 +1,14 @@
 <?php
-
 namespace App\Imports;
 
 use App\Models\ScholarshipProgram;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class ScholarshipProgramImport implements ToModel, WithHeadingRow
 {
@@ -20,11 +21,30 @@ class ScholarshipProgramImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
-        return new ScholarshipProgram([
-            'code' => $row['code'],
-            'name' => $row['scholarship_program'],
-            'desc' => $row['description'],
-        ]);
-    }
 
+        foreach (['code', 'scholarship_program', 'description'] as $field) {
+            if (empty($row[$field])) {
+                throw new \Exception("Required field '{$field}' is empty.");
+            }
+        }
+
+        return DB::transaction(function () use ($row) {
+            try {
+                $scholarshipProgram = new ScholarshipProgram([
+                    'code' => $row['code'],
+                    'name' => $row['scholarship_program'],
+                    'desc' => $row['description'],
+                ]);
+
+                $scholarshipProgram->save();
+
+                DB::commit();
+                return $scholarshipProgram;
+            } catch (Throwable $e) {
+                DB::rollBack();
+                Log::error("An error occurred while importing row: " . json_encode($row) . " Error: " . $e->getMessage());
+                throw $e;
+            }
+        });
+    }
 }

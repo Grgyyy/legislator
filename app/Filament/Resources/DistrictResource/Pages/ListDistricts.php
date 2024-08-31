@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\DistrictResource;
+use Exception;
 
 class ListDistricts extends ListRecords
 {
@@ -29,15 +30,22 @@ class ListDistricts extends ListRecords
                     FileUpload::make('attachment'),
                 ])
                 ->action(function (array $data) {
-                    $file = storage_path('app/public/' . $data['attachment']);
-
-                    Excel::import(new DistrictImport, $file);
-
-                    Notification::make()
-                        ->title('District Imported')
-                        ->success()
-                        ->send();
-                })
+                    $file = public_path('storage/' . $data['attachment']);
+                    try {
+                        Excel::import(new DistrictImport, $file);
+                        Notification::make()
+                            ->title('Import Successful')
+                            ->body('District Import successful!')
+                            ->success()
+                            ->send();
+                    } catch (Exception $e) {
+                        Notification::make()
+                            ->title('Import Failed')
+                            ->body('District Import failed: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
         ];
     }
 }

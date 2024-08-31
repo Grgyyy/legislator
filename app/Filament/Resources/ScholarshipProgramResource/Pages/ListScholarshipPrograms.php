@@ -13,6 +13,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\RegionResource;
 use App\Filament\Resources\ScholarshipProgramResource;
+use Exception;
 
 class ListScholarshipPrograms extends ListRecords
 {
@@ -25,7 +26,6 @@ class ListScholarshipPrograms extends ListRecords
                 ->icon('heroicon-m-plus')
                 ->label('New'),
 
-
             Action::make('ScholarshipProgramImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -33,15 +33,22 @@ class ListScholarshipPrograms extends ListRecords
                     FileUpload::make('attachment'),
                 ])
                 ->action(function (array $data) {
-                    $file = storage_path('app/public/' . $data['attachment']);
-
-                    Excel::import(new ScholarshipProgramImport, $file);
-
-                    Notification::make()
-                        ->title('Region Imported')
-                        ->success()
-                        ->send();
-                })
+                    $file = public_path('storage/' . $data['attachment']);
+                    try {
+                        Excel::import(new ScholarshipProgramImport, $file);
+                        Notification::make()
+                            ->title('Import Successful')
+                            ->body('Scholarship Program Import successful!')
+                            ->success()
+                            ->send();
+                    } catch (Exception $e) {
+                        Notification::make()
+                            ->title('Import Failed')
+                            ->body('Scholarship Program Import failed: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
         ];
 
 

@@ -6,11 +6,13 @@ use Filament\Actions;
 use App\Models\Region;
 use Filament\Actions\Action;
 use App\Imports\RegionImport;
-use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\RegionResource;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\RegionResource;
+use Exception;
+
 
 
 
@@ -34,15 +36,22 @@ class ListRegions extends ListRecords
                     FileUpload::make('attachment'),
                 ])
                 ->action(function (array $data) {
-                    $file = storage_path('app/public/' . $data['attachment']);
-
-                    Excel::import(new RegionImport, $file);
-
-                    Notification::make()
-                        ->title('Region Imported')
-                        ->success()
-                        ->send();
-                })
+                    $file = public_path('storage/' . $data['attachment']);
+                    try {
+                        Excel::import(new RegionImport, $file);
+                        Notification::make()
+                            ->title('Import Successful')
+                            ->body('Region Import successful!')
+                            ->success()
+                            ->send();
+                    } catch (Exception $e) {
+                        Notification::make()
+                            ->title('Import Failed')
+                            ->body('Region Import failed: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
         ];
     }
     // public function getTabs(): array
