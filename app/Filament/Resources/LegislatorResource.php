@@ -96,38 +96,38 @@ class LegislatorResource extends Resource
             ])
             ->filters([
                 Filter::make('status')
-                ->form([
-                    Select::make('status_id')
-                        ->label('Status')
-                        // ->relationship('status', 'desc')
-                        ->options([
-                            'all' => 'All',
-                            '1' => 'Active',
-                            '2' => 'Inactive',
-                        'deleted' => 'Recently Deleted',
-                        ])
-                        ->default('all')
-                        ->selectablePlaceholder(false),
-                ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                        ->when(
-                            $data['status_id'] === 'all',
-                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === 'deleted',
-                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === '1',
-                            fn (Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === '2',
-                            fn (Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
-                        );
-                }),
+                    ->form([
+                        Select::make('status_id')
+                            ->label('Status')
+                            // ->relationship('status', 'desc')
+                            ->options([
+                                'all' => 'All',
+                                '1' => 'Active',
+                                '2' => 'Inactive',
+                                'deleted' => 'Recently Deleted',
+                            ])
+                            ->default('all')
+                            ->selectablePlaceholder(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['status_id'] === 'all',
+                                fn(Builder $query): Builder => $query->whereNull('deleted_at')
+                            )
+                            ->when(
+                                $data['status_id'] === 'deleted',
+                                fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
+                            )
+                            ->when(
+                                $data['status_id'] === '1',
+                                fn(Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
+                            )
+                            ->when(
+                                $data['status_id'] === '2',
+                                fn(Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
+                            );
+                    }),
             ])
             ->actions([
                 ActionGroup::make([
@@ -148,8 +148,11 @@ class LegislatorResource extends Resource
                             ->withColumns([
                                 Column::make('name')
                                     ->heading('Legislator'),
-                                Column::make('particular_name')
+                                Column::make('formatted_particular')
                                     ->heading('Particular'),
+                                // Column::make('formatted_district')
+                                //     ->heading('District'),
+
                             ])
                             ->withFilename(date('m-d-Y') . ' - Legislator')
                     ]),

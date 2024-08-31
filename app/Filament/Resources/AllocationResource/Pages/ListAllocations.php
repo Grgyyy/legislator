@@ -10,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\AllocationResource;
+use Exception;
 
 
 class ListAllocations extends ListRecords
@@ -30,15 +31,22 @@ class ListAllocations extends ListRecords
                     FileUpload::make('attachment'),
                 ])
                 ->action(function (array $data) {
-                    $file = storage_path('app/public/' . $data['attachment']);
-
-                    Excel::import(new AllocationImport, $file);
-
-                    Notification::make()
-                        ->title('Allocation Imported')
-                        ->success()
-                        ->send();
-                })
+                    $file = public_path('storage/' . $data['attachment']);
+                    try {
+                        Excel::import(new AllocationImport, $file);
+                        Notification::make()
+                            ->title('Import Successful')
+                            ->body('Allocation Import successful!')
+                            ->success()
+                            ->send();
+                    } catch (Exception $e) {
+                        Notification::make()
+                            ->title('Import Failed')
+                            ->body('Allocation Import failed: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
         ];
     }
 }

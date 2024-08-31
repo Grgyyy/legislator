@@ -38,9 +38,9 @@ class QualificationTitleResource extends Resource
     protected static ?string $navigationLabel = "Qualification Titles";
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    
+
     protected static ?int $navigationSort = 5;
-    
+
     public static function form(Form $form): Form
     {
         return $form
@@ -144,7 +144,7 @@ class QualificationTitleResource extends Resource
                     ->label('Status')
                     ->default(1)
                     ->relationship('status', 'desc')
-                    ->hidden(fn (Page $livewire) => $livewire instanceof CreateRecord),
+                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord),
             ]);
     }
 
@@ -237,7 +237,7 @@ class QualificationTitleResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),
@@ -251,18 +251,30 @@ class QualificationTitleResource extends Resource
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
-                                Column::make('code')
+                                Column::make('TrainingProgram.code')
                                     ->heading('Qualification Code'),
-                                Column::make('title')
+                                Column::make('TrainingProgram.title')
                                     ->heading('Qualification Title'),
-                                Column::make('scholarshipPrograms.name')
+                                Column::make('ScholarshipProgram.name')
                                     ->heading('Scholarship Program'),
-                                Column::make('duration')
-                                    ->heading('Duration'),
                                 Column::make('training_cost_pcc')
                                     ->heading('Training Cost PCC'),
                                 Column::make('cost_of_toolkit_pcc')
                                     ->heading('Cost of Toolkit PCC'),
+                                Column::make('training_support_fund')
+                                    ->heading('Training Support Fund'),
+                                Column::make('assessment_fee')
+                                    ->heading('Assessment Fee'),
+                                Column::make('entrepeneurship_fee')
+                                    ->heading('Entrepreneurship fee'),
+                                Column::make('new_normal_assisstance')
+                                    ->heading('New normal assistance'),
+                                Column::make('accident_insurance')
+                                    ->heading('Accidental Insurance'),
+                                Column::make('book_allowance')
+                                    ->heading('Book Allowance'),
+                                Column::make('duration')
+                                    ->heading('Duration (Hrs)'),
                             ])
                             ->withFilename(date('m-d-Y') . ' - Qualification Title')
                     ]),
@@ -302,7 +314,7 @@ class QualificationTitleResource extends Resource
         return ScholarshipProgram::whereHas('trainingPrograms', function ($query) use ($trainingProgramId) {
             $query->where('training_programs.id', $trainingProgramId);
         })
-        ->pluck('name', 'id')
-        ->toArray();
+            ->pluck('name', 'id')
+            ->toArray();
     }
 }

@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use App\Imports\MunicipalityImport;
+use Exception;
 
 class ListMunicipalities extends ListRecords
 {
@@ -29,15 +30,22 @@ class ListMunicipalities extends ListRecords
                     FileUpload::make('attachment'),
                 ])
                 ->action(function (array $data) {
-                    $file = storage_path('app/public/' . $data['attachment']);
-
-                    Excel::import(new MunicipalityImport, $file);
-
-                    Notification::make()
-                        ->title('Municipality Imported')
-                        ->success()
-                        ->send();
-                })
+                    $file = public_path('storage/' . $data['attachment']);
+                    try {
+                        Excel::import(new MunicipalityImport, $file);
+                        Notification::make()
+                            ->title('Import Successful')
+                            ->body('Municipality Import successful!')
+                            ->success()
+                            ->send();
+                    } catch (Exception $e) {
+                        Notification::make()
+                            ->title('Import Failed')
+                            ->body('Municipality Import failed: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
         ];
     }
 }

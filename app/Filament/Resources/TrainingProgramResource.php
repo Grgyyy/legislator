@@ -3,19 +3,21 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TrainingProgramResource\Pages;
-use App\Filament\Resources\TrainingProgramResource\RelationManagers;
 use App\Models\TrainingProgram;
-use App\Models\ScholarshipProgram;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Form;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 
 class TrainingProgramResource extends Resource
 {
@@ -62,8 +64,21 @@ class TrainingProgramResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('code')
+                                    ->heading('Qualification Code'),
+                                Column::make('title')
+                                    ->heading('Qualification Title'),
+                                Column::make('formatted_scholarship_programs')
+                                    ->heading('Scholarship Programs'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Training Programs')
+                    ]),
                 ]),
             ]);
     }

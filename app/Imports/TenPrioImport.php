@@ -2,15 +2,16 @@
 
 namespace App\Imports;
 
-use App\Models\Region;
+use Throwable;
+use App\Models\Priority;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\Importable;
-use Throwable;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class RegionImport implements ToModel, WithHeadingRow
+class TenPrioImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
@@ -21,15 +22,18 @@ class RegionImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
+
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                return new Region([
-                    'name' => $row['region'],
+
+                return new Priority([
+                    'name' => $row['sector'],
                 ]);
             } catch (Throwable $e) {
-                Log::error('Failed to import region: ' . $e->getMessage());
+
+                Log::error('Failed to import TEN Priority Sector: ' . $e->getMessage());
                 throw $e;
             }
         });
@@ -37,8 +41,8 @@ class RegionImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        if (empty($row['region'])) {
-            throw new \Exception("Validation error: The field 'region' is required and cannot be null or empty. No changes were saved.");
+        if (empty($row['sector'])) {
+            throw new \Exception("Validation error: The 'sector' field is required and cannot be null or empty. No changes were saved.");
         }
     }
 }

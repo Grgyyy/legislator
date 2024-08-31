@@ -23,4 +23,9 @@ class TrainingProgram extends Model
     {
         return $this->hasMany(QualificationTitle::class);
     }
+
+    public function getFormattedScholarshipProgramsAttribute()
+    {
+        return $this->scholarshipPrograms->pluck('name')->implode(', ');
+    }
 }
