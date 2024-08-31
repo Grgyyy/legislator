@@ -17,7 +17,8 @@ class ScholarshipProgram extends Model
     ];
 
 
-    public function allocation() {
+    public function allocation()
+    {
         return $this->hasMany(Allocation::class);
     }
 

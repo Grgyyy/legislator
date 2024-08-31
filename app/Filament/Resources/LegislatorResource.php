@@ -148,8 +148,11 @@ class LegislatorResource extends Resource
                             ->withColumns([
                                 Column::make('name')
                                     ->heading('Legislator'),
-                                Column::make('particular_name')
+                                Column::make('formatted_particular')
                                     ->heading('Particular'),
+                                // Column::make('formatted_district')
+                                //     ->heading('District'),
+
                             ])
                             ->withFilename(date('m-d-Y') . ' - Legislator')
                     ]),

@@ -251,18 +251,30 @@ class QualificationTitleResource extends Resource
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
-                                Column::make('code')
+                                Column::make('TrainingProgram.code')
                                     ->heading('Qualification Code'),
-                                Column::make('title')
+                                Column::make('TrainingProgram.title')
                                     ->heading('Qualification Title'),
-                                Column::make('scholarshipPrograms.name')
+                                Column::make('ScholarshipProgram.name')
                                     ->heading('Scholarship Program'),
-                                Column::make('duration')
-                                    ->heading('Duration'),
                                 Column::make('training_cost_pcc')
                                     ->heading('Training Cost PCC'),
                                 Column::make('cost_of_toolkit_pcc')
                                     ->heading('Cost of Toolkit PCC'),
+                                Column::make('training_support_fund')
+                                    ->heading('Training Support Fund'),
+                                Column::make('assessment_fee')
+                                    ->heading('Assessment Fee'),
+                                Column::make('entrepeneurship_fee')
+                                    ->heading('Entrepreneurship fee'),
+                                Column::make('new_normal_assisstance')
+                                    ->heading('New normal assistance'),
+                                Column::make('accident_insurance')
+                                    ->heading('Accidental Insurance'),
+                                Column::make('book_allowance')
+                                    ->heading('Book Allowance'),
+                                Column::make('duration')
+                                    ->heading('Duration (Hrs)'),
                             ])
                             ->withFilename(date('m-d-Y') . ' - Qualification Title')
                     ]),

@@ -22,7 +22,8 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
      * @param array $row
      * @return \Illuminate\Database\Eloquent\Model|null
      */
-    public function model(array $row) {
+    public function model(array $row)
+    {
 
         $this->validateRow($row);
 
@@ -38,9 +39,7 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
                     $trainingProgram = TrainingProgram::find($trainingProgramId);
                     $trainingProgram->scholarshipPrograms()->syncWithoutDetaching([$scholarshipProgramId]);
 
-                }
-
-                else {
+                } else {
 
                     $trainingProgram = TrainingProgram::create([
                         'code' => $row['code'],
@@ -53,9 +52,7 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
 
                 return $trainingProgram;
 
-            }
-
-            catch (Throwable $e) {
+            } catch (Throwable $e) {
 
                 Log::error('Failed to import training program: ' . $e->getMessage());
                 throw $e;
@@ -65,7 +62,8 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
         });
     }
 
-    protected function validateRow(array $row) {
+    protected function validateRow(array $row)
+    {
         $requiredFields = ['scholarship_program', 'code', 'title'];
 
         foreach ($requiredFields as $field) {
@@ -75,9 +73,11 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
         }
     }
 
-    public static function getScholarshipProgramId(string $scholarshipProgramName) {
+    public static function getScholarshipProgramId(string $scholarshipProgramName)
+    {
 
-        $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)->first();
+        $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)
+            ->first();
 
         if ($scholarshipProgram === null) {
             throw new \Exception("Scholarship program with name '{$scholarshipProgramName}' not found. No changes were saved.");
@@ -86,10 +86,11 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
         return $scholarshipProgram->id;
     }
 
-    public static function getTrainingProgramId(string $code, string $title): ?int {
+    public static function getTrainingProgramId(string $code, string $title): ?int
+    {
         $trainingProgram = TrainingProgram::where('code', $code)
-                                          ->where('title', $title)
-                                          ->first();
+            ->where('title', $title)
+            ->first();
 
         return $trainingProgram ? $trainingProgram->id : null;
     }
