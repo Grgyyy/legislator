@@ -39,19 +39,20 @@ class TvetResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
-                ->required(),
+                    ->label('Sector')
+                    ->required(),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No sectors yet')
             ->columns([
                 TextColumn::make('name')
-                    ->label('Sector Name')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
+                ->label("Sector")
+                ->searchable()
+                ->sortable()
             ])
             ->filters([
                 Filter::make('status')

@@ -57,11 +57,19 @@ class TrainingProgramResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No training programs yet')
             ->columns([
-                TextColumn::make('code'),
-                TextColumn::make('title'),
+                TextColumn::make('code')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('title')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('scholarshipPrograms.name')
-                    ->label('Scholarship Programs')
+                    ->label('Scholarship Program')
+                    ->searchable()
+                    ->toggleable()
                     ->formatStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', '))
             ])
             ->filters([
