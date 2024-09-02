@@ -15,6 +15,11 @@ return new class extends Migration {
             $table->string('code');
             $table->string('name');
             $table->string('desc');
+            $table->foreignId('status_id')
+                ->default(1)
+                ->constrained()
+                ->cascadeOnDelete()
+                ->unique();
             $table->timestamps();
             $table->softDeletes();
         });

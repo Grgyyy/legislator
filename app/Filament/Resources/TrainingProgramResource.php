@@ -18,6 +18,7 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Illuminate\Database\Eloquent\Builder;
 
 class TrainingProgramResource extends Resource
 {
@@ -116,5 +117,5 @@ class TrainingProgramResource extends Resource
     return $query;
 }
 
-    
+
 }
