@@ -44,19 +44,4 @@ class ListQualificationTitles extends ListRecords
         ];
     }
 
-
-
-    // public function getTabs(): array
-    // {
-    //     return [
-    //         'All' => Tab::make(),
-    //         'TTSP' => Tab::make()->modifyQueryUsing(function ($query) {
-    //             $query->where('scholarship_program_id', 1);
-    //         }),
-    //         'TWSP' => Tab::make()->modifyQueryUsing(function (Builder $query) {
-    //             $query->where('scholarship_program_id', 2)->whereDate('created_at', 2024);
-    //         }),
-
-    //     ];
-    // }
 }

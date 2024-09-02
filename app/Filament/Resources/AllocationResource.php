@@ -24,9 +24,8 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\AllocationResource\Pages;
+use Filament\Tables\Filters\Filter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-
-
 
 class AllocationResource extends Resource
 {
@@ -101,8 +100,6 @@ class AllocationResource extends Resource
                     ->reactive(),
             ]);
     }
-
-
 
     private static function getParticularOptions($legislatorId)
     {
@@ -180,7 +177,28 @@ class AllocationResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                TrashedFilter::make(),
+                Filter::make('status')
+                ->form([
+                    Select::make('status_id')
+                        ->label('Status')
+                        ->options([
+                            'all' => 'All',
+                        'deleted' => 'Recently Deleted',
+                        ])
+                        ->default('all')
+                        ->selectablePlaceholder(false),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when(
+                            $data['status_id'] === 'all',
+                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
+                        )
+                        ->when(
+                            $data['status_id'] === 'deleted',
+                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
+                        );
+                }),
             ])
             ->actions([
                 ActionGroup::make([

@@ -14,11 +14,13 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\RegionResource\Pages;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -58,7 +60,28 @@ class RegionResource extends Resource
                     ->url(fn($record) => route('filament.admin.resources.regions.show_provinces', ['record' => $record->id])),
             ])
             ->filters([
-                TrashedFilter::make(),
+                Filter::make('status')
+                ->form([
+                    Select::make('status_id')
+                        ->label('Status')
+                        ->options([
+                            'all' => 'All',
+                        'deleted' => 'Recently Deleted',
+                        ])
+                        ->default('all')
+                        ->selectablePlaceholder(false),
+                ])
+                ->query(function (Builder $query, array $data): Builder {
+                    return $query
+                        ->when(
+                            $data['status_id'] === 'all',
+                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
+                        )
+                        ->when(
+                            $data['status_id'] === 'deleted',
+                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
+                        );
+                }),
             ])
             ->actions([
                 ActionGroup::make([
