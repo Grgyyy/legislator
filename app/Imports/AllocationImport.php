@@ -24,7 +24,7 @@ class AllocationImport implements ToModel, WithHeadingRow
         return DB::transaction(function () use ($row) {
             try {
                 $legislator_id = $this->getLegislatorId($row['legislator']);
-                $particular_id = $this->getParticularId($row['particular']);
+                $particular_id = $this->getParticularId($row['particular'], $row['district'], $row['municipality'], $row['province'], $legislator_id);
                 $schopro_id = $this->getSchoproId($row['scholarship_program']);
                 $allocation = $row['allocation'];
                 $admin_cost = $allocation * 0.02;
@@ -59,7 +59,7 @@ class AllocationImport implements ToModel, WithHeadingRow
             throw new \Exception("Validation error: The field 'allocation' must be a positive number. No changes were saved.");
         }
 
-        if (!is_numeric($row['year']) || $row['year'] < 2000 || $row['year'] > date('Y')) {
+        if (!is_numeric($row['year']) || $row['year'] < 2000 || $row['year'] < date('Y')) {
             throw new \Exception("Validation error: The field 'year' must be a valid year. No changes were saved.");
         }
     }
@@ -76,17 +76,40 @@ class AllocationImport implements ToModel, WithHeadingRow
         return $legislator->id;
     }
 
-    private function getParticularId(string $particularName)
+    private function getParticularId(string $particularName, string $districtName, string $municipalityName, string $provinceName, string $legislator_id)
     {
+        // Fetch the legislator
+        $legislator = Legislator::find($legislator_id);
+
+        if (!$legislator) {
+            throw new \Exception("Legislator with ID '{$legislator_id}' not found. No changes were saved.");
+        }
+
         $particular = Particular::where('name', $particularName)
+            ->whereHas('district', function ($query) use ($districtName, $municipalityName, $provinceName) {
+                $query->where('districts.name', $districtName)
+                    ->whereHas('municipality', function ($query) use ($municipalityName) {
+                        $query->where('municipalities.name', $municipalityName);
+                    })
+                    ->whereHas('municipality.province', function ($query) use ($provinceName) {
+                        $query->where('provinces.name', $provinceName);
+                    })
+                    ->whereNull('districts.deleted_at');
+            })
+            ->whereHas('legislator', function ($query) use ($legislator_id) {
+                $query->where('legislators.id', $legislator_id)
+                    ->whereNull('legislators.deleted_at');
+            })
+            ->whereNull('particulars.deleted_at')
             ->first();
 
         if (!$particular) {
-            throw new \Exception("Particular with name '{$particularName}' not found. No changes were saved.");
+            throw new \Exception("Particular with name '{$particularName}' and district '{$districtName}' not found for the given legislator.");
         }
 
         return $particular->id;
     }
+
 
     private function getSchoproId(string $schoproName)
     {
