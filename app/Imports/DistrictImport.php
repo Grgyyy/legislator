@@ -30,14 +30,19 @@ class DistrictImport implements ToModel, WithHeadingRow
             try {
                 $region_id = $this->getRegionId($row['region']);
                 $province_id = $this->getProvinceId($region_id, $row['province']);
-                $municipality_id = $this->getMunicipalityId($region_id, $province_id, $row['municipality']);
+                $municipality_id = $this->getMunicipalityId($province_id, $row['municipality']);
 
-                return new District([
-                    'name' => $row['district'],
-                    'municipality_id' => $municipality_id,
-                    'province_id' => $province_id,
-                    'region_id' => $region_id,
-                ]);
+                $districtIsExist = District::where('name', $row['district'])
+                    ->where('municipality_id', $municipality_id)
+                    ->exists();
+
+                if(!$districtIsExist) {
+                    return new District([
+                        'name' => $row['district'],
+                        'municipality_id' => $municipality_id,
+                    ]);
+                }
+
             } catch (Throwable $e) {
                 Log::error('Failed to import district: ' . $e->getMessage());
                 throw $e;
@@ -58,7 +63,9 @@ class DistrictImport implements ToModel, WithHeadingRow
 
     public function getRegionId(string $regionName)
     {
-        $region = Region::where('name', $regionName)->first();
+        $region = Region::where('name', $regionName)
+                    ->whereNull('deleted_at')
+                    ->first();
 
         if (!$region) {
             throw new \Exception("Region with name '{$regionName}' not found. No changes were saved.");
@@ -71,6 +78,7 @@ class DistrictImport implements ToModel, WithHeadingRow
     {
         $province = Province::where('name', $provinceName)
             ->where('region_id', $regionId)
+            ->whereNull('deleted_at')
             ->first();
 
         if (!$province) {
@@ -80,10 +88,11 @@ class DistrictImport implements ToModel, WithHeadingRow
         return $province->id;
     }
 
-    public function getMunicipalityId(int $regionId, int $provinceId, string $municipalityName)
+    public function getMunicipalityId(int $provinceId, string $municipalityName)
     {
         $municipality = Municipality::where('name', $municipalityName)
             ->where('province_id', $provinceId)
+            ->whereNull('deleted_at')
             ->first();
 
         if (!$municipality) {

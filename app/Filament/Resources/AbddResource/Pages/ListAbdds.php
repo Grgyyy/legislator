@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\AbddResource\Pages;
 
 use Exception;
-use Filament\Actions;
 use App\Imports\AbddImport;
 use Filament\Actions\Action;
 use Maatwebsite\Excel\Facades\Excel;
@@ -11,7 +10,7 @@ use App\Filament\Resources\AbddResource;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\DistrictResource;
+use Filament\Actions\CreateAction;
 
 class ListAbdds extends ListRecords
 {
@@ -31,7 +30,9 @@ class ListAbdds extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make()
+                ->icon('heroicon-m-plus')
+                ->label('New'),
 
             Action::make('AbddImport')
                 ->label('Import')

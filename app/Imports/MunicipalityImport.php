@@ -30,11 +30,17 @@ class MunicipalityImport implements ToModel, WithHeadingRow
                 $region_id = $this->getRegionId($row['region']);
                 $province_id = $this->getProvinceId($region_id, $row['province']);
 
-                return new Municipality([
-                    'name' => $row['municipality'],
-                    'region_id' => $region_id,
-                    'province_id' => $province_id,
-                ]);
+                $municipalityIsExist = Municipality::where('name', $row['province'])
+                    ->where('province_id', $province_id)
+                    ->exists();
+
+                if(!$municipalityIsExist) {
+                    return new Municipality([
+                        'name' => $row['municipality'],
+                        'province_id' => $province_id,
+                    ]);
+                }
+
             } catch (Throwable $e) {
                 Log::error('Failed to import municipality: ' . $e->getMessage());
                 throw $e;
@@ -48,14 +54,16 @@ class MunicipalityImport implements ToModel, WithHeadingRow
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
-                throw new \Exception("Validation error: The field '{$field}' is required and cannot be null or empty. No changes were saved.");
+                throw new \Exception("The field '{$field}' is required and cannot be null or empty. No changes were saved.");
             }
         }
     }
 
-    public function getRegionId(string $regionName)
+    protected function getRegionId(string $regionName)
     {
-        $region = Region::where('name', $regionName)->first();
+        $region = Region::where('name', $regionName)
+                ->whereNull('deleted_at')
+                ->first();
 
         if (!$region) {
             throw new \Exception("Region with name '{$regionName}' not found. No changes were saved.");
@@ -64,10 +72,11 @@ class MunicipalityImport implements ToModel, WithHeadingRow
         return $region->id;
     }
 
-    public function getProvinceId(int $regionId, string $provinceName)
+    protected function getProvinceId(int $regionId, string $provinceName)
     {
         $province = Province::where('name', $provinceName)
             ->where('region_id', $regionId)
+            ->whereNull('deleted_at')
             ->first();
 
         if (!$province) {

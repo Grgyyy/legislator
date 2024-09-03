@@ -25,12 +25,20 @@ class RegionImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                return new Region([
-                    'name' => $row['region'],
-                ]);
+
+                $regionIsExist = Region::where('name', $row['region'])->exists();
+
+                if(!$regionIsExist) {
+                    return new Region([
+                        'name' => $row['region'],
+                    ]);
+                }
+
             } catch (Throwable $e) {
+
                 Log::error('Failed to import region: ' . $e->getMessage());
                 throw $e;
+
             }
         });
     }

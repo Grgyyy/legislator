@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Validators\Failure;
 use Throwable;
 
 class TrainingProgramsImport implements ToModel, WithHeadingRow
@@ -73,7 +70,7 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
         }
     }
 
-    public static function getScholarshipProgramId(string $scholarshipProgramName)
+    protected static function getScholarshipProgramId(string $scholarshipProgramName)
     {
 
         $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)

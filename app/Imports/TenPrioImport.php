@@ -4,7 +4,6 @@ namespace App\Imports;
 
 use Throwable;
 use App\Models\Priority;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -28,21 +27,27 @@ class TenPrioImport implements ToModel, WithHeadingRow
         return DB::transaction(function () use ($row) {
             try {
 
-                return new Priority([
-                    'name' => $row['sector'],
-                ]);
+                $sectorIsExist = Priority::where('name', $row['sector_name'])->exists();
+
+                if (!$sectorIsExist) {
+                    return new Priority([
+                        'name' => $row['sector_name'],
+                    ]);
+                }
+
             } catch (Throwable $e) {
 
-                Log::error('Failed to import TEN Priority Sector: ' . $e->getMessage());
+                Log::error('Failed to import TEN Priority Sectors: ' . $e->getMessage());
                 throw $e;
+
             }
         });
     }
 
     protected function validateRow(array $row)
     {
-        if (empty($row['sector'])) {
-            throw new \Exception("Validation error: The 'sector' field is required and cannot be null or empty. No changes were saved.");
+        if (empty($row['sector_name'])) {
+            throw new \Exception("The Sector Name field is required and cannot be null or empty. No changes were saved.");
         }
     }
 }
