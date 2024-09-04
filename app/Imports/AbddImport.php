@@ -27,9 +27,13 @@ class AbddImport implements ToModel, WithHeadingRow
         return DB::transaction(function () use ($row) {
             try {
 
-                return new Abdd([
-                    'name' => $row['sector'],
-                ]);
+                $sectorIsExist = Abdd::where('name', $row['sector_name'])->exists();
+
+                if (!$sectorIsExist) {
+                    return new Abdd([
+                        'name' => $row['sector_name'],
+                    ]);
+                }
 
             } catch (Throwable $e) {
 
@@ -49,8 +53,8 @@ class AbddImport implements ToModel, WithHeadingRow
      */
     protected function validateRow(array $row)
     {
-        if (empty($row['sector'])) {
-            throw new \Exception("Validation error: The 'sector' field is required and cannot be null or empty. No changes were saved.");
+        if (empty($row['sector_name'])) {
+            throw new \Exception("The Sector Name field is required and cannot be null or empty. No changes were saved.");
         }
     }
 }

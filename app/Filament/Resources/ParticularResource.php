@@ -49,7 +49,7 @@ class ParticularResource extends Resource
                         'Party List' => 'Party List',
                         'Senator' => 'Senator',
                         'Vetted' => 'Vetted',
-                        'regular' => 'Regular',
+                        'Regular' => 'Regular',
                         'Star Rated' => 'Star Rated',
                         'APACC' => 'APACC',
                         'EO79' => 'EO79',
