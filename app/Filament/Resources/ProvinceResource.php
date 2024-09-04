@@ -23,8 +23,8 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Log; // Include Log if you want to log exceptions
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class ProvinceResource extends Resource
@@ -44,13 +44,15 @@ class ProvinceResource extends Resource
                 TextInput::make('name')
                     ->label('Province')
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->unique(table: 'provinces', column: 'name')
+                    ->validationAttribute('province'),
                 Select::make('region_id')
                     ->label('Region')
                     ->relationship('region', 'name')
                     ->default(fn($get) => request()->get('region_id'))
                     ->reactive()
-                    ->required()
+                    ->required(),
             ])
             ->columns(2);
     }
@@ -73,27 +75,27 @@ class ProvinceResource extends Resource
             ])
             ->filters([
                 Filter::make('status')
-                ->form([
-                    Select::make('status_id')
-                        ->label('Status')
-                        ->options([
-                            'all' => 'All',
-                        'deleted' => 'Recently Deleted',
-                        ])
-                        ->default('all')
-                        ->selectablePlaceholder(false),
-                ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                        ->when(
-                            $data['status_id'] === 'all',
-                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === 'deleted',
-                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
-                        );
-                }),
+                    ->form([
+                        Select::make('status_id')
+                            ->label('Status')
+                            ->options([
+                                'all' => 'All',
+                                'deleted' => 'Recently Deleted',
+                            ])
+                            ->default('all')
+                            ->selectablePlaceholder(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['status_id'] === 'all',
+                                fn(Builder $query): Builder => $query->whereNull('deleted_at')
+                            )
+                            ->when(
+                                $data['status_id'] === 'deleted',
+                                fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
+                            );
+                    }),
             ])
             ->actions([
                 ActionGroup::make([
@@ -123,7 +125,6 @@ class ProvinceResource extends Resource
                             ])
                             ->withFilename(date('m-d-Y') . ' - Province')
                     ]),
-
                 ]),
             ]);
     }
@@ -153,5 +154,27 @@ class ProvinceResource extends Resource
         }
 
         return $query;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+
+        });
+
+        static::created(function ($model) {
+            try {
+                Log::info('Province created successfully:', ['province_id' => $model->id, 'province_name' => $model->name]);
+
+            } catch (\Illuminate\Database\QueryException $e) {
+                Log::error('Database Error:', ['error' => $e->getMessage()]);
+                throw new \Exception('A province with this name already exists. Please choose a different name.');
+            } catch (\Exception $e) {
+                Log::error('An unexpected error occurred:', ['error' => $e->getMessage()]);
+                throw new \Exception('An unexpected error occurred. Please try again later.');
+            }
+        });
     }
 }

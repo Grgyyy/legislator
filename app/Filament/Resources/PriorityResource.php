@@ -2,30 +2,32 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\PriorityResource\Pages;
-use App\Filament\Resources\PriorityResource\RelationManagers;
-use App\Models\Priority;
 use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\Column;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
+use App\Models\Priority;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use Filament\Resources\Resource;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use App\Filament\Resources\PriorityResource\Pages;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\PriorityResource\RelationManagers;
 
 class PriorityResource extends Resource
 {
@@ -57,27 +59,27 @@ class PriorityResource extends Resource
             ])
             ->filters([
                 Filter::make('status')
-                ->form([
-                    Select::make('status_id')
-                        ->label('Status')
-                        ->options([
-                            'all' => 'All',
-                        'deleted' => 'Recently Deleted',
-                        ])
-                        ->default('all')
-                        ->selectablePlaceholder(false),
-                ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                        ->when(
-                            $data['status_id'] === 'all',
-                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === 'deleted',
-                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
-                        );
-                }),
+                    ->form([
+                        Select::make('status_id')
+                            ->label('Status')
+                            ->options([
+                                'all' => 'All',
+                                'deleted' => 'Recently Deleted',
+                            ])
+                            ->default('all')
+                            ->selectablePlaceholder(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['status_id'] === 'all',
+                                fn(Builder $query): Builder => $query->whereNull('deleted_at')
+                            )
+                            ->when(
+                                $data['status_id'] === 'deleted',
+                                fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
+                            );
+                    }),
             ])
             ->actions([
                 ActionGroup::make([
@@ -93,6 +95,14 @@ class PriorityResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('name')
+                                    ->heading('Top Ten Priority Sector'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Top Ten Priority Sector')
+                    ]),
                 ]),
             ]);
     }
