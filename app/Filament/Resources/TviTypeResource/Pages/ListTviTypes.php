@@ -5,6 +5,15 @@ namespace App\Filament\Resources\TviTypeResource\Pages;
 use App\Filament\Resources\TviTypeResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\TvetResource;
+use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
+use App\Imports\TviTypeImport;
+use Maatwebsite\Excel\Facades\Excel;
+use Filament\Notifications\Notification;
+use Filament\Forms\Components\FileUpload;
+use Exception;
+
 
 class ListTviTypes extends ListRecords
 {
@@ -17,7 +26,32 @@ class ListTviTypes extends ListRecords
         return [
             Actions\CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
+                ->label('New'),
+
+
+            Action::make('TviTypeImport')
+                ->label('Import')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('attachment'),
+                ])
+                ->action(function (array $data) {
+                    $file = public_path('storage/' . $data['attachment']);
+                    try {
+                        Excel::import(new TviTypeImport, $file);
+                        Notification::make()
+                            ->title('Import Successful')
+                            ->body('TVI Type Import successful!')
+                            ->success()
+                            ->send();
+                    } catch (Exception $e) {
+                        Notification::make()
+                            ->title('Import Failed')
+                            ->body('TVI Type Import failed: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
         ];
     }
 
