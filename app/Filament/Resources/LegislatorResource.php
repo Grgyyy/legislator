@@ -3,32 +3,29 @@
 namespace App\Filament\Resources;
 
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Forms\Form;
-use App\Models\Legislator;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\TextInput;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use App\Filament\Resources\LegislatorResource\Pages;
 use App\Models\Particular;
 use Filament\Pages\Page;
 use Filament\Resources\Pages\CreateRecord;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\LegislatorResource\Pages;
+use App\Models\Legislator;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class LegislatorResource extends Resource
 {
@@ -139,10 +136,12 @@ class LegislatorResource extends Resource
                 ])
             ])
             ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make()
+                        ->hidden(fn(Builder $query): Builder => $query->whereNull('deleted_at')),
+                    Tables\Actions\RestoreBulkAction::make()
+                        ->hidden(fn(Builder $query): Builder => $query->whereNull('deleted_at')),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
