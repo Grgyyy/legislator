@@ -26,12 +26,22 @@ class TviTypeImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                return new TviType([
-                    'name' => $row['tvi_type'],
-                ]);
-            } catch (Throwable $e) {
-                Log::error('Failed to import TviType: ' . $e->getMessage());
+
+                $typeIsExist = TviType::where('name', $row['tvi_type'])->exists();
+
+                if (!$typeIsExist) {
+
+                    return new TviType([
+                        'name' => $row['tvi_type'],
+                    ]);
+
+                }
+            }
+            catch (Throwable $e) {
+
+                Log::error('Failed to import TVI Type: ' . $e->getMessage());
                 throw $e;
+
             }
         });
     }
@@ -45,7 +55,7 @@ class TviTypeImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         if (empty($row['tvi_type'])) {
-            throw new \Exception("Validation error: The 'name' field is required and cannot be null or empty. No changes were saved.");
+            throw new \Exception("The TVI Type is required and cannot be null or empty. No changes were saved.");
         }
     }
 }

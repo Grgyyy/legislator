@@ -17,7 +17,7 @@ class InstitutionClassSeeder extends Seeder
             ['name' => 'A'],
             ['name' => 'B'],
             ['name' => 'C'],
-            ['name' => 'Not yet identified'],
+            ['name' => 'Not Yet Identified'],
         ];
 
         foreach ($instiClasses as $instiClass) {

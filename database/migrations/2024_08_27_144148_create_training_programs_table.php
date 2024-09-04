@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('training_programs', function (Blueprint $table) {
             $table->id();
-            $table->string('code')->unique();
+            $table->string('code')
+                ->unique()
+                ->nullable();
             $table->string('title');
             $table->timestamps();
             $table->softDeletes();

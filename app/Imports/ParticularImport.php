@@ -31,7 +31,7 @@ class ParticularImport implements ToModel, WithHeadingRow
             try {
                 $region_id = $this->getRegionId($row['region']);
                 $province_id = $this->getProvinceId($region_id, $row['province']);
-                $municipality_id = $this->getMunicipalityId($region_id, $province_id, $row['municipality']);
+                $municipality_id = $this->getMunicipalityId($province_id, $row['municipality']);
                 $district_id = $this->getDistrictId($municipality_id, $row['district']);
 
                 $particularIsExist = Particular::where('name', $row['particular'])
@@ -44,7 +44,7 @@ class ParticularImport implements ToModel, WithHeadingRow
                         'district_id' => $district_id
                     ]);
                 }
-                
+
             } catch (Throwable $e) {
                 Log::error('Failed to import particular: ' . $e->getMessage());
                 throw $e;
@@ -95,7 +95,7 @@ class ParticularImport implements ToModel, WithHeadingRow
         return $province->id;
     }
 
-    public function getMunicipalityId(int $regionId, int $provinceId, string $municipalityName)
+    public function getMunicipalityId(int $provinceId, string $municipalityName)
     {
         $municipality = Municipality::where('name', $municipalityName)
             ->where('province_id', $provinceId)

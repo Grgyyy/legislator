@@ -29,23 +29,19 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
             try {
 
                 $scholarshipProgramId = self::getScholarshipProgramId($row['scholarship_program']);
-                $trainingProgramId = self::getTrainingProgramId($row['code'], $row['title']);
 
-                if ($trainingProgramId) {
+                $trainingProgram = TrainingProgram::where('title', $row['title'])
+                    ->where('code', $row['code'])
+                    ->first();
 
-                    $trainingProgram = TrainingProgram::find($trainingProgramId);
-                    $trainingProgram->scholarshipPrograms()->syncWithoutDetaching([$scholarshipProgramId]);
-
-                } else {
-
+                if (!$trainingProgram) {
                     $trainingProgram = TrainingProgram::create([
                         'code' => $row['code'],
                         'title' => $row['title']
                     ]);
-
-                    $trainingProgram->scholarshipPrograms()->syncWithoutDetaching([$scholarshipProgramId]);
-
                 }
+
+                $trainingProgram->scholarshipPrograms()->syncWithoutDetaching([$scholarshipProgramId]);
 
                 return $trainingProgram;
 
@@ -61,7 +57,7 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['scholarship_program', 'code', 'title'];
+        $requiredFields = ['scholarship_program', 'title'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
@@ -74,6 +70,7 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
     {
 
         $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)
+            ->whereNull('deleted_at')
             ->first();
 
         if ($scholarshipProgram === null) {
@@ -81,14 +78,5 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
         }
 
         return $scholarshipProgram->id;
-    }
-
-    public static function getTrainingProgramId(string $code, string $title): ?int
-    {
-        $trainingProgram = TrainingProgram::where('code', $code)
-            ->where('title', $title)
-            ->first();
-
-        return $trainingProgram ? $trainingProgram->id : null;
     }
 }

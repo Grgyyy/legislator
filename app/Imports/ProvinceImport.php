@@ -40,8 +40,10 @@ class ProvinceImport implements ToModel, WithHeadingRow
                 }
 
             } catch (Throwable $e) {
+
                 Log::error('Failed to import province: ' . $e->getMessage());
                 throw $e;
+
             }
         });
     }

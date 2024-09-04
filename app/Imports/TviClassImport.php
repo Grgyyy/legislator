@@ -28,14 +28,20 @@ class TviClassImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                $tvi_type_id = $this->getTviTypeId($row['tvi_type']);
+                $tvi_type_id = $this->getTviTypeId($row['institution_type']);
+                $classIsExist = TviClass::where('name', $row['institution_class'])
+                    ->where('tvi_type_id', $tvi_type_id)
+                    ->exists();
 
-                return new TviClass([
-                    'name' => $row['institution_class'],
-                    'tvi_type_id' => $tvi_type_id,
-                ]);
+                if (!$classIsExist) {
+                    return new TviClass([
+                        'name' => $row['institution_class'],
+                        'tvi_type_id' => $tvi_type_id,
+                    ]);
+                }
+
             } catch (Throwable $e) {
-                Log::error('Failed to import TviClass: ' . $e->getMessage());
+                Log::error('Failed to import Institution Class(A): ' . $e->getMessage());
                 throw $e;
             }
         });
@@ -48,14 +54,20 @@ class TviClassImport implements ToModel, WithHeadingRow
      */
     protected function validateRow(array $row)
     {
-        if (empty($row['institution_class'])) {
-            throw new \Exception("Validation error: The 'institution_class' field is required and cannot be null or empty. No changes were saved.");
+        $requiredFields = ['institution_type', 'institution_class'];
+
+        foreach ($requiredFields as $field) {
+            if (empty($row[$field])) {
+                throw new \Exception("The field '{$field}' is required and cannot be null or empty. No changes were saved.");
+            }
         }
     }
 
     public function getTviTypeId(string $tviType)
     {
-        $tvi = TviType::where('name', $tviType)->first();
+        $tvi = TviType::where('name', $tviType)
+            ->whereNull('deleted_at')
+            ->first();
 
         if (!$tvi) {
             throw new \Exception("TVI Type with name '{$tviType}' not found. No changes were saved.");
