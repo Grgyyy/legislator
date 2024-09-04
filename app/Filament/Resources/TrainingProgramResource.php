@@ -107,9 +107,12 @@ class TrainingProgramResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->hidden(fn (): bool => self::isTrashedFilterActive()),
+                    ForceDeleteBulkAction::make()
+                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
+                    RestoreBulkAction::make()
+                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -154,4 +157,10 @@ class TrainingProgramResource extends Resource
 
     return $query;
 } 
+
+protected static function isTrashedFilterActive(): bool
+    {
+        $filters = request()->query('tableFilters', []);
+        return isset($filters['status']['status_id']) && $filters['status']['status_id'] === 'deleted';
+    }
 }

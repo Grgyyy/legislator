@@ -137,7 +137,8 @@ class LegislatorResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->hidden(fn (): bool => self::isTrashedFilterActive()),
                     ForceDeleteBulkAction::make()
                         ->hidden(fn(Builder $query): Builder => $query->whereNull('deleted_at')),
                     Tables\Actions\RestoreBulkAction::make()
@@ -175,4 +176,11 @@ class LegislatorResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    protected static function isTrashedFilterActive(): bool
+    {
+        $filters = request()->query('tableFilters', []);
+        return isset($filters['status']['status_id']) && $filters['status']['status_id'] === 'deleted';
+    }
+
 }

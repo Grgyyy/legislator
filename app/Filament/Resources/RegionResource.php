@@ -96,9 +96,12 @@ class RegionResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->hidden(fn (): bool => self::isTrashedFilterActive()),
+                    ForceDeleteBulkAction::make()
+                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
+                    RestoreBulkAction::make()
+                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -128,5 +131,11 @@ class RegionResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    protected static function isTrashedFilterActive(): bool
+    {
+        $filters = request()->query('tableFilters', []);
+        return isset($filters['status']['status_id']) && $filters['status']['status_id'] === 'deleted';
     }
 }
