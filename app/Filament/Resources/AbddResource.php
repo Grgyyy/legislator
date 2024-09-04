@@ -126,26 +126,4 @@ class AbddResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            // Additional validation logic if necessary
-        });
-
-        static::created(function ($model) {
-            // Catch potential exceptions for duplicate records, etc.
-            try {
-                // Custom logic here, if any
-            } catch (\Illuminate\Database\QueryException $e) {
-                // Log the exception if needed
-                Log::error('Database Error:', ['error' => $e->getMessage()]);
-
-                // Handle duplicate entry or other database exceptions
-                throw new \Exception('A sector with this name already exists. Please choose a different name.');
-            }
-        });
-    }
 }

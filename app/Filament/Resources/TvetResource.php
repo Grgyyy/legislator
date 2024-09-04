@@ -43,7 +43,9 @@ class TvetResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label('Sector')
-                    ->required(),
+                    ->required()
+                    ->unique(table: 'tvets', column: 'name')
+                    ->validationAttribute('sector'),
             ]);
     }
 

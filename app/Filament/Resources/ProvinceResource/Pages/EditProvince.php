@@ -12,11 +12,16 @@ class EditProvince extends EditRecord
     protected function getRedirectUrl(): string
     {
         $regionId = $this->record->region_id;
-        
+
         if ($regionId) {
             return route('filament.admin.resources.regions.show_provinces', ['record' => $regionId]);
         }
 
         return $this->getResource()::getUrl('index');
     }
+
+
+
+
+
 }

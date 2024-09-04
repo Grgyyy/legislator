@@ -4,28 +4,30 @@ namespace App\Filament\Resources;
 
 use App\Models\Province;
 use Filament\Forms\Form;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Illuminate\Database\Eloquent\Builder;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use App\Filament\Resources\ProvinceResource\Pages;
+use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Select;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
+use Illuminate\Validation\ValidationException;
+use App\Filament\Resources\ProvinceResource\Pages;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Log; // Include Log if you want to log exceptions
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Illuminate\Support\Facades\Log; // Include Log if you want to log exceptions
+use Illuminate\Validation\Rule;
 
 class ProvinceResource extends Resource
 {
@@ -36,26 +38,23 @@ class ProvinceResource extends Resource
     protected static ?string $navigationParentItem = "Regions";
 
     protected static ?int $navigationSort = 1;
-
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make('name')
                     ->label('Province')
-                    ->required()
-                    ->autocomplete(false)
-                    ->unique(table: 'provinces', column: 'name')
-                    ->validationAttribute('province'),
+                    ->required(),
                 Select::make('region_id')
                     ->label('Region')
                     ->relationship('region', 'name')
-                    ->default(fn($get) => request()->get('region_id'))
-                    ->reactive()
-                    ->required(),
+                    ->required()
+                    ->reactive(),
             ])
             ->columns(2);
     }
+
+
 
     public static function table(Table $table): Table
     {
@@ -154,27 +153,5 @@ class ProvinceResource extends Resource
         }
 
         return $query;
-    }
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-
-        });
-
-        static::created(function ($model) {
-            try {
-                Log::info('Province created successfully:', ['province_id' => $model->id, 'province_name' => $model->name]);
-
-            } catch (\Illuminate\Database\QueryException $e) {
-                Log::error('Database Error:', ['error' => $e->getMessage()]);
-                throw new \Exception('A province with this name already exists. Please choose a different name.');
-            } catch (\Exception $e) {
-                Log::error('An unexpected error occurred:', ['error' => $e->getMessage()]);
-                throw new \Exception('An unexpected error occurred. Please try again later.');
-            }
-        });
     }
 }

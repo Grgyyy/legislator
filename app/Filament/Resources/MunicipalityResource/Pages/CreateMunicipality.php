@@ -12,7 +12,7 @@ class CreateMunicipality extends CreateRecord
     protected function getRedirectUrl(): string
     {
         $province_id = $this->record->province_id;
-        
+
         if ($province_id) {
             return route('filament.admin.resources.provinces.showMunicipalities', ['record' => $province_id]);
         }
