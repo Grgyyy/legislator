@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,11 +22,6 @@ class Municipality extends Model
         return $this->belongsTo(Province::class);
     }
 
-    public function district()
-    {
-        return $this->hasMany(District::class);
-    }
-
     protected static function boot()
     {
         parent::boot();
@@ -35,36 +31,42 @@ class Municipality extends Model
         });
     }
 
+
     public function validateUniqueMunicipality()
     {
-        $query = self::where('name', $this->name)
-            ->where('province_id', $this->province_id)
-            ->whereNotNull('deleted_at');
+        $query = self::withTrashed()
+            ->where('name', $this->name)
+            ->where('province_id', $this->province_id);
 
         if ($this->id) {
-            $query->where('id', '<>', $this->id);
+            $query->where('id', '<>' . $this->id);
         }
 
-        if ($query->exists()) {
-            throw ValidationException::withMessages([
-                'name' => 'A municipality with this name and province already exists and is marked as deleted.',
-            ]);
-        }
+        $municipality = $query->first();
 
-        $query = self::where('name', $this->name)
-            ->where('province_id', $this->province_id)
-            ->whereNull('deleted_at');
 
-        if ($this->id) {
-            $query->where('id', '<>', $this->id);
-        }
-
-        if ($query->exists()) {
-            throw ValidationException::withMessages([
-                'name' => 'A municipality with this name and province already exists.',
-            ]);
+        if ($municipality) {
+            if ($municipality->deleted_at) {
+                $message = 'A Municipality with this name and Province exists and is marked as deleted. Data cannot be created.';
+            } else {
+                $message = 'A Municipality with this name and Province already exists.';
+            }
+            $this->handleValidationException($message);
         }
     }
+
+    protected function handleValidationException($message)
+    {
+        Notification::make()
+            ->title('Error')
+            ->body($message)
+            ->danger()
+            ->send();
+        throw ValidationException::withMessages([
+            'name' => $message,
+        ]);
+    }
+
 
 
 }

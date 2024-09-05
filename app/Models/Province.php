@@ -42,39 +42,6 @@ class Province extends Model
         });
     }
 
-
-    // public function validateUniqueProvince()
-    // {
-    //     $query = self::where('name', $this->name)
-    //         ->where('region_id', $this->region_id);
-
-    //     if ($this->id) {
-    //         $query->where('id', '<>', $this->id);
-    //     }
-
-    //     $existingProvince = $query->exists();
-
-    //     if ($existingProvince) {
-    //         $message = 'A province with this name and region already exists.';
-
-    //         try {
-    //             throw ValidationException::withMessages([
-    //                 'name' => $message,
-    //             ]);
-    //         } catch (ValidationException $e) {
-    //             Notification::make()
-    //                 ->title('Error')
-    //                 ->body($e->errors()['name'][0])
-    //                 ->danger()
-    //                 ->send();
-
-
-    //             throw $e;
-    //         }
-    //     }
-    // }
-
-
     public function validateUniqueProvince()
     {
         $query = self::withTrashed()
