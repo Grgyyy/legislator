@@ -91,7 +91,6 @@ class LegislatorResource extends Resource
                             return $particular->name . ' - ' . $municipalityName;
                         })->join(', ');
                     })
-                    ->searchable()
                     ->toggleable(),
                 TextColumn::make("status.desc")
                     ->toggleable(),
