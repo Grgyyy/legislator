@@ -24,4 +24,12 @@ class Status extends Model
     {
         return $this->hasMany(QualificationTitle::class);
     }
+
+    public function scholarshipPrograms() {
+        return $this->hasMany(ScholarshipProgram::class);
+    }
+
+    public function tvis() {
+        return $this->hasMany(Tvi::class);
+    }
 }
