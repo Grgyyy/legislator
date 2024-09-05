@@ -24,6 +24,7 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use Illuminate\Validation\ValidationException;
 use App\Filament\Resources\ProvinceResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use Illuminate\Support\Facades\Log; // Include Log if you want to log exceptions

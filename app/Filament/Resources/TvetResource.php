@@ -6,24 +6,18 @@ use Filament\Forms;
 use App\Models\Tvet;
 use Filament\Tables;
 use Filament\Forms\Form;
-use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\TvetResource\Pages;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
@@ -81,17 +75,12 @@ class TvetResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('TVET Sector'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - TVET Sector')
-                    ]),
+                    DeleteBulkAction::make()
+                        ->hidden(fn (): bool => self::isTrashedFilterActive()),
+                    ForceDeleteBulkAction::make()
+                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
+                    RestoreBulkAction::make()
+                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
                 ]),
             ]);
     }
