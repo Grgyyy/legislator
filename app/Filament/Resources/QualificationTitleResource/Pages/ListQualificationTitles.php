@@ -11,6 +11,7 @@ use App\Imports\QualificationTitleImport;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\QualificationTitleResource;
+use Exception;
 
 class ListQualificationTitles extends ListRecords
 {
@@ -33,12 +34,23 @@ class ListQualificationTitles extends ListRecords
                 ->action(function (array $data) {
                     $file = storage_path('app/public/' . $data['attachment']);
 
-                    Excel::import(new QualificationTitleImport, $file);
-
-                    Notification::make()
+                    try {
+                        Excel::import(new QualificationTitleImport, $file);
+                        Notification::make()
                         ->title('Province Imported')
                         ->success()
                         ->send();
+                    }
+                    catch (Exception $e) {
+                        Notification::make()
+                            ->title('Import Failed')
+                            ->body('Qualification Title Import failed: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                    ;
+
+                    
                 })
 
         ];

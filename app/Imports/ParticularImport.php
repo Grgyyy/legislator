@@ -31,16 +31,20 @@ class ParticularImport implements ToModel, WithHeadingRow
             try {
                 $region_id = $this->getRegionId($row['region']);
                 $province_id = $this->getProvinceId($region_id, $row['province']);
-                $municipality_id = $this->getMunicipalityId($region_id, $province_id, $row['municipality']);
+                $municipality_id = $this->getMunicipalityId($province_id, $row['municipality']);
                 $district_id = $this->getDistrictId($municipality_id, $row['district']);
 
-                return new Particular([
-                    'name' => $row['particular'],
-                    'district_id' => $district_id,
-                    'municipality_id' => $municipality_id,
-                    'province_id' => $province_id,
-                    'region_id' => $region_id,
-                ]);
+                $particularIsExist = Particular::where('name', $row['particular'])
+                    ->where('district_id', $district_id)
+                    ->exists();
+
+                if(!$particularIsExist) {
+                    return new Particular([
+                        'name' => $row['particular'],
+                        'district_id' => $district_id
+                    ]);
+                }
+
             } catch (Throwable $e) {
                 Log::error('Failed to import particular: ' . $e->getMessage());
                 throw $e;
@@ -51,6 +55,11 @@ class ParticularImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         $requiredFields = ['particular', 'district', 'municipality', 'province', 'region'];
+        $particularOptions = ['District', 'Party List', 'Senator', 'Vetted', 'Regular', 'Star Rated', 'APACC', 'EO79', 'EO70', 'KIA/WIA'];
+
+        if (!in_array($row['particular'], $particularOptions)) {
+            throw new \Exception("It seems the particular name you’ve entered is not included in the available options. Please check the list and select a valid particular name.");
+        }
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
@@ -61,7 +70,9 @@ class ParticularImport implements ToModel, WithHeadingRow
 
     public function getRegionId(string $regionName)
     {
-        $region = Region::where('name', $regionName)->first();
+        $region = Region::where('name', $regionName)
+            ->whereNull('deleted_at')
+            ->first();
 
         if (!$region) {
             throw new \Exception("Region with name '{$regionName}' not found. No changes were saved.");
@@ -74,6 +85,7 @@ class ParticularImport implements ToModel, WithHeadingRow
     {
         $province = Province::where('name', $provinceName)
             ->where('region_id', $regionId)
+            ->whereNull('deleted_at')
             ->first();
 
         if (!$province) {
@@ -83,10 +95,11 @@ class ParticularImport implements ToModel, WithHeadingRow
         return $province->id;
     }
 
-    public function getMunicipalityId(int $regionId, int $provinceId, string $municipalityName)
+    public function getMunicipalityId(int $provinceId, string $municipalityName)
     {
         $municipality = Municipality::where('name', $municipalityName)
             ->where('province_id', $provinceId)
+            ->whereNull('deleted_at')
             ->first();
 
         if (!$municipality) {
@@ -100,6 +113,7 @@ class ParticularImport implements ToModel, WithHeadingRow
     {
         $district = District::where('name', $districtName)
             ->where('municipality_id', $municipalityId)
+            ->whereNull('deleted_at')
             ->first();
 
         if (!$district) {

@@ -21,30 +21,44 @@ class ScholarshipProgramImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
-
-        foreach (['code', 'scholarship_program', 'description'] as $field) {
-            if (empty($row[$field])) {
-                throw new \Exception("Required field '{$field}' is empty.");
-            }
-        }
+        $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
+
             try {
-                $scholarshipProgram = new ScholarshipProgram([
-                    'code' => $row['code'],
-                    'name' => $row['scholarship_program'],
-                    'desc' => $row['description'],
-                ]);
 
-                $scholarshipProgram->save();
+                $scholarshipProgram = ScholarshipProgram::where('name', $row['scholarship_program'])
+                    ->where('code', $row['code'])
+                    ->exists();
 
-                DB::commit();
-                return $scholarshipProgram;
+                if (!$scholarshipProgram) {
+
+                    return new ScholarshipProgram([
+                        'code' => $row['code'],
+                        'name' => $row['scholarship_program'],
+                        'desc' => $row['description']
+                    ]);
+
+                }
+
             } catch (Throwable $e) {
-                DB::rollBack();
-                Log::error("An error occurred while importing row: " . json_encode($row) . " Error: " . $e->getMessage());
+
+                Log::error('Failed to import training program: ' . $e->getMessage());
                 throw $e;
+
             }
+
         });
+    }
+
+    protected function validateRow(array $row)
+    {
+        $requiredFields = ['code', 'scholarship_program', 'description'];
+
+        foreach ($requiredFields as $field) {
+            if (empty($row[$field])) {
+                throw new \Exception("Validation error: The field '{$field}' is required and cannot be null or empty. No changes were saved.");
+            }
+        }
     }
 }

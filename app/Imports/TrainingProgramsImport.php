@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\WithValidation;
-use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Validators\Failure;
 use Throwable;
 
 class TrainingProgramsImport implements ToModel, WithHeadingRow
@@ -32,23 +29,19 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
             try {
 
                 $scholarshipProgramId = self::getScholarshipProgramId($row['scholarship_program']);
-                $trainingProgramId = self::getTrainingProgramId($row['code'], $row['title']);
 
-                if ($trainingProgramId) {
+                $trainingProgram = TrainingProgram::where('code', $row['code'])
+                    ->where('title', $row['title'])
+                    ->first();
 
-                    $trainingProgram = TrainingProgram::find($trainingProgramId);
-                    $trainingProgram->scholarshipPrograms()->syncWithoutDetaching([$scholarshipProgramId]);
-
-                } else {
-
+                if (!$trainingProgram) {
                     $trainingProgram = TrainingProgram::create([
                         'code' => $row['code'],
                         'title' => $row['title']
                     ]);
-
-                    $trainingProgram->scholarshipPrograms()->syncWithoutDetaching([$scholarshipProgramId]);
-
                 }
+
+                $trainingProgram->scholarshipPrograms()->syncWithoutDetaching([$scholarshipProgramId]);
 
                 return $trainingProgram;
 
@@ -64,7 +57,7 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['scholarship_program', 'code', 'title'];
+        $requiredFields = ['scholarship_program', 'title'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
@@ -73,10 +66,11 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
         }
     }
 
-    public static function getScholarshipProgramId(string $scholarshipProgramName)
+    protected static function getScholarshipProgramId(string $scholarshipProgramName)
     {
 
         $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)
+            ->whereNull('deleted_at')
             ->first();
 
         if ($scholarshipProgram === null) {
@@ -84,14 +78,5 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
         }
 
         return $scholarshipProgram->id;
-    }
-
-    public static function getTrainingProgramId(string $code, string $title): ?int
-    {
-        $trainingProgram = TrainingProgram::where('code', $code)
-            ->where('title', $title)
-            ->first();
-
-        return $trainingProgram ? $trainingProgram->id : null;
     }
 }

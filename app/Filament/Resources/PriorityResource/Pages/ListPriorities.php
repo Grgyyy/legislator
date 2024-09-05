@@ -3,9 +3,9 @@
 namespace App\Filament\Resources\PriorityResource\Pages;
 
 use App\Filament\Resources\PriorityResource;
-use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 use App\Imports\TenPrioImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Notifications\Notification;
@@ -30,7 +30,9 @@ class ListPriorities extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make()
+                ->icon('heroicon-m-plus')
+                ->label('New'),
 
             Action::make('TenPrioImport')
                 ->label('Import')

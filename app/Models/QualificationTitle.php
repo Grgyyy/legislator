@@ -20,7 +20,10 @@ class QualificationTitle extends Model
         'new_normal_assisstance',
         'accident_insurance',
         'book_allowance',
-        'duration',
+        'uniform_allowance',
+        'misc_fee',
+        'hours_duration',
+        'days_duration',
         'status_id',
     ];
 

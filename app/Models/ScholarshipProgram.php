@@ -32,6 +32,10 @@ class ScholarshipProgram extends Model
         return $this->belongsToMany(TrainingProgram::class, 'scholarship_trainings');
     }
 
+    public function status() {
+        return $this->belongsTo(Status::class);
+    }
+
     public function target()
     {
         return $this->hasMany(Target::class);

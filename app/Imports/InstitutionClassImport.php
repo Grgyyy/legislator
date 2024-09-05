@@ -26,12 +26,20 @@ class InstitutionClassImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                return new InstitutionClass([
-                    'name' => $row['institution_class'],
-                ]);
-            } catch (Throwable $e) {
-                Log::error('Failed to import InstitutionClass: ' . $e->getMessage());
+                $classIsExist = InstitutionClass::where('name', $row['institution_class'])
+                    ->exists();
+
+                if (!$classIsExist) {
+                    return new InstitutionClass([
+                        'name' => $row['institution_class'],
+                    ]);
+                }
+            }
+            catch (Throwable $e) {
+
+                Log::error('Failed to import Institution Class(B): ' . $e->getMessage());
                 throw $e;
+
             }
         });
     }
@@ -44,7 +52,7 @@ class InstitutionClassImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         if (empty($row['institution_class'])) {
-            throw new \Exception("Validation error: The 'institution_class' field is required and cannot be null or empty. No changes were saved.");
+            throw new \Exception("The Institution Class is required and cannot be null or empty. No changes were saved.");
         }
     }
 }

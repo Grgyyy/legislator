@@ -26,15 +26,24 @@ class ProvinceImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                $region_id = $this->getRegionId($row['region']);
 
-                return new Province([
-                    'name' => $row['province'],
-                    'region_id' => $region_id,
-                ]);
+                $region_id = $this->getRegionId($row['region']);
+                $provinceIsExist = Province::where('name', $row['province'])
+                    ->where('region_id', $region_id)
+                    ->exists();
+
+                if(!$provinceIsExist) {
+                    return new Province([
+                        'name' => $row['province'],
+                        'region_id' => $region_id,
+                    ]);
+                }
+
             } catch (Throwable $e) {
+
                 Log::error('Failed to import province: ' . $e->getMessage());
                 throw $e;
+
             }
         });
     }
@@ -45,14 +54,16 @@ class ProvinceImport implements ToModel, WithHeadingRow
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
-                throw new \Exception("Validation error: The field '{$field}' is required and cannot be null or empty. No changes were saved.");
+                throw new \Exception("The field '{$field}' is required and cannot be null or empty. No changes were saved.");
             }
         }
     }
 
-    public function getRegionId(string $regionName)
+    protected function getRegionId(string $regionName)
     {
-        $region = Region::where('name', $regionName)->first();
+        $region = Region::where('name', $regionName)
+                ->whereNull('deleted_at')
+                ->first();
 
         if (!$region) {
             throw new \Exception("Region with name '{$regionName}' not found. No changes were saved.");
