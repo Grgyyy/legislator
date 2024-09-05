@@ -4,6 +4,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Filament\Notifications\Notification;
+use Illuminate\Validation\ValidationException;
 
 class QualificationTitle extends Model
 {
@@ -40,5 +42,50 @@ class QualificationTitle extends Model
     public function status()
     {
         return $this->belongsTo(Status::class, 'status_id');
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            $model->validateUniqueQualificationTitle();
+        });
+    }
+
+
+    public function validateUniqueQualificationTitle()
+    {
+        $query = self::withTrashed()
+            ->where('training_program_id', $this->training_program_id)
+            ->where('scholarship_program_id', $this->scholarship_program_id);
+
+        if ($this->id) {
+            $query->where('id', '<>' . $this->id);
+        }
+
+        $qualification_title = $query->first();
+
+
+        if ($qualification_title) {
+            if ($qualification_title->deleted_at) {
+                $message = 'A Qualification Title data exists and is marked as deleted. Data cannot be created.';
+            } else {
+                $message = 'A Qualification Title data already exists.';
+            }
+            $this->handleValidationException($message);
+        }
+    }
+
+    protected function handleValidationException($message)
+    {
+        Notification::make()
+            ->title('Error')
+            ->body($message)
+            ->danger()
+            ->send();
+        throw ValidationException::withMessages([
+            'name' => $message,
+        ]);
     }
 }

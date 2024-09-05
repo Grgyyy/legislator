@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Filament\Notifications\Notification;
+use Illuminate\Validation\ValidationException;
 
 class Legislator extends Model
 {
@@ -50,4 +52,50 @@ class Legislator extends Model
             return trim("{$particularName} - {$districtName}, {$municipalityName}, {$provinceName}", ', ');
         })->implode(', ');
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            $model->validateUniqueLegislator();
+        });
+    }
+
+
+    public function validateUniqueLegislator()
+    {
+        $query = self::withTrashed()
+            ->where('name', $this->name);
+
+        if ($this->id) {
+            $query->where('id', '<>' . $this->id);
+        }
+
+        $legislator = $query->first();
+
+
+        if ($legislator) {
+            if ($legislator->deleted_at) {
+                $message = 'A Legislator with this name and Particular exists and is marked as deleted. Data cannot be created.';
+            } else {
+                $message = 'A Legislator with this name and Particular already exists.';
+            }
+            $this->handleValidationException($message);
+        }
+    }
+
+    protected function handleValidationException($message)
+    {
+        Notification::make()
+            ->title('Error')
+            ->body($message)
+            ->danger()
+            ->send();
+        throw ValidationException::withMessages([
+            'name' => $message,
+        ]);
+    }
+
+
 }

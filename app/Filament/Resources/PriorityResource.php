@@ -44,7 +44,6 @@ class PriorityResource extends Resource
                 TextInput::make('name')
                     ->label('Sector')
                     ->required()
-                    ->unique(table: 'priorities', column: 'name')
                     ->validationAttribute('sector'),
             ]);
     }

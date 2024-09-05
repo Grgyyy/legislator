@@ -47,7 +47,6 @@ class InstitutionClassResource extends Resource
                     ->required()
                     ->autocomplete(false)
                     ->label('Institution Class (B)')
-                    ->unique(ignoreRecord: true),
             ]);
     }
 
@@ -61,27 +60,27 @@ class InstitutionClassResource extends Resource
             ])
             ->filters([
                 Filter::make('status')
-                ->form([
-                    Select::make('status_id')
-                        ->label('Status')
-                        ->options([
-                            'all' => 'All',
-                        'deleted' => 'Recently Deleted',
-                        ])
-                        ->default('all')
-                        ->selectablePlaceholder(false),
-                ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                        ->when(
-                            $data['status_id'] === 'all',
-                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === 'deleted',
-                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
-                        );
-                }),
+                    ->form([
+                        Select::make('status_id')
+                            ->label('Status')
+                            ->options([
+                                'all' => 'All',
+                                'deleted' => 'Recently Deleted',
+                            ])
+                            ->default('all')
+                            ->selectablePlaceholder(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['status_id'] === 'all',
+                                fn(Builder $query): Builder => $query->whereNull('deleted_at')
+                            )
+                            ->when(
+                                $data['status_id'] === 'deleted',
+                                fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
+                            );
+                    }),
             ])
             ->actions([
                 ActionGroup::make([

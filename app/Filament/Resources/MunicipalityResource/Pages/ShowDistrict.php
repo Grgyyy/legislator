@@ -14,7 +14,7 @@ class ShowDistrict extends ListRecords
     public function getBreadcrumbs(): array
     {
         $municipalityId = $this->getMunicipalityId();
-        
+
         $municipality = Municipality::find($municipalityId);
 
         $province_id = $municipality->province->id;
@@ -29,6 +29,32 @@ class ShowDistrict extends ListRecords
         ];
     }
 
+
+    // public function getBreadcrumbs(): array
+    // {
+    //     $municipalityId = $this->getMunicipalityId();
+    //     $municipality = Municipality::find($municipalityId);
+
+    //     if ($municipality && $municipality->province && $municipality->province->region) {
+    //         $province_id = $municipality->province->id;
+    //         $region_id = $municipality->province->region->id;
+
+    //         return [
+    //             route('filament.admin.resources.regions.show_provinces', ['record' => $region_id]) => $municipality->province->region->name ?? 'Regions',
+    //             route('filament.admin.resources.provinces.showMunicipalities', ['record' => $province_id]) => $municipality->province->name ?? 'Provinces',
+    //             route('filament.admin.resources.municipalities.showDistricts', ['record' => $municipalityId]) => $municipality->name ?? 'Municipalities',
+    //             'Districts',
+    //             'List'
+    //         ];
+    //     }
+
+    //     return [
+    //         'Regions' => 'Regions',
+    //         'Provinces' => 'Provinces',
+    //         'Municipalities' => 'Municipalities',
+    //         'Districts' => 'Districts List'
+    //     ];
+    // }
 
     protected function getHeaderActions(): array
     {

@@ -45,7 +45,6 @@ class AbddResource extends Resource
                 TextInput::make('name')
                     ->label('Sector')
                     ->required()
-                    ->unique(table: 'abdds', column: 'name')
                     ->validationAttribute('sector'),
             ]);
     }
