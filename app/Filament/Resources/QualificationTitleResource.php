@@ -223,12 +223,18 @@ class QualificationTitleResource extends Resource
                         return number_format($state, 2, '.', ',');
                     })
                     ->prefix('₱ '),
-                TextColumn::make('duration')
-                    ->label('Duration')
+                TextColumn::make('hours_duration')
+                    ->label('No. of Training Hours')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
                     ->suffix(' hrs'),
+                TextColumn::make('days_duration')
+                    ->label('No. of Training Days')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->suffix(' days'),
                 TextColumn::make("status.desc")
                     ->toggleable(),
             ])

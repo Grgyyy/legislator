@@ -34,6 +34,8 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
                 $newNormalAssistance = $row['new_normal_assistance'] === null ? 0 : $row['new_normal_assistance'];
                 $accidentInsurance = $row['accident_insurance'] === null ? 0 : $row['accident_insurance'];
                 $bookAllowance = $row['book_allowance'] === null ? 0 : $row['book_allowance'];
+                $unifAllowance = $row['uniform_allowance'] === null ? 0 : $row['uniform_allowance'];
+                $miscFee = $row['miscellaneous_fee'] === null ? 0 : $row['miscellaneous_fee'];
 
                 if(!$qualificationTitleIsRecord) {
                     return QualificationTitle::create([
@@ -47,7 +49,10 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
                         'new_normal_assisstance' => $newNormalAssistance,
                         'accident_insurance' => $accidentInsurance,
                         'book_allowance' => $bookAllowance,
-                        'duration' => $row['duration'],
+                        'uniform_allowance' => $unifAllowance,
+                        'misc_fee' => $miscFee,
+                        'hours_duration' => $row['no_of_training_hours'],
+                        'days_duration' => $row['no_of_training_days'],
                     ]);
                 }
                 else {
@@ -60,7 +65,10 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
                         'new_normal_assisstance' => $newNormalAssistance,
                         'accident_insurance' => $accidentInsurance,
                         'book_allowance' => $bookAllowance,
-                        'duration' => $row['duration'],
+                        'uniform_allowance' => $unifAllowance,
+                        'misc_fee' => $miscFee,
+                        'hours_duration' => $row['no_of_training_hours'],
+                        'days_duration' => $row['no_of_training_days'],
                     ]);
 
                     return $qualificationTitleIsRecord;
@@ -77,7 +85,7 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['training_program', 'scholarship_program', 'training_cost_pcc', 'duration'];
+        $requiredFields = ['training_program', 'scholarship_program', 'training_cost_pcc', 'no_of_training_hours', 'no_of_training_days'];
 
         foreach ($requiredFields as $field) {
             if (!isset($row[$field]) || trim($row[$field]) === '') {

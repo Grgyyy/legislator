@@ -26,7 +26,10 @@ return new class extends Migration {
             $table->decimal('new_normal_assisstance', 10, 2)->default(0);
             $table->decimal('accident_insurance', 10, 2)->default(0);
             $table->decimal('book_allowance', 10, 2)->default(0);
-            $table->integer('duration')->default(0);
+            $table->decimal('uniform_allowance', 10, 2)->default(0);
+            $table->decimal('misc_fee', 10, 2)->default(0);
+            $table->integer('hours_duration')->default(0);
+            $table->integer('days_duration')->default(0);
             $table->foreignId('status_id')
                 ->default(1)
                 ->constrained()
