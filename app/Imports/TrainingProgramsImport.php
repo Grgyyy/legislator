@@ -30,8 +30,8 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
 
                 $scholarshipProgramId = self::getScholarshipProgramId($row['scholarship_program']);
 
-                $trainingProgram = TrainingProgram::where('title', $row['title'])
-                    ->where('code', $row['code'])
+                $trainingProgram = TrainingProgram::where('code', $row['code'])
+                    ->where('title', $row['title'])
                     ->first();
 
                 if (!$trainingProgram) {

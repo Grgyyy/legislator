@@ -30,7 +30,6 @@ class TviClassImport implements ToModel, WithHeadingRow
             try {
                 $tvi_type_id = $this->getTviTypeId($row['institution_type']);
                 $classIsExist = TviClass::where('name', $row['institution_class'])
-                    ->where('tvi_type_id', $tvi_type_id)
                     ->exists();
 
                 if (!$classIsExist) {

@@ -81,7 +81,7 @@ class AllocationImport implements ToModel, WithHeadingRow
         }
     }
 
-    private function getLegislatorId(string $legislatorName)
+    protected function getLegislatorId(string $legislatorName)
     {
         $legislator = Legislator::where('name', $legislatorName)
             ->first();
@@ -93,7 +93,7 @@ class AllocationImport implements ToModel, WithHeadingRow
         return $legislator->id;
     }
 
-    private function getParticularId(string $particularName, string $districtName, string $municipalityName, string $provinceName, string $legislator_id)
+    protected function getParticularId(string $particularName, string $districtName, string $municipalityName, string $provinceName, string $legislator_id)
     {
         $legislator = Legislator::find($legislator_id);
 
@@ -127,7 +127,7 @@ class AllocationImport implements ToModel, WithHeadingRow
     }
 
 
-    private function getScholarshipProgramId(string $schoproName)
+    protected function getScholarshipProgramId(string $schoproName)
     {
         $scholarship = ScholarshipProgram::where('name', $schoproName)
             ->first();

@@ -3,12 +3,13 @@
 namespace App\Imports;
 
 use App\Models\QualificationTitle;
-use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class QualificationTitleImport implements ToModel, WithHeadingRow
 {
@@ -16,44 +17,104 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
-        // if (!isset($row['training_program'])) {
-        //     // Handle the error or skip this row
-        //     return null;
-        // }
+        $this->validateRow($row);
 
-        $scholarshipProgramId = $this->getScholarshipProgramId($row['scholarship_program']);
-        $trainingProgramId = $this->getTrainingProgramId($row['training_program'], $row['code']);
+        return DB::transaction(function () use ($row) {
+            try {
+                $trainingProgramId = $this->getTrainingProgramId($row['training_program']);
+                $scholarshipProgramId = $this->getScholarshipProgramId($row['scholarship_program'], $trainingProgramId);
 
-        return new QualificationTitle([
-            'code' => $row['code'],
-            'title' => $row['qualification_title'],
-            'training_program_id' => $trainingProgramId,
-            'scholarship_program_id' => $scholarshipProgramId,
-            'training_cost_pcc' => $row['training_cost_pcc'],
-            'cost_of_toolkit_pcc' => $row['cost_of_toolkit_pcc'],
-            'training_support_fund' => $row['training_support_fund'],
-            'assessment_fee' => $row['assessment_fee'],
-            'entrepeneurship_fee' => $row['entrepeneurship_fee'],
-            'new_normal_assistance' => $row['new_normal_assistance'],
-            'accident_insurance' => $row['accident_insurance'],
-            'book_allowance' => $row['book_allowance'],
-            'duration' => $row['duration'],
-        ]);
+                $qualificationTitleIsRecord = QualificationTitle::where('training_program_id', $trainingProgramId)
+                                                                ->where('scholarship_program_id', $scholarshipProgramId)
+                                                                ->first();
+                $costOfToolkit = $row['cost_of_toolkit_pcc'] === null ? 0 : $row['cost_of_toolkit_pcc'];
+                $trainingSupportFund = $row['training_support_fund'] === null ? 0 : $row['training_support_fund'];
+                $assessmentFee = $row['assessment_fee'] === null ? 0 : $row['assessment_fee'];
+                $entrepeneurFee = $row['entrepeneurship_fee'] === null ? 0 : $row['entrepeneurship_fee'];
+                $newNormalAssistance = $row['new_normal_assistance'] === null ? 0 : $row['new_normal_assistance'];
+                $accidentInsurance = $row['accident_insurance'] === null ? 0 : $row['accident_insurance'];
+                $bookAllowance = $row['book_allowance'] === null ? 0 : $row['book_allowance'];
+
+                if(!$qualificationTitleIsRecord) {
+                    return QualificationTitle::create([
+                        'training_program_id' => $trainingProgramId,
+                        'scholarship_program_id' => $scholarshipProgramId,
+                        'training_cost_pcc' => $row['training_cost_pcc'],
+                        'cost_of_toolkit_pcc' => $costOfToolkit,
+                        'training_support_fund' => $trainingSupportFund,
+                        'assessment_fee' => $assessmentFee,
+                        'entrepeneurship_fee' => $entrepeneurFee,
+                        'new_normal_assisstance' => $newNormalAssistance,
+                        'accident_insurance' => $accidentInsurance,
+                        'book_allowance' => $bookAllowance,
+                        'duration' => $row['duration'],
+                    ]);
+                }
+                else {
+                    $qualificationTitleIsRecord->update([
+                        'training_cost_pcc' => $row['training_cost_pcc'],
+                        'cost_of_toolkit_pcc' => $costOfToolkit,
+                        'training_support_fund' => $trainingSupportFund,
+                        'assessment_fee' => $assessmentFee,
+                        'entrepeneurship_fee' => $entrepeneurFee,
+                        'new_normal_assisstance' => $newNormalAssistance,
+                        'accident_insurance' => $accidentInsurance,
+                        'book_allowance' => $bookAllowance,
+                        'duration' => $row['duration'],
+                    ]);
+
+                    return $qualificationTitleIsRecord;
+                }
+            }
+
+            catch (Throwable $e) {
+                Log::error('Failed to import Qualificaiton Title: ' . $e->getMessage());
+                throw $e;
+            }
+        });
     }
 
 
-    private function getTrainingProgramId(string $trainingProgramName, string $code)
+    protected function validateRow(array $row)
     {
-        return TrainingProgram::where('title', $trainingProgramName && 'code', $code)
-            // ->where('scholarship_program_id', $scholarshipProgramId)
-            ->first()
-            ->id;
+        $requiredFields = ['training_program', 'scholarship_program', 'training_cost_pcc', 'duration'];
+
+        foreach ($requiredFields as $field) {
+            if (!isset($row[$field]) || trim($row[$field]) === '') {
+                throw new \Exception("Validation error: The field '{$field}' is required and cannot be null or empty. No changes were saved.");
+            }
+        }
     }
 
-    private function getScholarshipProgramId(string $scholarshipProgramName)
+    protected function getTrainingProgramId(string $trainingProgramName)
     {
-        return ScholarshipProgram::where('name', $scholarshipProgramName)
-            ->first()
-            ->id;
+        $trainingProgram = TrainingProgram::where('title', $trainingProgramName)
+            ->first();
+
+        if (!$trainingProgram) {
+                throw new \Exception("Training program with name '{$trainingProgramName}' not found. No changes were saved.");
+            }
+
+        return $trainingProgram->id;
+    }
+
+    protected function getScholarshipProgramId(string $scholarshipProgramName, int $trainingProgramId)
+    {
+        $trainingProgram = TrainingProgram::find($trainingProgramId);
+
+        if (!$trainingProgram) {
+            // Handle the case where the training program is not found
+            throw new \Exception('Training program not found. No changes were saved.');
+        }
+
+        $scholarshipPrograms = $trainingProgram->scholarshipPrograms;
+
+        foreach ($scholarshipPrograms as $scholarshipProgram) {
+            if ($scholarshipProgram->name === $scholarshipProgramName) {
+                return $scholarshipProgram->id;
+            }
+        }
+
+        throw new \Exception("Scholarship program named '$scholarshipProgramName' not found. No changes were saved.");
     }
 }
