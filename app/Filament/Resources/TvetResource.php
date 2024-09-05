@@ -25,6 +25,13 @@ use App\Filament\Resources\TvetResource\Pages;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\TvetResource\RelationManagers;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
@@ -60,28 +67,8 @@ class TvetResource extends Resource
                     ->sortable()
             ])
             ->filters([
-                Filter::make('status')
-                    ->form([
-                        Select::make('status_id')
-                            ->label('Status')
-                            ->options([
-                                'all' => 'All',
-                                'deleted' => 'Recently Deleted',
-                            ])
-                            ->default('all')
-                            ->selectablePlaceholder(false),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['status_id'] === 'all',
-                                fn(Builder $query): Builder => $query->whereNull('deleted_at')
-                            )
-                            ->when(
-                                $data['status_id'] === 'deleted',
-                                fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
-                            );
-                    }),
+                TrashedFilter::make()
+                    ->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
@@ -94,12 +81,9 @@ class TvetResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->hidden(fn (): bool => self::isTrashedFilterActive()),
-                    ForceDeleteBulkAction::make()
-                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
-                    RestoreBulkAction::make()
-                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -127,11 +111,5 @@ class TvetResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
-    }
-
-    protected static function isTrashedFilterActive(): bool
-    {
-        $filters = request()->query('tableFilters', []);
-        return isset($filters['status']['status_id']) && $filters['status']['status_id'] === 'deleted';
     }
 }

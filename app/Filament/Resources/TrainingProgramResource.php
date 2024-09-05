@@ -21,6 +21,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Filament\Forms\Form;
+use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
@@ -73,28 +74,8 @@ class TrainingProgramResource extends Resource
                     ->formatStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', '))
             ])
             ->filters([
-                Filter::make('status')
-                ->form([
-                    Select::make('status_id')
-                        ->label('Status')
-                        ->options([
-                            'all' => 'All',
-                        'deleted' => 'Recently Deleted',
-                        ])
-                        ->default('all')
-                        ->selectablePlaceholder(false),
-                ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                        ->when(
-                            $data['status_id'] === 'all',
-                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === 'deleted',
-                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
-                        );
-                }),
+                TrashedFilter::make()
+                    ->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
@@ -107,12 +88,9 @@ class TrainingProgramResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->hidden(fn (): bool => self::isTrashedFilterActive()),
-                    ForceDeleteBulkAction::make()
-                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
-                    RestoreBulkAction::make()
-                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -155,12 +133,6 @@ class TrainingProgramResource extends Resource
             });
         }
 
-    return $query;
-} 
-
-protected static function isTrashedFilterActive(): bool
-    {
-        $filters = request()->query('tableFilters', []);
-        return isset($filters['status']['status_id']) && $filters['status']['status_id'] === 'deleted';
+        return $query;
     }
 }

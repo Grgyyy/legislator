@@ -29,6 +29,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 
 class QualificationTitleResource extends Resource
 {
@@ -239,38 +240,11 @@ class QualificationTitleResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                Filter::make('status')
-                ->form([
-                    Select::make('status_id')
-                        ->label('Status')
-                        ->options([
-                            'all' => 'All',
-                            '1' => 'Active',
-                            '2' => 'Inactive',
-                        'deleted' => 'Recently Deleted',
-                        ])
-                        ->default('all')
-                        ->selectablePlaceholder(false),
-                ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                        ->when(
-                            $data['status_id'] === 'all',
-                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === 'deleted',
-                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === '1',
-                            fn (Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === '2',
-                            fn (Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
-                        );
-                }),
+                TrashedFilter::make()
+                    ->label('Records'),
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->relationship('status', 'desc')
             ])
             ->actions([
                 ActionGroup::make([
@@ -283,12 +257,9 @@ class QualificationTitleResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->hidden(fn (): bool => self::isTrashedFilterActive()),
-                    ForceDeleteBulkAction::make()
-                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
-                    RestoreBulkAction::make()
-                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -357,11 +328,5 @@ class QualificationTitleResource extends Resource
         })
             ->pluck('name', 'id')
             ->toArray();
-    }
-
-    protected static function isTrashedFilterActive(): bool
-    {
-        $filters = request()->query('tableFilters', []);
-        return isset($filters['status']['status_id']) && $filters['status']['status_id'] === 'deleted';
     }
 }

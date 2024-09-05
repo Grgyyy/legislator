@@ -177,28 +177,8 @@ class AllocationResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                Filter::make('status')
-                ->form([
-                    Select::make('status_id')
-                        ->label('Status')
-                        ->options([
-                            'all' => 'All',
-                        'deleted' => 'Recently Deleted',
-                        ])
-                        ->default('all')
-                        ->selectablePlaceholder(false),
-                ])
-                ->query(function (Builder $query, array $data): Builder {
-                    return $query
-                        ->when(
-                            $data['status_id'] === 'all',
-                            fn (Builder $query): Builder => $query->whereNull('deleted_at')
-                        )
-                        ->when(
-                            $data['status_id'] === 'deleted',
-                            fn (Builder $query): Builder => $query->whereNotNull('deleted_at')
-                        );
-                }),
+                TrashedFilter::make()
+                    ->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
@@ -211,12 +191,9 @@ class AllocationResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->hidden(fn (): bool => self::isTrashedFilterActive()),
-                    ForceDeleteBulkAction::make()
-                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
-                    RestoreBulkAction::make()
-                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
@@ -257,11 +234,5 @@ class AllocationResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
-    }
-
-    protected static function isTrashedFilterActive(): bool
-    {
-        $filters = request()->query('tableFilters', []);
-        return isset($filters['status']['status_id']) && $filters['status']['status_id'] === 'deleted';
     }
 }
