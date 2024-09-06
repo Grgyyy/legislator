@@ -37,19 +37,32 @@ class TviImport implements ToModel, WithHeadingRow
                 $municipalityId = $this->getMunicipalityId($provinceId, $row['municipality']);
                 $districtId = $this->getDistrictId($municipalityId, $row['district']);
 
-                // Create or update the Tvi model
-                $tvi = new Tvi([
-                    'name' => $row['institution_name'],
-                    'institution_class_id' => $institutionClassId,
-                    'tvi_class_id' => $tviClassId,
-                    'district_id' => $districtId,
-                    'address' => $row['full_address'],
-                ]);
 
-                $tvi->save();
+                $tviRecord = Tvi::where('name', $row['institution_name'])
+                    ->where('district_id', $districtId)
+                    ->first();
 
-                DB::commit();
-                return $tvi;
+                if (!$tviRecord) {
+                    $tviRecord = Tvi::create([
+                        'name' => $row['institution_name'],
+                        'institution_class_id' => $institutionClassId,
+                        'tvi_class_id' => $tviClassId,
+                        'district_id' => $districtId,
+                        'address' => $row['full_address'],
+                    ]);
+                }
+                else {
+                    $tviRecord->update([
+                        'institution_class_id' => $institutionClassId,
+                        'tvi_class_id' => $tviClassId,
+                        'address' => $row['full_address'],
+                    ]);
+
+                    return $tviRecord;
+
+                }
+                
+                
             } catch (Throwable $e) {
                 DB::rollBack(); // Rollback the transaction in case of error
                 Log::error("An error occurred while importing row: " . json_encode($row) . " Error: " . $e->getMessage());
