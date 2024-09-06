@@ -103,13 +103,91 @@ class TargetResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("allocation.legislator.particular")
-                    ->label('Particular')
+                TextColumn::make("allocation.legislator.particular.name")
+                    ->getStateUsing(function ($record) {
+                        $legislator = $record->allocation->legislator;
+
+                        if (!$legislator) {
+                            return 'No Legislator Available';
+                        }
+
+                        // Assuming `particular` is a collection
+                        $particulars = $legislator->particular;
+
+                        if ($particulars->isEmpty()) {
+                            return 'No Particular Available';
+                        }
+
+                        // Fetch the first particular or handle as needed
+                        $particular = $particulars->first();
+
+                        $district = $particular->district;
+                        $municipality = $district ? $district->municipality : null;
+
+                        $districtName = $district ? $district->name : 'Unknown District';
+                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+
+                        $formattedName = $districtName === 'Not Applicable'
+                            ? $particular->name
+                            : "{$particular->name} - {$districtName}, {$municipalityName}";
+
+                        return $formattedName;
+                        })
                     ->searchable()
-                    ->toggleable(),
-                TextColumn::make("allocation.legislator.district.name")
+                    ->toggleable()
+                    ->label('Particular'),
+                TextColumn::make("tvi.name")
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->label('Institution'),
+                TextColumn::make("qualification_title.training_program.title")
+                    ->label('Qualification Title')
+                        ->getStateUsing(function ($record) {
+                            // Access the qualification_title and its related training program
+                            $qualificationTitle = $record->qualification_title;
+
+                            if (!$qualificationTitle) {
+                                return 'No Qualification Title Available';
+                            }
+
+                            $trainingProgram = $qualificationTitle->trainingProgram; // Adjust to match the actual relationship name
+
+                            if (!$trainingProgram) {
+                                return 'No Training Program Available';
+                            }
+
+                            return $trainingProgram->title;
+                        }),
+                TextColumn::make("allocation.scholarship_program.name")
+                    ->label('Scholarship Program'),
+
+                TextColumn::make("priority.name")
+                    ->searchable()
+                    ->toggleable()
+                    ->label('Top Ten Priority Sector'),
+                TextColumn::make("abdd.name")
+                    ->searchable()
+                    ->toggleable()
+                    ->label('ABDD Sector'),
+                TextColumn::make("tvet.name")
+                    ->searchable()
+                    ->toggleable()
+                    ->label('TVET Sector'),
+                TextColumn::make("number_of_slots")
+                    ->searchable()
+                    ->toggleable()
+                    ->label('No. of Slots'),
+                TextColumn::make("total_amount")
+                    ->searchable()
+                    ->toggleable()
+                    ->label('Total Amount'),
+
+
+                TextColumn::make("status.desc")
+                    ->searchable()
+                    ->toggleable()
+                    ->label('TVET Sector'),
+
             ])
             ->filters([
                 TrashedFilter::make()
