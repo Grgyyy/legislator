@@ -25,6 +25,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use App\Filament\Resources\PriorityResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\PriorityResource\RelationManagers;
@@ -59,28 +60,8 @@ class PriorityResource extends Resource
                     ->searchable(),
             ])
             ->filters([
-                Filter::make('status')
-                    ->form([
-                        Select::make('status_id')
-                            ->label('Status')
-                            ->options([
-                                'all' => 'All',
-                                'deleted' => 'Recently Deleted',
-                            ])
-                            ->default('all')
-                            ->selectablePlaceholder(false),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['status_id'] === 'all',
-                                fn(Builder $query): Builder => $query->whereNull('deleted_at')
-                            )
-                            ->when(
-                                $data['status_id'] === 'deleted',
-                                fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
-                            );
-                    }),
+                TrashedFilter::make()
+                    ->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([

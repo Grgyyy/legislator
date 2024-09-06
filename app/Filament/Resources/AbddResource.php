@@ -6,25 +6,26 @@ use Filament\Forms;
 use App\Models\Abdd;
 use Filament\Tables;
 use Filament\Forms\Form;
-use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\AbddResource\Pages;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\AbddResource\RelationManagers;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
@@ -60,28 +61,8 @@ class AbddResource extends Resource
                     ->sortable()
             ])
             ->filters([
-                Filter::make('status')
-                    ->form([
-                        Select::make('status_id')
-                            ->label('Status')
-                            ->options([
-                                'all' => 'All',
-                                'deleted' => 'Recently Deleted',
-                            ])
-                            ->default('all')
-                            ->selectablePlaceholder(false),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['status_id'] === 'all',
-                                fn(Builder $query): Builder => $query->whereNull('deleted_at')
-                            )
-                            ->when(
-                                $data['status_id'] === 'deleted',
-                                fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
-                            );
-                    }),
+                TrashedFilter::make()
+                    ->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([

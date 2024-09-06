@@ -14,6 +14,8 @@ use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\LegislatorResource\Pages;
 use App\Models\Legislator;
@@ -22,6 +24,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -86,45 +91,47 @@ class LegislatorResource extends Resource
                             return $particular->name . ' - ' . $municipalityName;
                         })->join(', ');
                     })
-                    ->searchable()
                     ->toggleable(),
                 TextColumn::make("status.desc")
                     ->toggleable(),
             ])
             ->filters([
-                Filter::make('status')
-                    ->form([
-                        Select::make('status_id')
-                            ->label('Status')
-                            // ->relationship('status', 'desc')
-                            ->options([
-                                'all' => 'All',
-                                '1' => 'Active',
-                                '2' => 'Inactive',
-                                'deleted' => 'Recently Deleted',
-                            ])
-                            ->default('all')
-                            ->selectablePlaceholder(false),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['status_id'] === 'all',
-                                fn(Builder $query): Builder => $query->whereNull('deleted_at')
-                            )
-                            ->when(
-                                $data['status_id'] === 'deleted',
-                                fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
-                            )
-                            ->when(
-                                $data['status_id'] === '1',
-                                fn(Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
-                            )
-                            ->when(
-                                $data['status_id'] === '2',
-                                fn(Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
-                            );
-                    }),
+                TrashedFilter::make()
+                    ->label('Records'),
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->relationship('status', 'desc')
+                // Filter::make('status')
+                //     ->form([
+                //         Select::make('status_id')
+                //             ->label('Status')
+                //             ->relationship('status', 'desc')
+                //             // ->options([
+                //             //     '1' => 'Active',
+                //             //     '2' => 'Inactive',
+                //             // ])l
+                //             ->selectablePlaceholder(false)
+                //             ->live(),
+                //     ])
+                    // ->query(function (Builder $query, array $data): Builder {
+                    //     return $query
+                    //         ->when(
+                    //             $data['status_id'] === 'all',
+                    //             fn(Builder $query): Builder => $query->whereNull('deleted_at')
+                    //         )
+                    //         ->when(
+                    //             $data['status_id'] === 'deleted',
+                    //             fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
+                    //         )
+                    //         ->when(
+                    //             $data['status_id'] === '1',
+                    //             fn(Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
+                    //         )
+                    //         ->when(
+                    //             $data['status_id'] === '2',
+                    //             fn(Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
+                    //         );
+                    // }),
             ])
             ->actions([
                 ActionGroup::make([
@@ -136,24 +143,26 @@ class LegislatorResource extends Resource
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make()
-                        ->hidden(fn(Builder $query): Builder => $query->whereNull('deleted_at')),
-                    Tables\Actions\RestoreBulkAction::make()
-                        ->hidden(fn(Builder $query): Builder => $query->whereNull('deleted_at')),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('Legislator'),
-                                Column::make('formatted_particular')
-                                    ->heading('Particular'),
-                                // Column::make('formatted_district')
-                                //     ->heading('District'),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                        // ->hidden(fn (): bool => self::isTrashedFilterActive()),
+                    ForceDeleteBulkAction::make(),
+                        // ->hidden(fn (): bool => !self::isTrashedFilterActive()),
+                    RestoreBulkAction::make(),
+                        // ->hidden(fn (): bool => !self::isTrashedFilterActive()),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Legislator'),
+                                    Column::make('formatted_particular')
+                                        ->heading('Particular'),
+                                    // Column::make('formatted_district')
+                                    //     ->heading('District'),
 
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Legislator')
+                                ])
+                        ->withFilename(date('m-d-Y') . ' - Legislator')
                     ]),
                 ]),
             ]);
@@ -175,4 +184,10 @@ class LegislatorResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
+    // protected static function isTrashedFilterActive(): bool
+    // {
+    //     $filters = request()->query('tableFilters', []);
+    //     return isset($filters['status']['status_id']) && $filters['status']['status_id'] === 'deleted';
+    // }
 }

@@ -32,7 +32,6 @@ class ListTvets extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
-
             Action::make('TvetImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -45,18 +44,17 @@ class ListTvets extends ListRecords
                         Excel::import(new TvetImport, $file);
                         Notification::make()
                             ->title('Import Successful')
-                            ->body('TVET Sector Import successful!')
+                            ->body('TVET Sector import successful!')
                             ->success()
                             ->send();
                     } catch (Exception $e) {
                         Notification::make()
                             ->title('Import Failed')
-                            ->body('TVET Sector Import failed: ' . $e->getMessage())
+                            ->body('TVET Sector import failed: ' . $e->getMessage())
                             ->danger()
                             ->send();
                     }
                 }),
         ];
     }
-
 }

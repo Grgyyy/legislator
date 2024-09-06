@@ -4,7 +4,6 @@ namespace App\Filament\Resources\ProvinceResource\Pages;
 
 use App\Filament\Resources\ProvinceResource;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
 
 class CreateProvince extends CreateRecord
 {
@@ -20,6 +19,4 @@ class CreateProvince extends CreateRecord
 
         return $this->getResource()::getUrl('index');
     }
-
-
 }

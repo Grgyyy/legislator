@@ -12,7 +12,6 @@ use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use Exception;
 
-
 class ListPriorities extends ListRecords
 {
     protected static string $resource = PriorityResource::class;
@@ -33,7 +32,6 @@ class ListPriorities extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
-
             Action::make('TenPrioImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -46,13 +44,13 @@ class ListPriorities extends ListRecords
                         Excel::import(new TenPrioImport, $file);
                         Notification::make()
                             ->title('Import Successful')
-                            ->body('Ten Priority Sector Import successful!')
+                            ->body('Ten Priority Sector import successful!')
                             ->success()
                             ->send();
                     } catch (Exception $e) {
                         Notification::make()
                             ->title('Import Failed')
-                            ->body('Ten Priority Sector Import failed: ' . $e->getMessage())
+                            ->body('Ten Priority Sector import failed: ' . $e->getMessage())
                             ->danger()
                             ->send();
                     }

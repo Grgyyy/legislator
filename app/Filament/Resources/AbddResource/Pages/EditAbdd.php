@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AbddResource\Pages;
 
 use App\Filament\Resources\AbddResource;
 use Filament\Actions;
+use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditAbdd extends EditRecord
@@ -15,13 +16,6 @@ class EditAbdd extends EditRecord
         return [
             '/abdds' => 'ABDD Sectors',
             'Edit'
-        ];
-    }
-
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\DeleteAction::make(),
         ];
     }
 
