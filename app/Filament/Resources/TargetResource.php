@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TargetResource\Pages;
 use App\Models\Allocation;
 use App\Models\Legislator;
+use App\Models\ScholarshipProgram;
 use App\Models\Target;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -38,7 +39,7 @@ class TargetResource extends Resource
     {
         return $form
             ->schema([
-                Select::make('allocation_id')
+                Select::make('legislator_id')
                     ->label('Legislator')
                     ->required()
                     ->searchable()
@@ -50,7 +51,9 @@ class TargetResource extends Resource
                     })
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state) {
+                        // Clear scholarship_id when legislator changes
                         $set('scholarship_id', null);
+                        // Set scholarship options based on the new legislator
                         $set('scholarshipOptions', self::getScholarshipProgramsOptions($state));
                     }),
 
@@ -59,13 +62,17 @@ class TargetResource extends Resource
                     ->required()
                     ->searchable()
                     ->preload()
-                    ->options(fn($get) => self::getScholarshipProgramsOptions($get('allocation_id')))
+                    ->options(fn($get) => self::getScholarshipProgramsOptions($get('legislator_id')))
                     ->extraAttributes(['data-no-allocation' => 'no-allocation'])
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state) {
-                        // This will run after the state has been updated
+                        // Optionally handle updates to scholarship_id
                         $set('scholarship_id', $state);
                     }),
+                Select::make("qualification_title_id")
+                    ->required()
+                    ->relationship("qualification_title.trainingProgram", "title")
+                    ->label('Qualification Title'),
                 Select::make("tvi_id")
                     ->required()
                     ->relationship("tvi", "name")
@@ -86,7 +93,6 @@ class TargetResource extends Resource
                     ->rules(['min:10', 'max:25']),
             ]);
     }
-
 
     public static function table(Table $table): Table
     {
@@ -144,19 +150,28 @@ class TargetResource extends Resource
             ]);
     }
 
-    protected static function getScholarshipProgramsOptions($allocationId)
+    protected static function getScholarshipProgramsOptions($legislatorId)
     {
-        $options = Allocation::where('legislator_id', $allocationId)
-            ->with('scholarshipProgram')
-            ->get()
-            ->pluck('scholarshipProgram.name', 'scholarshipProgram.id')
+        // Retrieve all allocations for the given legislator
+        $allocations = Allocation::where('legislator_id', $legislatorId)->get();
+
+        if ($allocations->isEmpty()) {
+            return ['' => 'No Allocation Available'];
+        }
+
+        // Get unique scholarship program IDs from the allocations
+        $scholarshipProgramIds = $allocations->pluck('scholarship_program_id')->unique();
+
+        // Retrieve the scholarship programs associated with these IDs
+        $scholarshipPrograms = ScholarshipProgram::whereIn('id', $scholarshipProgramIds)
+            ->pluck('name', 'id')
             ->toArray();
 
         // Add default option if no scholarship programs are available
-        if (empty($options)) {
-            $options = ['' => 'No Allocation Available'];
+        if (empty($scholarshipPrograms)) {
+            $scholarshipPrograms = ['' => 'No Allocation Available'];
         }
 
-        return $options;
+        return $scholarshipPrograms;
     }
 }
