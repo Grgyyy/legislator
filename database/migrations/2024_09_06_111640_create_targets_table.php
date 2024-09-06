@@ -30,12 +30,11 @@ return new class extends Migration {
             $table->foreignId('qualification_title_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->string('rqm_code')
-                ->nullable();
             $table->integer('number_of_slots');
-            $table->string('total_amount');
-            $table->longText('remarks');
+            $table->string('total_amount')
+                ->default(0);
             $table->foreignId('status_id')
+                ->default(3)
                 ->constrained()
                 ->cascadeOnDelete();
             $table->timestamps();

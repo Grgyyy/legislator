@@ -17,7 +17,6 @@ class Target extends Model
         'tvet_id',
         'abdd_id',
         'qualification_title_id',
-        'rqm_code',
         'number_of_slots',
         'total_amount',
         'remarks',
