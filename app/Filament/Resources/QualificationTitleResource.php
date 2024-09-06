@@ -214,8 +214,32 @@ class QualificationTitleResource extends Resource
                         return number_format($state, 2, '.', ',');
                     })
                     ->prefix('₱ '),
+                TextColumn::make("accident_insurance")
+                    ->label("Accidental Insurance")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
                 TextColumn::make("book_allowance")
-                    ->label("Entrepeneurship Fee")
+                    ->label("Book Allowance")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("uniform_allowance")
+                    ->label("Uniform Allowance")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("misc_fee")
+                    ->label("`Miscellaneous Fee`")
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
@@ -238,11 +262,38 @@ class QualificationTitleResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                TrashedFilter::make()
-                    ->label('Records'),
-                SelectFilter::make('status')
-                    ->label('Status')
-                    ->relationship('status', 'desc')
+                Filter::make('status')
+                    ->form([
+                        Select::make('status_id')
+                            ->label('Status')
+                            ->options([
+                                'all' => 'All',
+                                '1' => 'Active',
+                                '2' => 'Inactive',
+                                'deleted' => 'Recently Deleted',
+                            ])
+                            ->default('all')
+                            ->selectablePlaceholder(false),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['status_id'] === 'all',
+                                fn(Builder $query): Builder => $query->whereNull('deleted_at')
+                            )
+                            ->when(
+                                $data['status_id'] === 'deleted',
+                                fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
+                            )
+                            ->when(
+                                $data['status_id'] === '1',
+                                fn(Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
+                            )
+                            ->when(
+                                $data['status_id'] === '2',
+                                fn(Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
+                            );
+                    }),
             ])
             ->actions([
                 ActionGroup::make([
@@ -283,8 +334,14 @@ class QualificationTitleResource extends Resource
                                     ->heading('Accidental Insurance'),
                                 Column::make('book_allowance')
                                     ->heading('Book Allowance'),
+                                Column::make('uniform_allowance')
+                                    ->heading('Uniform Allowance'),
+                                Column::make('misc_fee')
+                                    ->heading('Miscellaneous Fee'),
                                 Column::make('duration')
                                     ->heading('Duration (Hrs)'),
+                                Column::make('days_duration')
+                                    ->heading('No. of Training Days'),
                             ])
                             ->withFilename(date('m-d-Y') . ' - Qualification Title')
                     ]),
