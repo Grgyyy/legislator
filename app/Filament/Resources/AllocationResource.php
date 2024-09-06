@@ -40,65 +40,70 @@ class AllocationResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
-                Select::make('legislator_id')
-                    ->relationship('legislator', 'name')
-                    ->required()
-                    ->reactive()
-                    ->afterStateUpdated(function (callable $set, $state) {
-                        $set('particular_id', null);
-                        $set('particular_options', self::getParticularOptions($state));
-                    }),
-                Select::make('particular_id')
-                    ->label('Particular')
-                    ->options(fn($get) => self::getParticularOptions($get('legislator_id')))
-                    ->required()
-                    ->reactive()
-                    ->searchable()
-                    ->label('Particular'),
-                Select::make('scholarship_program_id')
-                    ->relationship("scholarship_program", "name")
-                    ->required(),
-                TextInput::make('allocation')
-                    ->label('Allocation')
-                    ->required()
-                    ->autocomplete(false)
-                    ->numeric()
-                    ->default(0)
-                    ->prefix('₱')
-                    ->minValue(0)
-                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                    ->debounce(300)
-                    ->afterStateUpdated(function (callable $set, $state) {
-                        $set('admin_cost', $state * 0.02);
-                        $set('balance', $state);
-                    }),
-                TextInput::make('admin_cost')
-                    ->label('Admin Cost')
-                    ->required()
-                    ->numeric()
-                    ->default(0)
-                    ->prefix('₱')
-                    ->minValue(0)
-                    ->readOnly()
-                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                TextInput::make('year')
-                    ->label('Year')
-                    ->required()
-                    ->numeric()
-                    ->rules(['min:' . date('Y'), 'digits: 4',])
-                    ->default(date('Y')),
-                TextInput::make('balance')
-                    ->label('')
-                    ->required()
-                    ->numeric()
-                    ->default(0)
-                    ->prefix('₱')
-                    ->minValue(0)
-                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                    ->extraAttributes(['style' => 'display: none;'])
-                    ->reactive(),
-            ]);
+        ->schema([
+            Select::make('legislator_id')
+                ->relationship('legislator', 'name')
+                ->required()
+                ->reactive()
+                ->afterStateUpdated(function (callable $set, $state) {
+                    $set('particular_id', null);
+                    $set('particular_options', self::getParticularOptions($state));
+                }),
+            Select::make('particular_id')
+                ->label('Particular')
+                ->options(fn($get) => self::getParticularOptions($get('legislator_id')))
+                ->required()
+                ->reactive()
+                ->searchable()
+                ->label('Particular'),
+            Select::make('scholarship_program_id')
+                ->relationship("scholarship_program", "name")
+                ->required(),
+            TextInput::make('allocation')
+                ->label('Allocation')
+                ->required()
+                ->autocomplete(false)
+                ->numeric()
+                ->default(0)
+                ->prefix('₱')
+                ->minValue(0)
+                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                ->debounce(300)
+                ->afterStateUpdated(function (callable $set, $state, $get) {
+                    $adminCost = $state * 0.02;
+                    $set('admin_cost', $adminCost);
+                    $set('balance', $state - $adminCost);
+                }),
+            TextInput::make('admin_cost')
+                ->label('Admin Cost')
+                ->required()
+                ->numeric()
+                ->default(0)
+                ->prefix('₱')
+                ->minValue(0)
+                ->readOnly()
+                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                ->afterStateUpdated(function (callable $set, $state, $get) {
+                    $allocation = $get('allocation');
+                    $set('balance', $allocation - $state);
+                }),
+            TextInput::make('year')
+                ->label('Year')
+                ->required()
+                ->numeric()
+                ->rules(['min:' . date('Y'), 'digits: 4'])
+                ->default(date('Y')),
+            TextInput::make('balance')
+                ->label('')
+                ->required()
+                ->numeric()
+                ->default(0)
+                ->prefix('₱')
+                ->minValue(0)
+                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                ->extraAttributes(['style' => 'display: none;'])
+                ->reactive(),
+        ]);
     }
 
     private static function getParticularOptions($legislatorId)
