@@ -37,11 +37,9 @@ class QualificationTitleResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationLabel = "Qualification Titles";
+    protected static ?string $navigationParentItem = "Scholarship Programs";
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

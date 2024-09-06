@@ -32,10 +32,10 @@ class ScholarshipProgramResource extends Resource
     protected static ?string $model = ScholarshipProgram::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
+    
+    protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
 
-    protected static ?string $navigationParentItem = "Qualification Titles";
-
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {
