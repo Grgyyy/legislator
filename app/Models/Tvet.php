@@ -16,6 +16,10 @@ class Tvet extends Model
         'name',
     ];
 
+    public function target() {
+        return $this->hasMany(Target::class);
+    }
+    
     protected static function boot()
     {
         parent::boot();

@@ -39,6 +39,10 @@ class QualificationTitle extends Model
         return $this->belongsTo(ScholarshipProgram::class, 'scholarship_program_id');
     }
 
+    public function target() {
+        return $this->hasMany(Target::class);
+    }
+
     public function status()
     {
         return $this->belongsTo(Status::class, 'status_id');
