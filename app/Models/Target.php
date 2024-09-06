@@ -11,26 +11,43 @@ class Target extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'legislator_id',
-        'province_id',
-        'scholarship_program_id',
+        'allocation_id',
         'tvi_id',
-        'number_of_slots'
+        'priority_id',
+        'tvet_id',
+        'abdd_id',
+        'qualification_title_id',
+        'number_of_slots',
+        'total_amount',
+        'remarks',
+        'status_id',
     ];
 
-    public function legislator() {
-        return $this->belongsTo(Legislator::class);
-    }
-
-    public function province() {
-        return $this->belongsTo(Province::class);
-    }
-
-    public function scholarship_program() {
-        return $this->belongsTo(ScholarshipProgram::class);
+    public function allocation() {
+        return $this->belongsTo(Allocation::class);
     }
 
     public function tvi() {
         return $this->belongsTo(Tvi::class);
+    }
+
+    public function priority() {
+        return $this->belongsTo(Priority::class);
+    }
+
+    public function tvet() {
+        return $this->belongsTo(Tvet::class);
+    }
+
+    public function abdd() {
+        return $this->belongsTo(Abdd::class);
+    }
+
+    public function qualification_title() {
+        return $this->belongsTo(QualificationTitle::class);
+    }
+
+    public function status() {
+        return $this->belongsTo(Status::class);
     }
 }

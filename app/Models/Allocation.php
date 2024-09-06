@@ -37,6 +37,10 @@ class Allocation extends Model
         return $this->belongsTo(Particular::class);
     }
 
+    public function target() {
+        return $this->hasMany(Target::class);
+    }
+
     protected static function boot()
     {
         parent::boot();

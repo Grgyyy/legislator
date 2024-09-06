@@ -12,19 +12,31 @@ return new class extends Migration {
     {
         Schema::create('targets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('legislator_id')
-                ->constrained()
-                ->cascadeOnDelete();
-            $table->foreignId('province_id')
-                ->constrained()
-                ->cascadeOnDelete();
-            $table->foreignId('scholarship_program_id')
+            $table->foreignId('allocation_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('tvi_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('priority_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('tvet_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('abdd_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('qualification_title_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->integer('number_of_slots');
+            $table->string('total_amount')
+                ->default(0);
+            $table->foreignId('status_id')
+                ->default(3)
+                ->constrained()
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

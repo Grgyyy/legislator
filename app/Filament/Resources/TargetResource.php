@@ -36,61 +36,69 @@ class TargetResource extends Resource
     {
         return $form
             ->schema([
-                Select::make("legislator_id")
+                Select::make("allocation_id")
                     ->required()
-                    ->relationship("legislator", "name"),
-                Select::make("legislator_id")
-                    ->required()
-                    ->relationship("legislator", "particular")
-                    ->label('Particular'),
-                Select::make("province_id")
-                    ->required()
-                    ->relationship("province", "name"),
-                Select::make("province_id")
-                    ->required()
-                    ->relationship("province", "region_id")
-                    ->label('Region'),
-                Select::make("scholarship_program_id")
-                    ->required()
-                    ->relationship("scholarship_program", "name"),
+                    ->searchable()
+                    ->preload()
+                    ->options(function () {
+                        return \App\Models\Allocation::with('legislator', 'scholarship_program')
+                            ->get()
+                            ->mapWithKeys(function ($item) {
+                                $legislatorName = $item->legislator ? $item->legislator->name : 'Unknown Legislator';
+                                $scholarshipName = $item->scholarship_program ? $item->scholarship_program->name : 'Unknown Scholarship';
+
+                                return [$item->id => "{$legislatorName} - {$scholarshipName}"];
+                            });
+                    })
+                    ->label('Allocation'),
                 Select::make("tvi_id")
                     ->required()
                     ->relationship("tvi", "name")
                     ->label('Institution'),
+                Select::make("priority_id")
+                    ->required()
+                    ->relationship("priority", "name"),
+                Select::make("tvet_id")
+                    ->required()
+                    ->relationship("tvet", "name"),
+                Select::make("abdd_id")
+                    ->required()
+                    ->relationship("abdd", "name"),
+                Select::make("qualification_title_id")
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->options(function () {
+                        return \App\Models\QualificationTitle::with('trainingProgram', 'scholarshipProgram')
+                            ->get()
+                            ->mapWithKeys(function ($item) {
+                                return [$item->id => $item->display_name];
+                            });
+                    })
+                    ->label('Qualification Title'),
                 TextInput::make('number_of_slots')
                     ->required()
                     ->autocomplete(false)
                     ->numeric()
-                    ->rules(['min:10', 'max:25'])
+                    ->rules(['min:10', 'max:25']),
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
         return $table
             ->emptyStateHeading('No targets yet')
             ->columns([
-                TextColumn::make("legislator.name")
+                TextColumn::make("allocation.legislator.name")
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("legislator.particular")
+                TextColumn::make("allocation.legislator.particular")
                     ->label('Particular')
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("province.name")
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make("province.region.name")
-                    ->label('Region')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make("scholarship_program.name")
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make("tvi.name")
-                    ->label('Institution')
+                TextColumn::make("allocation.legislator.district.name")
                     ->searchable()
                     ->toggleable(),
             ])
