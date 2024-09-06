@@ -34,7 +34,7 @@ class TrainingProgramResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationParentItem = "Qualification Titles";
+    protected static ?string $navigationParentItem = "Scholarship Programs";
 
     protected static ?int $navigationSort = 1;
 
