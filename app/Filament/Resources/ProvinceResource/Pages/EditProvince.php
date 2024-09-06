@@ -19,9 +19,4 @@ class EditProvince extends EditRecord
 
         return $this->getResource()::getUrl('index');
     }
-
-
-
-
-
 }

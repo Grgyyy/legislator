@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\LegislatorResource\Pages;
 
-use Filament\Actions;
 use Filament\Actions\Action;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Notifications\Notification;
@@ -11,6 +10,7 @@ use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\LegislatorResource;
 use App\Imports\LegislatorImport;
 use Exception;
+use Filament\Actions\CreateAction;
 
 class ListLegislators extends ListRecords
 {
@@ -19,11 +19,9 @@ class ListLegislators extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
-
-
             Action::make('LegislatorImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -36,13 +34,13 @@ class ListLegislators extends ListRecords
                         Excel::import(new LegislatorImport, $file);
                         Notification::make()
                             ->title('Import Successful')
-                            ->body('Legislator Import successful!')
+                            ->body('Legislator import successful!')
                             ->success()
                             ->send();
                     } catch (Exception $e) {
                         Notification::make()
                             ->title('Import Failed')
-                            ->body('Legislator Import failed: ' . $e->getMessage())
+                            ->body('Legislator import failed: ' . $e->getMessage())
                             ->danger()
                             ->send();
                     }

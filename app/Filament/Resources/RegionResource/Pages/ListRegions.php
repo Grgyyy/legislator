@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\RegionResource\Pages;
 
 use Filament\Actions;
-use App\Models\Region;
 use Filament\Actions\Action;
 use App\Imports\RegionImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -12,10 +11,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\RegionResource;
 use Exception;
-
-
-
-
+use Filament\Actions\CreateAction;
 
 class ListRegions extends ListRecords
 {
@@ -24,11 +20,9 @@ class ListRegions extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
-
-
             Action::make('RegionImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -41,13 +35,13 @@ class ListRegions extends ListRecords
                         Excel::import(new RegionImport, $file);
                         Notification::make()
                             ->title('Import Successful')
-                            ->body('Region Import successful!')
+                            ->body('Region import successful!')
                             ->success()
                             ->send();
                     } catch (Exception $e) {
                         Notification::make()
                             ->title('Import Failed')
-                            ->body('Region Import failed: ' . $e->getMessage())
+                            ->body('Region import failed: ' . $e->getMessage())
                             ->danger()
                             ->send();
                     }
@@ -86,6 +80,4 @@ class ListRegions extends ListRecords
     //             }),
     //     ];
     // }
-
-
 }

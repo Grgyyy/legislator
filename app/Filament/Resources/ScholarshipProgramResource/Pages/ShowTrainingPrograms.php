@@ -6,7 +6,7 @@ use App\Filament\Resources\TrainingProgramResource;
 use App\Models\ScholarshipProgram;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Actions\CreateAction;
 
 class ShowTrainingPrograms extends ListRecords
 {
@@ -32,7 +32,7 @@ class ShowTrainingPrograms extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New')
         ];

@@ -12,6 +12,7 @@ use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\TrainingProgramResource;
 use Illuminate\Support\Facades\Redirect;
 use Exception;
+use Filament\Actions\CreateAction;
 
 class ListTrainingPrograms extends ListRecords
 {
@@ -20,8 +21,9 @@ class ListTrainingPrograms extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
-
+            CreateAction::make()
+                ->icon('heroicon-m-plus')
+                ->label('New'),
             Action::make('TrainingProgramsImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -34,13 +36,13 @@ class ListTrainingPrograms extends ListRecords
                         Excel::import(new TrainingProgramsImport, $file);
                         Notification::make()
                             ->title('Import Successful')
-                            ->body('Training Program Import successful!')
+                            ->body('Training Program import successful!')
                             ->success()
                             ->send();
                     } catch (Exception $e) {
                         Notification::make()
                             ->title('Import Failed')
-                            ->body('Training Program Import failed: ' . $e->getMessage())
+                            ->body('Training Program import failed: ' . $e->getMessage())
                             ->danger()
                             ->send();
                     }

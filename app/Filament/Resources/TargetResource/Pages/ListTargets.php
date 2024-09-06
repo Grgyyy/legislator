@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\TargetResource\Pages;
 
 use App\Filament\Resources\TargetResource;
-use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListTargets extends ListRecords
@@ -13,7 +13,7 @@ class ListTargets extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New')
         ];

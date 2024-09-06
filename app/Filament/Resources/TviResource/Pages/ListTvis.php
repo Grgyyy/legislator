@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\TviResource\Pages;
 
-use Filament\Actions;
 use App\Imports\TviImport;
 use Filament\Actions\Action;
 use Maatwebsite\Excel\Facades\Excel;
@@ -11,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use Exception;
+use Filament\Actions\CreateAction;
 
 class ListTvis extends ListRecords
 {
@@ -21,10 +21,9 @@ class ListTvis extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
-
             Action::make('TviImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -37,13 +36,13 @@ class ListTvis extends ListRecords
                         Excel::import(new TviImport, $file);
                         Notification::make()
                             ->title('Import Successful')
-                            ->body('Institution Import successful!')
+                            ->body('Institution import successful!')
                             ->success()
                             ->send();
                     } catch (Exception $e) {
                         Notification::make()
                             ->title('Import Failed')
-                            ->body('Institution Import failed: ' . $e->getMessage())
+                            ->body('Institution import failed: ' . $e->getMessage())
                             ->danger()
                             ->send();
                     }

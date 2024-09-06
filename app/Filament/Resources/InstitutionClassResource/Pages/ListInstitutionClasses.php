@@ -2,17 +2,15 @@
 
 namespace App\Filament\Resources\InstitutionClassResource\Pages;
 
-use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\InstitutionClassResource;
-use App\Filament\Resources\TvetResource;
-use Filament\Actions\CreateAction;
 use Filament\Actions\Action;
 use App\Imports\InstitutionClassImport;
 use Maatwebsite\Excel\Facades\Excel;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use Exception;
+use Filament\Actions\CreateAction;
 
 class ListInstitutionClasses extends ListRecords
 {
@@ -21,10 +19,9 @@ class ListInstitutionClasses extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make()
+            CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
-
             Action::make('InstitutionClassImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -37,13 +34,13 @@ class ListInstitutionClasses extends ListRecords
                         Excel::import(new InstitutionClassImport, $file);
                         Notification::make()
                             ->title('Import Successful')
-                            ->body('Institution Class B Import successful!')
+                            ->body('Institution Class B import successful!')
                             ->success()
                             ->send();
                     } catch (Exception $e) {
                         Notification::make()
                             ->title('Import Failed')
-                            ->body('Institution Class B Import failed: ' . $e->getMessage())
+                            ->body('Institution Class B import failed: ' . $e->getMessage())
                             ->danger()
                             ->send();
                     }
