@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TargetResource\Pages;
+use App\Models\Allocation;
 use App\Models\Target;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -41,13 +42,12 @@ class TargetResource extends Resource
                     ->searchable()
                     ->preload()
                     ->options(function () {
-                        return \App\Models\Allocation::with('legislator', 'scholarship_program')
+                        return Allocation::with('legislator')
                             ->get()
                             ->mapWithKeys(function ($item) {
                                 $legislatorName = $item->legislator ? $item->legislator->name : 'Unknown Legislator';
-                                $scholarshipName = $item->scholarship_program ? $item->scholarship_program->name : 'Unknown Scholarship';
 
-                                return [$item->id => "{$legislatorName} - {$scholarshipName}"];
+                                return [$item->id => "{$legislatorName}"];
                             });
                     })
                     ->label('Allocation'),
@@ -64,18 +64,6 @@ class TargetResource extends Resource
                 Select::make("abdd_id")
                     ->required()
                     ->relationship("abdd", "name"),
-                Select::make("qualification_title_id")
-                    ->required()
-                    ->searchable()
-                    ->preload()
-                    ->options(function () {
-                        return \App\Models\QualificationTitle::with('trainingProgram', 'scholarshipProgram')
-                            ->get()
-                            ->mapWithKeys(function ($item) {
-                                return [$item->id => $item->display_name];
-                            });
-                    })
-                    ->label('Qualification Title'),
                 TextInput::make('number_of_slots')
                     ->required()
                     ->autocomplete(false)

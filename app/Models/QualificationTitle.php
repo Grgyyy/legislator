@@ -48,14 +48,6 @@ class QualificationTitle extends Model
         return $this->belongsTo(Status::class, 'status_id');
     }
 
-    public function getDisplayNameAttribute()
-    {
-        $trainingProgram = $this->trainingProgram ? $this->trainingProgram->title : 'Unknown Training Program';
-        $scholarshipProgram = $this->scholarshipProgram ? $this->scholarshipProgram->name : 'Unknown Scholarship Program';
-
-        return "{$trainingProgram} - {$scholarshipProgram}";
-    }
-
     protected static function boot()
     {
         parent::boot();

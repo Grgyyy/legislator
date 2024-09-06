@@ -149,7 +149,8 @@ class AllocationResource extends Resource
                         $municipality = $district ? $district->municipality : null;
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-                        $formattedName = "{$particular->name} - {$districtName}, {$municipalityName}";
+
+                        $formattedName = $districtName === 'Not Applicable' ? "{$particular->name}" : "{$particular->name} - {$districtName}, {$municipalityName}";
 
                         return $formattedName;
                     })
