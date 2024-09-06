@@ -56,7 +56,8 @@ class Allocation extends Model
         $query = self::withTrashed()
             ->where('legislator_id', $this->legislator_id)
             ->where('particular_id', $this->particular_id)
-            ->where('scholarship_program_id', $this->scholarship_program_id);
+            ->where('scholarship_program_id', $this->scholarship_program_id)
+            ->where('year', $this->year);
 
         if ($this->id) {
             $query->where('id', '<>' . $this->id);

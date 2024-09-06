@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TargetResource\Pages;
 use App\Models\Allocation;
+use App\Models\Legislator;
 use App\Models\Target;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -37,20 +38,34 @@ class TargetResource extends Resource
     {
         return $form
             ->schema([
-                Select::make("allocation_id")
+                Select::make('allocation_id')
+                    ->label('Legislator')
                     ->required()
                     ->searchable()
                     ->preload()
                     ->options(function () {
-                        return Allocation::with('legislator')
-                            ->get()
-                            ->mapWithKeys(function ($item) {
-                                $legislatorName = $item->legislator ? $item->legislator->name : 'Unknown Legislator';
-
-                                return [$item->id => "{$legislatorName}"];
-                            });
+                        return Legislator::all()->mapWithKeys(function ($legislator) {
+                            return [$legislator->id => $legislator->name];
+                        });
                     })
-                    ->label('Allocation'),
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        $set('scholarship_id', null);
+                        $set('scholarshipOptions', self::getScholarshipProgramsOptions($state));
+                    }),
+
+                Select::make('scholarship_id')
+                    ->label('Scholarship Program')
+                    ->required()
+                    ->searchable()
+                    ->preload()
+                    ->options(fn($get) => self::getScholarshipProgramsOptions($get('allocation_id')))
+                    ->extraAttributes(['data-no-allocation' => 'no-allocation'])
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        // This will run after the state has been updated
+                        $set('scholarship_id', $state);
+                    }),
                 Select::make("tvi_id")
                     ->required()
                     ->relationship("tvi", "name")
@@ -127,5 +142,21 @@ class TargetResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    protected static function getScholarshipProgramsOptions($allocationId)
+    {
+        $options = Allocation::where('legislator_id', $allocationId)
+            ->with('scholarshipProgram')
+            ->get()
+            ->pluck('scholarshipProgram.name', 'scholarshipProgram.id')
+            ->toArray();
+
+        // Add default option if no scholarship programs are available
+        if (empty($options)) {
+            $options = ['' => 'No Allocation Available'];
+        }
+
+        return $options;
     }
 }
