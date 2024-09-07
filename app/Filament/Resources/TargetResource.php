@@ -5,8 +5,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TargetResource\Pages;
 use App\Models\Allocation;
 use App\Models\Legislator;
+use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\Target;
+use App\Models\Tvi;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -31,7 +33,7 @@ class TargetResource extends Resource
 {
     protected static ?string $model = Target::class;
 
-    protected static ?string $navigationGroup = "MANAGE TARGET";
+    protected static ?string $navigationGroup = 'MANAGE TARGET';
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -45,47 +47,68 @@ class TargetResource extends Resource
                     ->searchable()
                     ->preload()
                     ->options(function () {
-                        return Legislator::all()->mapWithKeys(function ($legislator) {
-                            return [$legislator->id => $legislator->name];
-                        });
+                        return Legislator::where('status_id', 1)
+                            ->whereNull('deleted_at')
+                            ->pluck('name', 'id')
+                            ->toArray();
                     })
                     ->reactive()
                     ->afterStateUpdated(function (callable $set, $state) {
-                        // Clear scholarship_id when legislator changes
+                        // Clear related fields
                         $set('scholarship_id', null);
-                        // Set scholarship options based on the new legislator
+                        $set('qualification_title_id', null);
+                        
+                        // Update options for scholarship and qualification title
                         $set('scholarshipOptions', self::getScholarshipProgramsOptions($state));
+                        $set('qualificationTitleOptions', []);
                     }),
-
                 Select::make('scholarship_id')
                     ->label('Scholarship Program')
                     ->required()
                     ->searchable()
                     ->preload()
                     ->options(fn($get) => self::getScholarshipProgramsOptions($get('legislator_id')))
-                    ->extraAttributes(['data-no-allocation' => 'no-allocation'])
-                    ->reactive()
-                    ->afterStateUpdated(function (callable $set, $state) {
-                        // Optionally handle updates to scholarship_id
-                        $set('scholarship_id', $state);
-                    }),
-                Select::make("qualification_title_id")
+                    ->reactive(),
+                Select::make('qualification_title_id')
+                    ->label('Qualification Title')
                     ->required()
-                    ->relationship("qualification_title.trainingProgram", "title")
-                    ->label('Qualification Title'),
-                Select::make("tvi_id")
+                    ->options(function () {
+                        return QualificationTitle::where('status_id', 1)
+                            ->whereNull('deleted_at')
+                            ->with('trainingProgram')
+                            ->get()
+                            ->mapWithKeys(function ($title) {
+                                return [$title->id => $title->trainingProgram ? $title->trainingProgram->title : 'No Training Program Available'];
+                            })
+                            ->toArray() ?: ['' => 'No Qualification Title Available'];
+                    })
+                    ->reactive(),
+
+                Select::make('tvi_id')
                     ->required()
-                    ->relationship("tvi", "name")
+                    ->options(function () {
+                        return Tvi::where('status_id', 1)
+                            ->whereNull('deleted_at')
+                            ->get()
+                            ->mapWithKeys(function ($institution) {
+                                return [$institution->id => $institution->name ? $institution->name : 'No Institution Available'];
+                            })
+                            ->toArray() ?: ['' => 'No Qualification Title Available'];
+                    })
                     ->label('Institution'),
-                Select::make("priority_id")
+
+                Select::make('priority_id')
                     ->required()
-                    ->relationship("priority", "name"),
-                Select::make("tvet_id")
+                    ->relationship('priority', 'name'),
+
+                Select::make('tvet_id')
                     ->required()
-                    ->relationship("tvet", "name"),
-                Select::make("abdd_id")
+                    ->relationship('tvet', 'name'),
+
+                Select::make('abdd_id')
                     ->required()
-                    ->relationship("abdd", "name"),
+                    ->relationship('abdd', 'name'),
+
                 TextInput::make('number_of_slots')
                     ->required()
                     ->autocomplete(false)
@@ -99,11 +122,11 @@ class TargetResource extends Resource
         return $table
             ->emptyStateHeading('No targets yet')
             ->columns([
-                TextColumn::make("allocation.legislator.name")
+                TextColumn::make('allocation.legislator.name')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("allocation.legislator.particular.name")
+                TextColumn::make('allocation.legislator.particular.name')
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
 
@@ -111,14 +134,12 @@ class TargetResource extends Resource
                             return 'No Legislator Available';
                         }
 
-                        // Assuming `particular` is a collection
                         $particulars = $legislator->particular;
 
                         if ($particulars->isEmpty()) {
                             return 'No Particular Available';
                         }
 
-                        // Fetch the first particular or handle as needed
                         $particular = $particulars->first();
 
                         $district = $particular->district;
@@ -132,62 +153,57 @@ class TargetResource extends Resource
                             : "{$particular->name} - {$districtName}, {$municipalityName}";
 
                         return $formattedName;
-                        })
+                    })
                     ->searchable()
                     ->toggleable()
                     ->label('Particular'),
-                TextColumn::make("tvi.name")
+                TextColumn::make('tvi.name')
                     ->searchable()
                     ->toggleable()
                     ->label('Institution'),
-                TextColumn::make("qualification_title.training_program.title")
+                TextColumn::make('qualification_title.training_program.title')
                     ->label('Qualification Title')
-                        ->getStateUsing(function ($record) {
-                            // Access the qualification_title and its related training program
-                            $qualificationTitle = $record->qualification_title;
+                    ->getStateUsing(function ($record) {
+                        $qualificationTitle = $record->qualification_title;
 
-                            if (!$qualificationTitle) {
-                                return 'No Qualification Title Available';
-                            }
+                        if (!$qualificationTitle) {
+                            return 'No Qualification Title Available';
+                        }
 
-                            $trainingProgram = $qualificationTitle->trainingProgram; // Adjust to match the actual relationship name
+                        $trainingProgram = $qualificationTitle->trainingProgram;
 
-                            if (!$trainingProgram) {
-                                return 'No Training Program Available';
-                            }
+                        if (!$trainingProgram) {
+                            return 'No Training Program Available';
+                        }
 
-                            return $trainingProgram->title;
-                        }),
-                TextColumn::make("allocation.scholarship_program.name")
+                        return $trainingProgram->title;
+                    }),
+                TextColumn::make('allocation.scholarship_program.name')
                     ->label('Scholarship Program'),
-
-                TextColumn::make("priority.name")
+                TextColumn::make('priority.name')
                     ->searchable()
                     ->toggleable()
                     ->label('Top Ten Priority Sector'),
-                TextColumn::make("abdd.name")
+                TextColumn::make('abdd.name')
                     ->searchable()
                     ->toggleable()
                     ->label('ABDD Sector'),
-                TextColumn::make("tvet.name")
+                TextColumn::make('tvet.name')
                     ->searchable()
                     ->toggleable()
                     ->label('TVET Sector'),
-                TextColumn::make("number_of_slots")
+                TextColumn::make('number_of_slots')
                     ->searchable()
                     ->toggleable()
                     ->label('No. of Slots'),
-                TextColumn::make("total_amount")
+                TextColumn::make('total_amount')
                     ->searchable()
                     ->toggleable()
                     ->label('Total Amount'),
-
-
-                TextColumn::make("status.desc")
+                TextColumn::make('status.desc')
                     ->searchable()
                     ->toggleable()
-                    ->label('TVET Sector'),
-
+                    ->label('Status'),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -196,7 +212,7 @@ class TargetResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),
@@ -230,26 +246,18 @@ class TargetResource extends Resource
 
     protected static function getScholarshipProgramsOptions($legislatorId)
     {
-        // Retrieve all allocations for the given legislator
         $allocations = Allocation::where('legislator_id', $legislatorId)->get();
 
         if ($allocations->isEmpty()) {
             return ['' => 'No Allocation Available'];
         }
 
-        // Get unique scholarship program IDs from the allocations
         $scholarshipProgramIds = $allocations->pluck('scholarship_program_id')->unique();
 
-        // Retrieve the scholarship programs associated with these IDs
-        $scholarshipPrograms = ScholarshipProgram::whereIn('id', $scholarshipProgramIds)
+        return ScholarshipProgram::whereIn('id', $scholarshipProgramIds)
+            ->where('status_id', 1)
+            ->whereNull('deleted_at')
             ->pluck('name', 'id')
-            ->toArray();
-
-        // Add default option if no scholarship programs are available
-        if (empty($scholarshipPrograms)) {
-            $scholarshipPrograms = ['' => 'No Allocation Available'];
-        }
-
-        return $scholarshipPrograms;
+            ->toArray() ?: ['' => 'No Allocation Available'];
     }
 }
