@@ -37,7 +37,9 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
                 if (!$trainingProgram) {
                     $trainingProgram = TrainingProgram::create([
                         'code' => $row['code'],
-                        'title' => $row['title']
+                        'title' => $row['title'],
+                        'tvet_id' => 1,
+                        'priority_id' => 1,
                     ]);
                 }
 
