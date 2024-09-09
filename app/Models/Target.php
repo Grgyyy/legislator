@@ -19,7 +19,6 @@ class Target extends Model
         'qualification_title_id',
         'number_of_slots',
         'total_amount',
-        'remarks',
         'status_id',
     ];
 

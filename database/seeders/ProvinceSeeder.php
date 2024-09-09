@@ -20,6 +20,7 @@ class ProvinceSeeder extends Seeder
             ['PaMaMariSan', 1],
             ['Quezon City', 1],
             ['Manila City', 1],
+            ['Not Applicable', 1],
 
             // Cordillera Administrative Region (CAR)
             ['Abra', 2],
@@ -28,12 +29,14 @@ class ProvinceSeeder extends Seeder
             ['Ifugao', 2],
             ['Kalinga', 2],
             ['Mountain Province', 2],
+            ['Not Applicable', 2],
 
             // Region I: Ilocos Region
             ['Ilocos Norte', 3],
             ['Ilocos Sur', 3],
             ['La Union', 3],
             ['Pangasinan', 3],
+            ['Not Applicable', 3],
 
             // Region II: Cagayan Valley
             ['Batanes', 4],
@@ -41,6 +44,7 @@ class ProvinceSeeder extends Seeder
             ['Isabela', 4],
             ['Nueva Vizcaya', 4],
             ['Quirino', 4],
+            ['Not Applicable', 4],
 
             // Region III: Central Luzon
             ['Aurora', 5],
@@ -50,6 +54,7 @@ class ProvinceSeeder extends Seeder
             ['Pampanga', 5],
             ['Tarlac', 5],
             ['Zambales', 5],
+            ['Not Applicable', 5],
 
             // Region IV-A: CALABARZON
             ['Batangas', 6],
@@ -57,6 +62,7 @@ class ProvinceSeeder extends Seeder
             ['Laguna', 6],
             ['Quezon', 6],
             ['Rizal', 6],
+            ['Not Applicable', 6],
 
             // Region IV-B: MIMAROPA
             ['Marinduque', 7],
@@ -64,6 +70,7 @@ class ProvinceSeeder extends Seeder
             ['Oriental Mindoro', 7],
             ['Palawan', 7],
             ['Romblon', 7],
+            ['Not Applicable', 7],
 
             // Region V: Bicol Region
             ['Albay', 8],
@@ -72,6 +79,7 @@ class ProvinceSeeder extends Seeder
             ['Catanduanes', 8],
             ['Masbate', 8],
             ['Sorsogon', 8],
+            ['Not Applicable', 8],
 
             // Region VI: Western Visayas
             ['Aklan', 9],
@@ -79,12 +87,14 @@ class ProvinceSeeder extends Seeder
             ['Capiz', 9],
             ['Iloilo', 9],
             ['Negros Occidental', 9],
+            ['Not Applicable', 9],
 
             // Region VII: Central Visayas
             ['Bohol', 10],
             ['Cebu', 10],
             ['Negros Oriental', 10],
             ['Siquijor', 10],
+            ['Not Applicable', 10],
 
             // Region VIII: Eastern Visayas
             ['Biliran', 11],
@@ -93,11 +103,13 @@ class ProvinceSeeder extends Seeder
             ['Northern Samar', 11],
             ['Samar', 11],
             ['Southern Leyte', 11],
+            ['Not Applicable', 11],
 
             // Region IX: Zamboanga Peninsula
             ['Zamboanga del Norte', 12],
             ['Zamboanga del Sur', 12],
             ['Zamboanga Sibugay', 12],
+            ['Not Applicable', 12],
 
             // Region X: Northern Mindanao
             ['Bukidnon', 13],
@@ -105,6 +117,7 @@ class ProvinceSeeder extends Seeder
             ['Lanao del Norte', 13],
             ['Misamis Occidental', 13],
             ['Misamis Oriental', 13],
+            ['Not Applicable', 13],
 
             // Region XI: Davao Region
             ['Davao de Oro', 14],
@@ -112,12 +125,14 @@ class ProvinceSeeder extends Seeder
             ['Davao del Sur', 14],
             ['Davao Occidental', 14],
             ['Davao Oriental', 14],
+            ['Not Applicable', 14],
 
             // Region XII: SOCCSKSARGEN
             ['Cotabato', 15],
             ['Sarangani', 15],
             ['South Cotabato', 15],
             ['Sultan Kudarat', 15],
+            ['Not Applicable', 15],
 
             // Region XIII: Caraga
             ['Agusan del Norte', 16],
@@ -125,6 +140,7 @@ class ProvinceSeeder extends Seeder
             ['Bislig City', 16],
             ['Surigao del Norte', 16],
             ['Surigao del Sur', 16],
+            ['Not Applicable', 16],
 
             // Bangsamoro Autonomous Region in Muslim Mindanao (BARMM)
             ['Basilan', 17],
@@ -132,14 +148,24 @@ class ProvinceSeeder extends Seeder
             ['Maguindanao', 17],
             ['Sulu', 17],
             ['Tawi-Tawi', 17],
+            ['Not Applicable', 17],
+
+            ['Not Applicable', 18],
         ];
 
-        // Insert or update provinces in the 'provinces' table
         foreach ($provinces as [$name, $region]) {
-            DB::table('provinces')->updateOrInsert(
-                ['name' => $name],
-                ['region_id' => $region]
-            );
+            $provinceExist = DB::table('provinces')
+                ->where('name', $name)
+                ->where('region_id', $region)
+                ->exists();
+        
+            if (!$provinceExist) {
+                DB::table('provinces')->insert([
+                    'name' => $name,
+                    'region_id' => $region,
+                ]);
+            }
+
         }
     }
 }

@@ -32,6 +32,9 @@ class MunicipalityImport implements ToModel, WithHeadingRow
 
                 $municipalityIsExist = Municipality::where('name', $row['province'])
                     ->where('province_id', $province_id)
+                    ->whereHas('province', function ($query) use ($region_id) {
+                        $query->where('region_id', $region_id);
+                    })
                     ->exists();
 
                 if(!$municipalityIsExist) {
