@@ -45,8 +45,6 @@ class RegionResource extends Resource
                     ->required()
                     ->autocomplete(false)
                     ->label('Region')
-                    ->unique(table: 'regions', column: 'name')
-                    ->validationAttribute('Region'),
             ]);
     }
 

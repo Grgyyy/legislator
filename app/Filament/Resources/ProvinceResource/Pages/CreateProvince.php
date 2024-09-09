@@ -2,8 +2,12 @@
 
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
+use App\Models\Province;
+use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\ProvinceResource;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Validation\ValidationException;
 
 class CreateProvince extends CreateRecord
 {
@@ -18,5 +22,47 @@ class CreateProvince extends CreateRecord
         }
 
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function handleRecordCreation(array $data): Province
+    {
+        return DB::transaction(function () use ($data) {
+            $this->validateUniqueProvince($data['name'], $data['region_id']);
+
+            return Province::create([
+                'name' => $data['name'],
+                'region_id' => $data['region_id'],
+            ]);
+        });
+    }
+
+    protected function validateUniqueProvince($name, $regionId)
+    {
+        $query = Province::withTrashed()
+            ->where('name', $name)
+            ->where('region_id', $regionId)
+            ->first();
+
+        if ($query) {
+            if ($query->deleted_at) {
+                $message = 'Province exists in the region but is marked as deleted. Data cannot be created.';
+            } else {
+                $message = 'Province already exists in this region.';
+            }
+            $this->handleValidationException($message);
+        }
+    }
+
+    protected function handleValidationException($message)
+    {
+        Notification::make()
+            ->title('Error')
+            ->body($message)
+            ->danger()
+            ->send();
+
+        throw ValidationException::withMessages([
+            'name' => $message,
+        ]);
     }
 }

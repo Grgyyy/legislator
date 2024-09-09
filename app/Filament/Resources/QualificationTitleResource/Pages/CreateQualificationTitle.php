@@ -1,10 +1,17 @@
 <?php
 namespace App\Filament\Resources\QualificationTitleResource\Pages;
 
-use App\Filament\Resources\QualificationTitleResource;
 use App\Models\QualificationTitle;
 use Illuminate\Support\Facades\DB;
+use App\Filament\Resources\QualificationTitleResource;
+<<<<<<< HEAD
+use App\Models\QualificationTitle;
+use Illuminate\Support\Facades\DB;
+=======
+use Filament\Notifications\Notification;
+>>>>>>> bc78683 (Modify Allocation, District, Institution Class, Legislator, Municipality, Particular, Priority, Province, Qualification Title, Region, Scholarship Program, Training Program, TVET, TviClass, TVItype  validation and Exception and integrate it from model to the source model)
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Validation\ValidationException;
 
 class CreateQualificationTitle extends CreateRecord
 {
@@ -18,6 +25,7 @@ class CreateQualificationTitle extends CreateRecord
     protected function handleRecordCreation(array $data): QualificationTitle
     {
         return DB::transaction(function () use ($data) {
+<<<<<<< HEAD
             $costing = [
                 $data['training_cost_pcc'] ?? 0,
                 $data['cost_of_toolkit_pcc'] ?? 0,
@@ -34,6 +42,11 @@ class CreateQualificationTitle extends CreateRecord
             $total_pcc = $this->computePCC($costing);
 
             $target = QualificationTitle::create([
+=======
+            $this->validateUniqueQualificationTitle($data['training_program_id'], $data['scholarship_program_id']);
+
+            return QualificationTitle::create([
+>>>>>>> bc78683 (Modify Allocation, District, Institution Class, Legislator, Municipality, Particular, Priority, Province, Qualification Title, Region, Scholarship Program, Training Program, TVET, TviClass, TVItype  validation and Exception and integrate it from model to the source model)
                 'training_program_id' => $data['training_program_id'],
                 'scholarship_program_id' => $data['scholarship_program_id'],
                 'training_cost_pcc' => $data['training_cost_pcc'],
@@ -48,6 +61,7 @@ class CreateQualificationTitle extends CreateRecord
                 'misc_fee' => $data['misc_fee'],
                 'hours_duration' => $data['hours_duration'],
                 'days_duration' => $data['days_duration'],
+<<<<<<< HEAD
                 'pcc' => $total_pcc
             ]);
 
@@ -64,5 +78,39 @@ class CreateQualificationTitle extends CreateRecord
         }
 
         return $total_pcc;
+=======
+            ]);
+        });
+    }
+
+    protected function validateUniqueQualificationTitle($trainingProgramId, $scholarshipProgramId)
+    {
+        $existingTitle = QualificationTitle::withTrashed()
+            ->where('training_program_id', $trainingProgramId)
+            ->where('scholarship_program_id', $scholarshipProgramId)
+            ->first();
+
+        if ($existingTitle) {
+            $message = $existingTitle->deleted_at
+                ? 'A Qualification Title with this combination exists and is marked as deleted. Data cannot be created.'
+                : 'A Qualification Title with this combination already exists.';
+
+            $this->handleValidationException($message);
+        }
+    }
+
+    protected function handleValidationException($message)
+    {
+        Notification::make()
+            ->title('Error')
+            ->body($message)
+            ->danger()
+            ->send();
+
+        throw ValidationException::withMessages([
+            'training_program_id' => $message,
+            'scholarship_program_id' => $message,
+        ]);
+>>>>>>> bc78683 (Modify Allocation, District, Institution Class, Legislator, Municipality, Particular, Priority, Province, Qualification Title, Region, Scholarship Program, Training Program, TVET, TviClass, TVItype  validation and Exception and integrate it from model to the source model)
     }
 }

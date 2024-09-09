@@ -150,8 +150,29 @@ class QualificationTitleResource extends Resource
                     ->prefix('₱')
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+<<<<<<< HEAD
                 TextInput::make('hours_duration')
                     ->label('No. of Hours')
+=======
+                TextInput::make('misc_fee')
+                    ->label('Miscellaneous Fee')
+>>>>>>> bc78683 (Modify Allocation, District, Institution Class, Legislator, Municipality, Particular, Priority, Province, Qualification Title, Region, Scholarship Program, Training Program, TVET, TviClass, TVItype  validation and Exception and integrate it from model to the source model)
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+<<<<<<< HEAD
+                    ->minValue(0)
+                    ->suffix('hrs'),
+                TextInput::make('days_duration')
+                    ->label('No. of Days')
+=======
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('hours_duration')
+                    ->label('Hours duration')
+>>>>>>> bc78683 (Modify Allocation, District, Institution Class, Legislator, Municipality, Particular, Priority, Province, Qualification Title, Region, Scholarship Program, Training Program, TVET, TviClass, TVItype  validation and Exception and integrate it from model to the source model)
                     ->required()
                     ->autocomplete(false)
                     ->numeric()
@@ -159,13 +180,13 @@ class QualificationTitleResource extends Resource
                     ->minValue(0)
                     ->suffix('hrs'),
                 TextInput::make('days_duration')
-                    ->label('No. of Days')
+                    ->label('Days Duration')
                     ->required()
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
                     ->minValue(0)
-                    ->suffix('hrs'),
+                    ->suffix('day(s)'),
                 Select::make('status_id')
                     ->label('Status')
                     ->default(1)
@@ -266,6 +287,7 @@ class QualificationTitleResource extends Resource
                     ->prefix('₱ '),
                 TextColumn::make("misc_fee")
                     ->label("Miscellaneous Fee")
+<<<<<<< HEAD
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
@@ -274,6 +296,8 @@ class QualificationTitleResource extends Resource
                     ->prefix('₱ '),
                 TextColumn::make("pcc")
                     ->label("PCC")
+=======
+>>>>>>> bc78683 (Modify Allocation, District, Institution Class, Legislator, Municipality, Particular, Priority, Province, Qualification Title, Region, Scholarship Program, Training Program, TVET, TviClass, TVItype  validation and Exception and integrate it from model to the source model)
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
