@@ -24,6 +24,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
@@ -121,6 +122,12 @@ class TviResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
+                SelectFilter::make('tvi_class_id')
+                    ->label("Institution Class (A)")
+                    ->relationship('tviClass', 'name'),
+                SelectFilter::make('institution_class_id')
+                    ->label("Institution Class (B)")
+                    ->relationship('InstitutionClass', 'name')
             ])
             ->actions([
                 ActionGroup::make([
