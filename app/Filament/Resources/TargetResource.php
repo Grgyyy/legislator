@@ -157,10 +157,28 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->label('Particular'),
+                TextColumn::make('tvi.district.name')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('tvi.district.municipality.name')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('tvi.district.municipality.province.name')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('tvi.district.municipality.province.region.name')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('tvi.name')
                     ->searchable()
                     ->toggleable()
                     ->label('Institution'),
+                TextColumn::make('tvi.tviClass.tviType.name')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('tvi.tviClass.name')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('qualification_title.training_program.title')
                     ->label('Qualification Title')
                     ->getStateUsing(function ($record) {
