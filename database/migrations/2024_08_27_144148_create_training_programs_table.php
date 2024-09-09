@@ -17,6 +17,12 @@ return new class extends Migration
                 ->unique()
                 ->nullable();
             $table->string('title');
+            $table->foreignId('priority_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('tvet_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });
