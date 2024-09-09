@@ -12,13 +12,11 @@ class ParticularSeeder extends Seeder
      */
     public function run(): void
     {
-        // Fetch all district IDs where the name is 'Not Applicable'
         $districtIds = DB::table('districts')
             ->where('name', 'Not Applicable')
-            ->pluck('id'); // Collect all district IDs with this name
+            ->pluck('id');
 
         foreach ($districtIds as $districtId) {
-            // Check if 'Regional Office' already exists for this district
             $regionalOfficeExists = DB::table('particulars')
                 ->where('name', 'Regional Office')
                 ->where('district_id', $districtId)
@@ -30,7 +28,6 @@ class ParticularSeeder extends Seeder
                 ->exists();
 
 
-            // Insert 'Regional Office' and 'Central Office' if 'Regional Office' does not exist
             if (!$regionalOfficeExists && !$centralOfficeExists) {
                 DB::table('particulars')->insert([
                     [
