@@ -149,23 +149,13 @@ class ProvinceSeeder extends Seeder
             ['Sulu', 17],
             ['Tawi-Tawi', 17],
             ['Not Applicable', 17],
-
-            ['Not Applicable', 18],
         ];
 
         foreach ($provinces as [$name, $region]) {
-            $provinceExist = DB::table('provinces')
-                ->where('name', $name)
-                ->where('region_id', $region)
-                ->exists();
-
-            if (!$provinceExist) {
-                DB::table('provinces')->insert([
-                    'name' => $name,
-                    'region_id' => $region,
-                ]);
-            }
-
+            DB::table('provinces')->updateOrInsert(
+                ['name' => $name, 'region_id' => $region],
+                ['name' => $name, 'region_id' => $region]
+            );
         }
     }
 }
