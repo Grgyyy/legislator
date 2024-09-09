@@ -75,12 +75,7 @@ class TvetResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->hidden(fn (): bool => self::isTrashedFilterActive()),
-                    ForceDeleteBulkAction::make()
-                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
-                    RestoreBulkAction::make()
-                        ->hidden(fn (): bool => !self::isTrashedFilterActive()),
+
                 ]),
             ]);
     }
