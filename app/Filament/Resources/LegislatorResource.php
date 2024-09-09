@@ -86,11 +86,15 @@ class LegislatorResource extends Resource
                     ->getStateUsing(function ($record) {
                         $particulars = $record->particular;
 
-                        return $particulars->map(function ($particular) {
+                        return $particulars->map(function ($particular, $index) {
                             $municipalityName = $particular->district->name . ', ' . $particular->district->municipality->name;
-                            return $particular->name . ' - ' . $municipalityName;
-                        })->join(', ');
+
+                            $paddingTop = ($index > 0) ? 'padding-top: 15px;' : '';
+
+                            return '<div style="'. $paddingTop .'">' . $particular->name . ' - ' . $municipalityName . '</div>';
+                        })->implode('');
                     })
+                    ->html()
                     ->toggleable(),
                 TextColumn::make("status.desc")
                     ->toggleable(),

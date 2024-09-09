@@ -17,9 +17,6 @@ class StatusSeeder extends Seeder
         $statuses = [
             ['desc' => 'Active'],
             ['desc' => 'Inactive'],
-            ['desc' => 'Pending'],
-            ['desc' => 'Approved'],
-            ['desc' => 'Assigned'],
         ];
 
         foreach ($statuses as $status) {
