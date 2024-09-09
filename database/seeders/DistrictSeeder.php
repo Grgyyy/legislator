@@ -12,18 +12,21 @@ class DistrictSeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 1; $i < 104; $i++) {
-            $district = ['Not Applicable', $i];
-            $districtExist = DB::table('districts')
-                    ->where('name', $district[0])
-                    ->where('municipality_id', $i)
-                    ->exists();
+        $municipalities = DB::table('municipalities')
+            ->where('name', 'Not Applicable')
+            ->pluck('id');
 
-            if (!$districtExist) {
-                        DB::table('districts')->insert([
-                            'name' => $district[0],
-                            'municipality_id' => $district[1],
-                        ]);
+        foreach ($municipalities as $municipalityId) {
+            $districtExists = DB::table('districts')
+                ->where('name', 'Not Applicable')
+                ->where('municipality_id', $municipalityId)
+                ->exists();
+
+            if (!$districtExists) {
+                DB::table('districts')->insert([
+                    'name' => 'Not Applicable',
+                    'municipality_id' => $municipalityId,
+                ]);
             }
         }
     }

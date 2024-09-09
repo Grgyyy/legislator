@@ -158,7 +158,7 @@ class ProvinceSeeder extends Seeder
                 ->where('name', $name)
                 ->where('region_id', $region)
                 ->exists();
-        
+
             if (!$provinceExist) {
                 DB::table('provinces')->insert([
                     'name' => $name,

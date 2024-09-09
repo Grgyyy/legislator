@@ -12,18 +12,29 @@ class MunicipalitySeeder extends Seeder
      */
     public function run(): void
     {
-        for ($i = 1; $i < 104; $i++) {
-            $municipality = ['Not Applicable', $i];
-            $municpalityExist = DB::table('municipalities')
-                    ->where('name', $municipality[0])
-                    ->where('province_id', $i)
-                    ->exists();
+        $provinces = DB::table('provinces')
+            ->where('name', 'Not Applicable')
+            ->pluck('id');
 
-            if (!$municpalityExist) {
-                        DB::table('municipalities')->insert([
-                            'name' => $municipality[0],
-                            'province_id' => $municipality[1],
-                        ]);
+        foreach ($provinces as $provinceId) {
+            $regionId = DB::table('provinces')
+                ->where('id', $provinceId)
+                ->value('region_id');
+
+            if (!$regionId) {
+                continue;
+            }
+
+            $municipalityExists = DB::table('municipalities')
+                ->where('name', 'Not Applicable')
+                ->where('province_id', $provinceId)
+                ->exists();
+
+            if (!$municipalityExists) {
+                DB::table('municipalities')->insert([
+                    'name' => 'Not Applicable',
+                    'province_id' => $provinceId,
+                ]);
             }
         }
     }
