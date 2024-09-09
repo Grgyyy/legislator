@@ -50,18 +50,21 @@ class TrainingProgramResource extends Resource
                     ->label('Tvet Sector')
                     ->relationship('tvet', 'name')
                     ->preload()
-                    ->searchable(),
+                    ->searchable()
+                    ->required(),
                 Select::make('priority_id')
                     ->label('Priority Sector')
                     ->relationship('priority', 'name')
                     ->preload()
-                    ->searchable(),
+                    ->searchable()
+                    ->required(),
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Programs')
                     ->multiple()
                     ->relationship('scholarshipPrograms', 'name')
                     ->preload()
-                    ->searchable(),
+                    ->searchable()
+                    ->required(),
             ]);
     }
 

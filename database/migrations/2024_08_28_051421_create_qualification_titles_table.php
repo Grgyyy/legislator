@@ -30,6 +30,7 @@ return new class extends Migration {
             $table->decimal('misc_fee', 10, 2)->default(0);
             $table->integer('hours_duration')->default(0);
             $table->integer('days_duration')->default(0);
+            $table->decimal('pcc', 10, 2)->default(0);
             $table->foreignId('status_id')
                 ->default(1)
                 ->constrained()

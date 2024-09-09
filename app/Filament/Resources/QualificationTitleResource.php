@@ -105,6 +105,15 @@ class QualificationTitleResource extends Resource
                     ->prefix('₱')
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('misc_fee')
+                    ->label('Miscellaneous Fee')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
                 TextInput::make('new_normal_assisstance')
                     ->label('New Normal Assisstance')
                     ->required()
@@ -132,8 +141,25 @@ class QualificationTitleResource extends Resource
                     ->prefix('₱')
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                TextInput::make('duration')
-                    ->label('Duration')
+                TextInput::make('uniform_allowance')
+                    ->label('Uniform Allowance')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                TextInput::make('hours_duration')
+                    ->label('No. of Hours')
+                    ->required()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0)
+                    ->suffix('hrs'),
+                TextInput::make('days_duration')
+                    ->label('No. of Days')
                     ->required()
                     ->autocomplete(false)
                     ->numeric()
@@ -239,7 +265,15 @@ class QualificationTitleResource extends Resource
                     })
                     ->prefix('₱ '),
                 TextColumn::make("misc_fee")
-                    ->label("`Miscellaneous Fee`")
+                    ->label("Miscellaneous Fee")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
+                TextColumn::make("pcc")
+                    ->label("PCC")
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
