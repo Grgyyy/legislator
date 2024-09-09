@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Filament\Resources;
 
 use Filament\Forms\Components\TextInput;
@@ -107,6 +108,7 @@ class RegionResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->where('name', '!=', 'Not Applicable');
     }
 }
