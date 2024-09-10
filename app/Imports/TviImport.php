@@ -44,6 +44,7 @@ class TviImport implements ToModel, WithHeadingRow
 
                 if (!$tviRecord) {
                     $tviRecord = Tvi::create([
+                        'school_id' => $row['school_id'],
                         'name' => $row['institution_name'],
                         'institution_class_id' => $institutionClassId,
                         'tvi_class_id' => $tviClassId,
