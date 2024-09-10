@@ -41,6 +41,4 @@ class Allocation extends Model
     {
         return $this->hasMany(Target::class);
     }
-
-
 }
