@@ -77,7 +77,13 @@ class TvetResource extends Resource
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make()
+                    RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - TVET Sector')
+                    ]),
                 ]),
             ]);
     }

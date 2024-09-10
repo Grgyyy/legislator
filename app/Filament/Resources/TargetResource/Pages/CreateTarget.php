@@ -22,9 +22,9 @@ class CreateTarget extends CreateRecord
         return DB::transaction(function () use ($data) {
 
             $allocation = Allocation::where('legislator_id', $data['legislator_id'])
-                                        ->where('scholarship_program_id', $data['scholarship_id'])
-                                        ->whereNull('deleted_at')
-                                        ->first();
+                ->where('scholarship_program_id', $data['scholarship_id'])
+                ->whereNull('deleted_at')
+                ->first();
 
             // Create a new Target record
             $target = Target::create([
