@@ -59,7 +59,22 @@ class LegislatorResource extends Resource
                             ->with('district')
                             ->get()
                             ->mapWithKeys(function ($item) {
-                                return [$item->id => $item->name . ' - ' . ($item->district ? $item->district->name : 'N/A') . ', ' . ($item->district->municipality ? $item->district->municipality->name : 'N/A')];
+
+                                if ($item->name === 'Regional Office' || $item->name === 'Central Office') {
+                                    return [
+                                        $item->id => $item->name . ' - ' . ($item->district ? $item->district->municipality->province->region->name : 'N/A')
+                                    ];
+                                }
+                                elseif ($item->name === 'Senator') {
+                                    return [
+                                        $item->id => $item->name
+                                    ];
+                                }
+                                
+                                return [
+                                    $item->id => $item->name . ' - ' . ($item->district ? $item->district->name : 'N/A') . ', ' . 
+                                    ($item->district->municipality ? $item->district->municipality->name : 'N/A')
+                                ];
                             })
                             ->toArray();
                     }),
@@ -186,9 +201,9 @@ class LegislatorResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->whereNotIn('name', ['Regional Office', 'Central Office']);
     }
-
     // protected static function isTrashedFilterActive(): bool
     // {
     //     $filters = request()->query('tableFilters', []);

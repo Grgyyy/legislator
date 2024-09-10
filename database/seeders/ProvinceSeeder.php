@@ -149,6 +149,8 @@ class ProvinceSeeder extends Seeder
             ['Sulu', 17],
             ['Tawi-Tawi', 17],
             ['Not Applicable', 17],
+
+            ['Not Applicable', 18],
         ];
 
         foreach ($provinces as [$name, $region]) {
