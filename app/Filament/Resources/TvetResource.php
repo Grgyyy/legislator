@@ -34,6 +34,8 @@ class TvetResource extends Resource
 {
     protected static ?string $model = Tvet::class;
 
+    protected static ?string $navigationGroup = "SECTORS";
+
     protected static ?string $navigationLabel = "TVET Sectors";
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';

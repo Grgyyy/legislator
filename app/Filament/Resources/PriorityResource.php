@@ -34,6 +34,8 @@ class PriorityResource extends Resource
 {
     protected static ?string $model = Priority::class;
 
+    protected static ?string $navigationGroup = "SECTORS";
+
     protected static ?string $navigationLabel = "Ten Priority Sectors";
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
