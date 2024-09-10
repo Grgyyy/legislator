@@ -49,6 +49,7 @@ class ProvinceResource extends Resource
                 Select::make('region_id')
                     ->label('Region')
                     ->relationship('region', 'name')
+                    ->default(fn($get) => request()->get('region_id'))
                     ->required()
                     ->reactive(),
             ])
