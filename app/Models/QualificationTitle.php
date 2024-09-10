@@ -26,6 +26,7 @@ class QualificationTitle extends Model
         'misc_fee',
         'hours_duration',
         'days_duration',
+        'pcc',
         'status_id',
     ];
 

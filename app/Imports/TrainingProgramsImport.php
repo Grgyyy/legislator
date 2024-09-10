@@ -2,8 +2,10 @@
 
 namespace App\Imports;
 
+use App\Models\Priority;
 use App\Models\TrainingProgram;
 use App\Models\ScholarshipProgram;
+use App\Models\Tvet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -21,7 +23,6 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
-
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
@@ -29,6 +30,8 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
             try {
 
                 $scholarshipProgramId = self::getScholarshipProgramId($row['scholarship_program']);
+                $tvetId = self::getTvetId($row['tvet_sector']);
+                $priorityId = self::getPriorityId($row['priority_sector']);
 
                 $trainingProgram = TrainingProgram::where('code', $row['code'])
                     ->where('title', $row['title'])
@@ -37,7 +40,9 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
                 if (!$trainingProgram) {
                     $trainingProgram = TrainingProgram::create([
                         'code' => $row['code'],
-                        'title' => $row['title']
+                        'title' => $row['title'],
+                        'tvet_id' => $tvetId,
+                        'priority_id' => $priorityId,
                     ]);
                 }
 
@@ -68,7 +73,6 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
 
     protected static function getScholarshipProgramId(string $scholarshipProgramName)
     {
-
         $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)
             ->whereNull('deleted_at')
             ->first();
@@ -78,5 +82,29 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
         }
 
         return $scholarshipProgram->id;
+    }
+
+    protected static function getTvetId(string $tvet) {
+        $tvetRecord = Tvet::where('name', $tvet)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($tvetRecord === null) {
+            throw new \Exception("Tvet sector with name '{$tvet}' not found. No changes were saved.");
+        }
+
+        return $tvetRecord->id;
+    }
+
+    protected static function getPriorityId(string $priority) {
+        $priorityRecord = Priority::where('name', $priority)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($priorityRecord === null) {
+            throw new \Exception("Priority with name '{$priority}' not found. No changes were saved.");
+        }
+
+        return $priorityRecord->id;
     }
 }

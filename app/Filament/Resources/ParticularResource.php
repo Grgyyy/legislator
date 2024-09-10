@@ -81,20 +81,25 @@ class ParticularResource extends Resource
                     ->label('Particular')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
                 TextColumn::make("district.name")
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
                 TextColumn::make("district.municipality.name")
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
                 TextColumn::make("district.municipality.province.name")
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
                 TextColumn::make("district.municipality.province.region.name")
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
             ])
             ->filters([
                 TrashedFilter::make()

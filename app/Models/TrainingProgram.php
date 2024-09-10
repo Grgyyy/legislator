@@ -13,6 +13,8 @@ class TrainingProgram extends Model
     protected $fillable = [
         'code',
         'title',
+        'tvet_id',
+        'priority_id',
     ];
 
     public function scholarshipPrograms()
@@ -23,6 +25,14 @@ class TrainingProgram extends Model
     public function qualificationTitle()
     {
         return $this->hasMany(QualificationTitle::class);
+    }
+
+    public function priority() {
+        return $this->belongsTo(Priority::class);
+    }
+
+    public function tvet() {
+        return $this->belongsTo(Tvet::class);
     }
 
     public function getFormattedScholarshipProgramsAttribute()

@@ -46,12 +46,25 @@ class TrainingProgramResource extends Resource
                     ->required(),
                 TextInput::make('title')
                     ->required(),
+                Select::make('tvet_id')
+                    ->label('Tvet Sector')
+                    ->relationship('tvet', 'name')
+                    ->preload()
+                    ->searchable()
+                    ->required(),
+                Select::make('priority_id')
+                    ->label('Priority Sector')
+                    ->relationship('priority', 'name')
+                    ->preload()
+                    ->searchable()
+                    ->required(),
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Programs')
                     ->multiple()
                     ->relationship('scholarshipPrograms', 'name')
                     ->preload()
-                    ->searchable(),
+                    ->searchable()
+                    ->required(),
             ]);
     }
 
@@ -67,11 +80,19 @@ class TrainingProgramResource extends Resource
                 TextColumn::make('title')
                     ->searchable()
                     ->toggleable(),
+                TextColumn::make('priority.name')
+                    ->label('Priority Sector')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('tvet.name')
+                    ->label('TVET Sector')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('scholarshipPrograms.name')
                     ->label('Scholarship Program')
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', '))
+                    ->formatStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', ')),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -118,7 +139,7 @@ class TrainingProgramResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        
+
         $query = parent::getEloquentQuery();
 
         $query->withoutGlobalScopes([

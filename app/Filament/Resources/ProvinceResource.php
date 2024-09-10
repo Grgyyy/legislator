@@ -125,7 +125,8 @@ class ProvinceResource extends Resource
 
         $query->withoutGlobalScopes([
             SoftDeletingScope::class,
-        ]);
+        ])
+        ->where('name', '!=', 'Not Applicable');
 
         $routeParameter = request()->route('record');
 

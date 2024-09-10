@@ -13,6 +13,7 @@ class Tvi extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'school_id',
         'name',
         'institution_class_id',
         'tvi_class_id',

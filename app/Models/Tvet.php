@@ -19,7 +19,11 @@ class Tvet extends Model
     public function target() {
         return $this->hasMany(Target::class);
     }
-    
+
+    public function trainingProgram() {
+        return $this->hasMany(TrainingProgram::class);
+    }
+
     protected static function boot()
     {
         parent::boot();

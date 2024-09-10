@@ -12,6 +12,9 @@ return new class extends Migration {
     {
         Schema::create('tvis', function (Blueprint $table) {
             $table->id();
+            $table->string('school_id')
+                ->nullable()
+                ->unique();
             $table->string('name');
             $table->foreignId('district_id')
                 ->constrained()
@@ -25,8 +28,7 @@ return new class extends Migration {
             $table->foreignId('status_id')
                 ->default(1)
                 ->constrained()
-                ->cascadeOnDelete()
-                ->unique();
+                ->cascadeOnDelete();
             $table->string('address');
             $table->timestamps();
             $table->softDeletes();

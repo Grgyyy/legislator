@@ -45,6 +45,9 @@ class TviResource extends Resource
     {
         return $form
             ->schema([
+                TextInput::make("school_id")
+                    ->label('School ID')
+                    ->required(),
                 TextInput::make("name")
                     ->label('Institution')
                     ->required()
@@ -82,6 +85,11 @@ class TviResource extends Resource
         return $table
             ->emptyStateHeading('No institutions yet')
             ->columns([
+                TextColumn::make("school_id")
+                    ->label("School ID")
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make("name")
                     ->label("Institution")
                     ->sortable()
