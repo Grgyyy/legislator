@@ -23,6 +23,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Illuminate\Validation\ValidationException;
 use App\Filament\Resources\ProvinceResource\Pages;
+use App\Models\Region;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -45,15 +46,18 @@ class ProvinceResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label('Province')
+                    ->autocomplete(false)
+                    ->markAsRequired(false)
                     ->required(),
                 Select::make('region_id')
-                    ->label('Region')
                     ->relationship('region', 'name')
                     ->default(fn($get) => request()->get('region_id'))
+                    ->options(Region::all()->pluck('name', 'id'))
                     ->required()
-                    ->reactive(),
-            ])
-            ->columns(2);
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->searchable(),
+            ]);
     }
 
 

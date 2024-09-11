@@ -21,6 +21,7 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\RestoreBulkAction;
 use App\Filament\Resources\DistrictResource\Pages;
+use App\Models\Municipality;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Filters\Filter;
@@ -44,13 +45,16 @@ class DistrictResource extends Resource
                 TextInput::make('name')
                     ->label('District')
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
                 Select::make('municipality_id')
-                    ->label('Municipality')
                     ->relationship('municipality', 'name')
                     ->default(fn($get) => request()->get('municipality_id'))
-                    ->reactive()
+                    ->options(Municipality::all()->pluck('name', 'id'))
                     ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->searchable(),
             ]);
     }
 
