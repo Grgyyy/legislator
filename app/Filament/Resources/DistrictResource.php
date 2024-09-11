@@ -54,6 +54,7 @@ class DistrictResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
+                    ->preload()
                     ->searchable(),
             ]);
     }

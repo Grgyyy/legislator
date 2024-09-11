@@ -54,6 +54,7 @@ class MunicipalityResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
+                    ->preload()
                     ->searchable(),
             ]);
     }

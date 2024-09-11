@@ -55,7 +55,11 @@ class ParticularResource extends Resource
                         'EO79' => 'EO79',
                         'EO70' => 'EO70',
                         'KIA/WIA' => 'KIA/WIA',
-                    ]),
+                    ])
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->searchable()
+                    ->preload(),
                 Select::make('district_id')
                     ->label('District')
                     ->options(function () {
@@ -67,8 +71,11 @@ class ParticularResource extends Resource
                             return [$district->id => $label];
                         })->toArray();
                     })
+                    ->markAsRequired(false)
                     ->required()
-                    ->preload(),
+                    ->preload()
+                    ->native(false)
+                    ->searchable(),
             ]);
     }
 

@@ -56,7 +56,8 @@ class ProvinceResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->searchable(),
+                    ->searchable()
+                    ->preload(),
             ]);
     }
 
