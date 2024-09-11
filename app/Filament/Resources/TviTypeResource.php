@@ -47,6 +47,7 @@ class TviTypeResource extends Resource
                     ->required()
                     ->label('Institution Type')
                     ->autocomplete(false)
+                    ->markAsRequired(false),
             ]);
     }
 

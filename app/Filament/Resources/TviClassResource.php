@@ -19,6 +19,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\TviClassResource\Pages;
+use App\Models\TviType;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
@@ -47,12 +48,22 @@ class TviClassResource extends Resource
                 TextInput::make('name')
                     ->label('Institution Class (A)')
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
                 Select::make('tvi_type_id')
                     ->label('Institution Type')
                     ->relationship('tviType', 'name')
-                    ->required(),
-            ]);
+                    ->options(function () {
+                        $tviType = TviType::all()->pluck('name', 'id')->toArray();
+                        return !empty($tviType) ? $tviType : ['no_tvi_type' => 'No Institution Type Available'];
+                    })
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->searchable()
+                    ->preload()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_tvi_type'),
+                ]);
     }
 
     public static function table(Table $table): Table

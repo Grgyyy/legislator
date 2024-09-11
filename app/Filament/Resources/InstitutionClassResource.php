@@ -47,6 +47,7 @@ class InstitutionClassResource extends Resource
                     ->required()
                     ->autocomplete(false)
                     ->label('Institution Class (B)')
+                    ->markAsRequired(false),
             ]);
     }
 
