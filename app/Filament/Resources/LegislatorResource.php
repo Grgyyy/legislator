@@ -49,11 +49,11 @@ class LegislatorResource extends Resource
                 TextInput::make("name")
                     ->label('Legislator')
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
                 Select::make("particular")
                     ->multiple()
                     ->relationship("particular", "name")
-                    ->required()
                     ->options(function () {
                         return Particular::query()
                             ->with('district')
@@ -77,12 +77,19 @@ class LegislatorResource extends Resource
                                 ];
                             })
                             ->toArray();
-                    }),
+                    })
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->preload(),
                 Select::make('status_id')
                     ->label('Status')
                     ->default(1)
                     ->relationship('status', 'desc')
-                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord),
+                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false),
             ]);
     }
 
