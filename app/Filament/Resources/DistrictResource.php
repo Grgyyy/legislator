@@ -50,12 +50,16 @@ class DistrictResource extends Resource
                 Select::make('municipality_id')
                     ->relationship('municipality', 'name')
                     ->default(fn($get) => request()->get('municipality_id'))
-                    ->options(Municipality::all()->pluck('name', 'id'))
+                    ->options(function () {
+                        $municipality = Municipality::all()->pluck('name', 'id')->toArray();
+                        return !empty($municipality) ? $municipality : ['no_municipality' => 'No Municipality Available'];
+                    })
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
                     ->preload()
-                    ->searchable(),
+                    ->searchable()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_municipality'),
             ]);
     }
 

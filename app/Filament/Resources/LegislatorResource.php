@@ -19,6 +19,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\LegislatorResource\Pages;
 use App\Models\Legislator;
+use App\Models\Status;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
@@ -76,12 +77,13 @@ class LegislatorResource extends Resource
                                     ($item->district->municipality ? $item->district->municipality->name : 'N/A')
                                 ];
                             })
-                            ->toArray();
+                            ->toArray() ?: ['no_particular' => 'No Particular Available'];
                     })
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->preload(),
+                    ->preload()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_particular'),
                 Select::make('status_id')
                     ->label('Status')
                     ->default(1)
@@ -89,7 +91,12 @@ class LegislatorResource extends Resource
                     ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
                     ->required()
                     ->markAsRequired(false)
-                    ->native(false),
+                    ->native(false)
+                    ->options(function () {
+                        $status = Status::all()->pluck('desc', 'id')->toArray();
+                        return !empty($status) ? $status : ['no_status' => 'No Status Available'];
+                    })
+                    ->disableOptionWhen(fn ($value) => $value === 'no_status'),
             ]);
     }
 

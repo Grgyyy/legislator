@@ -69,13 +69,14 @@ class ParticularResource extends Resource
                                 $district->municipality->province->name;
 
                             return [$district->id => $label];
-                        })->toArray();
+                        })->toArray() ?: ['no_district' => 'No District Available'];
                     })
                     ->markAsRequired(false)
                     ->required()
                     ->preload()
                     ->native(false)
-                    ->searchable(),
+                    ->searchable()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_district'),
             ]);
     }
 

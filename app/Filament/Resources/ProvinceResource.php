@@ -52,12 +52,16 @@ class ProvinceResource extends Resource
                 Select::make('region_id')
                     ->relationship('region', 'name')
                     ->default(fn($get) => request()->get('region_id'))
-                    ->options(Region::all()->pluck('name', 'id'))
+                    ->options(function () {
+                        $region = Region::all()->pluck('name', 'id')->toArray();
+                        return !empty($region) ? $region : ['no_region' => 'No Region Available'];
+                    })
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_region'),
             ]);
     }
 
