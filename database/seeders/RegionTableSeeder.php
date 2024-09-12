@@ -32,6 +32,7 @@ class RegionTableSeeder extends Seeder
             ['name' => 'Region XII'],
             ['name' => 'CARAGA'],
             ['name' => 'BARMM'],
+            ['name' => 'Not Applicable'],
         ];
 
         foreach ($regions as $region) {
