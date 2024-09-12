@@ -21,67 +21,52 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
+                // Retrieve IDs
                 $trainingProgramId = $this->getTrainingProgramId($row['training_program']);
                 $scholarshipProgramId = $this->getScholarshipProgramId($row['scholarship_program'], $trainingProgramId);
 
-                $qualificationTitleIsRecord = QualificationTitle::where('training_program_id', $trainingProgramId)
-                                                                ->where('scholarship_program_id', $scholarshipProgramId)
-                                                                ->first();
-                $costOfToolkit = $row['cost_of_toolkit_pcc'] === null ? 0 : $row['cost_of_toolkit_pcc'];
-                $trainingSupportFund = $row['training_support_fund'] === null ? 0 : $row['training_support_fund'];
-                $assessmentFee = $row['assessment_fee'] === null ? 0 : $row['assessment_fee'];
-                $entrepeneurFee = $row['entrepeneurship_fee'] === null ? 0 : $row['entrepeneurship_fee'];
-                $newNormalAssistance = $row['new_normal_assistance'] === null ? 0 : $row['new_normal_assistance'];
-                $accidentInsurance = $row['accident_insurance'] === null ? 0 : $row['accident_insurance'];
-                $bookAllowance = $row['book_allowance'] === null ? 0 : $row['book_allowance'];
-                $unifAllowance = $row['uniform_allowance'] === null ? 0 : $row['uniform_allowance'];
-                $miscFee = $row['miscellaneous_fee'] === null ? 0 : $row['miscellaneous_fee'];
+                $costs = [
+                    'training_cost_pcc' => isset($row['training_cost_pcc']) ? (float) $row['training_cost_pcc'] : 0,
+                    'cost_of_toolkit_pcc' => isset($row['cost_of_toolkit_pcc']) ? (float) $row['cost_of_toolkit_pcc'] : 0,
+                    'training_support_fund' => isset($row['training_support_fund']) ? (float) $row['training_support_fund'] : 0,
+                    'assessment_fee' => isset($row['assessment_fee']) ? (float) $row['assessment_fee'] : 0,
+                    'entrepeneurship_fee' => isset($row['entrepeneurship_fee']) ? (float) $row['entrepeneurship_fee'] : 0,
+                    'new_normal_assisstance' => isset($row['new_normal_assistance']) ? (float) $row['new_normal_assistance'] : 0,
+                    'accident_insurance' => isset($row['accident_insurance']) ? (float) $row['accident_insurance'] : 0,
+                    'book_allowance' => isset($row['book_allowance']) ? (float) $row['book_allowance'] : 0,
+                    'uniform_allowance' => isset($row['uniform_allowance']) ? (float) $row['uniform_allowance'] : 0,
+                    'misc_fee' => isset($row['miscellaneous_fee']) ? (float) $row['miscellaneous_fee'] : 0,
+                ];
 
-                if(!$qualificationTitleIsRecord) {
-                    return QualificationTitle::create([
+                $totalPCC = array_sum($costs);
+
+                $qualificationTitle = QualificationTitle::where('training_program_id', $trainingProgramId)
+                    ->where('scholarship_program_id', $scholarshipProgramId)
+                    ->first();
+
+                if (!$qualificationTitle) {
+                    $qualificationTitle = QualificationTitle::create(array_merge($costs, [
                         'training_program_id' => $trainingProgramId,
                         'scholarship_program_id' => $scholarshipProgramId,
-                        'training_cost_pcc' => $row['training_cost_pcc'],
-                        'cost_of_toolkit_pcc' => $costOfToolkit,
-                        'training_support_fund' => $trainingSupportFund,
-                        'assessment_fee' => $assessmentFee,
-                        'entrepeneurship_fee' => $entrepeneurFee,
-                        'new_normal_assisstance' => $newNormalAssistance,
-                        'accident_insurance' => $accidentInsurance,
-                        'book_allowance' => $bookAllowance,
-                        'uniform_allowance' => $unifAllowance,
-                        'misc_fee' => $miscFee,
-                        'hours_duration' => $row['no_of_training_hours'],
-                        'days_duration' => $row['no_of_training_days'],
-                    ]);
+                        'hours_duration' => isset($row['no_of_training_hours']) ? (float) $row['no_of_training_hours'] : 0,
+                        'days_duration' => isset($row['no_of_training_days']) ? (float) $row['no_of_training_days'] : 0,
+                        'pcc' => $totalPCC,
+                    ]));
+                } else {
+                    $qualificationTitle->update(array_merge($costs, [
+                        'hours_duration' => isset($row['no_of_training_hours']) ? (float) $row['no_of_training_hours'] : 0,
+                        'days_duration' => isset($row['no_of_training_days']) ? (float) $row['no_of_training_days'] : 0,
+                        'pcc' => $totalPCC,
+                    ]));
                 }
-                else {
-                    $qualificationTitleIsRecord->update([
-                        'training_cost_pcc' => $row['training_cost_pcc'],
-                        'cost_of_toolkit_pcc' => $costOfToolkit,
-                        'training_support_fund' => $trainingSupportFund,
-                        'assessment_fee' => $assessmentFee,
-                        'entrepeneurship_fee' => $entrepeneurFee,
-                        'new_normal_assisstance' => $newNormalAssistance,
-                        'accident_insurance' => $accidentInsurance,
-                        'book_allowance' => $bookAllowance,
-                        'uniform_allowance' => $unifAllowance,
-                        'misc_fee' => $miscFee,
-                        'hours_duration' => $row['no_of_training_hours'],
-                        'days_duration' => $row['no_of_training_days'],
-                    ]);
 
-                    return $qualificationTitleIsRecord;
-                }
-            }
-
-            catch (Throwable $e) {
-                Log::error('Failed to import Qualificaiton Title: ' . $e->getMessage());
+                return $qualificationTitle;
+            } catch (Throwable $e) {
+                Log::error('Failed to import Qualification Title: ' . $e->getMessage());
                 throw $e;
             }
         });
     }
-
 
     protected function validateRow(array $row)
     {
@@ -94,24 +79,22 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function getTrainingProgramId(string $trainingProgramName)
+    protected function getTrainingProgramId(string $trainingProgramName): int
     {
-        $trainingProgram = TrainingProgram::where('title', $trainingProgramName)
-            ->first();
+        $trainingProgram = TrainingProgram::where('title', $trainingProgramName)->first();
 
         if (!$trainingProgram) {
-                throw new \Exception("Training program with name '{$trainingProgramName}' not found. No changes were saved.");
-            }
+            throw new \Exception("Training program with name '{$trainingProgramName}' not found. No changes were saved.");
+        }
 
         return $trainingProgram->id;
     }
 
-    protected function getScholarshipProgramId(string $scholarshipProgramName, int $trainingProgramId)
+    protected function getScholarshipProgramId(string $scholarshipProgramName, int $trainingProgramId): int
     {
         $trainingProgram = TrainingProgram::find($trainingProgramId);
 
         if (!$trainingProgram) {
-            // Handle the case where the training program is not found
             throw new \Exception('Training program not found. No changes were saved.');
         }
 
