@@ -281,6 +281,14 @@ class QualificationTitleResource extends Resource
                         return number_format($state, 2, '.', ',');
                     })
                     ->prefix('₱ '),
+                TextColumn::make("pcc")
+                    ->label("Total PCC")
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        return number_format($state, 2, '.', ',');
+                    })
+                    ->prefix('₱ '),
                 TextColumn::make('hours_duration')
                     ->label('No. of Training Hours')
                     ->sortable()
