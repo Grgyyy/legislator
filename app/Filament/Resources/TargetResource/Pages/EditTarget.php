@@ -36,9 +36,9 @@ class EditTarget extends EditRecord
         return DB::transaction(function () use ($record, $data) {
             // Find the allocation based on the provided data
             $allocation = Allocation::where('legislator_id', $data['legislator_id'])
-                                    ->where('scholarship_program_id', $data['scholarship_id'])
-                                    ->whereNull('deleted_at')
-                                    ->first();
+                ->where('scholarship_program_id', $data['scholarship_id'])
+                ->whereNull('deleted_at')
+                ->first();
 
             // Check if the allocation exists
             if (!$allocation) {

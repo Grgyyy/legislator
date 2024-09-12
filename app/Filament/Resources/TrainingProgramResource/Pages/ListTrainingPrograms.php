@@ -24,6 +24,7 @@ class ListTrainingPrograms extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
+
             Action::make('TrainingProgramsImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')

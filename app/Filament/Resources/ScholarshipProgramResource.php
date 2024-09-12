@@ -32,7 +32,7 @@ class ScholarshipProgramResource extends Resource
     protected static ?string $model = ScholarshipProgram::class;
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
-    
+
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
 
     protected static ?int $navigationSort = 5;
@@ -44,18 +44,15 @@ class ScholarshipProgramResource extends Resource
                 TextInput::make('name')
                     ->label("Scholarship Program")
                     ->required()
-                    ->autocomplete(false)
-                    ->unique(ignoreRecord: true),
+                    ->autocomplete(false),
                 TextInput::make("code")
                     ->label('Scholarship Program Code')
                     ->required()
-                    ->autocomplete(false)
-                    ->unique(ignoreRecord: true),
+                    ->autocomplete(false),
                 TextInput::make("desc")
                     ->label('Description')
                     ->required()
-                    ->autocomplete(false)
-                    ->unique(ignoreRecord: true),
+                    ->autocomplete(false),
             ]);
     }
 
@@ -85,7 +82,7 @@ class ScholarshipProgramResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make(),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),

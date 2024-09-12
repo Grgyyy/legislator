@@ -16,9 +16,11 @@ class Priority extends Model
         'name',
     ];
 
-    public function target() {
+    public function target()
+    {
         return $this->hasMany(Target::class);
     }
+<<<<<<< HEAD
 
     public function trainingProgram() {
         return $this->hasMany(TrainingProgram::class);
@@ -67,4 +69,6 @@ class Priority extends Model
             'name' => $message,
         ]);
     }
+=======
+>>>>>>> bc78683 (Modify Allocation, District, Institution Class, Legislator, Municipality, Particular, Priority, Province, Qualification Title, Region, Scholarship Program, Training Program, TVET, TviClass, TVItype  validation and Exception and integrate it from model to the source model)
 }

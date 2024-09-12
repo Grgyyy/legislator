@@ -2,32 +2,35 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\TargetResource\Pages;
+use App\Models\Tvi;
+use App\Models\Target;
+use Filament\Forms\Form;
 use App\Models\Allocation;
 use App\Models\Legislator;
+use Filament\Tables\Table;
+use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use App\Models\Target;
-use App\Models\Tvi;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Table;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use App\Filament\Resources\TargetResource\Pages;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
 
 class TargetResource extends Resource
 {
@@ -57,7 +60,7 @@ class TargetResource extends Resource
                         // Clear related fields
                         $set('scholarship_id', null);
                         $set('qualification_title_id', null);
-                        
+
                         // Update options for scholarship and qualification title
                         $set('scholarshipOptions', self::getScholarshipProgramsOptions($state));
                         $set('qualificationTitleOptions', []);
@@ -241,6 +244,89 @@ class TargetResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
+                    ExportBulkAction::make()->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('allocation.legislator.name')
+                                    ->heading('Legislator'),
+                                Column::make('allocation.legislator.particular.name')
+                                    ->heading('Particular')
+                                    ->getStateUsing(function ($record) {
+                                        $legislator = $record->allocation->legislator;
+
+                                        if (!$legislator) {
+                                            return 'No Legislator Available';
+                                        }
+
+                                        $particulars = $legislator->particular;
+
+                                        if ($particulars->isEmpty()) {
+                                            return 'No Particular Available';
+                                        }
+
+                                        $particular = $particulars->first();
+
+                                        $district = $particular->district;
+                                        $municipality = $district ? $district->municipality : null;
+
+                                        $districtName = $district ? $district->name : 'Unknown District';
+                                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+
+                                        $formattedName = $districtName === 'Not Applicable'
+                                            ? $particular->name
+                                            : "{$particular->name} - {$districtName}, {$municipalityName}";
+
+                                        return $formattedName;
+                                    }),
+                                Column::make('tvi.district.name')
+                                    ->heading('District'),
+                                Column::make('tvi.district.municipality.name')
+                                    ->heading('Municipality'),
+                                Column::make('tvi.district.municipality.province.name')
+                                    ->heading('Province'),
+                                Column::make('tvi.district.municipality.province.region.name')
+                                    ->heading('Region'),
+                                Column::make('tvi.name')
+                                    ->heading('Institution'),
+                                Column::make('tvi.tviClass.tviType.name')
+                                    ->heading('TVI Type'),
+                                Column::make('tvi.tviClass.name')
+                                    ->heading('TVI Class'),
+                                Column::make('qualification_title.training_program.title')
+                                    ->heading('Qualification Title')
+                                    ->getStateUsing(function ($record) {
+                                        $qualificationTitle = $record->qualification_title;
+
+                                        if (!$qualificationTitle) {
+                                            return 'No Qualification Title Available';
+                                        }
+
+                                        $trainingProgram = $qualificationTitle->trainingProgram;
+
+                                        if (!$trainingProgram) {
+                                            return 'No Training Program Available';
+                                        }
+
+                                        return $trainingProgram->title;
+                                    }),
+                                Column::make('allocation.scholarship_program.name')
+                                    ->heading('Scholarship Program'),
+                                Column::make('priority.name')
+                                    ->heading('Top Ten Priority Sector'),
+                                Column::make('abdd.name')
+                                    ->heading('ABDD Sector'),
+                                Column::make('tvet.name')
+                                    ->heading('TVET Sector'),
+                                Column::make('number_of_slots')
+                                    ->heading('No. of Slots'),
+                                Column::make('total_amount')
+                                    ->heading('Total Amount'),
+                                Column::make('status.desc')
+                                    ->heading('Status'),
+
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Target')
+                    ]),
                 ]),
             ]);
     }
