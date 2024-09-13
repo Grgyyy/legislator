@@ -4,10 +4,10 @@ namespace App\Filament\Resources\QualificationTitleResource\Pages;
 
 use App\Models\QualificationTitle;
 use Illuminate\Support\Facades\DB;
-use App\Filament\Resources\QualificationTitleResource;
 use Illuminate\Support\Facades\Log;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Validation\ValidationException;
+use App\Filament\Resources\QualificationTitleResource;
 
 class CreateQualificationTitle extends CreateRecord
 {

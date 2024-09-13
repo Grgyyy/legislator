@@ -20,4 +20,9 @@ class Tvet extends Model
     {
         return $this->hasMany(Target::class);
     }
+
+    public function trainingProgram()
+    {
+        return $this->hasMany(TrainingProgram::class);
+    }
 }
