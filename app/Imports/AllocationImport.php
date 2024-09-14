@@ -76,9 +76,9 @@ class AllocationImport implements ToModel, WithHeadingRow
             throw new \Exception("Validation error: The field 'allocation' must be a positive number. No changes were saved.");
         }
 
-        if (!is_numeric($row['year']) || $row['year'] < 2000 || $row['year'] < date('Y')) {
-            throw new \Exception("Validation error: The field 'year' must be a valid year. No changes were saved.");
-        }
+        // if (!is_numeric($row['year']) || $row['year'] < 2000 || $row['year'] < date('Y')) {
+        //     throw new \Exception("Validation error: The field 'year' must be a valid year. No changes were saved.");
+        // }
     }
 
     protected function getLegislatorId(string $legislatorName)

@@ -12,16 +12,11 @@ return new class extends Migration {
     {
         Schema::create('targets', function (Blueprint $table) {
             $table->id();
+            $table->string('allocation_type');
             $table->foreignId('allocation_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('tvi_id')
-                ->constrained()
-                ->cascadeOnDelete();
-            $table->foreignId('priority_id')
-                ->constrained()
-                ->cascadeOnDelete();
-            $table->foreignId('tvet_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('abdd_id')
@@ -31,10 +26,31 @@ return new class extends Migration {
                 ->constrained()
                 ->cascadeOnDelete();
             $table->integer('number_of_slots');
-            $table->string('total_amount')
+            
+            $table->integer('total_training_cost_pcc')
                 ->default(0);
-            $table->foreignId('status_id')
-                ->default(3)
+            $table->integer('total_cost_of_toolkit_pcc')
+                ->default(0);
+            $table->integer('total_training_support_fund')
+                ->default(0);
+            $table->integer('total_assessment_fee')
+                ->default(0);
+            $table->integer('total_entrepeneurship_fee')
+                ->default(0);
+            $table->integer('total_new_normal_assisstance')
+                ->default(0);
+            $table->integer('total_accident_insurance')
+                ->default(0);
+            $table->integer('total_book_allowance')
+                ->default(0);
+            $table->integer('total_uniform_allowance')
+                ->default(0);
+            $table->integer('total_misc_fee')
+                ->default(0);
+            $table->integer('total_amount')
+                ->default(1);
+            $table->string('appropriation_type');
+            $table->foreignId('target_status_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->timestamps();
