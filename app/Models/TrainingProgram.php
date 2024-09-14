@@ -27,11 +27,13 @@ class TrainingProgram extends Model
         return $this->hasMany(QualificationTitle::class);
     }
 
-    public function priority() {
+    public function priority()
+    {
         return $this->belongsTo(Priority::class);
     }
 
-    public function tvet() {
+    public function tvet()
+    {
         return $this->belongsTo(Tvet::class);
     }
 
