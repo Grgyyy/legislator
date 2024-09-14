@@ -20,10 +20,11 @@ class EditTrainingProgram extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): TrainingProgram
     {
-        // Validate for unique training program code
-        $this->validateUniqueTrainingProgram($data['code'], $record->id);
+        // Validate for unique training program attributes before updating
+        $this->validateUniqueTrainingProgram($data, $record->id);
 
         try {
+            // Update the record after successful validation
             $record->update($data);
 
             Notification::make()
@@ -49,18 +50,21 @@ class EditTrainingProgram extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueTrainingProgram($code, $currentId)
+    protected function validateUniqueTrainingProgram(array $data, $currentId)
     {
         $query = TrainingProgram::withTrashed()
-            ->where('code', $code)
-            ->where('id', '!=', $currentId)
+            ->where('code', $data['code'])
+            ->where('title', $data['title'])
+            ->where('tvet_id', $data['tvet_id'])
+            ->where('priority_id', $data['priority_id'])
+            ->where('id', '!=', $currentId) // Exclude the current record being edited
             ->first();
 
         if ($query) {
             if ($query->deleted_at) {
-                $message = 'Training Program with this code exists and is marked as deleted. Data cannot be updated.';
+                $message = 'A Training Program with these attributes exists and is marked as deleted. Update cannot be performed.';
             } else {
-                $message = 'Training Program with this code already exists.';
+                $message = 'A Training Program with these attributes already exists.';
             }
             $this->handleValidationException($message);
         }
@@ -68,12 +72,14 @@ class EditTrainingProgram extends EditRecord
 
     protected function handleValidationException($message)
     {
+        // Notify the user of the validation error
         Notification::make()
             ->title('Error')
             ->body($message)
             ->danger()
             ->send();
 
+        // Throw a validation exception with the custom error message
         throw ValidationException::withMessages([
             'code' => $message,
         ]);

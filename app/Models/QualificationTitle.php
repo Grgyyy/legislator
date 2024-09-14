@@ -40,7 +40,8 @@ class QualificationTitle extends Model
         return $this->belongsTo(ScholarshipProgram::class, 'scholarship_program_id');
     }
 
-    public function target() {
+    public function target()
+    {
         return $this->hasMany(Target::class);
     }
 
@@ -49,48 +50,4 @@ class QualificationTitle extends Model
         return $this->belongsTo(Status::class, 'status_id');
     }
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::saving(function ($model) {
-            $model->validateUniqueQualificationTitle();
-        });
-    }
-
-
-    public function validateUniqueQualificationTitle()
-    {
-        $query = self::withTrashed()
-            ->where('training_program_id', $this->training_program_id)
-            ->where('scholarship_program_id', $this->scholarship_program_id);
-
-        if ($this->id) {
-            $query->where('id', '<>' . $this->id);
-        }
-
-        $qualification_title = $query->first();
-
-
-        if ($qualification_title) {
-            if ($qualification_title->deleted_at) {
-                $message = 'A Qualification Title data exists and is marked as deleted. Data cannot be created.';
-            } else {
-                $message = 'A Qualification Title data already exists.';
-            }
-            $this->handleValidationException($message);
-        }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
-    }
 }
