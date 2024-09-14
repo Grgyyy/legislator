@@ -22,9 +22,7 @@ class CreateTarget extends CreateRecord
     {
         return DB::transaction(function () use ($data) {
 
-            \Log::info('Query Data:', $data);
-
-            // Validate and fetch allocation
+            // Find the allocation
             $allocation = Allocation::where('legislator_id', $data['legislator_id'])
                 ->where('particular_id', $data['particular_id'])
                 ->where('scholarship_program_id', $data['scholarship_program_id'])
@@ -35,7 +33,7 @@ class CreateTarget extends CreateRecord
                 throw new \Exception('Allocation not found');
             }
 
-            // Validate and fetch qualification title
+            // Find the qualification title
             $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
 
             if (!$qualificationTitle) {
@@ -43,9 +41,9 @@ class CreateTarget extends CreateRecord
                 throw new \Exception('Qualification Title not found');
             }
 
-            // Initialize number of slots and compute total costs
             $numberOfSlots = $data['number_of_slots'] ?? 0;
 
+            // Calculate costs
             $total_training_cost_pcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
             $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots;
             $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
@@ -58,30 +56,40 @@ class CreateTarget extends CreateRecord
             $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
             $total_amount = $qualificationTitle->pcc * $numberOfSlots;
 
-            // Create and return the new Target record
-            $target = Target::create([
-                'allocation_type' => $data['allocation_type'],
-                'allocation_id' => $allocation->id,
-                'tvi_id' => $data['tvi_id'],
-                'abdd_id' => $data['abdd_id'],
-                'qualification_title_id' => $qualificationTitle->id,
-                'number_of_slots' => $numberOfSlots,
-                'total_training_cost_pcc' => $total_training_cost_pcc,
-                'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
-                'total_training_support_fund' => $total_training_support_fund,
-                'total_assessment_fee' => $total_assessment_fee,
-                'total_entrepeneurship_fee' => $total_entrepeneurship_fee,
-                'total_new_normal_assisstance' => $total_new_normal_assisstance,
-                'total_accident_insurance' => $total_accident_insurance,
-                'total_book_allowance' => $total_book_allowance,
-                'total_uniform_allowance' => $total_uniform_allowance,
-                'total_misc_fee' => $total_misc_fee,
-                'total_amount' => $total_amount,
-                'appropriation_type' => $data['appropriation_type'],
-                'target_status_id' => 1
-            ]);
+            if ($allocation->balance > $total_amount) {
+                // Create the target
+                $target = Target::create([
+                    'allocation_type' => $data['allocation_type'],
+                    'allocation_id' => $allocation->id,
+                    'tvi_id' => $data['tvi_id'],
+                    'abdd_id' => $data['abdd_id'],
+                    'qualification_title_id' => $qualificationTitle->id,
+                    'number_of_slots' => $numberOfSlots,
+                    'total_training_cost_pcc' => $total_training_cost_pcc,
+                    'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
+                    'total_training_support_fund' => $total_training_support_fund,
+                    'total_assessment_fee' => $total_assessment_fee,
+                    'total_entrepeneurship_fee' => $total_entrepeneurship_fee,
+                    'total_new_normal_assisstance' => $total_new_normal_assisstance,
+                    'total_accident_insurance' => $total_accident_insurance,
+                    'total_book_allowance' => $total_book_allowance,
+                    'total_uniform_allowance' => $total_uniform_allowance,
+                    'total_misc_fee' => $total_misc_fee,
+                    'total_amount' => $total_amount,
+                    'appropriation_type' => $data['appropriation_type'],
+                    'target_status_id' => 1
+                ]);
 
-            return $target;
+                // Update the allocation balance
+                $allocation->balance -= $total_amount;
+                $allocation->save();
+
+                return $target;
+            } else {
+                \Log::error('Insufficient balance for allocation', $data);
+                throw new \Exception('Insufficient balance for allocation');
+            }
         });
     }
+
 }

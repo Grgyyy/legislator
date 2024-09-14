@@ -17,7 +17,6 @@ class Target extends Model
         'abdd_id',
         'qualification_title_id',
         'number_of_slots',
-
         'total_training_cost_pcc',
         'total_cost_of_toolkit_pcc',
         'total_training_support_fund',
@@ -43,16 +42,6 @@ class Target extends Model
         return $this->belongsTo(Tvi::class);
     }
 
-    public function priority()
-    {
-        return $this->belongsTo(Priority::class);
-    }
-
-    public function tvet()
-    {
-        return $this->belongsTo(Tvet::class);
-    }
-
     public function abdd()
     {
         return $this->belongsTo(Abdd::class);
@@ -65,7 +54,7 @@ class Target extends Model
 
     public function targetStatus()
     {
-        return $this->belongsTo(Status::class);
+        return $this->belongsTo(TargetStatus::class);
     }
 
 }

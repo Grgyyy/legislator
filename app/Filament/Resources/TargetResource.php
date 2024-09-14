@@ -143,51 +143,15 @@ class TargetResource extends Resource
             ]);
     }
 
-    protected static function getParticularOptions($legislatorId) {
-        $particulars = Particular::whereHas('allocation', function($query) use ($legislatorId) {
-            $query->where('legislator_id', $legislatorId);
-        })->pluck('name', 'id')->toArray();
-
-        return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
-    }
-
-    protected static function getScholarshipProgramsOptions($legislatorId, $particularId) {
-        $scholarshipPrograms = ScholarshipProgram::whereHas('allocation', function($query) use ($legislatorId, $particularId) {
-            $query->where('legislator_id', $legislatorId)
-                ->where('particular_id', $particularId);
-        })->pluck('name', 'id')->toArray();
-
-        return empty($scholarshipPrograms) ? ['' => 'No Scholarship Program Available'] : $scholarshipPrograms;
-    }
-
-    protected static function getAllocationYear($legislatorId, $particularId, $scholarshipProgramId) {
-        $yearNow = date('Y');
-        $allocations = Allocation::where('legislator_id', $legislatorId)
-                        ->where('particular_id', $particularId)
-                        ->where('scholarship_program_id', $scholarshipProgramId)
-                        ->whereIn('year', [$yearNow, $yearNow - 1])
-                        ->pluck('year', 'id')
-                        ->toArray();
-
-        return empty($allocations) ? ['' => 'No Allocation Available.'] : $allocations;
-    }
-
-    protected static function getQualificationTitles($scholarshipProgramId)
-    {
-        return QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
-            ->where('status_id', 1)
-            ->whereNull('deleted_at')
-            ->with('trainingProgram')
-            ->get()
-            ->pluck('trainingProgram.title', 'id')
-            ->toArray();
-    }
-
     public static function table(Table $table): Table
     {
         return $table
             ->emptyStateHeading('No targets yet')
             ->columns([
+                TextColumn::make('allocation_type')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('allocation.legislator.name')
                     ->sortable()
                     ->searchable()
@@ -265,13 +229,19 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->label('No. of Slots'),
+                TextColumn::make('qualification_title.pcc')
+                    ->searchable()
+                    ->toggleable()
+                    ->label('Per Capita Cost')
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make('total_amount')
                     ->searchable()
                     ->toggleable()
                     ->label('Total Amount')
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-                TextColumn::make('status.desc')
+                TextColumn::make('targetStatus.desc')
                     ->searchable()
                     ->toggleable()
                     ->label('Status'),
@@ -313,5 +283,45 @@ class TargetResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+    }
+
+    protected static function getParticularOptions($legislatorId) {
+        $particulars = Particular::whereHas('allocation', function($query) use ($legislatorId) {
+            $query->where('legislator_id', $legislatorId);
+        })->pluck('name', 'id')->toArray();
+
+        return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
+    }
+
+    protected static function getScholarshipProgramsOptions($legislatorId, $particularId) {
+        $scholarshipPrograms = ScholarshipProgram::whereHas('allocation', function($query) use ($legislatorId, $particularId) {
+            $query->where('legislator_id', $legislatorId)
+                ->where('particular_id', $particularId);
+        })->pluck('name', 'id')->toArray();
+
+        return empty($scholarshipPrograms) ? ['' => 'No Scholarship Program Available'] : $scholarshipPrograms;
+    }
+
+    protected static function getAllocationYear($legislatorId, $particularId, $scholarshipProgramId) {
+        $yearNow = date('Y');
+        $allocations = Allocation::where('legislator_id', $legislatorId)
+                        ->where('particular_id', $particularId)
+                        ->where('scholarship_program_id', $scholarshipProgramId)
+                        ->whereIn('year', [$yearNow, $yearNow - 1])
+                        ->pluck('year', 'id')
+                        ->toArray();
+
+        return empty($allocations) ? ['' => 'No Allocation Available.'] : $allocations;
+    }
+
+    protected static function getQualificationTitles($scholarshipProgramId)
+    {
+        return QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
+            ->where('status_id', 1)
+            ->whereNull('deleted_at')
+            ->with('trainingProgram')
+            ->get()
+            ->pluck('trainingProgram.title', 'id')
+            ->toArray();
     }
 }
