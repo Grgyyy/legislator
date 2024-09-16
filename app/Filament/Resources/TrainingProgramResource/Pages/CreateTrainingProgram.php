@@ -34,8 +34,8 @@ class CreateTrainingProgram extends CreateRecord
             return TrainingProgram::create([
                 'code' => $data['code'],
                 'title' => $data['title'],
-                'tvet_id' => $data['tvet_id'],
                 'priority_id' => $data['priority_id'],
+                'tvet_id' => $data['tvet_id'],
             ]);
         });
     }

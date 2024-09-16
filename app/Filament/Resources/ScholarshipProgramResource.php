@@ -44,15 +44,18 @@ class ScholarshipProgramResource extends Resource
                 TextInput::make('name')
                     ->label("Scholarship Program")
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
                 TextInput::make("code")
                     ->label('Scholarship Program Code')
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
                 TextInput::make("desc")
                     ->label('Description')
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
             ]);
     }
 

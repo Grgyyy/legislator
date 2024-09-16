@@ -49,7 +49,9 @@ class TviResource extends Resource
             ->schema([
                 TextInput::make("school_id")
                     ->label('School ID')
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
                 TextInput::make("name")
                     ->label('Institution')
                     ->required()
