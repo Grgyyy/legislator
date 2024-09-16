@@ -21,27 +21,44 @@ class CreateTarget extends CreateRecord
     protected function handleRecordCreation(array $data): Target
     {
         return DB::transaction(function () use ($data) {
+            // Extract the first item from the targets repeater array
+            $targetData = $data['targets'][0] ?? null;
+
+            if (!$targetData) {
+                \Log::error('No target data found in the repeater.');
+                throw new \Exception('No target data found.');
+            }
+
+            // Validate required fields in the repeater data
+            $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'allocation_type', 'tvi_id', 'abdd_id', 'appropriation_type'];
+            
+            foreach ($requiredFields as $field) {
+                if (!array_key_exists($field, $targetData) || empty($targetData[$field])) {
+                    \Log::error("Validation failed: The field '$field' is required in repeater data.", $data);
+                    throw new \InvalidArgumentException("The field '$field' is required.");
+                }
+            }
 
             // Find the allocation
-            $allocation = Allocation::where('legislator_id', $data['legislator_id'])
-                ->where('particular_id', $data['particular_id'])
-                ->where('scholarship_program_id', $data['scholarship_program_id'])
+            $allocation = Allocation::where('legislator_id', $targetData['legislator_id'])
+                ->where('particular_id', $targetData['particular_id'])
+                ->where('scholarship_program_id', $targetData['scholarship_program_id'])
                 ->first();
 
             if (!$allocation) {
-                \Log::error('Allocation not found', $data);
+                \Log::error('Allocation not found', $targetData);
                 throw new \Exception('Allocation not found');
             }
 
             // Find the qualification title
-            $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
+            $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
 
             if (!$qualificationTitle) {
-                \Log::error('Qualification Title not found', $data);
+                \Log::error('Qualification Title not found', $targetData);
                 throw new \Exception('Qualification Title not found');
             }
 
-            $numberOfSlots = $data['number_of_slots'] ?? 0;
+            $numberOfSlots = $targetData['number_of_slots'] ?? 0;
 
             // Calculate costs
             $total_training_cost_pcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
@@ -56,13 +73,13 @@ class CreateTarget extends CreateRecord
             $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
             $total_amount = $qualificationTitle->pcc * $numberOfSlots;
 
-            if ($allocation->balance > $total_amount) {
+            if ($allocation->balance >= $total_amount) {
                 // Create the target
                 $target = Target::create([
-                    'allocation_type' => $data['allocation_type'],
+                    'allocation_type' => $targetData['allocation_type'],
                     'allocation_id' => $allocation->id,
-                    'tvi_id' => $data['tvi_id'],
-                    'abdd_id' => $data['abdd_id'],
+                    'tvi_id' => $targetData['tvi_id'],
+                    'abdd_id' => $targetData['abdd_id'],
                     'qualification_title_id' => $qualificationTitle->id,
                     'number_of_slots' => $numberOfSlots,
                     'total_training_cost_pcc' => $total_training_cost_pcc,
@@ -76,8 +93,8 @@ class CreateTarget extends CreateRecord
                     'total_uniform_allowance' => $total_uniform_allowance,
                     'total_misc_fee' => $total_misc_fee,
                     'total_amount' => $total_amount,
-                    'appropriation_type' => $data['appropriation_type'],
-                    'target_status_id' => 1
+                    'appropriation_type' => $targetData['appropriation_type'],
+                    'target_status_id' => 1,
                 ]);
 
                 // Update the allocation balance
@@ -86,10 +103,9 @@ class CreateTarget extends CreateRecord
 
                 return $target;
             } else {
-                \Log::error('Insufficient balance for allocation', $data);
+                \Log::error('Insufficient balance for allocation', $targetData);
                 throw new \Exception('Insufficient balance for allocation');
             }
         });
     }
-
 }
