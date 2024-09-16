@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\MunicipalityResource\Pages;
+use App\Models\Province;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
@@ -44,12 +45,21 @@ class MunicipalityResource extends Resource
                 TextInput::make("name")
                     ->label('Municipality')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false),
                 Select::make("province_id")
                     ->relationship("province", "name")
                     ->default(fn($get) => request()->get('province_id'))
-                    ->reactive()
+                    ->options(function () {
+                        $province = Province::all()->pluck('name', 'id')->toArray();
+                        return !empty($province) ? $province : ['no_province' => 'No Province Available'];
+                    })
                     ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->preload()
+                    ->searchable()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_province'),
             ]);
     }
 

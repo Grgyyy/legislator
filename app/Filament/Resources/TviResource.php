@@ -18,6 +18,8 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Filters\TrashedFilter;
 use App\Filament\Resources\TviResource\Pages;
+use App\Models\InstitutionClass;
+use App\Models\TviClass;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteAction;
@@ -47,19 +49,40 @@ class TviResource extends Resource
             ->schema([
                 TextInput::make("school_id")
                     ->label('School ID')
-                    ->required(),
+                    ->required()
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
                 TextInput::make("name")
                     ->label('Institution')
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
                 Select::make('tvi_class_id')
                     ->label("Institution Class (A)")
                     ->relationship('tviClass', 'name')
-                    ->required(),
+                    ->options(function () {
+                        $tviClass = TviClass::all()->pluck('name', 'id')->toArray();
+                        return !empty($tviClass) ? $tviClass : ['no_tvi_class' => 'No Institution Class (A) Available'];
+                    })
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->preload()
+                    ->searchable()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_institution_class'),
                 Select::make('institution_class_id')
                     ->label("Institution Class (B)")
                     ->relationship('InstitutionClass', 'name')
-                    ->required(),
+                    ->options(function () {
+                        $institutionClass = InstitutionClass::all()->pluck('name', 'id')->toArray();
+                        return !empty($institutionClass) ? $institutionClass : ['no_institution_class' => 'No Institution Class (B) Available'];
+                    })
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->preload()
+                    ->searchable()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_institution_class'),
                 Select::make('district_id')
                     ->label('District')
                     ->options(function () {
@@ -69,14 +92,19 @@ class TviResource extends Resource
                                 $district->municipality->province->name;
 
                             return [$district->id => $label];
-                        })->toArray();
+                        })->toArray() ?: ['no_district' => 'No District Available'];
                     })
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->searchable()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_district'),
                 TextInput::make("address")
                     ->label("Full Address")
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
             ]);
     }
 

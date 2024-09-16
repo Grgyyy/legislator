@@ -94,6 +94,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationGroups([
                 'TARGET DATA INPUT',
+                'SECTORS',
                 'MANAGE TARGET',
                 'USER MANAGEMENT',
             ]);

@@ -43,8 +43,10 @@ class RegionResource extends Resource
             ->schema([
                 TextInput::make("name")
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->label('Region')
+                    ->validationAttribute('Region'),
             ]);
     }
 

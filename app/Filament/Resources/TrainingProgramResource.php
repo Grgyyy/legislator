@@ -3,7 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TrainingProgramResource\Pages;
+use App\Models\Priority;
+use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
+use App\Models\Tvet;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
@@ -42,29 +45,55 @@ class TrainingProgramResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('code')
-                    ->required(),
                 TextInput::make('title')
+                    ->label(label: "Training Program")
+                    ->autocomplete(false)
+                    ->markAsRequired(false)
+                    ->required(),
+                TextInput::make('code')
+                    ->label(label: 'Training Program Code')
+                    ->autocomplete(false)
+                    ->markAsRequired(false)
                     ->required(),
                 Select::make('tvet_id')
-                    ->label('Tvet Sector')
+                    ->label('TVET Sector')
                     ->relationship('tvet', 'name')
+                    ->options(function () {
+                        $tvet = Tvet::all()->pluck('name', 'id')->toArray();
+                        return !empty($tvet) ? $tvet : ['no_tvet' => 'No TVET Sector Available'];
+                    })
                     ->preload()
                     ->searchable()
-                    ->required(),
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->disableOptionWhen(fn ($value) => $value === 'no_tvet'),
                 Select::make('priority_id')
                     ->label('Priority Sector')
                     ->relationship('priority', 'name')
+                    ->options(function () {
+                        $priority = Priority::all()->pluck('name', 'id')->toArray();
+                        return !empty($priority) ? $priority : ['no_priority' => 'No Priority Sector Available'];
+                    })
                     ->preload()
                     ->searchable()
-                    ->required(),
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->disableOptionWhen(fn ($value) => $value === 'no_priority'),
                 Select::make('scholarshipPrograms')
-                    ->label('Scholarship Programs')
+                    ->label('Scholarship Program')
                     ->multiple()
                     ->relationship('scholarshipPrograms', 'name')
+                    ->options(function () {
+                        $scholarshipProgram = ScholarshipProgram::all()->pluck('name', 'id')->toArray();
+                        return !empty($scholarshipProgram) ? $scholarshipProgram : ['no_scholarship_program' => 'No Scholarship Program Available'];
+                    })
                     ->preload()
-                    ->searchable()
-                    ->required(),
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program'),
             ]);
     }
 

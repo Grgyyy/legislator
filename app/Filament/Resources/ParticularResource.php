@@ -55,7 +55,11 @@ class ParticularResource extends Resource
                         'EO79' => 'EO79',
                         'EO70' => 'EO70',
                         'KIA/WIA' => 'KIA/WIA',
-                    ]),
+                    ])
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->searchable()
+                    ->preload(),
                 Select::make('district_id')
                     ->label('District')
                     ->options(function () {
@@ -65,10 +69,14 @@ class ParticularResource extends Resource
                                 $district->municipality->province->name;
 
                             return [$district->id => $label];
-                        })->toArray();
+                        })->toArray() ?: ['no_district' => 'No District Available'];
                     })
+                    ->markAsRequired(false)
                     ->required()
-                    ->preload(),
+                    ->preload()
+                    ->native(false)
+                    ->searchable()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_district'),
             ]);
     }
 

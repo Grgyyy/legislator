@@ -22,6 +22,8 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\QualificationTitleResource\Pages;
+use App\Models\Status;
+use App\Models\TrainingProgram;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -48,22 +50,41 @@ class QualificationTitleResource extends Resource
                 Select::make('training_program_id')
                     ->label('Training Program')
                     ->relationship('trainingProgram', 'title')
-                    ->required()
-                    ->reactive()
                     ->afterStateUpdated(function (callable $set, $state) {
                         $set('scholarship_program_id', null);
                         $set('scholarshipProgramsOptions', self::getScholarshipProgramsOptions($state));
-                    }),
-
+                    })
+                    ->options(function () {
+                        $trainingProgram = TrainingProgram::all()->pluck('title', 'id')->toArray();
+                        return !empty($trainingProgram) ? $trainingProgram : ['no_training_program' => 'No Training Program Available'];
+                    })
+                    ->preload()
+                    ->searchable()
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->disableOptionWhen(fn ($value) => $value === 'no_training_program'),
                 Select::make('scholarship_program_id')
                     ->label('Scholarship Programs')
-                    ->options(fn($get) => self::getScholarshipProgramsOptions($get('training_program_id')))
+                    ->options(function ($get) {
+                        $trainingProgramId = $get('training_program_id');
+                        
+                        return $trainingProgramId
+                            ? self::getScholarshipProgramsOptions($trainingProgramId)
+                            : ['no_scholarship_program' => 'No scholarship program available. Select a training program first.'];
+                    })
                     ->required()
                     ->reactive()
-                    ->searchable(),
+                    ->preload()
+                    ->searchable()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program'),
                 TextInput::make('training_cost_pcc')
                     ->label('Training Cost PCC')
                     ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
                     ->numeric()
                     ->default(0)
                     ->prefix('₱')
@@ -72,6 +93,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('cost_of_toolkit_pcc')
                     ->label('Cost of Toolkit PCC')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -81,6 +103,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('training_support_fund')
                     ->label('Training Support Fund')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -90,6 +113,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('assessment_fee')
                     ->label('Assessment Fee')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -99,15 +123,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('entrepeneurship_fee')
                     ->label('Entrepeneurship Fee')
                     ->required()
-                    ->autocomplete(false)
-                    ->numeric()
-                    ->default(0)
-                    ->prefix('₱')
-                    ->minValue(0)
-                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                TextInput::make('misc_fee')
-                    ->label('Miscellaneous Fee')
-                    ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -117,6 +133,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('new_normal_assisstance')
                     ->label('New Normal Assisstance')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -126,6 +143,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('accident_insurance')
                     ->label('Accident Insurance')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -135,6 +153,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('book_allowance')
                     ->label('Book Allowance')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -144,6 +163,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('uniform_allowance')
                     ->label('Uniform Allowance')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -153,6 +173,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('misc_fee')
                     ->label('Miscellaneous Fee')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -162,6 +183,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('hours_duration')
                     ->label('Hours duration')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -170,6 +192,7 @@ class QualificationTitleResource extends Resource
                 TextInput::make('days_duration')
                     ->label('Days Duration')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
@@ -177,9 +200,17 @@ class QualificationTitleResource extends Resource
                     ->suffix('day(s)'),
                 Select::make('status_id')
                     ->label('Status')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->options(function () {
+                        $status = Status::all()->pluck('desc', 'id')->toArray();
+                        return !empty($status) ? $status : ['no_status' => 'No Status Available'];
+                    })
                     ->default(1)
                     ->relationship('status', 'desc')
-                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord),
+                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
+                    ->disableOptionWhen(fn ($value) => $value === 'no_status'),
             ]);
     }
 

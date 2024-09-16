@@ -35,6 +35,8 @@ class AbddResource extends Resource
 {
     protected static ?string $model = Abdd::class;
 
+    protected static ?string $navigationGroup = "SECTORS";
+
     protected static ?string $navigationLabel = "ABDD Sectors";
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
