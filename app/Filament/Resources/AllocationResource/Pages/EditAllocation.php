@@ -20,7 +20,6 @@ class EditAllocation extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Allocation
     {
-        // Validate unique Allocation before updating
         $this->validateUniqueAllocation($data, $record->id);
 
         try {

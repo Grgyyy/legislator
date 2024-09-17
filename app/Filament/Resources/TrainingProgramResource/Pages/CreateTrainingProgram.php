@@ -18,11 +18,10 @@ class CreateTrainingProgram extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
-    // Handle record creation with custom validation
     protected function handleRecordCreation(array $data): TrainingProgram
     {
         return DB::transaction(function () use ($data) {
-            // Validate uniqueness of the training program
+
             $this->validateUniqueTrainingProgram(
                 $data['code'],
                 $data['title'],
@@ -30,7 +29,7 @@ class CreateTrainingProgram extends CreateRecord
                 $data['priority_id']
             );
 
-            // Proceed to create the training program
+
             return TrainingProgram::create([
                 'code' => $data['code'],
                 'title' => $data['title'],
@@ -40,7 +39,7 @@ class CreateTrainingProgram extends CreateRecord
         });
     }
 
-    // Validate the uniqueness of the training program by checking code, title, tvet_id, and priority_id
+
     protected function validateUniqueTrainingProgram($code, $title, $tvet_id, $priority_id)
     {
         $existingProgram = TrainingProgram::withTrashed()
@@ -51,7 +50,7 @@ class CreateTrainingProgram extends CreateRecord
             ->first();
 
         if ($existingProgram) {
-            // Different error messages based on soft-deleted status
+
             $message = $existingProgram->deleted_at
                 ? 'A Training Program with this code and title exists and is marked as deleted. You cannot create it again.'
                 : 'A Training Program with this code and title already exists.';
@@ -60,17 +59,15 @@ class CreateTrainingProgram extends CreateRecord
         }
     }
 
-    // Handle validation exceptions and notify the user
+
     protected function handleValidationException($message)
     {
-        // Send notification using Filament
         Notification::make()
             ->title('Error')
             ->body($message)
             ->danger()
             ->send();
 
-        // Throw validation exception with the message
         throw ValidationException::withMessages([
             'code' => [$message],
         ]);
