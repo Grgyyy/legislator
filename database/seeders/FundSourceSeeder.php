@@ -13,9 +13,9 @@ class FundSourceSeeder extends Seeder
     public function run()
     {
         $sources = [
-            ['name' => 'RO - Regular'],
-            ['name' => 'CO - Regular'],
-            ['name' => 'CO - Legislator Funds'],
+            ['name' => 'RO Regular'],
+            ['name' => 'CO Regular'],
+            ['name' => 'CO Legislator Funds'],
         ];
 
         foreach ($sources as $source) {

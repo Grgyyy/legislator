@@ -14,15 +14,15 @@ class SubParticularSeeder extends Seeder
     {
         // Fetch fund sources
         $region_regular = DB::table('fund_sources')
-            ->where('name', 'RO - Regular')
+            ->where('name', 'RO Regular')
             ->first();
 
         $central_regular = DB::table('fund_sources')
-            ->where('name', 'CO - Regular')
+            ->where('name', 'CO Regular')
             ->first();
 
         $central_legislator_funds = DB::table('fund_sources')
-            ->where('name', 'CO - Legislator Funds')
+            ->where('name', 'CO Legislator Funds')
             ->first();
 
         if (!$region_regular || !$central_regular || !$central_legislator_funds) {
@@ -33,7 +33,7 @@ class SubParticularSeeder extends Seeder
         // Particulars for each fund source
         $regional_regular_particulars = ['Regular'];
         $central_regular_particulars = ['Regular', 'SDF', 'With Identified TVI', 'RO Programming', 'AIFO', 'EO79', 'KIA/WIA'];
-        $central_legislator_funds_particulars = ['District', 'Partylist', 'Senator', 'House Speaker', 'House Speaker - LAKAS'];
+        $central_legislator_funds_particulars = ['District', 'Partylist', 'Senator', 'House Speaker', 'House Speaker (LAKAS)'];
 
         // Insert or update particulars for RO - Regular
         foreach ($regional_regular_particulars as $particular) {

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\SubParticular;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms\Form;
 use App\Models\District;
@@ -41,32 +42,40 @@ class ParticularResource extends Resource
     {
         return $form
             ->schema([
-                Select::make("name")
-                    ->label('Particular')
+                Select::make('sub_particular_id')
+                    ->label('Sub-Particular')
+                    ->options(function () {
+                        // Fetch all SubParticular records with their related FundSource
+                        $subParticulars = SubParticular::with('fundSource')->get();
+
+                        // Prepare combined options
+                        $combinedOptions = [];
+
+                        foreach ($subParticulars as $subParticular) {
+                            $subParticularName = $subParticular->name;
+                            $fundSourceName = $subParticular->fundSource ? $subParticular->fundSource->name : 'No Fund Source';
+
+                            // Combine names for display
+                            $combinedOptions[$subParticular->id] = "$subParticularName - $fundSourceName";
+                        }
+
+                        // Add a placeholder if there are no options
+                        return !empty($combinedOptions) ? $combinedOptions : ['no_option' => 'No Options Available'];
+                    })
                     ->required()
-                    ->options([
-                        'District' => 'District',
-                        'Party List' => 'Party List',
-                        'Senator' => 'Senator',
-                        'Vetted' => 'Vetted',
-                        'Regular' => 'Regular',
-                        'Star Rated' => 'Star Rated',
-                        'APACC' => 'APACC',
-                        'EO79' => 'EO79',
-                        'EO70' => 'EO70',
-                        'KIA/WIA' => 'KIA/WIA',
-                    ])
                     ->markAsRequired(false)
                     ->native(false)
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->disableOptionWhen(fn ($value) => $value === 'no_option'),
                 Select::make('district_id')
                     ->label('District')
                     ->options(function () {
                         return District::all()->mapWithKeys(function (District $district) {
                             $label = $district->name . ' - ' .
                                 $district->municipality->name . ', ' .
-                                $district->municipality->province->name;
+                                $district->municipality->province->name . ', ' .
+                                $district->municipality->province->region->name;
 
                             return [$district->id => $label];
                         })->toArray() ?: ['no_district' => 'No District Available'];
@@ -85,7 +94,13 @@ class ParticularResource extends Resource
         return $table
             ->emptyStateHeading('No particulars yet')
             ->columns([
-                TextColumn::make("name")
+                TextColumn::make("subParticular.fundSource.name")
+                    ->label('Fund Source')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
+                TextColumn::make("subParticular.name")
                     ->label('Particular')
                     ->sortable()
                     ->searchable()
