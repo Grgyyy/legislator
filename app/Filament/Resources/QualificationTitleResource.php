@@ -71,12 +71,12 @@ class QualificationTitleResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->disableOptionWhen(fn ($value) => $value === 'no_training_program'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_training_program'),
                 Select::make('scholarship_program_id')
                     ->label('Scholarship Programs')
                     ->options(function ($get) {
                         $trainingProgramId = $get('training_program_id');
-                        
+
                         return $trainingProgramId
                             ? self::getScholarshipProgramsOptions($trainingProgramId)
                             : ['no_scholarship_program' => 'No scholarship program available. Select a training program first.'];
@@ -88,7 +88,7 @@ class QualificationTitleResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
                 TextInput::make('training_cost_pcc')
                     ->label('Training Cost PCC')
                     ->required()
@@ -219,7 +219,7 @@ class QualificationTitleResource extends Resource
                     ->default(1)
                     ->relationship('status', 'desc')
                     ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
-                    ->disableOptionWhen(fn ($value) => $value === 'no_status'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_status'),
             ]);
     }
 
