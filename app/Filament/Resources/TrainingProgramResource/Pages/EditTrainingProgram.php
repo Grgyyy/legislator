@@ -21,7 +21,7 @@ class EditTrainingProgram extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [
-            'Trainin Program',
+            'Training Program',
             'Edit'
         ];
     }
