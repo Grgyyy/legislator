@@ -18,6 +18,14 @@ class EditTrainingProgram extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            'Trainin Program',
+            'Edit'
+        ];
+    }
+
     protected function handleRecordUpdate($record, array $data): TrainingProgram
     {
         // Validate for unique training program attributes before updating

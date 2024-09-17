@@ -69,7 +69,7 @@ class TviResource extends Resource
                     ->native(false)
                     ->preload()
                     ->searchable()
-                    ->disableOptionWhen(fn ($value) => $value === 'no_institution_class'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_institution_class'),
                 Select::make('institution_class_id')
                     ->label("Institution Class (B)")
                     ->relationship('InstitutionClass', 'name')
@@ -82,7 +82,7 @@ class TviResource extends Resource
                     ->native(false)
                     ->preload()
                     ->searchable()
-                    ->disableOptionWhen(fn ($value) => $value === 'no_institution_class'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_institution_class'),
                 Select::make('district_id')
                     ->label('District')
                     ->options(function () {
@@ -99,7 +99,7 @@ class TviResource extends Resource
                     ->markAsRequired(false)
                     ->native(false)
                     ->searchable()
-                    ->disableOptionWhen(fn ($value) => $value === 'no_district'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_district'),
                 TextInput::make("address")
                     ->label("Full Address")
                     ->required()
