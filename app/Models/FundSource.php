@@ -11,9 +11,10 @@ class FundSource extends Model
 
     protected $fillable = [
         'name',
+        'fund_source_id'
     ];
 
-    public function legislator() {
-        return $this->belongsTo(Legislator::class);
+    public function subParticular() {
+        return $this->belongsTo(SubParticular::class);
     }
 }

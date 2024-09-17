@@ -13,7 +13,6 @@ class Legislator extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'fund_source_id',
         'name',
         'status_id'
     ];
@@ -23,9 +22,7 @@ class Legislator extends Model
         return $this->belongsTo(Status::class);
     }
 
-    public function fundSource() {
-        return $this->belongsTo(FundSource::class);
-    }
+
 
     public function allocation()
     {

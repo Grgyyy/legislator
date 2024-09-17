@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\FundSource;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
@@ -48,13 +47,6 @@ class LegislatorResource extends Resource
     {
         return $form
             ->schema([
-                Select::make("fund_source_id")
-                    ->label('Legislator')
-                    ->required()
-                    ->options(function () {
-                        $sources = FundSource::all()->pluck('name', 'id')->toArray();
-                        return !empty($sources) ? $sources : ['no_fund_sources' => 'No Fund Sources Available'];
-                    }),
                 TextInput::make("name")
                     ->label('Legislator')
                     ->required()
