@@ -177,7 +177,7 @@ class TrainingProgramResource extends Resource
 
         $routeParameter = request()->route('record');
 
-        if ($routeParameter && is_numeric($routeParameter)) {
+        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->whereHas('scholarshipPrograms', function (Builder $query) use ($routeParameter) {
                 $query->where('scholarship_programs.id', $routeParameter); // Disambiguate column name
             });

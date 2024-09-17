@@ -48,7 +48,8 @@ class AllocationResource extends Resource
                 ->afterStateUpdated(function (callable $set, $state) {
                     $set('particular_id', null);
                     $set('particular_options', self::getParticularOptions($state));
-                }),
+                })
+                ->markAsRequired(false),
             Select::make('particular_id')
                 ->label('Particular')
                 ->options(fn($get) => self::getParticularOptions($get('legislator_id')))
