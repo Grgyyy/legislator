@@ -24,6 +24,7 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\QualificationTitleResource\Pages;
 use App\Models\Status;
 use App\Models\TrainingProgram;
+use Filament\Forms\Components\Component;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
@@ -46,18 +47,25 @@ class QualificationTitleResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([
+            ->schema([       
                 Select::make('training_program_id')
                     ->label('Training Program')
                     ->relationship('trainingProgram', 'title')
                     ->afterStateUpdated(function (callable $set, $state) {
                         $set('scholarship_program_id', null);
-                        $set('scholarshipProgramsOptions', self::getScholarshipProgramsOptions($state));
+
+                        $scholarshipPrograms = self::getScholarshipProgramsOptions($state);
+                
+                        $set('scholarshipProgramsOptions', $scholarshipPrograms);
+                
+                        if (count($scholarshipPrograms) === 1) {
+                            $set('scholarship_program_id', key($scholarshipPrograms));
+                        }
                     })
                     ->options(function () {
-                        $trainingProgram = TrainingProgram::all()->pluck('title', 'id')->toArray();
-                        return !empty($trainingProgram) ? $trainingProgram : ['no_training_program' => 'No Training Program Available'];
+                        return TrainingProgram::all()->pluck('title', 'id')->toArray() ?: ['no_training_program' => 'No Training Program Available'];
                     })
+                    ->live()
                     ->preload()
                     ->searchable()
                     ->required()
@@ -73,10 +81,11 @@ class QualificationTitleResource extends Resource
                             ? self::getScholarshipProgramsOptions($trainingProgramId)
                             : ['no_scholarship_program' => 'No scholarship program available. Select a training program first.'];
                     })
-                    ->required()
-                    ->reactive()
+                    ->reactive() 
                     ->preload()
+                    ->live()
                     ->searchable()
+                    ->required()
                     ->markAsRequired(false)
                     ->native(false)
                     ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program'),
