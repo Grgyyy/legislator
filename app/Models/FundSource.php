@@ -11,10 +11,9 @@ class FundSource extends Model
 
     protected $fillable = [
         'name',
-        'fund_source_id'
     ];
 
     public function subParticular() {
-        return $this->belongsTo(SubParticular::class);
+        return $this->hasMany(SubParticular::class);
     }
 }
