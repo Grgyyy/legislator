@@ -12,12 +12,14 @@ return new class extends Migration {
     {
         Schema::create('legislators', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('fund_source_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->string("name");
             $table->foreignId('status_id')
                 ->default(1)
                 ->constrained()
-                ->cascadeOnDelete()
-                ->unique();
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

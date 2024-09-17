@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call(MunicipalitySeeder::class);
         $this->call(DistrictSeeder::class);
         $this->call(FundSourceSeeder::class);
-        $this->call(ParticularSeeder::class);
+        $this->call(RegionalParticularSeeder::class);
         $this->call(TargetStatusSeeder::class);
 
         // You can call other seeders here as well
