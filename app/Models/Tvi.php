@@ -35,11 +35,13 @@ class Tvi extends Model
         return $this->belongsTo(District::class);
     }
 
-    public function status() {
+    public function status()
+    {
         return $this->belongsTo(Status::class);
     }
 
-    public function target() {
+    public function target()
+    {
         return $this->hasMany(Target::class);
     }
 
