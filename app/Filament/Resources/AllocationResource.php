@@ -24,6 +24,8 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\AllocationResource\Pages;
+use App\Models\Legislator;
+use App\Models\ScholarshipProgram;
 use Filament\Tables\Filters\Filter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
@@ -42,67 +44,117 @@ class AllocationResource extends Resource
         return $form
         ->schema([
             Select::make('legislator_id')
+                ->label('Legislator')
                 ->relationship('legislator', 'name')
-                ->required()
-                ->reactive()
                 ->afterStateUpdated(function (callable $set, $state) {
                     $set('particular_id', null);
-                    $set('particular_options', self::getParticularOptions($state));
+
+                    $particulars = self::getParticularOptions($state);
+                    $set('particularOptions', $particulars);
+
+                    if (count($particulars) === 1) {
+                        $set('particular_id', key($particulars));
+                    }
                 })
-                ->markAsRequired(false),
+                ->options(function () {
+                    return Legislator::all()->pluck('name', 'id')->toArray() ?: ['no_legislator' => 'No Legislator Available'];
+                })
+                ->live()
+                ->preload()
+                ->searchable()
+                ->required()
+                ->markAsRequired(false)
+                ->native(false)
+                ->disableOptionWhen(fn ($value) => $value === 'no_legislator'),
             Select::make('particular_id')
                 ->label('Particular')
-                ->options(fn($get) => self::getParticularOptions($get('legislator_id')))
-                ->required()
+                ->options(function ($get) {
+                    $legislatorId = $get('legislator_id');
+
+                    return $legislatorId
+                        ? self::getParticularOptions($legislatorId)
+                        : ['no_particular' => 'No Particular available. Select a legislator first.'];
+                })
                 ->reactive()
+                ->preload()
+                ->live()
                 ->searchable()
-                ->label('Particular'),
+                ->required()
+                ->markAsRequired(false)
+                ->native(false)
+                ->disableOptionWhen(fn ($value) => $value === 'no_particular'),
             Select::make('scholarship_program_id')
-                ->relationship("scholarship_program", "name")
-                ->required(),
+                ->label('Scholarship Programs')
+                ->relationship('scholarship_program', 'name')
+                ->options(function () {
+                        $scholarshipProgram = ScholarshipProgram::all()->pluck('name', 'id')->toArray();
+                        return !empty($scholarshipProgram) ? $scholarshipProgram : ['no_scholarship_program' => 'No Scholarship Program Available'];
+                    })
+                ->preload()
+                ->searchable()
+                ->required()
+                ->markAsRequired(false)
+                ->native(false)
+                ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program'),
             TextInput::make('allocation')
                 ->label('Allocation')
                 ->required()
                 ->autocomplete(false)
+                ->markAsRequired(false)
                 ->numeric()
                 ->default(0)
                 ->prefix('₱')
                 ->minValue(0)
+                ->maxValue(999999999999.99)
                 ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                ->debounce(300)
+                ->debounce(600)
                 ->afterStateUpdated(function (callable $set, $state, $get) {
+                    
                     $adminCost = $state * 0.02;
+                    
                     $set('admin_cost', $adminCost);
                     $set('balance', $state - $adminCost);
-                }),
+                })
+                ->validationAttribute('allocation')
+                ->validationMessages([
+                    'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                ]),
             TextInput::make('admin_cost')
                 ->label('Admin Cost')
                 ->required()
+                ->markAsRequired(false)
                 ->numeric()
+                ->reactive()
                 ->default(0)
                 ->prefix('₱')
                 ->minValue(0)
                 ->readOnly()
                 ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                 ->afterStateUpdated(function (callable $set, $state, $get) {
-                    $allocation = $get('allocation');
+                    $allocation = floatval($get('allocation'));
                     $set('balance', $allocation - $state);
                 }),
             TextInput::make('year')
                 ->label('Year')
+                ->markAsRequired(false)
                 ->required()
                 ->numeric()
                 ->rules(['min:' . date('Y'), 'digits: 4'])
-                ->default(date('Y')),
+                ->default(date('Y'))
+                ->validationAttribute('year')
+                ->validationMessages([
+                    'min' => 'The allocation year must be at least ' . date('Y') . '.',
+                ]),
             TextInput::make('balance')
-                ->label('')
+                ->label('Balance')
                 ->required()
+                ->markAsRequired(false)
                 ->numeric()
                 ->default(0)
                 ->prefix('₱')
                 ->minValue(0)
                 ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                ->extraAttributes(['style' => 'display: none;'])
+                ->hidden()
                 ->reactive(),
         ]);
     }
@@ -112,19 +164,18 @@ class AllocationResource extends Resource
         if (!$legislatorId) {
             return [];
         }
-
-        $legislator = \App\Models\Legislator::with('particular.district.municipality')
-            ->find($legislatorId);
-
+    
+        $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
+    
         if (!$legislator) {
             return [];
         }
-
+    
         return $legislator->particular->mapWithKeys(function ($particular) {
             $districtName = $particular->district->name ?? 'Unknown District';
             $municipalityName = $particular->district->municipality->name ?? 'Unknown Municipality';
             $formattedName = "{$particular->name} - {$districtName}, {$municipalityName}";
-
+    
             return [$particular->id => $formattedName];
         })->toArray();
     }
