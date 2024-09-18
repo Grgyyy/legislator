@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\Partylist;
 use App\Models\SubParticular;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Forms\Form;
@@ -45,48 +46,39 @@ class ParticularResource extends Resource
                 Select::make('sub_particular_id')
                     ->label('Sub-Particular')
                     ->options(function () {
-                        // Fetch all SubParticular records with their related FundSource
-                        $subParticulars = SubParticular::with('fundSource')->get();
-
-                        // Prepare combined options
-                        $combinedOptions = [];
-
-                        foreach ($subParticulars as $subParticular) {
-                            $subParticularName = $subParticular->name;
-                            $fundSourceName = $subParticular->fundSource ? $subParticular->fundSource->name : 'No Fund Source';
-
-                            // Combine names for display
-                            $combinedOptions[$subParticular->id] = "$subParticularName - $fundSourceName";
-                        }
-
-                        // Add a placeholder if there are no options
-                        return !empty($combinedOptions) ? $combinedOptions : ['no_option' => 'No Options Available'];
+                        return SubParticular::all()->pluck('name', 'id');
                     })
                     ->required()
-                    ->markAsRequired(false)
-                    ->native(false)
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                            $set('partylist_district', null); 
+                    }),
+                
+                Select::make('partylist_district')
+                    ->label('District/Partylist')
                     ->searchable()
-                    ->preload()
-                    ->disableOptionWhen(fn ($value) => $value === 'no_option'),
-                Select::make('district_id')
-                    ->label('District')
-                    ->options(function () {
-                        return District::all()->mapWithKeys(function (District $district) {
-                            $label = $district->name . ' - ' .
-                                $district->municipality->name . ', ' .
-                                $district->municipality->province->name . ', ' .
-                                $district->municipality->province->region->name;
-
-                            return [$district->id => $label];
-                        })->toArray() ?: ['no_district' => 'No District Available'];
+                    ->options(function ($get) {
+                        $subParticularId = $get('sub_particular_id');
+                        return $subParticularId ? self::getOptions($subParticularId) : ['' => 'No Sub Particular Available.'];
                     })
-                    ->markAsRequired(false)
-                    ->required()
-                    ->preload()
-                    ->native(false)
-                    ->searchable()
-                    ->disableOptionWhen(fn ($value) => $value === 'no_district'),
             ]);
+    }
+
+    
+    protected static function getOptions($subParticularId) {
+        $subParticular = SubParticular::find($subParticularId);
+    
+        if ($subParticular) {
+            if ($subParticular->name === 'Partylist') {
+                return Partylist::all()->pluck('name', 'id')->toArray();
+            } else {
+                return District::all()->mapWithKeys(function (District $district) {
+                    return [$district->id => $district->name . ' - ' . $district->municipality->name];
+                })->toArray();
+            }
+        }
+    
+        return ['' => 'No Options Available.'];
     }
 
     public static function table(Table $table): Table
