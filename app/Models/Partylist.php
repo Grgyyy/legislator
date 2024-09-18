@@ -12,4 +12,10 @@ class Partylist extends Model
     protected $fillable = [
         'name',
     ];
+
+
+    public function particular()
+    {
+        return $this->hasMany(Particular::class);
+    }
 }

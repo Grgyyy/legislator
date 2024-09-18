@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\Municipality;
 use App\Models\Partylist;
 use App\Models\SubParticular;
 use Filament\Tables\Actions\ActionGroup;
@@ -46,7 +47,13 @@ class ParticularResource extends Resource
                 Select::make('sub_particular_id')
                     ->label('Sub-Particular')
                     ->options(function () {
-                        return SubParticular::all()->pluck('name', 'id');
+                        return SubParticular::with('fundSource')->get()->pluck('name', 'id')->map(function ($name, $id) {
+                            $subParticular = SubParticular::find($id);
+                            if ($subParticular && $name === 'Regular') {
+                                return $subParticular->fundSource->name;
+                            }
+                            return $name;
+                        });
                     })
                     ->required()
                     ->reactive()
@@ -59,7 +66,7 @@ class ParticularResource extends Resource
                     ->searchable()
                     ->options(function ($get) {
                         $subParticularId = $get('sub_particular_id');
-                        return $subParticularId ? self::getOptions($subParticularId) : ['' => 'No Sub Particular Available.'];
+                        return $subParticularId ? self::getOptions($subParticularId) : ['' => 'No District or Partylist Available.'];
                     })
             ]);
     }
@@ -68,92 +75,177 @@ class ParticularResource extends Resource
     protected static function getOptions($subParticularId) {
         $subParticular = SubParticular::find($subParticularId);
     
-        if ($subParticular) {
-            if ($subParticular->name === 'Partylist') {
-                return Partylist::all()->pluck('name', 'id')->toArray();
-            } else {
-                return District::all()->mapWithKeys(function (District $district) {
-                    return [$district->id => $district->name . ' - ' . $district->municipality->name];
-                })->toArray();
+        if (!$subParticular) {
+            return ['' => 'No Options Available.'];
+        }
+    
+        if ($subParticular->name === 'Partylist') {
+            $partylists = Partylist::where('name', '!=', 'Not Applicable')->pluck('name', 'id')->toArray();
+    
+            return !empty($partylists) ? $partylists : ['' => 'No Partylists Available.'];
+        } elseif ($subParticular->fundSource->name === 'RO Regular') {
+            $districts = District::where('name', 'Not Applicable')
+            ->whereHas('municipality', function ($query) {
+                $query->where('name', 'Not Applicable');
+            })
+            ->whereHas('municipality.province', function ($query) {
+                $query->where('name', 'Not Applicable');
+            })
+            ->whereHas('municipality.province.region', function ($query) {
+                $query->whereNot('name', 'Not Applicable');
+            })
+            ->get();
+        
+    
+            if ($districts->isEmpty()) {
+                return ['' => 'No district Available.'];
             }
+    
+            return $districts->mapWithKeys(function (District $district) {
+                return [$district->id => $district->municipality->province->region->name];
+            })->toArray();
+        } 
+        
+        elseif ($subParticular->fundSource->name === 'CO Regular') {
+            $districts = District::where('name', 'Not Applicable')
+            ->whereHas('municipality', function ($query) {
+                $query->where('name', 'Not Applicable');
+            })
+            ->whereHas('municipality.province', function ($query) {
+                $query->where('name', 'Not Applicable');
+            })
+            ->whereHas('municipality.province.region', function ($query) {
+                $query->where('name', 'NCR');
+            })
+            ->get();
+        
+    
+            if ($districts->isEmpty()) {
+                return ['' => 'No district Available.'];
+            }
+    
+            return $districts->mapWithKeys(function (District $district) {
+                return [$district->id => $district->municipality->province->region->name];
+            })->toArray();
+        }
+
+        elseif ($subParticular->name === 'Senator' || $subParticular->name === 'House Speaker' || $subParticular->name === 'House Speaker (LAKAS)') {
+            $districts = District::where('name', 'Not Applicable')
+            ->whereHas('municipality', function ($query) {
+                $query->where('name', 'Not Applicable');
+            })
+            ->whereHas('municipality.province', function ($query) {
+                $query->where('name', 'Not Applicable');
+            })
+            ->whereHas('municipality.province.region', function ($query) {
+                $query->where('name', 'Not Applicable');
+            })
+            ->get();
+        
+    
+            if ($districts->isEmpty()) {
+                return ['' => 'No district Available.'];
+            }
+    
+            return $districts->mapWithKeys(function (District $district) {
+                return [$district->id => $district->municipality->province->region->name];
+            })->toArray();
+        }
+
+        elseif ($subParticular->name === 'District') {
+            $districts = District::whereNot('name', 'Not Applicable')
+            ->get();
+        
+    
+            if ($districts->isEmpty()) {
+                return ['' => 'No district Available.'];
+            }
+    
+            return $districts->mapWithKeys(function (District $district) {
+                return [$district->id => $district->name . ", " . $district->municipality->name . ", " . $district->municipality->province->name . ", " . $district->municipality->province->region->name];
+            })->toArray();
         }
     
         return ['' => 'No Options Available.'];
     }
+    
 
     public static function table(Table $table): Table
-    {
-        return $table
-            ->emptyStateHeading('No particulars yet')
-            ->columns([
-                TextColumn::make("subParticular.fundSource.name")
-                    ->label('Fund Source')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
-                TextColumn::make("subParticular.name")
-                    ->label('Particular')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
-                TextColumn::make("district.name")
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
-                TextColumn::make("district.municipality.name")
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
-                TextColumn::make("district.municipality.province.name")
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
-                TextColumn::make("district.municipality.province.region.name")
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
+{
+    return $table
+        ->emptyStateHeading('No particulars yet')
+        ->columns([
+            TextColumn::make("subParticular.fundSource.name")
+                ->label('Fund Source')
+                ->sortable()
+                ->searchable()
+                ->toggleable()
+                ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
+            TextColumn::make("subParticular.name")
+                ->label('Particular')
+                ->sortable()
+                ->searchable()
+                ->toggleable()
+                ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
+            TextColumn::make("partylist.name")
+                ->searchable()
+                ->toggleable()
+                ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
+            TextColumn::make("district.name")
+                ->searchable()
+                ->toggleable()
+                ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
+            TextColumn::make("district.municipality.name")
+                ->searchable()
+                ->toggleable()
+                ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
+            TextColumn::make("district.municipality.province.name")
+                ->searchable()
+                ->toggleable()
+                ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
+            TextColumn::make("district.municipality.province.region.name")
+                ->sortable()
+                ->searchable()
+                ->toggleable()
+                ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
+        ])
+        ->filters([
+            TrashedFilter::make()
+                ->label('Records'),
+        ])
+        ->actions([
+            ActionGroup::make([
+                EditAction::make()
+                    ->hidden(fn($record) => $record->trashed()),
+                DeleteAction::make(),
+                RestoreAction::make(),
+                ForceDeleteAction::make(),
             ])
-            ->filters([
-                TrashedFilter::make()
-                    ->label('Records'),
-            ])
-            ->actions([
-                ActionGroup::make([
-                    EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
-                ])
-            ])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('Legislator'),
-                                Column::make('district.municipality.name')
-                                    ->heading('District'),
-                                Column::make('district.name')
-                                    ->heading('Municipality'),
-                                Column::make('district.municipality.province.name')
-                                    ->heading('Province'),
-                                Column::make('district.municipality.province.region.name')
-                                    ->heading('Region'),
-
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Particulars')
-                    ]),
+        ])
+        ->bulkActions([
+            BulkActionGroup::make([
+                DeleteBulkAction::make(),
+                ForceDeleteBulkAction::make(),
+                RestoreBulkAction::make(),
+                ExportBulkAction::make()->exports([
+                    ExcelExport::make()
+                        ->withColumns([
+                            Column::make('name')
+                                ->heading('Legislator'),
+                            Column::make('district.municipality.name')
+                                ->heading('District'),
+                            Column::make('district.name')
+                                ->heading('Municipality'),
+                            Column::make('district.municipality.province.name')
+                                ->heading('Province'),
+                            Column::make('district.municipality.province.region.name')
+                                ->heading('Region'),
+                        ])
+                        ->withFilename(date('m-d-Y') . ' - Particulars')
                 ]),
-            ]);
-    }
+            ]),
+        ]);
+}
 
     public static function getPages(): array
     {

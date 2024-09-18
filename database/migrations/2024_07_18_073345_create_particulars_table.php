@@ -19,6 +19,9 @@ return new class extends Migration
             $table->foreignId('district_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('partylist_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

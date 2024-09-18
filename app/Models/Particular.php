@@ -14,6 +14,7 @@ class Particular extends Model
 
     protected $fillable = [
         'sub_particular_id',
+        'partylist_id', 
         'district_id',
     ];
 
@@ -34,5 +35,10 @@ class Particular extends Model
     public function district()
     {
         return $this->belongsTo(District::class);
+    }
+
+    public function partylist()
+    {
+        return $this->belongsTo(Partylist::class);
     }
 }

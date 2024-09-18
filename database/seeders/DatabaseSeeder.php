@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
         // Call the RegionTableSeeder
         $this->call(StatusSeeder::class);
         $this->call(RoleSeeder::class);
+        $this->call(PartylistSeeder::class);
         $this->call(RegionTableSeeder::class);
         $this->call(ProvinceSeeder::class);
         $this->call(TviTypeSeeder::class);

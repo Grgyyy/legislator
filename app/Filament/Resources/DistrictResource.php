@@ -67,6 +67,11 @@ class DistrictResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('name')
                     ->label('District')
                     ->sortable()
@@ -135,8 +140,8 @@ class DistrictResource extends Resource
 
         $query->withoutGlobalScopes([
             SoftDeletingScope::class,
-        ])
-        ->where('name', '!=', 'Not Applicable');
+        ]);
+        // ->where('name', '!=', 'Not Applicable');
 
         $routeParameter = request()->route('record');
 
