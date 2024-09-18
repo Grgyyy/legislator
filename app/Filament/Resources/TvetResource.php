@@ -48,6 +48,8 @@ class TvetResource extends Resource
                 TextInput::make('name')
                     ->label('Sector')
                     ->required()
+                    ->autocomplete(false)
+                    ->markAsRequired(false)
                     ->validationAttribute('sector'),
             ]);
     }
