@@ -40,13 +40,16 @@ class UserResource extends Resource
             ->schema([
                 TextInput::make("name")
                     ->required()
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->markAsRequired(false),
                 TextInput::make("email")
                     ->email()
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false),
                 TextInput::make("password")
                     ->password()
+                    ->markAsRequired(false)
                     ->dehydrateStateUsing(fn($state) => Hash::make($state))
                     ->dehydrated(fn($state) => filled($state))
                     ->required(fn(string $context): bool => $context === 'create'),
