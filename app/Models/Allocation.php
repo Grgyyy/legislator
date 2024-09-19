@@ -13,6 +13,7 @@ class Allocation extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'soft_or_commitment',
         'legislator_id',
         'particular_id',
         'scholarship_program_id',

@@ -67,11 +67,6 @@ class DistrictResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
                 TextColumn::make('name')
                     ->label('District')
                     ->sortable()

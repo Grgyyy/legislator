@@ -43,6 +43,12 @@ class AllocationResource extends Resource
     {
         return $form
         ->schema([
+            Select::make('soft_or_commitment')
+                ->label('Soft / Commitment')
+                ->options([
+                    'Soft' => 'Soft',
+                    'Commitment' => 'Commitment'
+                ]),
             Select::make('legislator_id')
                 ->label('Legislator')
                 ->relationship('legislator', 'name')
@@ -174,7 +180,16 @@ class AllocationResource extends Resource
         return $legislator->particular->mapWithKeys(function ($particular) {
             $districtName = $particular->district->name ?? 'Unknown District';
             $municipalityName = $particular->district->municipality->name ?? 'Unknown Municipality';
-            $formattedName = "{$particular->name} - {$districtName}, {$municipalityName}";
+
+            $subParticular = $particular->subParticular->name;
+            
+            if ($subParticular === 'Partylist' || $subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
+                $formattedName = "{$particular->subParticular->name}";
+            }
+
+            else {
+                $formattedName = "{$particular->subParticular->name} - {$districtName}, {$municipalityName}"; 
+            }
     
             return [$particular->id => $formattedName];
         })->toArray();
@@ -185,11 +200,12 @@ class AllocationResource extends Resource
         return $table
             ->emptyStateHeading('No allocations yet')
             ->columns([
+                TextColumn::make('soft_or_commitment'),
                 TextColumn::make("legislator.name")
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("particular.name")
+                TextColumn::make("particular.subParticular.name")
                     ->getStateUsing(function ($record) {
                         $particular = $record->particular;
 
@@ -202,7 +218,7 @@ class AllocationResource extends Resource
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
 
-                        $formattedName = $districtName === 'Not Applicable' ? "{$particular->name}" : "{$particular->name} - {$districtName}, {$municipalityName}";
+                        $formattedName = $districtName === 'Not Applicable' ? "{$particular->subParticular->name}" : "{$particular->name} - {$districtName}, {$municipalityName}";
 
                         return $formattedName;
                     })
