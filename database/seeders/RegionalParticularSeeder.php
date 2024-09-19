@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class ParticularSeeder extends Seeder
+class RegionalParticularSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -22,20 +22,10 @@ class ParticularSeeder extends Seeder
                 ->where('district_id', $districtId)
                 ->exists();
 
-            $centralOfficeExists = DB::table('particulars')
-                ->where('name', 'Central Office')
-                ->where('district_id', $districtId)
-                ->exists();
-
-
-            if (!$regionalOfficeExists && !$centralOfficeExists) {
+            if (!$regionalOfficeExists) {
                 DB::table('particulars')->insert([
                     [
                         'name' => 'Regional Office',
-                        'district_id' => $districtId,
-                    ],
-                    [
-                        'name' => 'Central Office',
                         'district_id' => $districtId,
                     ]
                 ]);

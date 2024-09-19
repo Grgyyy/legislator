@@ -2,10 +2,6 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-
-use App\Models\TviType;
-use App\Models\TviClass;
 use Illuminate\Database\Seeder;
 use Database\Seeders\ScholarshipProgramSeeder;
 
@@ -18,6 +14,8 @@ class DatabaseSeeder extends Seeder
     {
         // Call the RegionTableSeeder
         $this->call(StatusSeeder::class);
+        $this->call(RoleSeeder::class);
+        $this->call(PartylistSeeder::class);
         $this->call(RegionTableSeeder::class);
         $this->call(ProvinceSeeder::class);
         $this->call(TviTypeSeeder::class);
@@ -27,7 +25,10 @@ class DatabaseSeeder extends Seeder
         $this->call(ProvinceSeeder::class);
         $this->call(MunicipalitySeeder::class);
         $this->call(DistrictSeeder::class);
-        $this->call(ParticularSeeder::class);
+        $this->call(FundSourceSeeder::class);
+        $this->call(SubParticularSeeder::class);
+        // $this->call(CentralParticularSeeder::class);
+        // $this->call(RegionalParticularSeeder::class);
         $this->call(TargetStatusSeeder::class);
 
         // You can call other seeders here as well

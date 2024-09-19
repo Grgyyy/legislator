@@ -13,9 +13,14 @@ class Particular extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'name',
+        'sub_particular_id',
+        'partylist_id', 
         'district_id',
     ];
+
+    public function subParticular() {
+        return $this->belongsTo(SubParticular::class);
+    }
 
     public function legislator()
     {
@@ -30,5 +35,10 @@ class Particular extends Model
     public function district()
     {
         return $this->belongsTo(District::class);
+    }
+
+    public function partylist()
+    {
+        return $this->belongsTo(Partylist::class);
     }
 }

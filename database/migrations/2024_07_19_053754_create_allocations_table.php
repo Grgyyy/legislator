@@ -12,6 +12,7 @@ return new class extends Migration {
     {
         Schema::create('allocations', function (Blueprint $table) {
             $table->id();
+            $table->string('soft_or_commitment');
             $table->foreignId('legislator_id')
                 ->constrained()
                 ->cascadeOnDelete();

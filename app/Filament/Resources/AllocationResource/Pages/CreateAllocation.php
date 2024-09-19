@@ -21,51 +21,52 @@ class CreateAllocation extends CreateRecord
     protected function handleRecordCreation(array $data): Allocation
     {
         return DB::transaction(function () use ($data) {
-            $this->validateUniqueAllocation($data);
+            // $this->validateUniqueAllocation($data);
 
             return Allocation::create([
+                'soft_or_commitment' => $data['soft_or_commitment'],
                 'legislator_id' => $data['legislator_id'],
                 'particular_id' => $data['particular_id'],
                 'scholarship_program_id' => $data['scholarship_program_id'],
                 'allocation' => $data['allocation'],
                 'admin_cost' => $data['admin_cost'],
-                'balance' => $data['balance'],
+                'balance' => $data['allocation'] - $data['admin_cost'],
                 'year' => $data['year'],
             ]);
         });
     }
 
-    protected function validateUniqueAllocation(array $data)
-    {
-        $existingAllocation = Allocation::withTrashed()
-            ->where('legislator_id', $data['legislator_id'])
-            ->where('particular_id', $data['particular_id'])
-            ->where('scholarship_program_id', $data['scholarship_program_id'])
-            ->where('year', $data['year'])
-            ->first();
+    // protected function validateUniqueAllocation(array $data)
+    // {
+    //     $existingAllocation = Allocation::withTrashed()
+    //         ->where('legislator_id', $data['legislator_id'])
+    //         ->where('particular_id', $data['particular_id'])
+    //         ->where('scholarship_program_id', $data['scholarship_program_id'])
+    //         ->where('year', $data['year'])
+    //         ->first();
 
-        if ($existingAllocation) {
-            $message = $existingAllocation->deleted_at
-                ? 'An Allocation with this combination exists and is marked as deleted. Data cannot be created.'
-                : 'An Allocation with this combination already exists.';
+    //     if ($existingAllocation) {
+    //         $message = $existingAllocation->deleted_at
+    //             ? 'An Allocation with this combination exists and is marked as deleted. Data cannot be created.'
+    //             : 'An Allocation with this combination already exists.';
 
-            $this->handleValidationException($message);
-        }
-    }
+    //         $this->handleValidationException($message);
+    //     }
+    // }
 
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
+    // protected function handleValidationException($message)
+    // {
+    //     Notification::make()
+    //         ->title('Error')
+    //         ->body($message)
+    //         ->danger()
+    //         ->send();
 
-        throw ValidationException::withMessages([
-            'legislator_id' => $message,
-            'particular_id' => $message,
-            'scholarship_program_id' => $message,
-            'year' => $message,
-        ]);
-    }
+    //     throw ValidationException::withMessages([
+    //         'legislator_id' => $message,
+    //         'particular_id' => $message,
+    //         'scholarship_program_id' => $message,
+    //         'year' => $message,
+    //     ]);
+    // }
 }
