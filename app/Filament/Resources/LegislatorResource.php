@@ -61,21 +61,22 @@ class LegislatorResource extends Resource
                             ->get()
                             ->mapWithKeys(function ($item) {
 
-                                if ($item->name === 'Regional Office' || $item->name === 'Central Office') {
-                                    return [
-                                        $item->id => $item->name . ' - ' . ($item->district ? $item->district->municipality->province->region->name : 'N/A')
-                                    ];
+                                $subParticular = $item->subParticular->name;
+
+                                if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
+                                    $formattedName = "{$item->subParticular->name}";
                                 }
-                                elseif ($item->name === 'Senator') {
-                                    return [
-                                        $item->id => $item->name
-                                    ];
+
+                                elseif ($subParticular === 'Partylist') {
+                                    $formattedName = "{$item->subParticular->name} - {$item->partylist->name}"; 
                                 }
-                                
-                                return [
-                                    $item->id => $item->name . ' - ' . ($item->district ? $item->district->name : 'N/A') . ', ' . 
-                                    ($item->district->municipality ? $item->district->municipality->name : 'N/A')
-                                ];
+
+                                else {
+                                    $formattedName = "{$item->subParticular->name} - {$item->district->name}, {$item->district->municipality->name}"; 
+                                }
+
+                                return [$item->id => $formattedName];
+
                             })
                             ->toArray() ?: ['no_particular' => 'No Particular Available'];
                     })
@@ -120,7 +121,17 @@ class LegislatorResource extends Resource
 
                             $paddingTop = ($index > 0) ? 'padding-top: 15px;' : '';
 
-                            return '<div style="'. $paddingTop .'">' . $particular->name . ' - ' . $municipalityName . '</div>';
+                            if($particular->subParticular->name === 'Partylist') {
+                                return '<div style="'. $paddingTop .'">' . $particular->subParticular->name . ' - ' . $particular->partylist->name . '</div>';
+                            }
+
+                            elseif ($particular->subParticular->name === 'Senator' || $particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
+                                return '<div style="'. $paddingTop .'">' . $particular->subParticular->name . '</div>';
+                            }
+
+                            else {
+                                return '<div style="'. $paddingTop .'">' . $particular->name . ' - ' . $municipalityName . '</div>';
+                            }
                         })->implode('');
                     })
                     ->html()

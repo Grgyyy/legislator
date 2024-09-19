@@ -183,8 +183,12 @@ class AllocationResource extends Resource
 
             $subParticular = $particular->subParticular->name;
             
-            if ($subParticular === 'Partylist' || $subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
+            if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
                 $formattedName = "{$particular->subParticular->name}";
+            }
+
+            elseif ($subParticular === 'Partylist') {
+                $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}"; 
             }
 
             else {
@@ -205,7 +209,7 @@ class AllocationResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make("particular.subParticular.name")
+                TextColumn::make("particular.name")
                     ->getStateUsing(function ($record) {
                         $particular = $record->particular;
 
@@ -218,7 +222,20 @@ class AllocationResource extends Resource
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
 
-                        $formattedName = $districtName === 'Not Applicable' ? "{$particular->subParticular->name}" : "{$particular->name} - {$districtName}, {$municipalityName}";
+                        $subParticular = $particular->subParticular->name;
+
+                        if ($subParticular === 'Partylist') {
+                            $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}";  
+                        }
+
+                        elseif ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
+                            $formattedName = "{$particular->subParticular->name}";  
+                        }
+
+                        else {
+                            $formattedName = "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+
+                        }
 
                         return $formattedName;
                     })
