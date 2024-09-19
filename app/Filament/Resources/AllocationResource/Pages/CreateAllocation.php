@@ -18,22 +18,23 @@ class CreateAllocation extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
-    // protected function handleRecordCreation(array $data): Allocation
-    // {
-    //     return DB::transaction(function () use ($data) {
-    //         $this->validateUniqueAllocation($data);
+    protected function handleRecordCreation(array $data): Allocation
+    {
+        return DB::transaction(function () use ($data) {
+            // $this->validateUniqueAllocation($data);
 
-    //         return Allocation::create([
-    //             'legislator_id' => $data['legislator_id'],
-    //             'particular_id' => $data['particular_id'],
-    //             'scholarship_program_id' => $data['scholarship_program_id'],
-    //             'allocation' => $data['allocation'],
-    //             'admin_cost' => $data['admin_cost'],
-    //             'balance' => $data['balance'],
-    //             'year' => $data['year'],
-    //         ]);
-    //     });
-    // }
+            return Allocation::create([
+                'soft_or_commitment' => $data['soft_or_commitment'],
+                'legislator_id' => $data['legislator_id'],
+                'particular_id' => $data['particular_id'],
+                'scholarship_program_id' => $data['scholarship_program_id'],
+                'allocation' => $data['allocation'],
+                'admin_cost' => $data['admin_cost'],
+                'balance' => $data['allocation'] - $data['admin_cost'],
+                'year' => $data['year'],
+            ]);
+        });
+    }
 
     // protected function validateUniqueAllocation(array $data)
     // {
