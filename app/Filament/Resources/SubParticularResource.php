@@ -16,6 +16,16 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\TrashedFilter;
 
 class SubParticularResource extends Resource
 {
@@ -27,7 +37,11 @@ class SubParticularResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('name'),
+                TextInput::make('name')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->label('Particular'),
                 Select::make('fund_source_id')
                     ->relationship('fundSource', 'name')
                     ->options(function () {
@@ -47,27 +61,35 @@ class SubParticularResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('name'),
+                TextColumn::make('name')
+                    ->label('Particular')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('fundSource.name')
+                    ->label('Fund Source')
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
-                //
+                TrashedFilter::make()
+                    ->label('Records'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
+                ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                ])
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
@@ -77,5 +99,13 @@ class SubParticularResource extends Resource
             'create' => Pages\CreateSubParticular::route('/create'),
             'edit' => Pages\EditSubParticular::route('/{record}/edit'),
         ];
+    }
+    
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }
