@@ -31,7 +31,14 @@ class SubParticularResource extends Resource
 {
     protected static ?string $model = SubParticular::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
+
+    protected static ?string $navigationLabel = "Particular Types";
+
+    protected static ?string $navigationParentItem = "Fund Sources";
+    
+    protected static ?int $navigationSort = 2;
+
 
     public static function form(Form $form): Form
     {
@@ -41,7 +48,7 @@ class SubParticularResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->label('Particular'),
+                    ->label('Particular Type'),
                 Select::make('fund_source_id')
                     ->relationship('fundSource', 'name')
                     ->options(function () {
@@ -62,7 +69,7 @@ class SubParticularResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Particular')
+                    ->label('Particular Type')
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('fundSource.name')

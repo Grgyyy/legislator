@@ -36,16 +36,16 @@ class ParticularResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationIcon = 'heroicon-o-map-pin';
+    protected static ?string $navigationParentItem = "Fund Sources";
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Select::make('sub_particular_id')
-                    ->label('Sub-Particular')
+                    ->label('Particular Type')
                     ->options(function () {
                         return SubParticular::with('fundSource')->get()->pluck('name', 'id')->map(function ($name, $id) {
                             $subParticular = SubParticular::find($id);
@@ -182,7 +182,7 @@ class ParticularResource extends Resource
                 ->toggleable()
                 ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
             TextColumn::make("subParticular.name")
-                ->label('Particular')
+                ->label('Particular Type')
                 ->sortable()
                 ->searchable()
                 ->toggleable()

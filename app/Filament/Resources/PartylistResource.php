@@ -29,7 +29,14 @@ class PartylistResource extends Resource
 {
     protected static ?string $model = Partylist::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
+
+    protected static ?string $navigationLabel = "Party-List";
+
+    protected static ?string $navigationParentItem = "Fund Sources";
+
+    protected static ?int $navigationSort = 1;
+
 
     public static function form(Form $form): Form
     {
@@ -39,7 +46,7 @@ class PartylistResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->label('Partylist')
+                    ->label('Party-List')
             ]);
     }
 
@@ -48,7 +55,7 @@ class PartylistResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')
-                    ->label('Partylist')
+                    ->label('Party-List')
                     ->searchable()
                     ->toggleable(),
             ])

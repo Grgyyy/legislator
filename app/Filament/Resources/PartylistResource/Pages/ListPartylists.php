@@ -11,6 +11,16 @@ class ListPartylists extends ListRecords
 {
     protected static string $resource = PartylistResource::class;
 
+    protected static ?string $title = 'Party-List';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/partylists' => 'Party-List',
+            'List'
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
