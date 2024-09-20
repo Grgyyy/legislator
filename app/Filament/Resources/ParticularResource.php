@@ -62,7 +62,7 @@ class ParticularResource extends Resource
                     }),
                 
                 Select::make('partylist_district')
-                    ->label('District/Partylist')
+                    ->label('Administrative Area')
                     ->searchable()
                     ->options(function ($get) {
                         $subParticularId = $get('sub_particular_id');
