@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PartylistResource\Pages;
 
 use App\Filament\Resources\PartylistResource;
 use Filament\Actions;
+use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListPartylists extends ListRecords
@@ -13,7 +14,9 @@ class ListPartylists extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make()
+                ->icon('heroicon-m-plus')
+                ->label('New'),
         ];
     }
 }
