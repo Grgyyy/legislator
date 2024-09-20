@@ -30,7 +30,7 @@ class CreateTarget extends CreateRecord
             }
 
             // Validate required fields in the repeater data
-            $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'allocation_type', 'tvi_id', 'abdd_id', 'appropriation_type'];
+            $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'tvi_id', 'appropriation_type'];
             
             foreach ($requiredFields as $field) {
                 if (!array_key_exists($field, $targetData) || empty($targetData[$field])) {
@@ -43,6 +43,7 @@ class CreateTarget extends CreateRecord
             $allocation = Allocation::where('legislator_id', $targetData['legislator_id'])
                 ->where('particular_id', $targetData['particular_id'])
                 ->where('scholarship_program_id', $targetData['scholarship_program_id'])
+                ->where('year', $targetData['allocation_year'])
                 ->first();
 
             if (!$allocation) {
@@ -76,10 +77,8 @@ class CreateTarget extends CreateRecord
             if ($allocation->balance >= $total_amount) {
                 // Create the target
                 $target = Target::create([
-                    'allocation_type' => $targetData['allocation_type'],
                     'allocation_id' => $allocation->id,
                     'tvi_id' => $targetData['tvi_id'],
-                    'abdd_id' => $targetData['abdd_id'],
                     'qualification_title_id' => $qualificationTitle->id,
                     'number_of_slots' => $numberOfSlots,
                     'total_training_cost_pcc' => $total_training_cost_pcc,

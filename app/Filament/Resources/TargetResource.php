@@ -146,15 +146,8 @@ class TargetResource extends Resource
         return $table
             ->emptyStateHeading('No targets yet')
             ->columns([
-                TextColumn::make('allocation_type')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make('allocation.legislator.name')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make('allocation.legislator.particular.name')
+
+                TextColumn::make('fund_source')
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
 
@@ -169,19 +162,58 @@ class TargetResource extends Resource
                         }
 
                         $particular = $record->allocation->particular;
-                        $district = $particular->district;
-                        $municipality = $district ? $district->municipality : null;
+                        $subParticular = $particular->subParticular;
+                        $fundSource = $subParticular ? $subParticular->fundSource : null; 
 
-                        $districtName = $district ? $district->name : 'Unknown District';
-                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-
-                        return $districtName === 'Not Applicable'
-                            ? $particular->name
-                            : "{$particular->name} - {$districtName}, {$municipalityName}";
+                        return $fundSource->name;
                     })
                     ->searchable()
                     ->toggleable()
-                    ->label('Particular'),
+                    ->label('Fund Source'),
+
+                TextColumn::make('allocation.legislator.name')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('allocation.soft_or_commitment')
+                    ->label('Soft/Commitment')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('allocation.legislator.particular.subParticular')
+                    ->getStateUsing(function ($record) {
+                        $legislator = $record->allocation->legislator;
+                
+                        if (!$legislator) {
+                            return 'No Legislator Available';
+                        }
+                
+                        $particulars = $legislator->particular;
+                
+                        if ($particulars->isEmpty()) {
+                            return 'No Particular Available';
+                        }
+                
+                        $particular = $particulars->first(); 
+                        $district = $particular->district;
+                        $municipality = $district ? $district->municipality : null; 
+                
+                        $districtName = $district ? $district->name : 'Unknown District';
+                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                
+                        if ($districtName === 'Not Applicable') {
+                            if ($particular->subParticular && $particular->subParticular->name === 'Partylist') {
+                                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                            } else {
+                                return $particular->subParticular->name ?? 'Unknown SubParticular';
+                            }
+                        } else {
+                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                        }
+                    })
+                    ->searchable()
+                    ->toggleable()
+                    ->label('Particular'),                
                 TextColumn::make('tvi.district.name')
                     ->searchable()
                     ->toggleable(),
@@ -283,7 +315,7 @@ class TargetResource extends Resource
         $particulars = Particular::whereHas('allocation', function($query) use ($legislatorId) {
             $query->where('legislator_id', $legislatorId);
         })
-        ->with('subParticular') // Eager load subParticular
+        ->with('subParticular') 
         ->get()
         ->mapWithKeys(function ($particular) {
             return [$particular->id => $particular->subParticular->name ?? 'Unnamed'];
@@ -309,7 +341,7 @@ class TargetResource extends Resource
                         ->where('particular_id', $particularId)
                         ->where('scholarship_program_id', $scholarshipProgramId)
                         ->whereIn('year', [$yearNow, $yearNow - 1])
-                        ->pluck('year', 'id')
+                        ->pluck('year', 'year')
                         ->toArray();
 
         return empty($allocations) ? ['' => 'No Allocation Available.'] : $allocations;
