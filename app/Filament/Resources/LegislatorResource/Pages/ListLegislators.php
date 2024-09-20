@@ -9,8 +9,11 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\LegislatorResource;
 use App\Imports\LegislatorImport;
+use App\Models\Legislator;
 use Exception;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\Builder;
+use Filament\Resources\Components\Tab;
 
 class ListLegislators extends ListRecords
 {
@@ -47,4 +50,25 @@ class ListLegislators extends ListRecords
                 }),
         ];
     }
+
+    // public function getTabs(): array
+    // {
+    //     return [
+    //         'All' => Tab::make(),
+    //         'Active' => Tab::make()
+    //             ->modifyQueryUsing(function ($query) {
+    //                 $query->where('status_id', '1');
+    //             })
+    //             ->badge(function () {
+    //                 return Legislator::where('status_id', '1')->count();
+    //             }),
+    //         'Inactive' => Tab::make()
+    //             ->modifyQueryUsing(function ($query) {
+    //                 $query->where('status_id', '2');
+    //             })
+    //             ->badge(function () {
+    //                 return Legislator::where('status_id', '2')->count();
+    //             }),
+    //     ];
+    // }
 }

@@ -61,8 +61,18 @@ class TviResource extends Resource
                     ->label("Institution Class (A)")
                     ->relationship('tviClass', 'name')
                     ->options(function () {
-                        $tviClass = TviClass::all()->pluck('name', 'id')->toArray();
-                        return !empty($tviClass) ? $tviClass : ['no_tvi_class' => 'No Institution Class (A) Available'];
+                        $tviClasses = TviClass::all();
+
+                        $privateClasses = $tviClasses->whereIn('name', ['NGA', 'LGU', 'LUC', 'SUC', 'TTI'])->pluck('name', 'id')->toArray();
+                        $publicClasses = $tviClasses->whereIn('name', ['HEI', 'TVI', 'NGO'])->pluck('name', 'id')->toArray();
+                        
+                        return [
+                            'Private' => !empty($privateClasses) ? $privateClasses : ['no_private_class' => 'No Private Institution Class Available'],
+                            'Public'  => !empty($publicClasses) ? $publicClasses : ['no_public_class' => 'No Public Institution Class Available'],
+                        ];
+                        
+                        // $tviClass = TviClass::all()->pluck('name', 'id')->toArray();
+                        // return !empty($tviClass) ? $tviClass : ['no_tvi_class' => 'No Institution Class (A) Available'];
                     })
                     ->required()
                     ->markAsRequired(false)

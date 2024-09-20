@@ -60,7 +60,6 @@ class TviClassResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->searchable()
                     ->preload()
                     ->disableOptionWhen(fn ($value) => $value === 'no_tvi_type'),
                 ]);
