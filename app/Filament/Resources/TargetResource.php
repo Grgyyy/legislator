@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TargetResource\Pages;
 use App\Models\Allocation;
+use App\Models\FundSource;
 use App\Models\Legislator;
 use App\Models\Particular;
 use App\Models\QualificationTitle;
@@ -43,13 +44,6 @@ class TargetResource extends Resource
             ->schema([
                 Repeater::make('targets')
                     ->schema([
-                        Select::make('allocation_type')
-                            ->label('Allocation')
-                            ->required()
-                            ->options([
-                                'RO' => 'RO',
-                                'CO' => 'CO',
-                            ]),
 
                         Select::make('legislator_id')
                             ->label('Legislator Name')
@@ -59,7 +53,7 @@ class TargetResource extends Resource
                                 $legislators = Legislator::where('status_id', 1)
                                     ->whereNull('deleted_at')
                                     ->has('allocation')
-                                    ->pluck('name', 'id')
+                                    ->pluck('name', 'id')   
                                     ->toArray();
 
                                 return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
@@ -127,13 +121,6 @@ class TargetResource extends Resource
                                 $scholarshipProgramId = $get('scholarship_program_id');
                                 return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId) : ['' => 'No Qualification Title Available.'];
                             }),
-
-                        Select::make('abdd_id')
-                            ->label('ABDD Sector')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->relationship('abdd', 'name'),
 
                         Select::make('tvi_id')
                             ->label('Institution')
@@ -232,10 +219,6 @@ class TargetResource extends Resource
                     }),
                 TextColumn::make('allocation.scholarship_program.name')
                     ->label('Scholarship Program'),
-                TextColumn::make('abdd.name')
-                    ->searchable()
-                    ->toggleable()
-                    ->label('ABDD Sector'),
                 TextColumn::make('number_of_slots')
                     ->searchable()
                     ->toggleable()
@@ -299,10 +282,17 @@ class TargetResource extends Resource
     protected static function getParticularOptions($legislatorId) {
         $particulars = Particular::whereHas('allocation', function($query) use ($legislatorId) {
             $query->where('legislator_id', $legislatorId);
-        })->pluck('name', 'id')->toArray();
-
+        })
+        ->with('subParticular') // Eager load subParticular
+        ->get()
+        ->mapWithKeys(function ($particular) {
+            return [$particular->id => $particular->subParticular->name ?? 'Unnamed'];
+        })
+        ->toArray();
+    
         return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
     }
+    
 
     protected static function getScholarshipProgramsOptions($legislatorId, $particularId) {
         $scholarshipPrograms = ScholarshipProgram::whereHas('allocation', function($query) use ($legislatorId, $particularId) {

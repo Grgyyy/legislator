@@ -16,9 +16,4 @@ class Abdd extends Model
         'name',
     ];
 
-    public function target()
-    {
-        return $this->hasMany(Target::class);
-    }
-
 }

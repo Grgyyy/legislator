@@ -14,7 +14,6 @@ class Target extends Model
         'allocation_type',
         'allocation_id',
         'tvi_id',
-        'abdd_id',
         'qualification_title_id',
         'number_of_slots',
         'total_training_cost_pcc',
@@ -40,11 +39,6 @@ class Target extends Model
     public function tvi()
     {
         return $this->belongsTo(Tvi::class);
-    }
-
-    public function abdd()
-    {
-        return $this->belongsTo(Abdd::class);
     }
 
     public function qualification_title()

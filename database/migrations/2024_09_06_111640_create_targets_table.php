@@ -12,16 +12,13 @@ return new class extends Migration {
     {
         Schema::create('targets', function (Blueprint $table) {
             $table->id();
-            $table->string('allocation_type');
             $table->foreignId('allocation_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('tvi_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->foreignId('abdd_id')
-                ->constrained()
-                ->cascadeOnDelete();
+
             $table->foreignId('qualification_title_id')
                 ->constrained()
                 ->cascadeOnDelete();
