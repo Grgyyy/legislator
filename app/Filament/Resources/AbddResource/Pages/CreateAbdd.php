@@ -29,7 +29,7 @@ class CreateAbdd extends CreateRecord
     protected function handleRecordCreation(array $data): Abdd
     {
         return DB::transaction(function () use ($data) {
-            $this->validateUniqueAbdd($data['name']);
+            // $this->validateUniqueAbdd($data['name']);
 
             return Abdd::create([
                 'name' => $data['name'],

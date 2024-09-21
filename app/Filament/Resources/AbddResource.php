@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\Province;
 use Filament\Forms;
 use App\Models\Abdd;
 use Filament\Tables;
@@ -51,6 +52,19 @@ class AbddResource extends Resource
                     ->autocomplete(false)
                     ->markAsRequired(false)
                     ->validationAttribute('sector'),
+               Select::make('province')
+                    ->label('Province')
+                    ->multiple()
+                    ->relationship('provinces', 'name')
+                    ->options(function () {
+                        $provinces = Province::whereNot('name', 'Not Applicable')->pluck('name', 'id')->toArray();
+                        return !empty($provinces) ? $provinces : ['no_scholarship_program' => 'No Scholarship Program Available'];
+                    })
+                    ->preload()
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program'),
             ]);
     }
 
@@ -62,7 +76,12 @@ class AbddResource extends Resource
                 TextColumn::make('name')
                     ->label("Sector")
                     ->searchable()
-                    ->sortable()
+                    ->sortable(),
+                TextColumn::make('provinces.name')
+                    ->label('Provinces')
+                    ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(fn($record) => $record->provinces->pluck('name')->implode(', ')),
             ])
             ->filters([
                 TrashedFilter::make()
