@@ -130,7 +130,7 @@ class LegislatorResource extends Resource
                             }
 
                             else {
-                                return '<div style="'. $paddingTop .'">' . $particular->name . ' - ' . $municipalityName . '</div>';
+                                return '<div style="'. $paddingTop .'">' . $particular->subParticular->name . ' - ' . $municipalityName . '</div>';
                             }
                         })->implode('');
                     })

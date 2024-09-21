@@ -308,7 +308,8 @@ class TargetResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->orderBy('updated_at', 'desc');
     }
 
     protected static function getParticularOptions($legislatorId) {
@@ -318,7 +319,19 @@ class TargetResource extends Resource
         ->with('subParticular') 
         ->get()
         ->mapWithKeys(function ($particular) {
-            return [$particular->id => $particular->subParticular->name ?? 'Unnamed'];
+
+            if ($particular->district->name === 'Not Applicable') {
+                if ($particular->subParticular->name === 'Partylist') {
+                    return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name  ];
+                }
+                else {
+                    return [$particular->id => $particular->subParticular->name ];
+                }
+            }
+            else {
+                return [$particular->id => $particular->subParticular->name . " - "  . $particular->district->name . ', ' . $particular->district->municipality->name];
+            }
+            
         })
         ->toArray();
     
