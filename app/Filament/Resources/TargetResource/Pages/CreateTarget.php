@@ -80,6 +80,7 @@ class CreateTarget extends CreateRecord
                     'allocation_id' => $allocation->id,
                     'tvi_id' => $targetData['tvi_id'],
                     'qualification_title_id' => $qualificationTitle->id,
+                    'abdd_id' => $targetData['abdd_id'],
                     'number_of_slots' => $numberOfSlots,
                     'total_training_cost_pcc' => $total_training_cost_pcc,
                     'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,

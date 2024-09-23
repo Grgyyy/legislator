@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TargetResource\Pages;
+use App\Models\Abdd;
 use App\Models\Allocation;
 use App\Models\FundSource;
 use App\Models\Legislator;
@@ -10,6 +11,7 @@ use App\Models\Particular;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\Target;
+use App\Models\Tvi;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -113,6 +115,13 @@ class TargetResource extends Resource
                                 'Continuing' => 'Continuing',
                             ]),
 
+                        Select::make('tvi_id')
+                            ->label('Institution')
+                            ->required()
+                            ->searchable()
+                            ->preload()
+                            ->relationship('tvi', 'name'),
+
                         Select::make('qualification_title_id')
                             ->label('Qualification Title')
                             ->required()
@@ -122,12 +131,15 @@ class TargetResource extends Resource
                                 return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId) : ['' => 'No Qualification Title Available.'];
                             }),
 
-                        Select::make('tvi_id')
-                            ->label('Institution')
+                        Select::make('abdd_id')
+                            ->label('ABDD Sector')
                             ->required()
                             ->searchable()
                             ->preload()
-                            ->relationship('tvi', 'name'),
+                            ->options(function ($get) {
+                                $tviId = $get('tvi_id');
+                                return $tviId ? self::getAbddSectors($tviId) : ['' => 'No ABDD Sector Available.'];
+                            }),
 
                         TextInput::make('number_of_slots')
                             ->label('Number of Slots')
@@ -139,7 +151,6 @@ class TargetResource extends Resource
                     ->addActionLabel('+'),
             ]);
     }
-
 
     public static function table(Table $table): Table
     {
@@ -370,4 +381,20 @@ class TargetResource extends Resource
             ->pluck('trainingProgram.title', 'id')
             ->toArray();
     }
+
+    protected static function getAbddSectors($tviId) {
+        $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
+        
+        if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
+            return ['' => 'No ABDD Sectors Available.'];
+        }
+    
+        $abddSectors = $tvi->district->municipality->province->abdds()
+            ->select('abdds.id', 'abdds.name') 
+            ->pluck('name', 'id')
+            ->toArray();
+    
+        return empty($abddSectors) ? ['' => 'No ABDD Sectors Available.'] : $abddSectors;
+    }
+    
 }
