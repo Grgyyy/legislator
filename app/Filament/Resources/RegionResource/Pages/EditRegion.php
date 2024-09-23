@@ -20,7 +20,6 @@ class EditRegion extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Region
     {
-        // Validate for unique region name
         $this->validateUniqueRegion($data['name'], $record->id);
 
         try {

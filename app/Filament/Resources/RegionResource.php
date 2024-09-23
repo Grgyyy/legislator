@@ -26,6 +26,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Filament\Notifications\Notification;
 
 class RegionResource extends Resource
 {
@@ -69,8 +70,20 @@ class RegionResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Region Edited')
+                                ->body('The Region has been saved successfully.'),
+                        )
                         ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
+                    DeleteAction::make()
+                        ->successNotification(
+                            Notification::make()
+                                ->success()
+                                ->title('Region deleted')
+                                ->body('The Region has been deleted successfully.'),
+                        ),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),
                 ])

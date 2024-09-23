@@ -61,7 +61,7 @@ class ProvinceResource extends Resource
                     ->native(false)
                     ->searchable()
                     ->preload()
-                    ->disableOptionWhen(fn ($value) => $value === 'no_region'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_region'),
             ]);
     }
 
@@ -136,7 +136,7 @@ class ProvinceResource extends Resource
         $query->withoutGlobalScopes([
             SoftDeletingScope::class,
         ])
-        ->where('name', '!=', 'Not Applicable');
+            ->where('name', '!=', 'Not Applicable');
 
         $routeParameter = request()->route('record');
 
