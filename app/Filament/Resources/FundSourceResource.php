@@ -29,7 +29,11 @@ class FundSourceResource extends Resource
 {
     protected static ?string $model = FundSource::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
+
+    protected static ?string $navigationIcon = 'heroicon-o-wallet';
+
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

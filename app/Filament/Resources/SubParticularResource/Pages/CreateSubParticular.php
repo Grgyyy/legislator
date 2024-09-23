@@ -10,6 +10,8 @@ class CreateSubParticular extends CreateRecord
 {
     protected static string $resource = SubParticularResource::class;
 
+    protected static ?string $title = 'Create Particular Type';
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

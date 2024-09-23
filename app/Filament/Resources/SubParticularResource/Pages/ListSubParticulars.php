@@ -11,6 +11,16 @@ class ListSubParticulars extends ListRecords
 {
     protected static string $resource = SubParticularResource::class;
 
+    protected static ?string $title = 'Particular Types';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/sub-particulars' => 'Particular Types',
+            'List'
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [

@@ -10,6 +10,16 @@ class CreatePartylist extends CreateRecord
 {
     protected static string $resource = PartylistResource::class;
 
+    protected static ?string $title = 'Create Party-List';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/partylists' => 'Party-List',
+            'Create'
+        ];
+    }
+    
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
