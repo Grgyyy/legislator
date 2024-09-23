@@ -42,11 +42,6 @@ class Target extends Model
         return $this->belongsTo(Tvi::class);
     }
 
-    public function abdd()
-    {
-        return $this->belongsTo(Abdd::class);
-    }
-
     public function qualification_title()
     {
         return $this->belongsTo(QualificationTitle::class);
@@ -55,6 +50,10 @@ class Target extends Model
     public function targetStatus()
     {
         return $this->belongsTo(TargetStatus::class);
+    }
+
+    public function abdd() {
+        return $this->belongsTo(Abdd::class);
     }
 
 }

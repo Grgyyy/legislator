@@ -28,8 +28,12 @@ class Province extends Model
     {
         return $this->hasMany(Municipality::class);
     }
-    public function target()
+
+    public function abdds()
     {
-        return $this->hasMany(Target::class);
+        return $this->belongsToMany(ABDD::class, 'province_abdds')
+            ->withTimestamps();
     }
+    
+    
 }
