@@ -53,7 +53,7 @@ class ProvinceResource extends Resource
                     ->relationship('region', 'name')
                     ->default(fn($get) => request()->get('region_id'))
                     ->options(function () {
-                        $region = Region::all()->pluck('name', 'id')->toArray();
+                        $region = Region::where('name', '!=', 'Not Applicable')->pluck('name', 'id')->toArray();
                         return !empty($region) ? $region : ['no_region' => 'No Region Available'];
                     })
                     ->required()
