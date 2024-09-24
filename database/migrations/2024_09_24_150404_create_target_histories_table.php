@@ -52,9 +52,6 @@ return new class extends Migration
             $table->integer('total_amount')
                 ->default(1);
             $table->string('appropriation_type');
-            $table->foreignId('target_status_id')
-                ->constrained()
-                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

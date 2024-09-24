@@ -11,7 +11,6 @@ class Target extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'allocation_type',
         'allocation_id',
         'tvi_id',
         'abdd_id',

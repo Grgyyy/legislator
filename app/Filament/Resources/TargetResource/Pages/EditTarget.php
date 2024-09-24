@@ -5,6 +5,7 @@ namespace App\Filament\Resources\TargetResource\Pages;
 use App\Filament\Resources\TargetResource;
 use App\Models\Allocation;
 use App\Models\QualificationTitle;
+use App\Models\TargetHistory;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -54,8 +55,30 @@ class EditTarget extends EditRecord
                 throw new \Exception('Allocation not found for the provided legislator and scholarship program.');
             }
 
+            TargetHistory::create([
+                'target_id' => $record->id,
+                'allocation_id' => $record->allocation_id,
+                'tvi_id' => $record->tvi_id,
+                'qualification_title_id' => $record->qualification_title_id,
+                'abdd_id' => $record->abdd_id,
+                'number_of_slots' => $record->number_of_slots,
+                'total_training_cost_pcc' => $record->total_training_cost_pcc,
+                'total_cost_of_toolkit_pcc' => $record->total_cost_of_toolkit_pcc,
+                'total_training_support_fund' => $record->total_training_support_fund,
+                'total_assessment_fee' => $record->total_assessment_fee,
+                'total_entrepeneurship_fee' => $record->total_entrepeneurship_fee,
+                'total_new_normal_assisstance' => $record->total_new_normal_assisstance,
+                'total_accident_insurance' => $record->total_accident_insurance,
+                'total_book_allowance' => $record->total_book_allowance,
+                'total_uniform_allowance' => $record->total_uniform_allowance,
+                'total_misc_fee' => $record->total_misc_fee,
+                'total_amount' => $record->total_amount,
+                'appropriation_type' => $record->appropriation_type,
+                'target_status_id' => $record->target_status_id,
+            ]);
+
             $existingTotalAmount = $record->total_amount ?? 0;
-            $allocation->balance += $existingTotalAmount; 
+            $allocation->balance += $existingTotalAmount;
 
             $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
             if (!$qualificationTitle) {
@@ -77,6 +100,7 @@ class EditTarget extends EditRecord
             $total_amount = $qualificationTitle->pcc * $numberOfSlots;
 
             if ($allocation->balance >= $total_amount) {
+
                 $allocation->balance -= $total_amount;
                 $allocation->save();
 
@@ -107,4 +131,5 @@ class EditTarget extends EditRecord
             }
         });
     }
+
 }
