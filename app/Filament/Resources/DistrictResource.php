@@ -51,7 +51,7 @@ class DistrictResource extends Resource
                     ->relationship('municipality', 'name')
                     ->default(fn($get) => request()->get('municipality_id'))
                     ->options(function () {
-                        $municipality = Municipality::all()->pluck('name', 'id')->toArray();
+                        $municipality = Municipality::where('name', '!=', 'Not Applicable')->pluck('name', 'id')->toArray();
                         return !empty($municipality) ? $municipality : ['no_municipality' => 'No Municipality Available'];
                     })
                     ->required()

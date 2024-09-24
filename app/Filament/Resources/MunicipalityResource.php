@@ -51,7 +51,7 @@ class MunicipalityResource extends Resource
                     ->relationship("province", "name")
                     ->default(fn($get) => request()->get('province_id'))
                     ->options(function () {
-                        $province = Province::all()->pluck('name', 'id')->toArray();
+                        $province = Province::where('name', '!=', 'Not Applicable')->pluck('name', 'id')->toArray();
                         return !empty($province) ? $province : ['no_province' => 'No Province Available'];
                     })
                     ->required()

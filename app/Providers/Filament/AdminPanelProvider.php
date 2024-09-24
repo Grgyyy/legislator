@@ -40,7 +40,7 @@ class AdminPanelProvider extends PanelProvider
                 'info' => Color::Blue,
                 'success' => Color::Emerald,
                 'warning' => Color::Orange,
-                'primary' => '#3433dc',
+                'primary' => '#78a2cc',
             ])
             ->font('Poppins')
             ->brandName('Legislator App')
