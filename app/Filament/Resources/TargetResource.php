@@ -172,34 +172,58 @@ class TargetResource extends Resource
                                     $set('particular_id', null);
                                 }),
 
-                            Select::make('particular_id')
-                                ->label('Particular')
-                                ->required()
-                                ->searchable()
-                                ->options(function ($get) {
-                                    $legislatorId = $get('legislator_id');
-                                    return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
-                                })
-                                ->reactive()
-                                ->afterStateUpdated(function ($state, callable $set) {
-                                    $set('scholarship_program_id', null);
-                                    $set('qualification_title_id', null);
-                                }),
+                        Select::make('particular_id')
+                            ->label('Particular')
+                            ->required()
+                            ->markAsRequired(false)
+                            ->preload()
+                            ->searchable()
+                            ->options(function ($get) {
+                                $legislatorId = $get('legislator_id');
+                                return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
+                            })
+                            ->reactive()
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                // Reset the 'particular_id' field to null when legislator is changed,
+                                // because the available particular options will change.
+                                $set('scholarship_program_id', null);
+        
+                                // Fetch new particular options based on the selected legislator ($state contains legislator_id).
+                                $scholarshipPrograms = self::getScholarshipProgramsOptions($state, $state);
+                        
+                                // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
+                                // can display the correct options based on the selected legislator.
+                                $set('scholarshipProgramsOptions', $scholarshipPrograms);
+                        
+                                // If there's only one particular available, automatically select it.
+                                if (count($scholarshipPrograms) === 1) {
+                                    // Auto-select the only available particular by setting 'particular_id'
+                                    // to the key of the single option.
+                                    $set('scholarship_program_id', key($scholarshipPrograms));
+                                }
 
-                            Select::make('scholarship_program_id')
-                                ->label('Scholarship Program')
-                                ->required()
-                                ->searchable()
-                                ->options(function ($get) {
-                                    $legislatorId = $get('legislator_id');
-                                    $particularId = $get('particular_id');
-                                    return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
-                                })
-                                ->reactive()
-                                ->afterStateUpdated(function ($state, callable $set) {
-                                    $set('allocation_year', null);
-                                    $set('qualification_title_id', null);
-                                }),
+
+                                $set('qualification_title_id', null);
+                            })
+                            ->native(false)
+                            ->disableOptionWhen(fn ($value) => $value === 'no_legislator'),
+
+                        Select::make('scholarship_program_id')
+                            ->label('Scholarship Program')
+                            ->required()
+                            ->searchable()
+                            ->options(function ($get) {
+                                $legislatorId = $get('legislator_id');
+                                $particularId = $get('particular_id');
+                                return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
+                            })
+                            ->reactive()
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                $set('allocation_year', null);
+                                $set('qualification_title_id', null);
+                            }),
 
                             Select::make('allocation_year')
                                 ->label('Appropriation Year')
@@ -575,7 +599,6 @@ class TargetResource extends Resource
 
         return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
     }
-
 
     protected static function getScholarshipProgramsOptions($legislatorId, $particularId)
     {
