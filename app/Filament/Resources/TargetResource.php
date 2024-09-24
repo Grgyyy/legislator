@@ -178,8 +178,6 @@ class TargetResource extends Resource
                                 $legislatorId = $get('legislator_id');
                                 return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
                             })
-                            ->reactive()
-                            ->live()
                             ->afterStateUpdated(function ($state, callable $set) {
                                 // Reset the 'particular_id' field to null when legislator is changed,
                                 // because the available particular options will change.
@@ -202,6 +200,8 @@ class TargetResource extends Resource
 
                                 $set('qualification_title_id', null);
                             })
+                            ->reactive()
+                            ->live()
                             ->native(false)
                             ->disableOptionWhen(fn ($value) => $value === 'no_legislator'),
 
