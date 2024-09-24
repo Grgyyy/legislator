@@ -25,6 +25,9 @@ class Abdd extends Model
     public function targets() {
         return $this->hasMany(Target::class);
     }
-    
+
+    public function targetHistory() {
+        return $this->hasMany(targetHistory::class);
+    }
 
 }

@@ -56,4 +56,8 @@ class Target extends Model
         return $this->belongsTo(Abdd::class);
     }
 
+    public function targetHistory() {
+        return $this->hasMany(targetHistory::class);
+    }
+
 }

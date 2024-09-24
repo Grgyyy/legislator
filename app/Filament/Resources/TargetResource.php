@@ -54,7 +54,7 @@ class TargetResource extends Resource
                             $legislators = Legislator::where('status_id', 1)
                                 ->whereNull('deleted_at')
                                 ->has('allocation')
-                                ->pluck('name', 'id')   
+                                ->pluck('name', 'id')
                                 ->toArray();
 
                             return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
@@ -158,7 +158,7 @@ class TargetResource extends Resource
                                     $legislators = Legislator::where('status_id', 1)
                                         ->whereNull('deleted_at')
                                         ->has('allocation')
-                                        ->pluck('name', 'id')   
+                                        ->pluck('name', 'id')
                                         ->toArray();
 
                                     return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
@@ -262,17 +262,17 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-                        
+
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-                        
+
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-                        
+
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-                        
+
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
@@ -306,14 +306,13 @@ class TargetResource extends Resource
 
                         $particular = $record->allocation->particular;
                         $subParticular = $particular->subParticular;
-                        $fundSource = $subParticular ? $subParticular->fundSource : null; 
+                        $fundSource = $subParticular ? $subParticular->fundSource : null;
 
                         return $fundSource->name;
                     })
                     ->searchable()
                     ->toggleable()
                     ->label('Fund Source'),
-
                 TextColumn::make('allocation.legislator.name')
                     ->sortable()
                     ->searchable()
@@ -323,27 +322,35 @@ class TargetResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
+                TextColumn::make('appropriation_type')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('allocation.year')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('allocation.legislator.particular.subParticular')
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
-                
+
                         if (!$legislator) {
                             return 'No Legislator Available';
                         }
-                
+
                         $particulars = $legislator->particular;
-                
+
                         if ($particulars->isEmpty()) {
                             return 'No Particular Available';
                         }
-                
-                        $particular = $particulars->first(); 
+
+                        $particular = $particulars->first();
                         $district = $particular->district;
-                        $municipality = $district ? $district->municipality : null; 
-                
+                        $municipality = $district ? $district->municipality : null;
+
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-                
+
                         if ($districtName === 'Not Applicable') {
                             if ($particular->subParticular && $particular->subParticular->name === 'Partylist') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
@@ -356,7 +363,7 @@ class TargetResource extends Resource
                     })
                     ->searchable()
                     ->toggleable()
-                    ->label('Particular'),                
+                    ->label('Particular'),
                 TextColumn::make('tvi.district.name')
                     ->searchable()
                     ->toggleable(),
@@ -459,7 +466,7 @@ class TargetResource extends Resource
         $particulars = Particular::whereHas('allocation', function($query) use ($legislatorId) {
             $query->where('legislator_id', $legislatorId);
         })
-        ->with('subParticular') 
+        ->with('subParticular')
         ->get()
         ->mapWithKeys(function ($particular) {
 
@@ -474,13 +481,13 @@ class TargetResource extends Resource
             else {
                 return [$particular->id => $particular->subParticular->name . " - "  . $particular->district->name . ', ' . $particular->district->municipality->name];
             }
-            
+
         })
         ->toArray();
-    
+
         return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
     }
-    
+
 
     protected static function getScholarshipProgramsOptions($legislatorId, $particularId) {
         $scholarshipPrograms = ScholarshipProgram::whereHas('allocation', function($query) use ($legislatorId, $particularId) {
@@ -516,17 +523,17 @@ class TargetResource extends Resource
 
     protected static function getAbddSectors($tviId) {
         $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
-        
+
         if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
             return ['' => 'No ABDD Sectors Available.'];
         }
-    
+
         $abddSectors = $tvi->district->municipality->province->abdds()
-            ->select('abdds.id', 'abdds.name') 
+            ->select('abdds.id', 'abdds.name')
             ->pluck('name', 'id')
             ->toArray();
-    
+
         return empty($abddSectors) ? ['' => 'No ABDD Sectors Available.'] : $abddSectors;
     }
-    
+
 }

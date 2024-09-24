@@ -45,6 +45,10 @@ class Tvi extends Model
         return $this->hasMany(Target::class);
     }
 
+    public function targetHistory() {
+        return $this->hasMany(targetHistory::class);
+    }
+
     protected static function boot()
     {
         parent::boot();
@@ -53,7 +57,6 @@ class Tvi extends Model
             $model->validateUniqueInstitution();
         });
     }
-
 
     public function validateUniqueInstitution()
     {
