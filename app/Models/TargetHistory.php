@@ -40,6 +40,11 @@ class TargetHistory extends Model
         return $this->belongsTo(Allocation::class);
     }
 
+    public function tvi()
+    {
+        return $this->belongsTo(Tvi::class);
+    }
+
     public function qualification_title()
     {
         return $this->belongsTo(QualificationTitle::class);

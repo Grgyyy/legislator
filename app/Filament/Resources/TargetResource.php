@@ -291,28 +291,28 @@ class TargetResource extends Resource
             ->columns([
 
                 TextColumn::make('fund_source')
-                    ->getStateUsing(function ($record) {
-                        $legislator = $record->allocation->legislator;
+                ->getStateUsing(function ($record) {
+                    $legislator = $record->allocation->legislator;
 
-                        if (!$legislator) {
-                            return 'No Legislator Available';
-                        }
+                    if (!$legislator) {
+                        return 'No Legislator Available';
+                    }
 
-                        $particulars = $legislator->particular;
+                    $particulars = $legislator->particular;
 
-                        if ($particulars->isEmpty()) {
-                            return 'No Particular Available';
-                        }
+                    if ($particulars->isEmpty()) {
+                        return 'No Particular Available';
+                    }
 
-                        $particular = $record->allocation->particular;
-                        $subParticular = $particular->subParticular;
-                        $fundSource = $subParticular ? $subParticular->fundSource : null;
+                    $particular = $record->allocation->particular;
+                    $subParticular = $particular->subParticular;
+                    $fundSource = $subParticular ? $subParticular->fundSource : null;
 
-                        return $fundSource->name;
-                    })
-                    ->searchable()
-                    ->toggleable()
-                    ->label('Fund Source'),
+                    return $fundSource ? $fundSource->name : 'No Fund Source Available';
+                })
+                ->searchable()
+                ->toggleable()
+                ->label('Fund Source'),
                 TextColumn::make('allocation.legislator.name')
                     ->sortable()
                     ->searchable()
@@ -422,6 +422,9 @@ class TargetResource extends Resource
                     ->toggleable()
                     ->label('Status'),
             ])
+            ->recordUrl(
+                fn ($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]),
+            )
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
@@ -450,6 +453,7 @@ class TargetResource extends Resource
             'index' => Pages\ListTargets::route('/'),
             'create' => Pages\CreateTarget::route('/create'),
             'edit' => Pages\EditTarget::route('/{record}/edit'),
+            'showHistory' => Pages\ShowHistory::route('/{record}/history'),
         ];
     }
 
