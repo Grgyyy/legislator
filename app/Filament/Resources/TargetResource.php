@@ -146,9 +146,35 @@ class TargetResource extends Resource
                             ->required()
                             ->numeric(),
                     ])
-                    ->columns(columns: 4)
-                    ->columnSpanFull()
-                    ->addActionLabel('+'),
+                ->columns(columns: 4)
+                ->columnSpanFull()
+                ->addActionLabel('+')
+                ->cloneable(),
+                // TextInput::make('number_of_clones')
+                //     ->label('Number of Clones')
+                //     ->numeric()
+                //     ->minValue(1)
+                //     ->default(1)
+                //     ->helperText('Specify how many times you want to clone the form.')
+                //     ->reactive()
+                //     ->afterStateUpdated(function ($state, callable $set, $get) {
+                //         $numberOfClones = $state;
+                
+                //         $targets = $get('targets') ?? [];
+                //         $currentCount = count($targets);
+                
+                //         if ($numberOfClones > count($targets)) {
+                //             $baseForm = $targets[0] ?? [];
+                
+                //             for ($i = count($targets); $i < $numberOfClones; $i++) {
+                //                 $targets[] = $baseForm;
+                //             }
+                
+                //             $set('targets', $targets);
+                //         }elseif ($numberOfClones < $currentCount) {
+                //             $set('targets', array_slice($targets, 0, $numberOfClones));
+                //         }
+                //     })
             ]);
     }
 

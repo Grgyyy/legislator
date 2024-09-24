@@ -9,6 +9,7 @@ use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\ParticularResource;
+use App\Models\FundSource;
 use App\Models\Particular;
 use Exception;
 use Filament\Actions\CreateAction;
@@ -50,6 +51,29 @@ class ListParticulars extends ListRecords
         ];
     }
 
+    // public function getTabs(): array
+    // {
+    //     $fundSources = FundSource::all();
+
+    //     $tabs = [];
+
+    //     foreach ($fundSources as $fundSource) {
+    //         $tabs[$fundSource->name] = Tab::make()
+    //             ->modifyQueryUsing(function ($query) use ($fundSource) {
+    //                 $query->whereHas('subParticular', function ($subQuery) use ($fundSource) {
+    //                     $subQuery->where('fund_source_id', $fundSource->id);
+    //                 });
+    //             })
+    //             ->badge(function () use ($fundSource) {
+    //                 return Particular::whereHas('subParticular', function ($subQuery) use ($fundSource) {
+    //                     $subQuery->where('fund_source_id', $fundSource->id);
+    //                 })->count();
+    //             });
+    //     }
+
+    //     return $tabs;
+    // }
+
     public function getTabs(): array
     {
         return [
@@ -77,28 +101,43 @@ class ListParticulars extends ListRecords
                 }),
             'District' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
-                    $query->where('sub_particular_id', 13);
+                    $query->whereHas('subParticular', function ($subQuery) {
+                        $subQuery->where('fund_source_id', 3);
+                    })
+                    ->where('sub_particular_id', 13);
                 })
                 ->badge(function () {
-                    return Particular::where('sub_particular_id', 13)->count();
+                    return Particular::whereHas('subParticular', function ($subQuery) {
+                        $subQuery->where('fund_source_id', 3);
+                    })->where('sub_particular_id', 13)->count();
                 }),
             'Partylist' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
-                    $query->where('sub_particular_id', 14);
+                    $query->whereHas('subParticular', function ($subQuery) {
+                        $subQuery->where('fund_source_id', 3);
+                    })
+                    ->where('sub_particular_id', 14);
                 })
                 ->badge(function () {
-                    return Particular::where('sub_particular_id', 14)->count();
+                    return Particular::whereHas('subParticular', function ($subQuery) {
+                        $subQuery->where('fund_source_id', 3);
+                    })->where('sub_particular_id', 14)->count();
                 }),
             'Legislator Funds (No Area)' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
-                    $query->whereIn('sub_particular_id', [
+                    $query->whereHas('subParticular', function ($subQuery) {
+                        $subQuery->where('fund_source_id', 3);
+                    })
+                    ->whereIn('sub_particular_id', [
                         15,
                         16,
                         17
                     ]);
                 })
                 ->badge(function () {
-                    return Particular::whereIn('sub_particular_id', [
+                    return Particular::whereHas('subParticular', function ($subQuery) {
+                        $subQuery->where('fund_source_id', 3);
+                    })->whereIn('sub_particular_id', [
                         15,
                         16,
                         17
