@@ -13,7 +13,6 @@ use Filament\Pages\Page;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
@@ -55,36 +54,12 @@ class LegislatorResource extends Resource
                 Select::make("particular")
                     ->multiple()
                     ->relationship("particular", "name")
-                    ->options(function () {
-                        return Particular::query()
-                            ->with('district')
-                            ->get()
-                            ->mapWithKeys(function ($item) {
-
-                                $subParticular = $item->subParticular->name;
-
-                                if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
-                                    $formattedName = "{$item->subParticular->name}";
-                                }
-
-                                elseif ($subParticular === 'Partylist') {
-                                    $formattedName = "{$item->subParticular->name} - {$item->partylist->name}"; 
-                                }
-
-                                else {
-                                    $formattedName = "{$item->subParticular->name} - {$item->district->name}, {$item->district->municipality->name}"; 
-                                }
-
-                                return [$item->id => $formattedName];
-
-                            })
-                            ->toArray() ?: ['no_particular' => 'No Particular Available'];
-                    })
+                    ->options(fn() => self::getParticularOptions())
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
                     ->preload()
-                    ->disableOptionWhen(fn ($value) => $value === 'no_particular'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_particular'),
                 Select::make('status_id')
                     ->label('Status')
                     ->default(1)
@@ -93,12 +68,38 @@ class LegislatorResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->options(function () {
-                        $status = Status::all()->pluck('desc', 'id')->toArray();
-                        return !empty($status) ? $status : ['no_status' => 'No Status Available'];
-                    })
-                    ->disableOptionWhen(fn ($value) => $value === 'no_status'),
+                    ->options(fn() => self::getStatusOptions())
+                    ->disableOptionWhen(fn($value) => $value === 'no_status'),
             ]);
+    }
+
+    protected static function getParticularOptions(): array
+    {
+        return Particular::query()
+            ->with('district')
+            ->get()
+            ->mapWithKeys(fn($item) => self::formatParticular($item))
+            ->toArray() ?: ['no_particular' => 'No Particular Available'];
+    }
+
+    protected static function formatParticular($item): array
+    {
+        $subParticular = $item->subParticular->name;
+
+        if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
+            $formattedName = "{$item->subParticular->name}";
+        } elseif ($subParticular === 'Partylist') {
+            $formattedName = "{$item->subParticular->name} - {$item->partylist->name}";
+        } else {
+            $formattedName = "{$item->subParticular->name} - {$item->district->name}, {$item->district->municipality->name}";
+        }
+
+        return [$item->id => $formattedName];
+    }
+
+    protected static function getStatusOptions(): array
+    {
+        return Status::all()->pluck('desc', 'id')->toArray() ?: ['no_status' => 'No Status Available'];
     }
 
     public static function table(Table $table): Table
@@ -113,27 +114,7 @@ class LegislatorResource extends Resource
                     ->toggleable(),
                 TextColumn::make('particular_name')
                     ->label('Particular')
-                    ->getStateUsing(function ($record) {
-                        $particulars = $record->particular;
-
-                        return $particulars->map(function ($particular, $index) {
-                            $municipalityName = $particular->district->name . ', ' . $particular->district->municipality->name;
-
-                            $paddingTop = ($index > 0) ? 'padding-top: 15px;' : '';
-
-                            if($particular->subParticular->name === 'Partylist') {
-                                return '<div style="'. $paddingTop .'">' . $particular->subParticular->name . ' - ' . $particular->partylist->name . '</div>';
-                            }
-
-                            elseif ($particular->subParticular->name === 'Senator' || $particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
-                                return '<div style="'. $paddingTop .'">' . $particular->subParticular->name . '</div>';
-                            }
-
-                            else {
-                                return '<div style="'. $paddingTop .'">' . $particular->subParticular->name . ' - ' . $municipalityName . '</div>';
-                            }
-                        })->implode('');
-                    })
+                    ->getStateUsing(fn($record) => self::getParticularNames($record))
                     ->html()
                     ->toggleable(),
                 TextColumn::make("status.desc")
@@ -144,38 +125,7 @@ class LegislatorResource extends Resource
                     ->label('Records'),
                 SelectFilter::make('status')
                     ->label('Status')
-                    ->relationship('status', 'desc')
-                // Filter::make('status')
-                //     ->form([
-                //         Select::make('status_id')
-                //             ->label('Status')
-                //             ->relationship('status', 'desc')
-                //             // ->options([
-                //             //     '1' => 'Active',
-                //             //     '2' => 'Inactive',
-                //             // ])l
-                //             ->selectablePlaceholder(false)
-                //             ->live(),
-                //     ])
-                    // ->query(function (Builder $query, array $data): Builder {
-                    //     return $query
-                    //         ->when(
-                    //             $data['status_id'] === 'all',
-                    //             fn(Builder $query): Builder => $query->whereNull('deleted_at')
-                    //         )
-                    //         ->when(
-                    //             $data['status_id'] === 'deleted',
-                    //             fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
-                    //         )
-                    //         ->when(
-                    //             $data['status_id'] === '1',
-                    //             fn(Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
-                    //         )
-                    //         ->when(
-                    //             $data['status_id'] === '2',
-                    //             fn(Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
-                    //         );
-                    // }),
+                    ->relationship('status', 'desc'),
             ])
             ->actions([
                 ActionGroup::make([
@@ -189,11 +139,8 @@ class LegislatorResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
-                        // ->hidden(fn (): bool => self::isTrashedFilterActive()),
                     ForceDeleteBulkAction::make(),
-                        // ->hidden(fn (): bool => !self::isTrashedFilterActive()),
                     RestoreBulkAction::make(),
-                        // ->hidden(fn (): bool => !self::isTrashedFilterActive()),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -202,14 +149,28 @@ class LegislatorResource extends Resource
                                         ->heading('Legislator'),
                                     Column::make('formatted_particular')
                                         ->heading('Particular'),
-                                    // Column::make('formatted_district')
-                                    //     ->heading('District'),
-
                                 ])
-                        ->withFilename(date('m-d-Y') . ' - Legislator')
-                    ]),
+                                ->withFilename(date('m-d-Y') . ' - Legislator'),
+                        ]),
                 ]),
             ]);
+    }
+
+    protected static function getParticularNames($record): string
+    {
+        return $record->particular->map(function ($particular, $index) {
+            $municipalityName = $particular->district->name . ', ' . $particular->district->municipality->name;
+
+            $paddingTop = ($index > 0) ? 'padding-top: 15px;' : '';
+
+            if ($particular->subParticular->name === 'Partylist') {
+                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $particular->partylist->name . '</div>';
+            } elseif (in_array($particular->subParticular->name, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . '</div>';
+            } else {
+                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $municipalityName . '</div>';
+            }
+        })->implode('');
     }
 
     public static function getPages(): array
@@ -224,11 +185,11 @@ class LegislatorResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
+            ->withoutGlobalScopes([SoftDeletingScope::class])
             ->whereNotIn('name', ['Regional Office', 'Central Office']);
     }
+
+
     // protected static function isTrashedFilterActive(): bool
     // {
     //     $filters = request()->query('tableFilters', []);

@@ -20,8 +20,7 @@ class EditParticular extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Particular
     {
-        // Validate for unique particular name within the same district
-        $this->validateUniqueParticular($data['name'], $data['district_id'], $record->id);
+        $this->validateUniqueParticular($data['sub_particular_id'], $record->id);
 
         try {
             $record->update($data);
@@ -49,11 +48,11 @@ class EditParticular extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueParticular($name, $districtId, $currentId)
+    protected function validateUniqueParticular($sub_particular_id, $currentId)
     {
         $query = Particular::withTrashed()
-            ->where('name', $name)
-            ->where('district_id', $districtId)
+            ->where('partylist_district', $sub_particular_id)
+            ->where('sub_particular_id', $sub_particular_id)
             ->where('id', '!=', $currentId)
             ->first();
 

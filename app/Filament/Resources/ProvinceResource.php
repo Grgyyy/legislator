@@ -40,6 +40,7 @@ class ProvinceResource extends Resource
     protected static ?string $navigationParentItem = "Regions";
 
     protected static ?int $navigationSort = 1;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -64,8 +65,6 @@ class ProvinceResource extends Resource
                     ->disableOptionWhen(fn($value) => $value === 'no_region'),
             ]);
     }
-
-
 
     public static function table(Table $table): Table
     {
@@ -96,15 +95,21 @@ class ProvinceResource extends Resource
                             $record->delete();
                             return redirect()->route('filament.admin.resources.provinces.index');
                         }),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+
+                    RestoreAction::make()
+                        ->successNotificationTitle('Province record restored successfully'),
+                    ForceDeleteAction::make()
+                        ->successNotificationTitle('Province record permanently deleted'),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->successNotificationTitle('Province records deleted successfully'),
+                    ForceDeleteBulkAction::make()
+                        ->successNotificationTitle('Province records permanently deleted'),
+                    RestoreBulkAction::make()
+                        ->successNotificationTitle('Province records restored successfully'),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([

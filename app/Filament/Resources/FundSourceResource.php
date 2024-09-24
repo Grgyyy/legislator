@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\FundSourceResource\Pages;
-use App\Filament\Resources\FundSourceResource\RelationManagers;
 use App\Models\FundSource;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
@@ -41,9 +40,8 @@ class FundSourceResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->label('Fund Source')
+                    ->label('Fund Source'),
             ]);
     }
 
@@ -57,23 +55,36 @@ class FundSourceResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                TrashedFilter::make()
-                    ->label('Records'),
+                TrashedFilter::make()->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                        ->hidden(fn($record) => $record->trashed())
+                        ->successNotificationTitle('Fund Source updated successfully.')
+                        ->failureNotificationTitle('Failed to update the Fund Source.'),
+                    DeleteAction::make()
+                        ->successNotificationTitle('Fund Source deleted successfully.')
+                        ->failureNotificationTitle('Failed to delete the Fund Source.'),
+                    RestoreAction::make()
+                        ->successNotificationTitle('Fund Source restored successfully.')
+                        ->failureNotificationTitle('Failed to restore the Fund Source.'),
+                    ForceDeleteAction::make()
+                        ->successNotificationTitle('Fund Source permanently deleted successfully.')
+                        ->failureNotificationTitle('Failed to permanently delete the Fund Source.'),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->successNotificationTitle('Fund Sources deleted successfully.')
+                        ->failureNotificationTitle('Failed to delete Fund Sources.'),
+                    ForceDeleteBulkAction::make()
+                        ->successNotificationTitle('Fund Sources permanently deleted successfully.')
+                        ->failureNotificationTitle('Failed to permanently delete Fund Sources.'),
+                    RestoreBulkAction::make()
+                        ->successNotificationTitle('Fund Sources restored successfully.')
+                        ->failureNotificationTitle('Failed to restore Fund Sources.'),
                 ])
             ]);
     }
@@ -90,8 +101,6 @@ class FundSourceResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

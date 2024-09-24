@@ -70,7 +70,7 @@ class CreateRegion extends CreateRecord
 
         Notification::make()
             ->title('Region Created')
-            ->body("The '{$region->name}' has been successfully created.")
+            ->body("{$region->name} has been successfully created.")
             ->success()
             ->send();
     }

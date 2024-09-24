@@ -67,7 +67,7 @@ class CreateParticular extends CreateRecord
 
                 $particularData = [
                     'sub_particular_id' => $data['sub_particular_id'],
-                    'partylist_id' => $subParticular->name === 'Partylist' ||  $subParticular->fundSource->name === 'Partylist' ? $data['partylist_district'] : $notApplicablePartylist->id,
+                    'partylist_id' => $subParticular->name === 'Partylist' || $subParticular->fundSource->name === 'Partylist' ? $data['partylist_district'] : $notApplicablePartylist->id,
                     'district_id' => $subParticular->name === 'Partylist' ? $district->id : $data['partylist_district'],
                 ];
 

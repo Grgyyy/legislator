@@ -23,9 +23,13 @@ class CreateLegislator extends CreateRecord
         return DB::transaction(function () use ($data) {
             $this->validateUniqueLegislator($data['name']);
 
-            return Legislator::create([
+            $legislator = Legislator::create([
                 'name' => $data['name'],
             ]);
+
+            $this->sendCreationSuccessNotification($legislator);
+
+            return $legislator;
         });
     }
 
@@ -37,9 +41,9 @@ class CreateLegislator extends CreateRecord
 
         if ($query) {
             if ($query->deleted_at) {
-                $message = 'Legislator with this name exists and is marked as deleted. Data cannot be created.';
+                $message = 'A legislator with this name exists and is marked as deleted. Data cannot be created.';
             } else {
-                $message = 'Legislator with this name already exists.';
+                $message = 'A legislator with this name already exists.';
             }
             $this->handleValidationException($message);
         }
@@ -56,5 +60,14 @@ class CreateLegislator extends CreateRecord
         throw ValidationException::withMessages([
             'name' => $message,
         ]);
+    }
+
+    protected function sendCreationSuccessNotification($legislator)
+    {
+        Notification::make()
+            ->title('Legislator Created')
+            ->body("{$legislator->name} has been successfully created.")
+            ->success()
+            ->send();
     }
 }

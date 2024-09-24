@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PartylistResource\Pages;
-use App\Filament\Resources\PartylistResource\RelationManagers;
 use App\Models\Partylist;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
@@ -37,7 +36,6 @@ class PartylistResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-
     public static function form(Form $form): Form
     {
         return $form
@@ -66,26 +64,33 @@ class PartylistResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                        ->hidden(fn($record) => $record->trashed())
+                        ->successNotificationTitle('Partylist updated successfully.')
+                        ->failureNotificationTitle('Failed to update Partylist.'),
+                    DeleteAction::make()
+                        ->successNotificationTitle('Partylist deleted successfully.')
+                        ->failureNotificationTitle('Failed to delete Partylist.'),
+                    RestoreAction::make()
+                        ->successNotificationTitle('Partylist restored successfully.')
+                        ->failureNotificationTitle('Failed to restore Partylist.'),
+                    ForceDeleteAction::make()
+                        ->successNotificationTitle('Partylist permanently deleted.')
+                        ->failureNotificationTitle('Failed to permanently delete Partylist.'),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->successNotificationTitle('Partylist records deleted successfully.')
+                        ->failureNotificationTitle('Failed to delete partylist records.'),
+                    ForceDeleteBulkAction::make()
+                        ->successNotificationTitle('Partylist records permanently deleted.')
+                        ->failureNotificationTitle('Failed to permanently delete partylist records.'),
+                    RestoreBulkAction::make()
+                        ->successNotificationTitle('Partylist records restored successfully.')
+                        ->failureNotificationTitle('Failed to restore partylist records.'),
                 ])
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
     }
 
     public static function getPages(): array
@@ -95,5 +100,11 @@ class PartylistResource extends Resource
             'create' => Pages\CreatePartylist::route('/create'),
             'edit' => Pages\EditPartylist::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

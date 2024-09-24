@@ -34,6 +34,6 @@ class Province extends Model
         return $this->belongsToMany(ABDD::class, 'province_abdds')
             ->withTimestamps();
     }
-    
-    
+
+
 }
