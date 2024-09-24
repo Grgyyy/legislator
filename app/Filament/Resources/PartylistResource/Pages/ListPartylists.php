@@ -32,7 +32,7 @@ class ListPartylists extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
-            ACtion::make('RegionImport')
+            Action::make('RegionImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
@@ -44,7 +44,7 @@ class ListPartylists extends ListRecords
                         Excel::import(new PartylistImport, $file);
                         Notification::make()
                             ->title('Import Successful')
-                            ->body('Region import successful!')
+                            ->body('Partylist import successful!')
                             ->success()
                             ->send();
                     } catch (Exception $e) {
