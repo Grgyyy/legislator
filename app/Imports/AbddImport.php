@@ -65,6 +65,6 @@ class AbddImport implements ToModel, WithHeadingRow
     protected function getProvinceId($provinceName) {
         $provinceRecord = Province::where('name', $provinceName)->first();
         
-        return $provinceRecord ? $provinceRecord->id : throw new \Exception("The {$provinceName} Province does not exists."); // Return null if not found
+        return $provinceRecord ? $provinceRecord->id : throw new \Exception("The {$provinceName} Province does not exists.");
     }
 }
