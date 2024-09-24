@@ -92,7 +92,7 @@ class ParticularResource extends Resource
                 $query->where('name', 'Not Applicable');
             })
             ->whereHas('municipality.province.region', function ($query) {
-                $query->whereNot('name', 'Not Applicable');
+                $query->whereNot('name', 'Not Applicable')->whereNot('name', 'NCR');
             })
             ->get();
         
