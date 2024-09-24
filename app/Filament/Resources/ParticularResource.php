@@ -86,18 +86,18 @@ class ParticularResource extends Resource
             return !empty($partylists) ? $partylists : ['' => 'No Partylists Available.'];
         } elseif ($subParticular->fundSource->name === 'RO Regular') {
             $districts = District::where('name', 'Not Applicable')
-                ->whereHas('municipality', function ($query) {
-                    $query->where('name', 'Not Applicable');
-                })
-                ->whereHas('municipality.province', function ($query) {
-                    $query->where('name', 'Not Applicable');
-                })
-                ->whereHas('municipality.province.region', function ($query) {
-                    $query->whereNot('name', 'Not Applicable');
-                })
-                ->get();
-
-
+            ->whereHas('municipality', function ($query) {
+                $query->where('name', 'Not Applicable');
+            })
+            ->whereHas('municipality.province', function ($query) {
+                $query->where('name', 'Not Applicable');
+            })
+            ->whereHas('municipality.province.region', function ($query) {
+                $query->whereNot('name', 'Not Applicable')->whereNot('name', 'NCR');
+            })
+            ->get();
+        
+    
             if ($districts->isEmpty()) {
                 return ['' => 'No district Available.'];
             }
