@@ -20,6 +20,7 @@ class ProvinceSeeder extends Seeder
             ['PaMaMariSan', 1],
             ['Quezon City', 1],
             ['Manila City', 1],
+            ['Pasay-Makati', 1],
             ['Not Applicable', 1],
 
             // Cordillera Administrative Region (CAR)

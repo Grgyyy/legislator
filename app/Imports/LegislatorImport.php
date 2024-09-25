@@ -34,10 +34,8 @@ class LegislatorImport implements ToModel, WithHeadingRow
                 $sub_particular_id = $this->getSubparticularId($row['particular']);
                 $particular_id = $this->getParticularId($sub_particular_id, $partylist_id, $district_id);
 
-                // Check if the legislator already exists
                 $legislator = Legislator::firstOrCreate(['name' => $row['legislator']]);
 
-                // Sync the particular without duplicating relationships
                 if (!$legislator->particular()->where('particular_id', $particular_id)->exists()) {
                     $legislator->particular()->attach($particular_id);
                 }
