@@ -21,7 +21,6 @@ class CreateTarget extends CreateRecord
     protected function handleRecordCreation(array $data): Target
     {
         return DB::transaction(function () use ($data) {
-            // Extract the first item from the targets repeater array
             $targetData = $data['targets'][0] ?? null;
 
             if (!$targetData) {
@@ -29,7 +28,6 @@ class CreateTarget extends CreateRecord
                 throw new \Exception('No target data found.');
             }
 
-            // Validate required fields in the repeater data
             $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'tvi_id', 'appropriation_type'];
             
             foreach ($requiredFields as $field) {
@@ -39,7 +37,6 @@ class CreateTarget extends CreateRecord
                 }
             }
 
-            // Find the allocation
             $allocation = Allocation::where('legislator_id', $targetData['legislator_id'])
                 ->where('particular_id', $targetData['particular_id'])
                 ->where('scholarship_program_id', $targetData['scholarship_program_id'])
@@ -51,7 +48,6 @@ class CreateTarget extends CreateRecord
                 throw new \Exception('Allocation not found');
             }
 
-            // Find the qualification title
             $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
 
             if (!$qualificationTitle) {
@@ -61,7 +57,6 @@ class CreateTarget extends CreateRecord
 
             $numberOfSlots = $targetData['number_of_slots'] ?? 0;
 
-            // Calculate costs
             $total_training_cost_pcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
             $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots;
             $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
@@ -75,7 +70,6 @@ class CreateTarget extends CreateRecord
             $total_amount = $qualificationTitle->pcc * $numberOfSlots;
 
             if ($allocation->balance >= $total_amount) {
-                // Create the target
                 $target = Target::create([
                     'allocation_id' => $allocation->id,
                     'tvi_id' => $targetData['tvi_id'],
@@ -97,7 +91,6 @@ class CreateTarget extends CreateRecord
                     'target_status_id' => 1,
                 ]);
 
-                // Update the allocation balance
                 $allocation->balance -= $total_amount;
                 $allocation->save();
 

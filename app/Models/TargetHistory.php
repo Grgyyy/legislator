@@ -4,13 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Target extends Model
+class TargetHistory extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
+        'target_id',
         'allocation_id',
         'tvi_id',
         'abdd_id',
@@ -27,9 +27,13 @@ class Target extends Model
         'total_uniform_allowance',
         'total_misc_fee',
         'total_amount',
-        'appropriation_type',
-        'target_status_id'
+        'appropriation_type'
     ];
+
+    public function target()
+    {
+        return $this->belongsTo(Target::class);
+    }
 
     public function allocation()
     {
@@ -46,17 +50,7 @@ class Target extends Model
         return $this->belongsTo(QualificationTitle::class);
     }
 
-    public function targetStatus()
-    {
-        return $this->belongsTo(TargetStatus::class);
-    }
-
     public function abdd() {
         return $this->belongsTo(Abdd::class);
     }
-
-    public function targetHistory() {
-        return $this->hasMany(targetHistory::class);
-    }
-
 }

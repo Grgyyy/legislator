@@ -42,141 +42,247 @@ class TargetResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Repeater::make('targets')
-                    ->schema([
+        return $form->schema(function ($record) {
+            // Check if we're editing an existing record
+            if ($record) {
+                return [
+                    Select::make('legislator_id')
+                        ->label('Legislator Name')
+                        ->required()
+                        ->searchable()
+                        ->options(function () {
+                            $legislators = Legislator::where('status_id', 1)
+                                ->whereNull('deleted_at')
+                                ->has('allocation')
+                                ->pluck('name', 'id')
+                                ->toArray();
 
-                        Select::make('legislator_id')
-                            ->label('Legislator Name')
-                            ->required()
-                            ->searchable()
-                            ->options(function () {
-                                $legislators = Legislator::where('status_id', 1)
-                                    ->whereNull('deleted_at')
-                                    ->has('allocation')
-                                    ->pluck('name', 'id')   
-                                    ->toArray();
+                            return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
+                        })
+                        ->reactive()
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            $set('particular_id', null);
+                        }),
 
-                                return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
-                            })
-                            ->reactive()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $set('particular_id', null);
-                            }),
+                    Select::make('particular_id')
+                        ->label('Particular')
+                        ->required()
+                        ->searchable()
+                        ->options(function ($get) {
+                            $legislatorId = $get('legislator_id');
+                            return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
+                        })
+                        ->reactive()
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            $set('scholarship_program_id', null);
+                            $set('qualification_title_id', null);
+                        }),
 
-                        Select::make('particular_id')
-                            ->label('Particular')
-                            ->required()
-                            ->searchable()
-                            ->options(function ($get) {
-                                $legislatorId = $get('legislator_id');
-                                return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
-                            })
-                            ->reactive()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $set('scholarship_program_id', null);
-                                $set('qualification_title_id', null);
-                            }),
+                    Select::make('scholarship_program_id')
+                        ->label('Scholarship Program')
+                        ->required()
+                        ->searchable()
+                        ->options(function ($get) {
+                            $legislatorId = $get('legislator_id');
+                            $particularId = $get('particular_id');
+                            return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
+                        })
+                        ->reactive()
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            $set('allocation_year', null);
+                            $set('qualification_title_id', null);
+                        }),
 
-                        Select::make('scholarship_program_id')
-                            ->label('Scholarship Program')
-                            ->required()
-                            ->searchable()
-                            ->options(function ($get) {
-                                $legislatorId = $get('legislator_id');
-                                $particularId = $get('particular_id');
-                                return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
-                            })
-                            ->reactive()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                $set('allocation_year', null);
-                                $set('qualification_title_id', null);
-                            }),
+                    Select::make('allocation_year')
+                        ->label('Appropriation Year')
+                        ->required()
+                        ->searchable()
+                        ->options(function ($get) {
+                            $legislatorId = $get('legislator_id');
+                            $particularId = $get('particular_id');
+                            $scholarshipProgramId = $get('scholarship_program_id');
+                            return $legislatorId && $particularId && $scholarshipProgramId
+                                ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
+                                : ['' => 'No Allocation Available.'];
+                        }),
 
-                        Select::make('allocation_year')
-                            ->label('Appropriation Year')
-                            ->required()
-                            ->searchable()
-                            ->options(function ($get) {
-                                $legislatorId = $get('legislator_id');
-                                $particularId = $get('particular_id');
-                                $scholarshipProgramId = $get('scholarship_program_id');
-                                return $legislatorId && $particularId && $scholarshipProgramId
-                                    ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
-                                    : ['' => 'No Allocation Available.'];
-                            }),
+                    Select::make('appropriation_type')
+                        ->label('Allocation Type')
+                        ->required()
+                        ->options([
+                            'Current' => 'Current',
+                            'Continuing' => 'Continuing',
+                        ]),
 
-                        Select::make('appropriation_type')
-                            ->label('Allocation Type')
-                            ->required()
-                            ->options([
-                                'Current' => 'Current',
-                                'Continuing' => 'Continuing',
-                            ]),
+                    Select::make('tvi_id')
+                        ->label('Institution')
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->relationship('tvi', 'name'),
 
-                        Select::make('tvi_id')
-                            ->label('Institution')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->relationship('tvi', 'name'),
+                    Select::make('qualification_title_id')
+                        ->label('Qualification Title')
+                        ->required()
+                        ->searchable()
+                        ->options(function ($get) {
+                            $scholarshipProgramId = $get('scholarship_program_id');
+                            return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId) : ['' => 'No Qualification Title Available.'];
+                        }),
 
-                        Select::make('qualification_title_id')
-                            ->label('Qualification Title')
-                            ->required()
-                            ->searchable()
-                            ->options(function ($get) {
-                                $scholarshipProgramId = $get('scholarship_program_id');
-                                return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId) : ['' => 'No Qualification Title Available.'];
-                            }),
+                    Select::make('abdd_id')
+                        ->label('ABDD Sector')
+                        ->required()
+                        ->searchable()
+                        ->preload()
+                        ->options(function ($get) {
+                            $tviId = $get('tvi_id');
+                            return $tviId ? self::getAbddSectors($tviId) : ['' => 'No ABDD Sector Available.'];
+                        }),
 
-                        Select::make('abdd_id')
-                            ->label('ABDD Sector')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->options(function ($get) {
-                                $tviId = $get('tvi_id');
-                                return $tviId ? self::getAbddSectors($tviId) : ['' => 'No ABDD Sector Available.'];
-                            }),
+                    TextInput::make('number_of_slots')
+                        ->label('Number of Slots')
+                        ->required()
+                        ->numeric(),
+                ];
+            } else {
+                // Create form with repeater
+                return [
+                    Repeater::make('targets')
+                        ->schema([
+                            Select::make('legislator_id')
+                                ->label('Legislator Name')
+                                ->required()
+                                ->searchable()
+                                ->options(function () {
+                                    $legislators = Legislator::where('status_id', 1)
+                                        ->whereNull('deleted_at')
+                                        ->has('allocation')
+                                        ->pluck('name', 'id')
+                                        ->toArray();
 
-                        TextInput::make('number_of_slots')
-                            ->label('Number of Slots')
-                            ->required()
-                            ->numeric(),
-                    ])
-                ->columns(columns: 4)
-                ->columnSpanFull()
-                ->addActionLabel('+')
-                ->cloneable(),
-                // TextInput::make('number_of_clones')
-                //     ->label('Number of Clones')
-                //     ->numeric()
-                //     ->minValue(1)
-                //     ->default(1)
-                //     ->helperText('Specify how many times you want to clone the form.')
-                //     ->reactive()
-                //     ->afterStateUpdated(function ($state, callable $set, $get) {
-                //         $numberOfClones = $state;
-                
-                //         $targets = $get('targets') ?? [];
-                //         $currentCount = count($targets);
-                
-                //         if ($numberOfClones > count($targets)) {
-                //             $baseForm = $targets[0] ?? [];
-                
-                //             for ($i = count($targets); $i < $numberOfClones; $i++) {
-                //                 $targets[] = $baseForm;
-                //             }
-                
-                //             $set('targets', $targets);
-                //         }elseif ($numberOfClones < $currentCount) {
-                //             $set('targets', array_slice($targets, 0, $numberOfClones));
-                //         }
-                //     })
-            ]);
+                                    return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
+                                })
+                                ->reactive()
+                                ->afterStateUpdated(function ($state, callable $set) {
+                                    $set('particular_id', null);
+                                }),
+
+                            Select::make('particular_id')
+                                ->label('Particular')
+                                ->required()
+                                ->searchable()
+                                ->options(function ($get) {
+                                    $legislatorId = $get('legislator_id');
+                                    return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
+                                })
+                                ->reactive()
+                                ->afterStateUpdated(function ($state, callable $set) {
+                                    $set('scholarship_program_id', null);
+                                    $set('qualification_title_id', null);
+                                }),
+
+                            Select::make('scholarship_program_id')
+                                ->label('Scholarship Program')
+                                ->required()
+                                ->searchable()
+                                ->options(function ($get) {
+                                    $legislatorId = $get('legislator_id');
+                                    $particularId = $get('particular_id');
+                                    return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
+                                })
+                                ->reactive()
+                                ->afterStateUpdated(function ($state, callable $set) {
+                                    $set('allocation_year', null);
+                                    $set('qualification_title_id', null);
+                                }),
+
+                            Select::make('allocation_year')
+                                ->label('Appropriation Year')
+                                ->required()
+                                ->searchable()
+                                ->options(function ($get) {
+                                    $legislatorId = $get('legislator_id');
+                                    $particularId = $get('particular_id');
+                                    $scholarshipProgramId = $get('scholarship_program_id');
+                                    return $legislatorId && $particularId && $scholarshipProgramId
+                                        ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
+                                        : ['' => 'No Allocation Available.'];
+                                }),
+
+                            Select::make('appropriation_type')
+                                ->label('Allocation Type')
+                                ->required()
+                                ->options([
+                                    'Current' => 'Current',
+                                    'Continuing' => 'Continuing',
+                                ]),
+
+                            Select::make('tvi_id')
+                                ->label('Institution')
+                                ->required()
+                                ->searchable()
+                                ->preload()
+                                ->relationship('tvi', 'name'),
+
+                            Select::make('qualification_title_id')
+                                ->label('Qualification Title')
+                                ->required()
+                                ->searchable()
+                                ->options(function ($get) {
+                                    $scholarshipProgramId = $get('scholarship_program_id');
+                                    return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId) : ['' => 'No Qualification Title Available.'];
+                                }),
+
+                            Select::make('abdd_id')
+                                ->label('ABDD Sector')
+                                ->required()
+                                ->searchable()
+                                ->preload()
+                                ->options(function ($get) {
+                                    $tviId = $get('tvi_id');
+                                    return $tviId ? self::getAbddSectors($tviId) : ['' => 'No ABDD Sector Available.'];
+                                }),
+
+                            TextInput::make('number_of_slots')
+                                ->label('Number of Slots')
+                                ->required()
+                                ->numeric(),
+                        ])
+                        ->columns(4)
+                        ->columnSpanFull()
+                        ->addActionLabel('+')
+                        ->cloneable(),
+                        // TextInput::make('number_of_clones')
+                        //     ->label('Number of Clones')
+                        //     ->numeric()
+                        //     ->minValue(1)
+                        //     ->default(1)
+                        //     ->helperText('Specify how many times you want to clone the form.')
+                        //     ->reactive()
+                        //     ->afterStateUpdated(function ($state, callable $set, $get) {
+                        //         $numberOfClones = $state;
+
+                        //         $targets = $get('targets') ?? [];
+                        //         $currentCount = count($targets);
+
+                        //         if ($numberOfClones > count($targets)) {
+                        //             $baseForm = $targets[0] ?? [];
+
+                        //             for ($i = count($targets); $i < $numberOfClones; $i++) {
+                        //                 $targets[] = $baseForm;
+                        //             }
+
+                        //             $set('targets', $targets);
+                        //         }elseif ($numberOfClones < $currentCount) {
+                        //             $set('targets', array_slice($targets, 0, $numberOfClones));
+                        //         }
+                        //     })
+                ];
+            }
+        });
     }
+
 
     public static function table(Table $table): Table
     {
@@ -185,29 +291,28 @@ class TargetResource extends Resource
             ->columns([
 
                 TextColumn::make('fund_source')
-                    ->getStateUsing(function ($record) {
-                        $legislator = $record->allocation->legislator;
+                ->getStateUsing(function ($record) {
+                    $legislator = $record->allocation->legislator;
 
-                        if (!$legislator) {
-                            return 'No Legislator Available';
-                        }
+                    if (!$legislator) {
+                        return 'No Legislator Available';
+                    }
 
-                        $particulars = $legislator->particular;
+                    $particulars = $legislator->particular;
 
-                        if ($particulars->isEmpty()) {
-                            return 'No Particular Available';
-                        }
+                    if ($particulars->isEmpty()) {
+                        return 'No Particular Available';
+                    }
 
-                        $particular = $record->allocation->particular;
-                        $subParticular = $particular->subParticular;
-                        $fundSource = $subParticular ? $subParticular->fundSource : null; 
+                    $particular = $record->allocation->particular;
+                    $subParticular = $particular->subParticular;
+                    $fundSource = $subParticular ? $subParticular->fundSource : null;
 
-                        return $fundSource->name;
-                    })
-                    ->searchable()
-                    ->toggleable()
-                    ->label('Fund Source'),
-
+                    return $fundSource ? $fundSource->name : 'No Fund Source Available';
+                })
+                ->searchable()
+                ->toggleable()
+                ->label('Fund Source'),
                 TextColumn::make('allocation.legislator.name')
                     ->sortable()
                     ->searchable()
@@ -217,27 +322,35 @@ class TargetResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
+                TextColumn::make('appropriation_type')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('allocation.year')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('allocation.legislator.particular.subParticular')
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
-                
+
                         if (!$legislator) {
                             return 'No Legislator Available';
                         }
-                
+
                         $particulars = $legislator->particular;
-                
+
                         if ($particulars->isEmpty()) {
                             return 'No Particular Available';
                         }
-                
-                        $particular = $particulars->first(); 
+
+                        $particular = $particulars->first();
                         $district = $particular->district;
-                        $municipality = $district ? $district->municipality : null; 
-                
+                        $municipality = $district ? $district->municipality : null;
+
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-                
+
                         if ($districtName === 'Not Applicable') {
                             if ($particular->subParticular && $particular->subParticular->name === 'Partylist') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
@@ -250,7 +363,7 @@ class TargetResource extends Resource
                     })
                     ->searchable()
                     ->toggleable()
-                    ->label('Particular'),                
+                    ->label('Particular'),
                 TextColumn::make('tvi.district.name')
                     ->searchable()
                     ->toggleable(),
@@ -309,6 +422,9 @@ class TargetResource extends Resource
                     ->toggleable()
                     ->label('Status'),
             ])
+            ->recordUrl(
+                fn ($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]),
+            )
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
@@ -337,6 +453,7 @@ class TargetResource extends Resource
             'index' => Pages\ListTargets::route('/'),
             'create' => Pages\CreateTarget::route('/create'),
             'edit' => Pages\EditTarget::route('/{record}/edit'),
+            'showHistory' => Pages\ShowHistory::route('/{record}/history'),
         ];
     }
 
@@ -353,7 +470,7 @@ class TargetResource extends Resource
         $particulars = Particular::whereHas('allocation', function($query) use ($legislatorId) {
             $query->where('legislator_id', $legislatorId);
         })
-        ->with('subParticular') 
+        ->with('subParticular')
         ->get()
         ->mapWithKeys(function ($particular) {
 
@@ -368,13 +485,13 @@ class TargetResource extends Resource
             else {
                 return [$particular->id => $particular->subParticular->name . " - "  . $particular->district->name . ', ' . $particular->district->municipality->name];
             }
-            
+
         })
         ->toArray();
-    
+
         return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
     }
-    
+
 
     protected static function getScholarshipProgramsOptions($legislatorId, $particularId) {
         $scholarshipPrograms = ScholarshipProgram::whereHas('allocation', function($query) use ($legislatorId, $particularId) {
@@ -410,17 +527,17 @@ class TargetResource extends Resource
 
     protected static function getAbddSectors($tviId) {
         $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
-        
+
         if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
             return ['' => 'No ABDD Sectors Available.'];
         }
-    
+
         $abddSectors = $tvi->district->municipality->province->abdds()
-            ->select('abdds.id', 'abdds.name') 
+            ->select('abdds.id', 'abdds.name')
             ->pluck('name', 'id')
             ->toArray();
-    
+
         return empty($abddSectors) ? ['' => 'No ABDD Sectors Available.'] : $abddSectors;
     }
-    
+
 }

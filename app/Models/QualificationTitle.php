@@ -45,6 +45,10 @@ class QualificationTitle extends Model
         return $this->hasMany(Target::class);
     }
 
+    public function targetHistory() {
+        return $this->hasMany(targetHistory::class);
+    }
+
     public function status()
     {
         return $this->belongsTo(Status::class, 'status_id');

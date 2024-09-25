@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ParticularResource\Pages;
 
+use App\Models\SubParticular;
 use Filament\Actions\Action;
 use App\Imports\ParticularImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -80,68 +81,100 @@ class ListParticulars extends ListRecords
             'Regional' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
-                        $subQuery->where('fund_source_id', 1);
+                        $regionalRecord = FundSource::where('name', 'RO Regular')->first();
+                        $regionalId = $regionalRecord->id;
+                        $subQuery->where('fund_source_id', $regionalId);
                     });
                 })
                 ->badge(function () {
                     return Particular::whereHas('subParticular', function ($subQuery) {
-                        $subQuery->where('fund_source_id', 1);
+                        $regionalRecord = FundSource::where('name', 'RO Regular')->first();
+                        $regionalId = $regionalRecord->id;
+                        $subQuery->where('fund_source_id', $regionalId);
                     })->count();
                 }),
             'Central' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
-                        $subQuery->where('fund_source_id', 2);
+                        $centralRecord = FundSource::where('name', 'CO Regular')->first();
+                        $centralId = $centralRecord->id;
+                        $subQuery->where('fund_source_id', $centralId);
                     });
                 })
                 ->badge(function () {
                     return Particular::whereHas('subParticular', function ($subQuery) {
-                        $subQuery->where('fund_source_id', 2);
+                        $centralRecord = FundSource::where('name', 'CO Regular')->first();
+                        $centralId = $centralRecord->id;
+                        $subQuery->where('fund_source_id', $centralId);
                     })->count();
                 }),
             'District' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
-                        $subQuery->where('fund_source_id', 3);
-                    })
-                    ->where('sub_particular_id', 13);
+                        $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();
+                        $LegisId = $LegisRecord->id;
+                        $subQuery->where('fund_source_id', $LegisId)
+                            ->where('name', 'District');
+                    });
                 })
                 ->badge(function () {
                     return Particular::whereHas('subParticular', function ($subQuery) {
-                        $subQuery->where('fund_source_id', 3);
-                    })->where('sub_particular_id', 13)->count();
+                        $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();
+                        $LegisId = $LegisRecord->id;
+                        $subQuery->where('fund_source_id', $LegisId)
+                            ->where('name', 'District');
+                    })->count();
                 }),
             'Partylist' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
-                        $subQuery->where('fund_source_id', 3);
-                    })
-                    ->where('sub_particular_id', 14);
+                        $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();
+                        $LegisId = $LegisRecord->id;
+                        $subQuery->where('fund_source_id', $LegisId)
+                            ->where('name', 'Partylist');
+                    });
                 })
                 ->badge(function () {
                     return Particular::whereHas('subParticular', function ($subQuery) {
-                        $subQuery->where('fund_source_id', 3);
-                    })->where('sub_particular_id', 14)->count();
+                        $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();
+                        $LegisId = $LegisRecord->id;
+                        $subQuery->where('fund_source_id', $LegisId)
+                            ->where('name', 'Partylist');
+                    })->count();
                 }),
-            'Legislator Funds (No Area)' => Tab::make()
+            'House Speaker' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
-                        $subQuery->where('fund_source_id', 3);
-                    })
-                    ->whereIn('sub_particular_id', [
-                        15,
-                        16,
-                        17
-                    ]);
+                        $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();
+                        $LegisId = $LegisRecord->id;
+                        $subQuery->where('fund_source_id', $LegisId)
+                            ->whereIn('name', ['House Speaker', 'House Speaker (LAKAS)']);
+                    });
                 })
                 ->badge(function () {
                     return Particular::whereHas('subParticular', function ($subQuery) {
-                        $subQuery->where('fund_source_id', 3);
-                    })->whereIn('sub_particular_id', [
-                        15,
-                        16,
-                        17
-                    ])->count();
+                        $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();
+                        $LegisId = $LegisRecord->id;
+                        $subQuery->where('fund_source_id', $LegisId)
+                            ->whereIn('name', ['House Speaker', 'House Speaker (LAKAS)']);
+                    })->count();
+                }),
+            'Senator' => Tab::make()
+                ->modifyQueryUsing(function ($query) {
+                    $query->whereHas('subParticular', function ($subQuery) {
+                        $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();
+                        $LegisId = $LegisRecord->id;
+                        $subQuery->where('fund_source_id', $LegisId)
+                            ->where('name', 'Senator');
+                    });
+                })
+                ->badge(function () {
+                    return Particular::whereHas('subParticular', function ($subQuery) {
+                        $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();
+                        $LegisId = $LegisRecord->id;
+                        $subQuery->where('fund_source_id', $LegisId)
+                            ->where('name', 'Senator');
+                    })->count();
                 }),
         ];
     }
