@@ -38,9 +38,10 @@ class ParticularImport implements ToModel, WithHeadingRow
                 $partylist_id = $this->getPartylistId($row['particular'], $row['partylist']);
                 $sub_particular_id = $this->getSubparticularId($row['particular']);
 
+                // Check if a record already exists with the same sub_particular_id, district_id, and partylist_id
                 $particularExists = Particular::where('sub_particular_id', $sub_particular_id)
-                    ->where('partylist_id')
                     ->where('district_id', $district_id)
+                    ->where('partylist_id', $partylist_id)
                     ->exists();
 
                 if (!$particularExists) {
@@ -147,21 +148,18 @@ class ParticularImport implements ToModel, WithHeadingRow
                 ->first();
 
             if (!$partylistRecord) {
-                throw new \Exception("The {$partylistName} particular type does not exist."); 
+                throw new \Exception("The {$partylistName} partylist does not exist."); 
             }
-        }
-
-        else {
+        } else {
             $partylistRecord = Partylist::where('name', 'Not Applicable')
                 ->whereNull('deleted_at')
                 ->first();
 
-                if (!$partylistRecord) {
-                    throw new \Exception("The {$partylistName} particular type does not exist."); 
-                }
+            if (!$partylistRecord) {
+                throw new \Exception("The Not Applicable partylist does not exist."); 
+            }
         }
         
-        return $partylistRecord->id;
-       
+        return $partylistRecord->id;  
     }
 }
