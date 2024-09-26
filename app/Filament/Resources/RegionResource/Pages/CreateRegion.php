@@ -21,7 +21,9 @@ class CreateRegion extends CreateRecord
     {
         $this->validateUniqueRegion($data['name']);
 
-        return DB::transaction(fn() => Region::create(['name' => $data['name']]));
+        return DB::transaction(fn() => Region::create([
+            'name' => $data['name']
+        ]));
     }
 
     protected function validateUniqueRegion($name)

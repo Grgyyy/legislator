@@ -3,8 +3,8 @@ namespace App\Filament\Resources\RegionResource\Pages;
 
 use App\Filament\Resources\ProvinceResource;
 use App\Models\Region;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\CreateAction;
 
 class ShowProvinces extends ListRecords
 {

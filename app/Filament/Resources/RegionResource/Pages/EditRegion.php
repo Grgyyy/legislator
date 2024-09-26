@@ -9,7 +9,6 @@ use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
 use Exception;
 
-
 class EditRegion extends EditRecord
 {
     protected static string $resource = RegionResource::class;
@@ -25,7 +24,8 @@ class EditRegion extends EditRecord
 
         try {
             $record->update($data);
-            NotificationHandler::sendSuccessNotification('Region update successful.', null);
+            
+            NotificationHandler::sendSuccessNotification('Region update successful', null);
 
             return $record;
         } catch (QueryException $e) {
