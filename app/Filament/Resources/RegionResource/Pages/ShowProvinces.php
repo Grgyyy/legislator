@@ -10,8 +10,6 @@ class ShowProvinces extends ListRecords
 {
     protected static string $resource = ProvinceResource::class;
 
-    protected ?string $heading = 'Provinces';
-
     public function getBreadcrumbs(): array
     {
         $regionId = $this->getRegionId();
@@ -31,8 +29,8 @@ class ShowProvinces extends ListRecords
 
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
                 ->label('New')
+                ->icon('heroicon-m-plus')
                 ->url(route('filament.admin.resources.provinces.create', ['region_id' => $regionId]))
         ];
     }
