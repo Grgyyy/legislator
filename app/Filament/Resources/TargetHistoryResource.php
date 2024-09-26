@@ -162,9 +162,8 @@ class TargetHistoryResource extends Resource
                 TextColumn::make('created_at')
                     ->searchable()
                     ->toggleable()
-                    ->label('Date Changed')
-                    ->prefix('₱')
-                    // ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                    ->label('Date Modified')
+                    ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->format('F j, Y'))
             ])
             ->filters([
                 //

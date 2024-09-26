@@ -12,6 +12,7 @@ use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\Target;
 use App\Models\Tvi;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -433,6 +434,10 @@ class TargetResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    Action::make('viewHistory')
+                        ->label('View History')
+                        ->url(fn ($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
+                        ->icon('heroicon-o-magnifying-glass'),              
                     DeleteAction::make(),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),
