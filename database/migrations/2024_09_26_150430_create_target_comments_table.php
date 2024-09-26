@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('target_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->string('content');
+            $table->longText('content');
             $table->timestamps();
         });
     }

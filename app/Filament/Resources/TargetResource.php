@@ -437,7 +437,11 @@ class TargetResource extends Resource
                     Action::make('viewHistory')
                         ->label('View History')
                         ->url(fn ($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
-                        ->icon('heroicon-o-magnifying-glass'),              
+                        ->icon('heroicon-o-magnifying-glass'),
+                    Action::make('viewComment')
+                        ->label('View Comments')
+                        ->url(fn ($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        ->icon('heroicon-o-chat-bubble-left-ellipsis'),
                     DeleteAction::make(),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),
@@ -459,6 +463,7 @@ class TargetResource extends Resource
             'create' => Pages\CreateTarget::route('/create'),
             'edit' => Pages\EditTarget::route('/{record}/edit'),
             'showHistory' => Pages\ShowHistory::route('/{record}/history'),
+            'showComments' => Pages\ShowComments::route('/{record}/comments'),
         ];
     }
 
