@@ -2,30 +2,28 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms\Components\TextInput;
-use Filament\Resources\Resource;
 use App\Models\Region;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreAction;
+use App\Filament\Resources\RegionResource\Pages;
+use Filament\Resources\Resource;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Filters\TrashedFilter;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use App\Filament\Resources\RegionResource\Pages;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Form;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Table;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class RegionResource extends Resource
 {
@@ -33,7 +31,7 @@ class RegionResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
+    protected static ?string $navigationIcon = 'heroicon-o-map';
 
     protected static ?int $navigationSort = 1;
 
@@ -42,10 +40,11 @@ class RegionResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
+                    ->label('Region')
+                    ->placeholder('Enter region name')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->label('Region')
                     ->validationAttribute('Region'),
             ]);
     }
@@ -53,13 +52,12 @@ class RegionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No regions yet')
+            ->emptyStateHeading('No regions available')
             ->columns([
                 TextColumn::make("name")
                     ->label("Region")
                     ->sortable()
                     ->searchable()
-                    ->toggleable()
                     ->url(fn($record) => route('filament.admin.resources.regions.show_provinces', ['record' => $record->id])),
             ])
             ->filters([
@@ -92,6 +90,15 @@ class RegionResource extends Resource
                 ]),
             ]);
     }
+    
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ])
+            ->where('name', '!=', 'Not Applicable');
+    }
 
     public static function getPages(): array
     {
@@ -101,14 +108,5 @@ class RegionResource extends Resource
             'edit' => Pages\EditRegion::route('/{record}/edit'),
             'show_provinces' => Pages\ShowProvinces::route('/{record}/provinces'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
-            ->where('name', '!=', 'Not Applicable');
     }
 }

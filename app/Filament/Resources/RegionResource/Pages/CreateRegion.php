@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\RegionResource\Pages;
 
 use App\Models\Region;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\RegionResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateRegion extends CreateRecord
 {
@@ -20,41 +19,23 @@ class CreateRegion extends CreateRecord
 
     protected function handleRecordCreation(array $data): Region
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueRegion($data['name']);
+        $this->validateUniqueRegion($data['name']);
 
-            return Region::create([
-                'name' => $data['name'],
-            ]);
-        });
+        return DB::transaction(fn() => Region::create(['name' => $data['name']]));
     }
 
     protected function validateUniqueRegion($name)
     {
-        $query = Region::withTrashed()
+        $region = Region::withTrashed()
             ->where('name', $name)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Region already exists but is marked as deleted. You cannot create it again.';
-            } else {
-                $message = 'Region with this name already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($region) {
+            $message = $region->deleted_at 
+                ? 'This region has been deleted and must be restored before reuse.' 
+                : 'A region with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }
