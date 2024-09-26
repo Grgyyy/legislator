@@ -25,6 +25,10 @@ class User extends Authenticatable
         'avatar_url'
     ];
 
+    public function comments() {
+        return $this->hasMany(TargetComment::class);
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *
