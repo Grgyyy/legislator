@@ -23,6 +23,9 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class FundSourceResource extends Resource
 {
@@ -85,6 +88,15 @@ class FundSourceResource extends Resource
                     RestoreBulkAction::make()
                         ->successNotificationTitle('Fund Sources restored successfully.')
                         ->failureNotificationTitle('Failed to restore Fund Sources.'),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Fund Source'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Fund Source'),
+                        ]),
                 ])
             ]);
     }
