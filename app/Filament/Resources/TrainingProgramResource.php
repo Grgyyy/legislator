@@ -148,6 +148,10 @@ class TrainingProgramResource extends Resource
                                     ->heading('Qualification Code'),
                                 Column::make('title')
                                     ->heading('Qualification Title'),
+                                Column::make('priority.name')
+                                    ->heading('Priority Sector'),
+                                Column::make('tvet.name')
+                                    ->heading('TVET Sector'),
                                 Column::make('formatted_scholarship_programs')
                                     ->heading('Scholarship Programs'),
                             ])
