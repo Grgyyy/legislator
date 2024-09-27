@@ -4,10 +4,10 @@ namespace App\Filament\Resources\MunicipalityResource\Pages;
 
 use App\Models\Municipality;
 use App\Filament\Resources\MunicipalityResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Illuminate\Validation\ValidationException;
+use Exception;
 
 class EditMunicipality extends EditRecord
 {
@@ -26,30 +26,18 @@ class EditMunicipality extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Municipality
     {
-        // Validate for unique municipality name within the same province
         $this->validateUniqueMunicipality($data['name'], $data['province_id'], $record->id);
 
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('Municipality record updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Municipality update successful', null);
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the municipality: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the municipality: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the municipality update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -57,32 +45,18 @@ class EditMunicipality extends EditRecord
 
     protected function validateUniqueMunicipality($name, $provinceId, $currentId)
     {
-        $query = Municipality::withTrashed()
+        $municipality = Municipality::withTrashed()
             ->where('name', $name)
             ->where('province_id', $provinceId)
             ->where('id', '!=', $currentId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Municipality data exists and is marked as deleted. Data cannot be updated.';
-            } else {
-                $message = 'Municipality data already exists in this province.';
-            }
-            $this->handleValidationException($message);
+        if ($municipality) {
+            $message = $municipality->deleted_at 
+                ? 'This municipality exists in the region but has been deleted; it must be restored before reuse.' 
+                : 'A municipality with this name already exists in the specified region.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }

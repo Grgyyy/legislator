@@ -18,9 +18,9 @@ class ShowMunicipalities extends ListRecords
 
         $region = $province->region;
 
-        return [
+        return[
             route('filament.admin.resources.regions.show_provinces', ['record' => $region->id]) => $province ? $region->name : 'Regions',
-            route('filament.admin.resources.provinces.showMunicipalities', ['record' => $province->id]) => $province ? $province->name : 'Provinces',
+            route('filament.admin.resources.provinces.showMunicipalities', ['record' => $provinceId]) => $province ? $province->name : 'Provinces',
             'Municipalities',
             'List',
         ];
