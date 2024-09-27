@@ -39,19 +39,46 @@ class Legislator extends Model
     {
         return $this->hasMany(Target::class);
     }
+    // public function getFormattedParticularAttribute()
+    // {
+    //     return $this->particular->map(function ($particular) {
+    //         $district = $particular->district;
+    //         $municipality = $district ? $district->municipality : null;
+    //         $province = $municipality ? $municipality->province : null;
+
+    //         $particularName = $particular->name;
+    //         $districtName = $district ? $district->name : '';
+    //         $municipalityName = $municipality ? $municipality->name : '';
+    //         $provinceName = $province ? $province->name : '';
+
+    //         return trim("{$particularName} - {$districtName}, {$municipalityName}, {$provinceName}", ', ');
+    //     })->implode(', ');
+    // }
+
     public function getFormattedParticularAttribute()
     {
         return $this->particular->map(function ($particular) {
             $district = $particular->district;
             $municipality = $district ? $district->municipality : null;
-            $province = $municipality ? $municipality->province : null;
 
-            $particularName = $particular->name;
-            $districtName = $district ? $district->name : '';
-            $municipalityName = $municipality ? $municipality->name : '';
-            $provinceName = $province ? $province->name : '';
+            $subParticular = $particular->subParticular ? $particular->subParticular->name : null;
+            $formattedName = '';
 
-            return trim("{$particularName} - {$districtName}, {$municipalityName}, {$provinceName}", ', ');
+            if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
+                $formattedName = "{$subParticular}";
+            } elseif ($subParticular === 'Partylist') {
+                $formattedName = "{$subParticular} - {$particular->partylist->name}";
+            } else {
+                $districtName = $district ? $district->name : '';
+                $municipalityName = $municipality ? $municipality->name : '';
+                $province = $municipality ? $municipality->province : null;
+                $provinceName = $province ? $province->name : '';
+
+                $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+            }
+
+            return trim($formattedName, ', ');
         })->implode(', ');
     }
+
 }
