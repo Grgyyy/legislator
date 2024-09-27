@@ -25,6 +25,9 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class SubParticularResource extends Resource
 {
@@ -107,6 +110,17 @@ class SubParticularResource extends Resource
                     RestoreBulkAction::make()
                         ->successNotificationTitle('Particular Type records restored successfully.')
                         ->failureNotificationTitle('Failed to restore Particular Type records.'),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Party Type'),
+                                    Column::make('fundSource.name')
+                                        ->heading('Fund Source'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Party Types'),
+                        ]),
                 ])
             ]);
     }
