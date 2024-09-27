@@ -23,6 +23,9 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class PartylistResource extends Resource
 {
@@ -89,6 +92,15 @@ class PartylistResource extends Resource
                     RestoreBulkAction::make()
                         ->successNotificationTitle('Partylist records restored successfully.')
                         ->failureNotificationTitle('Failed to restore partylist records.'),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Party-List'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Party-List'),
+                        ]),
                 ])
             ]);
     }
