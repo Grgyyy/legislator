@@ -52,7 +52,7 @@ class AbddResource extends Resource
                     ->autocomplete(false)
                     ->markAsRequired(false)
                     ->validationAttribute('sector'),
-               Select::make('province')
+                Select::make('province')
                     ->label('Province')
                     ->multiple()
                     ->relationship('provinces', 'name')
@@ -64,7 +64,7 @@ class AbddResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
             ]);
     }
 
@@ -106,13 +106,14 @@ class AbddResource extends Resource
                             ->withColumns([
                                 Column::make('name')
                                     ->heading('ABDD Sector'),
+                                Column::make('formatted_provinces')
+                                    ->heading('ABDD Sector'),
                             ])
                             ->withFilename(date('m-d-Y') . ' - ABDD Sector')
                     ]),
                 ]),
             ]);
     }
-
     public static function getPages(): array
     {
         return [
