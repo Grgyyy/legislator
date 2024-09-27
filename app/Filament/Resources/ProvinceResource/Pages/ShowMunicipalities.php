@@ -13,13 +13,14 @@ class ShowMunicipalities extends ListRecords
 
     public function getBreadcrumbs(): array
     {
-        $province = $this->getProvince();
+        $provinceId = $this->getProvinceId();
+        $province = Province::find($provinceId);
 
         $region = $province->region;
 
         return [
-            route('filament.admin.resources.regions.show_provinces', ['record' => $region->id]) => $region->name,
-            route('filament.admin.resources.provinces.showMunicipalities', ['record' => $province->id]) => $province->name,
+            route('filament.admin.resources.regions.show_provinces', ['record' => $region->id]) => $province ? $region->name : 'Regions',
+            route('filament.admin.resources.provinces.showMunicipalities', ['record' => $province->id]) => $province ? $province->name : 'Provinces',
             'Municipalities',
             'List',
         ];
@@ -27,20 +28,18 @@ class ShowMunicipalities extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        $province = $this->getProvince();
+        $provinceId = $this->getProvinceId();
 
         return [
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus')
-                ->url(route('filament.admin.resources.municipalities.create', ['province_id' => $province->id])),
+                ->url(route('filament.admin.resources.municipalities.create', ['province_id' => $provinceId])),
         ];
     }
 
-    protected function getProvince(): ?Province
+    protected function getProvinceId(): ?int
     {
-        $provinceId = (int) request()->route('record');
-
-        return Province::find($provinceId);
+        return (int) request()->route('record');
     }
 }

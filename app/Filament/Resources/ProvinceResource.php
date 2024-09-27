@@ -79,7 +79,6 @@ class ProvinceResource extends Resource
                     ->url(fn($record) => route('filament.admin.resources.provinces.showMunicipalities', ['record' => $record->id])),
                 
                 TextColumn::make('region.name')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])
@@ -91,17 +90,9 @@ class ProvinceResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make()
-                        ->action(function ($record) {
-                            $record->delete();
-
-                            return redirect()->route('filament.admin.resources.provinces.index');
-                        }),
-
-                    RestoreAction::make()
-                        ->successNotificationTitle('Province record restored successfully'),
-                    ForceDeleteAction::make()
-                        ->successNotificationTitle('Province record permanently deleted'),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
