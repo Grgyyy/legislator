@@ -59,4 +59,7 @@ class Target extends Model
         return $this->hasMany(targetHistory::class);
     }
 
+    public function comments() {
+        return $this->hasMany(TargetComment::class);
+    }
 }

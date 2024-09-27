@@ -29,7 +29,7 @@ class CreateTarget extends CreateRecord
             }
 
             $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'tvi_id', 'appropriation_type'];
-            
+
             foreach ($requiredFields as $field) {
                 if (!array_key_exists($field, $targetData) || empty($targetData[$field])) {
                     \Log::error("Validation failed: The field '$field' is required in repeater data.", $data);

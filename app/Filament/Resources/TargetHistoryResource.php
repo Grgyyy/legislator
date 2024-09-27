@@ -159,6 +159,11 @@ class TargetHistoryResource extends Resource
                     ->label('Total Amount')
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                TextColumn::make('created_at')
+                    ->searchable()
+                    ->toggleable()
+                    ->label('Date Modified')
+                    ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->format('F j, Y'))
             ])
             ->filters([
                 //

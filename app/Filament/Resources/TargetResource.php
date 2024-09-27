@@ -12,6 +12,7 @@ use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\Target;
 use App\Models\Tvi;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -433,6 +434,14 @@ class TargetResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    Action::make('viewHistory')
+                        ->label('View History')
+                        ->url(fn ($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
+                        ->icon('heroicon-o-magnifying-glass'),
+                    Action::make('viewComment')
+                        ->label('View Comments')
+                        ->url(fn ($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        ->icon('heroicon-o-chat-bubble-left-ellipsis'),
                     DeleteAction::make(),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),
@@ -454,6 +463,7 @@ class TargetResource extends Resource
             'create' => Pages\CreateTarget::route('/create'),
             'edit' => Pages\EditTarget::route('/{record}/edit'),
             'showHistory' => Pages\ShowHistory::route('/{record}/history'),
+            'showComments' => Pages\ShowComments::route('/{record}/comments'),
         ];
     }
 
