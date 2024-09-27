@@ -402,27 +402,38 @@ class QualificationTitleResource extends Resource
                                 Column::make('ScholarshipProgram.name')
                                     ->heading('Scholarship Program'),
                                 Column::make('training_cost_pcc')
-                                    ->heading('Training Cost PCC'),
+                                    ->heading('Training Cost PCC')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('cost_of_toolkit_pcc')
-                                    ->heading('Cost of Toolkit PCC'),
+                                    ->heading('Cost of Toolkit PCC')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('training_support_fund')
-                                    ->heading('Training Support Fund'),
+                                    ->heading('Training Support Fund')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('assessment_fee')
-                                    ->heading('Assessment Fee'),
+                                    ->heading('Assessment Fee')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('entrepeneurship_fee')
-                                    ->heading('Entrepreneurship fee'),
+                                    ->heading('Entrepreneurship fee')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('new_normal_assisstance')
-                                    ->heading('New normal assistance'),
+                                    ->heading('New normal assistance')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('accident_insurance')
-                                    ->heading('Accidental Insurance'),
+                                    ->heading('Accidental Insurance')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('book_allowance')
-                                    ->heading('Book Allowance'),
+                                    ->heading('Book Allowance')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('uniform_allowance')
-                                    ->heading('Uniform Allowance'),
+                                    ->heading('Uniform Allowance')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('misc_fee')
-                                    ->heading('Miscellaneous Fee'),
+                                    ->heading('Miscellaneous Fee')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('pcc')
-                                    ->heading('Total PCC'),
+                                    ->heading('Total PCC')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('hours_duration')
                                     ->heading('Duration (Hrs)'),
                                 Column::make('days_duration')
