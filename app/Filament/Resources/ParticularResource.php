@@ -225,11 +225,15 @@ class ParticularResource extends Resource
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
-                                Column::make('name')
-                                    ->heading('Legislator'),
-                                Column::make('district.municipality.name')
-                                    ->heading('District'),
+                                Column::make('subParticular.fundSource.name')
+                                    ->heading('Fund Source'),
+                                Column::make('subParticular.name')
+                                    ->heading('Particular Type'),
+                                Column::make('partylist.name')
+                                    ->heading('Party-List'),
                                 Column::make('district.name')
+                                    ->heading('District'),
+                                Column::make('district.municipality.name')
                                     ->heading('Municipality'),
                                 Column::make('district.municipality.province.name')
                                     ->heading('Province'),
