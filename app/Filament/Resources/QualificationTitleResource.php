@@ -47,7 +47,7 @@ class QualificationTitleResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([       
+            ->schema([
                 Select::make('training_program_id')
                     ->label('Training Program')
                     ->relationship('trainingProgram', 'title')
@@ -55,9 +55,9 @@ class QualificationTitleResource extends Resource
                         $set('scholarship_program_id', null);
 
                         $scholarshipPrograms = self::getScholarshipProgramsOptions($state);
-                
+
                         $set('scholarshipProgramsOptions', $scholarshipPrograms);
-                
+
                         if (count($scholarshipPrograms) === 1) {
                             $set('scholarship_program_id', key($scholarshipPrograms));
                         }
@@ -81,7 +81,7 @@ class QualificationTitleResource extends Resource
                             ? self::getScholarshipProgramsOptions($trainingProgramId)
                             : ['no_scholarship_program' => 'No scholarship program available. Select a training program first.'];
                     })
-                    ->reactive() 
+                    ->reactive()
                     ->preload()
                     ->live()
                     ->searchable()
@@ -421,12 +421,16 @@ class QualificationTitleResource extends Resource
                                     ->heading('Uniform Allowance'),
                                 Column::make('misc_fee')
                                     ->heading('Miscellaneous Fee'),
-                                Column::make('duration')
+                                Column::make('pcc')
+                                    ->heading('Total PCC'),
+                                Column::make('hours_duration')
                                     ->heading('Duration (Hrs)'),
                                 Column::make('days_duration')
                                     ->heading('No. of Training Days'),
+                                Column::make('status.desc')
+                                    ->heading('Status'),
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Qualification Title')
+                            ->withFilename(date('m-d-Y') . ' - Qualification Titles')
                     ]),
                 ]),
             ]);
