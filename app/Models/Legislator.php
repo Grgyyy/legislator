@@ -39,21 +39,6 @@ class Legislator extends Model
     {
         return $this->hasMany(Target::class);
     }
-    // public function getFormattedParticularAttribute()
-    // {
-    //     return $this->particular->map(function ($particular) {
-    //         $district = $particular->district;
-    //         $municipality = $district ? $district->municipality : null;
-    //         $province = $municipality ? $municipality->province : null;
-
-    //         $particularName = $particular->name;
-    //         $districtName = $district ? $district->name : '';
-    //         $municipalityName = $municipality ? $municipality->name : '';
-    //         $provinceName = $province ? $province->name : '';
-
-    //         return trim("{$particularName} - {$districtName}, {$municipalityName}, {$provinceName}", ', ');
-    //     })->implode(', ');
-    // }
 
     public function getFormattedParticularAttribute()
     {

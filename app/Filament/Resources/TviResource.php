@@ -65,12 +65,12 @@ class TviResource extends Resource
 
                         $privateClasses = $tviClasses->whereIn('name', ['NGA', 'LGU', 'LUC', 'SUC', 'TTI'])->pluck('name', 'id')->toArray();
                         $publicClasses = $tviClasses->whereIn('name', ['HEI', 'TVI', 'NGO'])->pluck('name', 'id')->toArray();
-                        
+
                         return [
                             'Private' => !empty($privateClasses) ? $privateClasses : ['no_private_class' => 'No Private Institution Class Available'],
-                            'Public'  => !empty($publicClasses) ? $publicClasses : ['no_public_class' => 'No Public Institution Class Available'],
+                            'Public' => !empty($publicClasses) ? $publicClasses : ['no_public_class' => 'No Public Institution Class Available'],
                         ];
-                        
+
                         // $tviClass = TviClass::all()->pluck('name', 'id')->toArray();
                         // return !empty($tviClass) ? $tviClass : ['no_tvi_class' => 'No Institution Class (A) Available'];
                     })
@@ -192,21 +192,20 @@ class TviResource extends Resource
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
+                                Column::make('school_id')
+                                    ->heading('School ID'),
                                 Column::make('name')
                                     ->heading('Institution Name'),
                                 Column::make('tviClass.name')
                                     ->heading('Institution Class (A)'),
                                 Column::make('InstitutionClass.name')
                                     ->heading('Institution Class (B)'),
-                                Column::make('district.name')
+                                Column::make('formatted_district')
                                     ->heading('District'),
                                 Column::make('address')
                                     ->heading('Address'),
-                                Column::make('created_at')
-                                    ->heading('Date Created'),
-
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Institution')
+                            ->withFilename(date('m-d-Y') . ' - Institutions')
                     ]),
                 ])
             ]);

@@ -45,55 +45,27 @@ class Tvi extends Model
         return $this->hasMany(Target::class);
     }
 
-    public function targetHistory() {
+    public function targetHistory()
+    {
         return $this->hasMany(targetHistory::class);
     }
 
-    protected static function boot()
+    public function getFormattedDistrictAttribute()
     {
-        parent::boot();
+        $district = $this->district;
 
-        static::saving(function ($model) {
-            $model->validateUniqueInstitution();
-        });
-    }
-
-    public function validateUniqueInstitution()
-    {
-        $query = self::withTrashed()
-            ->where('name', $this->name)
-            ->where('institution_class_id', $this->institution_class_id)
-            ->where('tvi_class_id', $this->tvi_class_id)
-            ->where('district_id', $this->district_id)
-            ->where('address', $this->address);
-
-        if ($this->id) {
-            $query->where('id', '<>' . $this->id);
+        if (!$district) {
+            return 'No District Information';
         }
 
-        $institution = $query->first();
+        $municipality = $district->municipality;
+        $province = $municipality ? $municipality->province : null;
 
+        $districtName = $district ? $district->name : 'Unknown District';
+        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+        $provinceName = $province ? $province->name : 'Unknown Province';
 
-        if ($institution) {
-            if ($institution->deleted_at) {
-                $message = 'A Institution data exists and is marked as deleted. Data cannot be created.';
-            } else {
-                $message = 'A Institution data already exists.';
-            }
-            $this->handleValidationException($message);
-        }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
+        return trim("{$districtName} - {$municipalityName}, {$provinceName}", ', ');
     }
 
 }
