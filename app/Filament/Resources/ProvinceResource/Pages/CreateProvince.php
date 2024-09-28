@@ -26,13 +26,18 @@ class CreateProvince extends CreateRecord
 
     protected function handleRecordCreation(array $data): Province
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueProvince($data['name'], $data['region_id']);
+        $this->validateUniqueProvince($data['name'], $data['region_id']);
 
-            return Province::create([
+        return DB::transaction(function () use ($data) {
+
+            $province = Province::create([
                 'name' => $data['name'],
                 'region_id' => $data['region_id'],
             ]);
+
+            $this->sendCreationSuccessNotification($province);
+
+            return $province;
         });
     }
 
@@ -64,5 +69,15 @@ class CreateProvince extends CreateRecord
         throw ValidationException::withMessages([
             'name' => $message,
         ]);
+    }
+
+    protected function sendCreationSuccessNotification($province)
+    {
+
+        Notification::make()
+            ->title('Province Created')
+            ->body("{$province->name} has been successfully created.")
+            ->success()
+            ->send();
     }
 }

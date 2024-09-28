@@ -47,7 +47,7 @@ class QualificationTitleResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->schema([       
+            ->schema([
                 Select::make('training_program_id')
                     ->label('Training Program')
                     ->relationship('trainingProgram', 'title')
@@ -55,9 +55,9 @@ class QualificationTitleResource extends Resource
                         $set('scholarship_program_id', null);
 
                         $scholarshipPrograms = self::getScholarshipProgramsOptions($state);
-                
+
                         $set('scholarshipProgramsOptions', $scholarshipPrograms);
-                
+
                         if (count($scholarshipPrograms) === 1) {
                             $set('scholarship_program_id', key($scholarshipPrograms));
                         }
@@ -71,24 +71,24 @@ class QualificationTitleResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->disableOptionWhen(fn ($value) => $value === 'no_training_program'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_training_program'),
                 Select::make('scholarship_program_id')
                     ->label('Scholarship Programs')
                     ->options(function ($get) {
                         $trainingProgramId = $get('training_program_id');
-                        
+
                         return $trainingProgramId
                             ? self::getScholarshipProgramsOptions($trainingProgramId)
                             : ['no_scholarship_program' => 'No scholarship program available. Select a training program first.'];
                     })
-                    ->reactive() 
+                    ->reactive()
                     ->preload()
                     ->live()
                     ->searchable()
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
                 TextInput::make('training_cost_pcc')
                     ->label('Training Cost PCC')
                     ->required()
@@ -219,7 +219,7 @@ class QualificationTitleResource extends Resource
                     ->default(1)
                     ->relationship('status', 'desc')
                     ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
-                    ->disableOptionWhen(fn ($value) => $value === 'no_status'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_status'),
             ]);
     }
 
@@ -402,31 +402,46 @@ class QualificationTitleResource extends Resource
                                 Column::make('ScholarshipProgram.name')
                                     ->heading('Scholarship Program'),
                                 Column::make('training_cost_pcc')
-                                    ->heading('Training Cost PCC'),
+                                    ->heading('Training Cost PCC')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('cost_of_toolkit_pcc')
-                                    ->heading('Cost of Toolkit PCC'),
+                                    ->heading('Cost of Toolkit PCC')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('training_support_fund')
-                                    ->heading('Training Support Fund'),
+                                    ->heading('Training Support Fund')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('assessment_fee')
-                                    ->heading('Assessment Fee'),
+                                    ->heading('Assessment Fee')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('entrepeneurship_fee')
-                                    ->heading('Entrepreneurship fee'),
+                                    ->heading('Entrepreneurship fee')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('new_normal_assisstance')
-                                    ->heading('New normal assistance'),
+                                    ->heading('New normal assistance')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('accident_insurance')
-                                    ->heading('Accidental Insurance'),
+                                    ->heading('Accidental Insurance')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('book_allowance')
-                                    ->heading('Book Allowance'),
+                                    ->heading('Book Allowance')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('uniform_allowance')
-                                    ->heading('Uniform Allowance'),
+                                    ->heading('Uniform Allowance')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('misc_fee')
-                                    ->heading('Miscellaneous Fee'),
-                                Column::make('duration')
+                                    ->heading('Miscellaneous Fee')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                Column::make('pcc')
+                                    ->heading('Total PCC')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                Column::make('hours_duration')
                                     ->heading('Duration (Hrs)'),
                                 Column::make('days_duration')
                                     ->heading('No. of Training Days'),
+                                Column::make('status.desc')
+                                    ->heading('Status'),
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Qualification Title')
+                            ->withFilename(date('m-d-Y') . ' - Qualification Titles')
                     ]),
                 ]),
             ]);

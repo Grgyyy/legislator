@@ -12,7 +12,6 @@ use Illuminate\Validation\ValidationException;
 class CreateDistrict extends CreateRecord
 {
     protected static string $resource = DistrictResource::class;
-
     protected function getRedirectUrl(): string
     {
         $municipalityId = $this->record->municipality_id;
@@ -26,13 +25,17 @@ class CreateDistrict extends CreateRecord
 
     protected function handleRecordCreation(array $data): District
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueDistrict($data['name'], $data['municipality_id']);
+        $this->validateUniqueDistrict($data['name'], $data['municipality_id']);
 
-            return District::create([
+        return DB::transaction(function () use ($data) {
+            $district = District::create([
                 'name' => $data['name'],
                 'municipality_id' => $data['municipality_id'],
             ]);
+
+            $this->sendCreationSuccessNotification($district);
+
+            return $district;
         });
     }
 
@@ -44,11 +47,10 @@ class CreateDistrict extends CreateRecord
             ->first();
 
         if ($query) {
-            if ($query->deleted_at) {
-                $message = 'District exists in the municipality but is marked as deleted. You cannot create it again.';
-            } else {
-                $message = 'District with this name already exists in this municipality.';
-            }
+            $message = $query->deleted_at
+                ? 'A district with this name exists in the municipality but is marked as deleted. Please restore it instead of creating a new one.'
+                : 'A district with this name already exists in this municipality. Please choose a different name.';
+
             $this->handleValidationException($message);
         }
     }
@@ -56,7 +58,7 @@ class CreateDistrict extends CreateRecord
     protected function handleValidationException($message)
     {
         Notification::make()
-            ->title('Error')
+            ->title('District Creation Failed')
             ->body($message)
             ->danger()
             ->send();
@@ -64,5 +66,14 @@ class CreateDistrict extends CreateRecord
         throw ValidationException::withMessages([
             'name' => $message,
         ]);
+    }
+
+    protected function sendCreationSuccessNotification($district)
+    {
+        Notification::make()
+            ->title('District Created')
+            ->body("{$district->name} has been successfully created.")
+            ->success()
+            ->send();
     }
 }

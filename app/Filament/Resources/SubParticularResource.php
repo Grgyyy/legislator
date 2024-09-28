@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SubParticularResource\Pages;
-use App\Filament\Resources\SubParticularResource\RelationManagers;
 use App\Models\FundSource;
 use App\Models\SubParticular;
 use Filament\Forms;
@@ -26,6 +25,9 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class SubParticularResource extends Resource
 {
@@ -36,9 +38,8 @@ class SubParticularResource extends Resource
     protected static ?string $navigationLabel = "Particular Types";
 
     protected static ?string $navigationParentItem = "Fund Sources";
-    
-    protected static ?int $navigationSort = 2;
 
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -60,7 +61,7 @@ class SubParticularResource extends Resource
                     ->native(false)
                     ->searchable()
                     ->preload()
-                    ->disableOptionWhen(fn ($value) => $value === 'no_fund_source'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_fund_source'),
             ]);
     }
 
@@ -84,17 +85,42 @@ class SubParticularResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                        ->hidden(fn($record) => $record->trashed())
+                        ->successNotificationTitle('Particular Type updated successfully.')
+                        ->failureNotificationTitle('Failed to update Particular Type.'),
+                    DeleteAction::make()
+                        ->successNotificationTitle('Particular Type deleted successfully.')
+                        ->failureNotificationTitle('Failed to delete Particular Type.'),
+                    RestoreAction::make()
+                        ->successNotificationTitle('Particular Type restored successfully.')
+                        ->failureNotificationTitle('Failed to restore Particular Type.'),
+                    ForceDeleteAction::make()
+                        ->successNotificationTitle('Particular Type permanently deleted.')
+                        ->failureNotificationTitle('Failed to permanently delete Particular Type.'),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->successNotificationTitle('Particular Type records deleted successfully.')
+                        ->failureNotificationTitle('Failed to delete Particular Type records.'),
+                    ForceDeleteBulkAction::make()
+                        ->successNotificationTitle('Particular Type records permanently deleted.')
+                        ->failureNotificationTitle('Failed to permanently delete Particular Type records.'),
+                    RestoreBulkAction::make()
+                        ->successNotificationTitle('Particular Type records restored successfully.')
+                        ->failureNotificationTitle('Failed to restore Particular Type records.'),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Party Type'),
+                                    Column::make('fundSource.name')
+                                        ->heading('Fund Source'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Party Types'),
+                        ]),
                 ])
             ]);
     }
@@ -107,7 +133,7 @@ class SubParticularResource extends Resource
             'edit' => Pages\EditSubParticular::route('/{record}/edit'),
         ];
     }
-    
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

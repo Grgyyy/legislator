@@ -67,7 +67,7 @@ class TrainingProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->disableOptionWhen(fn ($value) => $value === 'no_tvet'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_tvet'),
                 Select::make('priority_id')
                     ->label('Priority Sector')
                     ->relationship('priority', 'name')
@@ -80,7 +80,7 @@ class TrainingProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->disableOptionWhen(fn ($value) => $value === 'no_priority'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_priority'),
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Program')
                     ->multiple()
@@ -93,7 +93,7 @@ class TrainingProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->native(false)
-                    ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
             ]);
     }
 
@@ -148,8 +148,13 @@ class TrainingProgramResource extends Resource
                                     ->heading('Qualification Code'),
                                 Column::make('title')
                                     ->heading('Qualification Title'),
+                                Column::make('priority.name')
+                                    ->heading('Priority Sector'),
+                                Column::make('tvet.name')
+                                    ->heading('TVET Sector'),
                                 Column::make('formatted_scholarship_programs')
-                                    ->heading('Scholarship Programs'),
+                                    ->heading('Scholarship Programs')
+                                    ->getStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', ')),
                             ])
                             ->withFilename(date('m-d-Y') . ' - Training Programs')
                     ]),
@@ -175,11 +180,11 @@ class TrainingProgramResource extends Resource
             SoftDeletingScope::class,
         ]);
 
-        $routeParameter = request()->route('record');
+        $routeParameter = request()->route('id');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->whereHas('scholarshipPrograms', function (Builder $query) use ($routeParameter) {
-                $query->where('scholarship_programs.id', $routeParameter); // Disambiguate column name
+                $query->where('scholarship_programs.id', $routeParameter);
             });
         }
 

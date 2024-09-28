@@ -85,6 +85,8 @@ class TvetResource extends Resource
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
+                                Column::make('name')
+                                    ->heading('TVET Sector'),
                             ])
                             ->withFilename(date('m-d-Y') . ' - TVET Sector')
                     ]),

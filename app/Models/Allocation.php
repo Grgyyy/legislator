@@ -43,7 +43,12 @@ class Allocation extends Model
         return $this->hasMany(Target::class);
     }
 
-    public function targetHistory() {
+    public function targetHistory()
+    {
         return $this->hasMany(targetHistory::class);
     }
+
+
+
+
 }

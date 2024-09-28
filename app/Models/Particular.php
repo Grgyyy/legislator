@@ -14,11 +14,12 @@ class Particular extends Model
 
     protected $fillable = [
         'sub_particular_id',
-        'partylist_id', 
+        'partylist_id',
         'district_id',
     ];
 
-    public function subParticular() {
+    public function subParticular()
+    {
         return $this->belongsTo(SubParticular::class);
     }
 

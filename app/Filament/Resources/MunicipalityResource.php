@@ -24,7 +24,6 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
@@ -45,7 +44,6 @@ class MunicipalityResource extends Resource
                 TextInput::make("name")
                     ->label('Municipality')
                     ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false),
                 Select::make("province_id")
                     ->relationship("province", "name")
@@ -55,11 +53,10 @@ class MunicipalityResource extends Resource
                         return !empty($province) ? $province : ['no_province' => 'No Province Available'];
                     })
                     ->required()
-                    ->markAsRequired(false)
                     ->native(false)
                     ->preload()
                     ->searchable()
-                    ->disableOptionWhen(fn ($value) => $value === 'no_province'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
             ]);
     }
 
@@ -85,30 +82,41 @@ class MunicipalityResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
-                ])
+            ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                        ->hidden(fn($record) => $record->trashed())
+                        ->successNotificationTitle('Municipality updated successfully.')
+                        ->failureNotificationTitle('Failed to update the municipality.'),
+                    DeleteAction::make()
+                        ->successNotificationTitle('Municipality deleted successfully.')
+                        ->failureNotificationTitle('Failed to delete the municipality.'),
+                    RestoreAction::make()
+                        ->successNotificationTitle('Municipality restored successfully.')
+                        ->failureNotificationTitle('Failed to restore the municipality.'),
+                    ForceDeleteAction::make()
+                        ->successNotificationTitle('Municipality permanently deleted.')
+                        ->failureNotificationTitle('Failed to permanently delete the municipality.'),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->successNotificationTitle('Municipalities deleted successfully.')
+                        ->failureNotificationTitle('Failed to delete municipalities.'),
+                    ForceDeleteBulkAction::make()
+                        ->successNotificationTitle('Municipalities permanently deleted.')
+                        ->failureNotificationTitle('Failed to permanently delete municipalities.'),
+                    RestoreBulkAction::make()
+                        ->successNotificationTitle('Municipalities restored successfully.')
+                        ->failureNotificationTitle('Failed to restore municipalities.'),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
-                                Column::make('name')
-                                    ->heading('Municipality'),
-                                Column::make('province.name')
-                                    ->heading('Province'),
-                                Column::make('province.region.name')
-                                    ->heading('Region'),
+                                Column::make('name')->heading('Municipality'),
+                                Column::make('province.name')->heading('Province'),
+                                Column::make('province.region.name')->heading('Region'),
                             ])
                             ->withFilename(date('m-d-Y') . ' - Municipality')
                     ]),
@@ -130,10 +138,8 @@ class MunicipalityResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
-        $query->withoutGlobalScopes([
-            SoftDeletingScope::class,
-        ])
-        ->where('name', '!=', 'Not Applicable');
+        $query->withoutGlobalScopes([SoftDeletingScope::class])
+            ->where('name', '!=', 'Not Applicable');
 
         $routeParameter = request()->route('record');
 

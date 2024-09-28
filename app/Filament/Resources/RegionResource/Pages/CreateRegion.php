@@ -20,12 +20,19 @@ class CreateRegion extends CreateRecord
 
     protected function handleRecordCreation(array $data): Region
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueRegion($data['name']);
 
-            return Region::create([
+        $this->validateUniqueRegion($data['name']);
+
+        return DB::transaction(function () use ($data) {
+
+            $region = Region::create([
                 'name' => $data['name'],
             ]);
+
+
+            $this->sendCreationSuccessNotification($region);
+
+            return $region;
         });
     }
 
@@ -35,12 +42,12 @@ class CreateRegion extends CreateRecord
             ->where('name', $name)
             ->first();
 
+
         if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Region already exists but is marked as deleted. You cannot create it again.';
-            } else {
-                $message = 'Region with this name already exists.';
-            }
+            $message = $query->deleted_at
+                ? 'A region with this name exists but is marked as deleted. Please restore it instead of creating a new one.'
+                : 'A region with this name already exists. Please choose a different name to create a new region.';
+
             $this->handleValidationException($message);
         }
     }
@@ -48,13 +55,23 @@ class CreateRegion extends CreateRecord
     protected function handleValidationException($message)
     {
         Notification::make()
-            ->title('Error')
+            ->title('Region Creation Failed')
             ->body($message)
             ->danger()
             ->send();
 
+
         throw ValidationException::withMessages([
             'name' => $message,
         ]);
+    }
+    protected function sendCreationSuccessNotification($region)
+    {
+
+        Notification::make()
+            ->title('Region Created')
+            ->body("{$region->name} has been successfully created.")
+            ->success()
+            ->send();
     }
 }

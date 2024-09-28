@@ -22,11 +22,13 @@ class Abdd extends Model
             ->withTimestamps();
     }
 
-    public function targets() {
+    public function targets()
+    {
         return $this->hasMany(Target::class);
     }
 
-    public function targetHistory() {
+    public function targetHistory()
+    {
         return $this->hasMany(targetHistory::class);
     }
 

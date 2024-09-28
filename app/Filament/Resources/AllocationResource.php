@@ -42,127 +42,127 @@ class AllocationResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-        ->schema([
-            Select::make('soft_or_commitment')
-                ->label('Soft / Commitment')
-                ->options([
-                    'Soft' => 'Soft',
-                    'Commitment' => 'Commitment'
-                ]),
-            Select::make('legislator_id')
-                ->label('Legislator')
-                ->relationship('legislator', 'name')
-                ->afterStateUpdated(function (callable $set, $state) {
-                    $set('particular_id', null);
+            ->schema([
+                Select::make('soft_or_commitment')
+                    ->label('Soft / Commitment')
+                    ->options([
+                        'Soft' => 'Soft',
+                        'Commitment' => 'Commitment'
+                    ]),
+                Select::make('legislator_id')
+                    ->label('Legislator')
+                    ->relationship('legislator', 'name')
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        $set('particular_id', null);
 
-                    $particulars = self::getParticularOptions($state);
-                    $set('particularOptions', $particulars);
+                        $particulars = self::getParticularOptions($state);
+                        $set('particularOptions', $particulars);
 
-                    if (count($particulars) === 1) {
-                        $set('particular_id', key($particulars));
-                    }
-                })
-                ->options(function () {
-                    return Legislator::all()->pluck('name', 'id')->toArray() ?: ['no_legislator' => 'No Legislator Available'];
-                })
-                ->live()
-                ->preload()
-                ->searchable()
-                ->required()
-                ->markAsRequired(false)
-                ->native(false)
-                ->disableOptionWhen(fn ($value) => $value === 'no_legislator'),
-            Select::make('particular_id')
-                ->label('Particular')
-                ->options(function ($get) {
-                    $legislatorId = $get('legislator_id');
+                        if (count($particulars) === 1) {
+                            $set('particular_id', key($particulars));
+                        }
+                    })
+                    ->options(function () {
+                        return Legislator::all()->pluck('name', 'id')->toArray() ?: ['no_legislator' => 'No Legislator Available'];
+                    })
+                    ->live()
+                    ->preload()
+                    ->searchable()
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->disableOptionWhen(fn($value) => $value === 'no_legislator'),
+                Select::make('particular_id')
+                    ->label('Particular')
+                    ->options(function ($get) {
+                        $legislatorId = $get('legislator_id');
 
-                    return $legislatorId
-                        ? self::getParticularOptions($legislatorId)
-                        : ['no_particular' => 'No Particular available. Select a legislator first.'];
-                })
-                ->reactive()
-                ->preload()
-                ->live()
-                ->searchable()
-                ->required()
-                ->markAsRequired(false)
-                ->native(false)
-                ->disableOptionWhen(fn ($value) => $value === 'no_particular'),
-            Select::make('scholarship_program_id')
-                ->label('Scholarship Programs')
-                ->relationship('scholarship_program', 'name')
-                ->options(function () {
+                        return $legislatorId
+                            ? self::getParticularOptions($legislatorId)
+                            : ['no_particular' => 'No Particular available. Select a legislator first.'];
+                    })
+                    ->reactive()
+                    ->preload()
+                    ->live()
+                    ->searchable()
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->disableOptionWhen(fn($value) => $value === 'no_particular'),
+                Select::make('scholarship_program_id')
+                    ->label('Scholarship Programs')
+                    ->relationship('scholarship_program', 'name')
+                    ->options(function () {
                         $scholarshipProgram = ScholarshipProgram::all()->pluck('name', 'id')->toArray();
                         return !empty($scholarshipProgram) ? $scholarshipProgram : ['no_scholarship_program' => 'No Scholarship Program Available'];
                     })
-                ->preload()
-                ->searchable()
-                ->required()
-                ->markAsRequired(false)
-                ->native(false)
-                ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program'),
-            TextInput::make('allocation')
-                ->label('Allocation')
-                ->required()
-                ->autocomplete(false)
-                ->markAsRequired(false)
-                ->numeric()
-                ->default(0)
-                ->prefix('₱')
-                ->minValue(0)
-                ->maxValue(999999999999.99)
-                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                ->debounce(600)
-                ->afterStateUpdated(function (callable $set, $state, $get) {
-                    
-                    $adminCost = $state * 0.02;
-                    
-                    $set('admin_cost', $adminCost);
-                    $set('balance', $state - $adminCost);
-                })
-                ->validationAttribute('allocation')
-                ->validationMessages([
-                    'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
-                ]),
-            TextInput::make('admin_cost')
-                ->label('Admin Cost')
-                ->required()
-                ->markAsRequired(false)
-                ->numeric()
-                ->reactive()
-                ->default(0)
-                ->prefix('₱')
-                ->minValue(0)
-                ->readOnly()
-                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                ->afterStateUpdated(function (callable $set, $state, $get) {
-                    $allocation = floatval($get('allocation'));
-                    $set('balance', $allocation - $state);
-                }),
-            TextInput::make('year')
-                ->label('Year')
-                ->markAsRequired(false)
-                ->required()
-                ->numeric()
-                ->rules(['min:' . date('Y'), 'digits: 4'])
-                ->default(date('Y'))
-                ->validationAttribute('year')
-                ->validationMessages([
-                    'min' => 'The allocation year must be at least ' . date('Y') . '.',
-                ]),
-            TextInput::make('balance')
-                ->label('Balance')
-                ->required()
-                ->markAsRequired(false)
-                ->numeric()
-                ->default(0)
-                ->prefix('₱')
-                ->minValue(0)
-                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                ->hidden()
-                ->reactive(),
-        ]);
+                    ->preload()
+                    ->searchable()
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
+                TextInput::make('allocation')
+                    ->label('Allocation')
+                    ->required()
+                    ->autocomplete(false)
+                    ->markAsRequired(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->maxValue(999999999999.99)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                    ->debounce(600)
+                    ->afterStateUpdated(function (callable $set, $state, $get) {
+
+                        $adminCost = $state * 0.02;
+
+                        $set('admin_cost', $adminCost);
+                        $set('balance', $state - $adminCost);
+                    })
+                    ->validationAttribute('allocation')
+                    ->validationMessages([
+                        'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                    ]),
+                TextInput::make('admin_cost')
+                    ->label('Admin Cost')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->numeric()
+                    ->reactive()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->readOnly()
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                    ->afterStateUpdated(function (callable $set, $state, $get) {
+                        $allocation = floatval($get('allocation'));
+                        $set('balance', $allocation - $state);
+                    }),
+                TextInput::make('year')
+                    ->label('Year')
+                    ->markAsRequired(false)
+                    ->required()
+                    ->numeric()
+                    ->rules(['min:' . date('Y'), 'digits: 4'])
+                    ->default(date('Y'))
+                    ->validationAttribute('year')
+                    ->validationMessages([
+                        'min' => 'The allocation year must be at least ' . date('Y') . '.',
+                    ]),
+                TextInput::make('balance')
+                    ->label('Balance')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->numeric()
+                    ->default(0)
+                    ->prefix('₱')
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                    ->hidden()
+                    ->reactive(),
+            ]);
     }
 
     private static function getParticularOptions($legislatorId)
@@ -170,31 +170,27 @@ class AllocationResource extends Resource
         if (!$legislatorId) {
             return [];
         }
-    
+
         $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
-    
+
         if (!$legislator) {
             return [];
         }
-    
+
         return $legislator->particular->mapWithKeys(function ($particular) {
             $districtName = $particular->district->name ?? 'Unknown District';
             $municipalityName = $particular->district->municipality->name ?? 'Unknown Municipality';
 
             $subParticular = $particular->subParticular->name;
-            
+
             if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
                 $formattedName = "{$particular->subParticular->name}";
+            } elseif ($subParticular === 'Partylist') {
+                $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}";
+            } else {
+                $formattedName = "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
             }
 
-            elseif ($subParticular === 'Partylist') {
-                $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}"; 
-            }
-
-            else {
-                $formattedName = "{$particular->subParticular->name} - {$districtName}, {$municipalityName}"; 
-            }
-    
             return [$particular->id => $formattedName];
         })->toArray();
     }
@@ -225,14 +221,10 @@ class AllocationResource extends Resource
                         $subParticular = $particular->subParticular->name;
 
                         if ($subParticular === 'Partylist') {
-                            $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}";  
-                        }
-
-                        elseif ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
-                            $formattedName = "{$particular->subParticular->name}";  
-                        }
-
-                        else {
+                            $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}";
+                        } elseif ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
+                            $formattedName = "{$particular->subParticular->name}";
+                        } else {
                             $formattedName = "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
 
                         }
@@ -288,26 +280,56 @@ class AllocationResource extends Resource
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
+                                Column::make('soft_or_commitment')
+                                    ->heading('Soft of Commitment'),
                                 Column::make('legislator.name')
                                     ->heading('Legislator'),
                                 Column::make('particular.name')
-                                    ->heading('Particular'),
+                                    ->heading('Particular')
+                                    ->getStateUsing(function ($record) {
+                                        $particular = $record->particular;
+
+                                        if (!$particular) {
+                                            return 'No Particular Available';
+                                        }
+
+                                        $district = $particular->district;
+                                        $municipality = $district ? $district->municipality : null;
+                                        $province = $municipality ? $municipality->province : null;
+
+                                        $districtName = $district ? $district->name : 'Unknown District';
+                                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                                        $provinceName = $province ? $province->name : 'Unknown Province';
+
+                                        $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
+
+                                        if ($subParticular === 'Partylist') {
+                                            return "{$subParticular} - {$particular->partylist->name}";
+                                        } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                                            return "{$subParticular}";
+                                        } else {
+                                            return "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                        }
+                                    }),
                                 Column::make('scholarship_program.name')
                                     ->heading('Scholarship Program'),
                                 Column::make('allocation')
-                                    ->heading('Allocation'),
+                                    ->heading('Allocation')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('admin_cost')
-                                    ->heading('Admin Cost'),
+                                    ->heading('Admin Cost')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('balance')
-                                    ->heading('Balance'),
+                                    ->heading('Balance')
+                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                 Column::make('year')
                                     ->heading('Year'),
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Allocation')
+                            ->withFilename(date('m-d-Y') . ' - Allocations')
                     ]),
-
                 ]),
             ]);
+
     }
 
     public static function getPages(): array

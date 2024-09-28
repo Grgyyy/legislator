@@ -45,55 +45,11 @@ class Tvi extends Model
         return $this->hasMany(Target::class);
     }
 
-    public function targetHistory() {
+    public function targetHistory()
+    {
         return $this->hasMany(targetHistory::class);
     }
 
-    protected static function boot()
-    {
-        parent::boot();
 
-        static::saving(function ($model) {
-            $model->validateUniqueInstitution();
-        });
-    }
-
-    public function validateUniqueInstitution()
-    {
-        $query = self::withTrashed()
-            ->where('name', $this->name)
-            ->where('institution_class_id', $this->institution_class_id)
-            ->where('tvi_class_id', $this->tvi_class_id)
-            ->where('district_id', $this->district_id)
-            ->where('address', $this->address);
-
-        if ($this->id) {
-            $query->where('id', '<>' . $this->id);
-        }
-
-        $institution = $query->first();
-
-
-        if ($institution) {
-            if ($institution->deleted_at) {
-                $message = 'A Institution data exists and is marked as deleted. Data cannot be created.';
-            } else {
-                $message = 'A Institution data already exists.';
-            }
-            $this->handleValidationException($message);
-        }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
-    }
 
 }

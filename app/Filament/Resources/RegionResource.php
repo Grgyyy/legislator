@@ -15,13 +15,11 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\RegionResource\Pages;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -43,7 +41,6 @@ class RegionResource extends Resource
             ->schema([
                 TextInput::make("name")
                     ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->label('Region')
                     ->validationAttribute('Region'),
@@ -63,32 +60,44 @@ class RegionResource extends Resource
                     ->url(fn($record) => route('filament.admin.resources.regions.show_provinces', ['record' => $record->id])),
             ])
             ->filters([
-                TrashedFilter::make()
-                    ->label('Records'),
+                TrashedFilter::make()->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                        ->hidden(fn($record) => $record->trashed())
+                        ->successNotificationTitle('Region updated successfully.')
+                        ->failureNotificationTitle('Failed to update the region.'),
+                    DeleteAction::make()
+                        ->successNotificationTitle('Region record deleted successfully.')
+                        ->failureNotificationTitle('Failed to delete the region.'),
+                    RestoreAction::make()
+                        ->successNotificationTitle('Region record has been restored successfully.')
+                        ->failureNotificationTitle('Failed to restore the region.'),
+                    ForceDeleteAction::make()
+                        ->successNotificationTitle('Region record has been deleted permanently.')
+                        ->failureNotificationTitle('Failed to permanently delete the region.'),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->successNotificationTitle('Region records deleted successfully.')
+                        ->failureNotificationTitle('Failed to delete region records.'),
+                    ForceDeleteBulkAction::make()
+                        ->successNotificationTitle('Region records have been deleted permanently.')
+                        ->failureNotificationTitle('Failed to permanently delete region records.'),
+                    RestoreBulkAction::make()
+                        ->successNotificationTitle('Region records have been restored successfully.')
+                        ->failureNotificationTitle('Failed to restore region records.'),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
-                                    Column::make('name')
-                                        ->heading('Region'),
+                                    Column::make('name')->heading('Region'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Region')
-                        ])
+                                ->withFilename(date('m-d-Y') . ' - Region'),
+                        ]),
                 ]),
             ]);
     }
@@ -106,9 +115,7 @@ class RegionResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
+            ->withoutGlobalScopes([SoftDeletingScope::class])
             ->where('name', '!=', 'Not Applicable');
     }
 }

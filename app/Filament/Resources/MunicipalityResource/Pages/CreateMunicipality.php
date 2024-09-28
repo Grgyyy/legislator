@@ -13,6 +13,9 @@ class CreateMunicipality extends CreateRecord
 {
     protected static string $resource = MunicipalityResource::class;
 
+    /**
+     * Get the redirect URL after a municipality is created
+     */
     protected function getRedirectUrl(): string
     {
         $provinceId = $this->record->province_id;
@@ -26,13 +29,17 @@ class CreateMunicipality extends CreateRecord
 
     protected function handleRecordCreation(array $data): Municipality
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueMunicipality($data['name'], $data['province_id']);
+        $this->validateUniqueMunicipality($data['name'], $data['province_id']);
 
-            return Municipality::create([
+        return DB::transaction(function () use ($data) {
+            $municipality = Municipality::create([
                 'name' => $data['name'],
                 'province_id' => $data['province_id'],
             ]);
+
+            $this->sendCreationSuccessNotification($municipality);
+
+            return $municipality;
         });
     }
 
@@ -44,11 +51,10 @@ class CreateMunicipality extends CreateRecord
             ->first();
 
         if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Municipality exists in the province but is marked as deleted. You cannot create it again.';
-            } else {
-                $message = 'Municipality with this name already exists in this province.';
-            }
+            $message = $query->deleted_at
+                ? 'A municipality with this name exists in the province but is marked as deleted. Please restore it instead of creating a new one.'
+                : 'A municipality with this name already exists in this province. Please choose a different name.';
+
             $this->handleValidationException($message);
         }
     }
@@ -56,7 +62,7 @@ class CreateMunicipality extends CreateRecord
     protected function handleValidationException($message)
     {
         Notification::make()
-            ->title('Error')
+            ->title('Municipality Creation Failed')
             ->body($message)
             ->danger()
             ->send();
@@ -64,5 +70,14 @@ class CreateMunicipality extends CreateRecord
         throw ValidationException::withMessages([
             'name' => $message,
         ]);
+    }
+
+    protected function sendCreationSuccessNotification($municipality)
+    {
+        Notification::make()
+            ->title('Municipality Created')
+            ->body("{$municipality->name} has been successfully created.")
+            ->success()
+            ->send();
     }
 }

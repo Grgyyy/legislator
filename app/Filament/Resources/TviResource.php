@@ -65,12 +65,12 @@ class TviResource extends Resource
 
                         $privateClasses = $tviClasses->whereIn('name', ['NGA', 'LGU', 'LUC', 'SUC', 'TTI'])->pluck('name', 'id')->toArray();
                         $publicClasses = $tviClasses->whereIn('name', ['HEI', 'TVI', 'NGO'])->pluck('name', 'id')->toArray();
-                        
+
                         return [
                             'Private' => !empty($privateClasses) ? $privateClasses : ['no_private_class' => 'No Private Institution Class Available'],
-                            'Public'  => !empty($publicClasses) ? $publicClasses : ['no_public_class' => 'No Public Institution Class Available'],
+                            'Public' => !empty($publicClasses) ? $publicClasses : ['no_public_class' => 'No Public Institution Class Available'],
                         ];
-                        
+
                         // $tviClass = TviClass::all()->pluck('name', 'id')->toArray();
                         // return !empty($tviClass) ? $tviClass : ['no_tvi_class' => 'No Institution Class (A) Available'];
                     })
@@ -192,6 +192,8 @@ class TviResource extends Resource
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
+                                Column::make('school_id')
+                                    ->heading('School ID'),
                                 Column::make('name')
                                     ->heading('Institution Name'),
                                 Column::make('tviClass.name')
@@ -199,14 +201,23 @@ class TviResource extends Resource
                                 Column::make('InstitutionClass.name')
                                     ->heading('Institution Class (B)'),
                                 Column::make('district.name')
-                                    ->heading('District'),
+                                    ->heading('District')
+                                    ->getStateUsing(function ($record) {
+                                        $district = $record->district;
+
+                                        $municipality = $district->municipality;
+                                        $province = $district->municipality->province;
+
+                                        $districtName = $district->name;
+                                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                                        $provinceName = $province ? $province->name : 'Unknown Province';
+
+                                        return "{$districtName} - {$municipalityName}, {$provinceName}";
+                                    }),
                                 Column::make('address')
                                     ->heading('Address'),
-                                Column::make('created_at')
-                                    ->heading('Date Created'),
-
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Institution')
+                            ->withFilename(date('m-d-Y') . ' - Institutions')
                     ]),
                 ])
             ]);
@@ -228,4 +239,5 @@ class TviResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
 }
