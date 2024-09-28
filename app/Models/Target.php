@@ -51,15 +51,18 @@ class Target extends Model
         return $this->belongsTo(TargetStatus::class);
     }
 
-    public function abdd() {
+    public function abdd()
+    {
         return $this->belongsTo(Abdd::class);
     }
 
-    public function targetHistory() {
+    public function targetHistory()
+    {
         return $this->hasMany(targetHistory::class);
     }
 
-    public function comments() {
+    public function comments()
+    {
         return $this->hasMany(TargetComment::class);
     }
 }

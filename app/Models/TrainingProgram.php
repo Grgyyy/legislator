@@ -37,8 +37,5 @@ class TrainingProgram extends Model
         return $this->belongsTo(Tvet::class);
     }
 
-    public function getFormattedScholarshipProgramsAttribute()
-    {
-        return $this->scholarshipPrograms->pluck('name')->implode(', ');
-    }
+
 }

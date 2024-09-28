@@ -284,8 +284,33 @@ class AllocationResource extends Resource
                                     ->heading('Soft of Commitment'),
                                 Column::make('legislator.name')
                                     ->heading('Legislator'),
-                                Column::make('formatted_particular')
-                                    ->heading('Particular'),
+                                Column::make('particular.name')
+                                    ->heading('Particular')
+                                    ->getStateUsing(function ($record) {
+                                        $particular = $record->particular;
+
+                                        if (!$particular) {
+                                            return 'No Particular Available';
+                                        }
+
+                                        $district = $particular->district;
+                                        $municipality = $district ? $district->municipality : null;
+                                        $province = $municipality ? $municipality->province : null;
+
+                                        $districtName = $district ? $district->name : 'Unknown District';
+                                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                                        $provinceName = $province ? $province->name : 'Unknown Province';
+
+                                        $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
+
+                                        if ($subParticular === 'Partylist') {
+                                            return "{$subParticular} - {$particular->partylist->name}";
+                                        } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                                            return "{$subParticular}";
+                                        } else {
+                                            return "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                        }
+                                    }),
                                 Column::make('scholarship_program.name')
                                     ->heading('Scholarship Program'),
                                 Column::make('allocation')

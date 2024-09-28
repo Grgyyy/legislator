@@ -32,17 +32,4 @@ class Abdd extends Model
         return $this->hasMany(targetHistory::class);
     }
 
-    public function getFormattedProvincesAttribute()
-    {
-        $provinces = $this->provinces;
-        if ($provinces->isEmpty()) {
-            return 'No Provinces Available';
-        }
-
-        $provinceNames = $provinces->pluck('name')->implode(', ');
-
-        return $provinceNames;
-    }
-
-
 }

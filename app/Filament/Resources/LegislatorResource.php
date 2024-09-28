@@ -147,8 +147,36 @@ class LegislatorResource extends Resource
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Legislator'),
-                                    Column::make('formatted_particular')
-                                        ->heading('Particular'),
+                                    Column::make('particular.name')
+                                        ->heading('Particular')
+                                        ->getStateUsing(function ($record) {
+                                            if (!$record->particular) {
+                                                return 'No Particular Available';
+                                            }
+
+                                            return $record->particular->map(function ($particular) {
+                                                $district = $particular->district;
+                                                $municipality = $district ? $district->municipality : null;
+
+                                                $subParticular = $particular->subParticular ? $particular->subParticular->name : null;
+                                                $formattedName = '';
+
+                                                if (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                                                    $formattedName = "{$subParticular}";
+                                                } elseif ($subParticular === 'Partylist') {
+                                                    $formattedName = "{$subParticular} - {$particular->partylist->name}";
+                                                } else {
+                                                    $districtName = $district ? $district->name : '';
+                                                    $municipalityName = $municipality ? $municipality->name : '';
+                                                    $province = $municipality ? $municipality->province : null;
+                                                    $provinceName = $province ? $province->name : '';
+
+                                                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                                }
+
+                                                return trim($formattedName, ', ');
+                                            })->implode(', ');
+                                        })
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Legislator'),
                         ]),

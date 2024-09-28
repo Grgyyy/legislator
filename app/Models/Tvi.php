@@ -50,22 +50,6 @@ class Tvi extends Model
         return $this->hasMany(targetHistory::class);
     }
 
-    public function getFormattedDistrictAttribute()
-    {
-        $district = $this->district;
 
-        if (!$district) {
-            return 'No District Information';
-        }
-
-        $municipality = $district->municipality;
-        $province = $municipality ? $municipality->province : null;
-
-        $districtName = $district ? $district->name : 'Unknown District';
-        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-        $provinceName = $province ? $province->name : 'Unknown Province';
-
-        return trim("{$districtName} - {$municipalityName}, {$provinceName}", ', ');
-    }
 
 }

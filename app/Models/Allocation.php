@@ -48,32 +48,7 @@ class Allocation extends Model
         return $this->hasMany(targetHistory::class);
     }
 
-    public function getFormattedParticularAttribute()
-    {
-        $particular = $this->particular;
 
-        if (!$particular) {
-            return 'No Particular Available';
-        }
-
-        $district = $particular->district;
-        $municipality = $district ? $district->municipality : null;
-        $province = $municipality ? $municipality->province : null;
-
-        $districtName = $district ? $district->name : 'Unknown District';
-        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-        $provinceName = $province ? $province->name : 'Unknown Province';
-
-        $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
-
-        if ($subParticular === 'Partylist') {
-            return "{$subParticular} - {$particular->partylist->name}";
-        } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-            return "{$subParticular}";
-        } else {
-            return "{$subParticular} - {$districtName}, {$municipalityName}";
-        }
-    }
 
 
 }

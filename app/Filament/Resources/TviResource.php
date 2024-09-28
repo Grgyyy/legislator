@@ -200,8 +200,20 @@ class TviResource extends Resource
                                     ->heading('Institution Class (A)'),
                                 Column::make('InstitutionClass.name')
                                     ->heading('Institution Class (B)'),
-                                Column::make('formatted_district')
-                                    ->heading('District'),
+                                Column::make('district.name')
+                                    ->heading('District')
+                                    ->getStateUsing(function ($record) {
+                                        $district = $record->district;
+
+                                        $municipality = $district->municipality;
+                                        $province = $district->municipality->province;
+
+                                        $districtName = $district->name;
+                                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                                        $provinceName = $province ? $province->name : 'Unknown Province';
+
+                                        return "{$districtName} - {$municipalityName}, {$provinceName}";
+                                    }),
                                 Column::make('address')
                                     ->heading('Address'),
                             ])
@@ -227,4 +239,5 @@ class TviResource extends Resource
                 SoftDeletingScope::class,
             ]);
     }
+
 }
