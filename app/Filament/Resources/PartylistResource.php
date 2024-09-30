@@ -59,8 +59,7 @@ class PartylistResource extends Resource
                 TextColumn::make('name')
                     ->label('Party-List')
                     ->sortable()
-                    ->searchable()
-                    ->toggleable(),
+                    ->searchable(),
             ])
             ->filters([
                 TrashedFilter::make()
