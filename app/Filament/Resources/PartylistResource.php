@@ -31,9 +31,9 @@ class PartylistResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationLabel = "Party-List";
-
     protected static ?string $navigationParentItem = "Fund Sources";
+
+    protected static ?string $navigationLabel = "Party-Lists";
 
     protected static ?int $navigationSort = 1;
 

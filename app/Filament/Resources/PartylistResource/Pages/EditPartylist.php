@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\PartylistResource\Pages;
 
 use App\Filament\Resources\PartylistResource;
-use App\Models\FundSource;
 use App\Models\Partylist;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
@@ -19,7 +18,7 @@ class EditPartylist extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/partylists' => 'Party-List',
+            '/partylists' => 'Party-Lists',
             'Edit'
         ];
     }

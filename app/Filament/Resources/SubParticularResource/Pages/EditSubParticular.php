@@ -3,8 +3,11 @@
 namespace App\Filament\Resources\SubParticularResource\Pages;
 
 use App\Filament\Resources\SubParticularResource;
-use Filament\Actions;
+use App\Models\SubParticular;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\QueryException;
+use Exception;
 
 class EditSubParticular extends EditRecord
 {
@@ -23,5 +26,41 @@ class EditSubParticular extends EditRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function handleRecordUpdate($record, array $data): SubParticular
+    {
+        $this->validateUniqueSubParticular($data['name'], $data['fund_source_id'], $record->id);
+
+        try {
+            $record->update($data);
+            
+            NotificationHandler::sendSuccessNotification('Particular Type update successful', null);
+
+            return $record;
+        } catch (QueryException $e) {
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the particular type: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the particular type update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
+        }
+
+        return $record;
+    }
+
+    protected function validateUniqueSubParticular($name, $fundSourceId, $currentId)
+    {
+        $subParticular = SubParticular::withTrashed()
+            ->where('name', $name)
+            ->where('fund_source_id', $fundSourceId)
+            ->where('id', '!=', $currentId)
+            ->first();
+
+        if ($subParticular) {
+            $message = $subParticular->deleted_at 
+                ? 'This particular type has been deleted. Restoration is required before it can be reused.' 
+                : 'A particular type with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
     }
 }

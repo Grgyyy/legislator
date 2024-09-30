@@ -17,7 +17,7 @@ class CreatePartylist extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/partylists' => 'Party-List',
+            '/partylists' => 'Party-Lists',
             'Create'
         ];
     }
@@ -45,8 +45,8 @@ class CreatePartylist extends CreateRecord
 
         if ($partyList) {
             $message = $partyList->deleted_at 
-                ? 'This party list has been deleted and must be restored before reuse.' 
-                : 'A party list with this name already exists.';
+                ? 'This party-list has been deleted and must be restored before reuse.' 
+                : 'A party-list with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

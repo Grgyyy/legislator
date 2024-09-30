@@ -21,7 +21,7 @@ class ListPartylists extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            '/partylists' => 'Party-List',
+            '/partylists' => 'Party-Lists',
             'List'
         ];
     }
@@ -41,6 +41,7 @@ class ListPartylists extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new PartylistImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The party-lists have been successfully imported from the file.');
