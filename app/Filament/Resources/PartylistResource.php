@@ -2,29 +2,27 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\PartylistResource\Pages;
 use App\Models\Partylist;
-use Filament\Forms;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use App\Filament\Resources\PartylistResource\Pages;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
-use pxlrbt\FilamentExcel\Columns\Column;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class PartylistResource extends Resource
@@ -44,19 +42,23 @@ class PartylistResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
+                    ->label('Party-List')
+                    ->placeholder(placeholder: 'Enter party-list name')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->label('Party-List')
+                    ->validationAttribute('Party-List'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No party-lists available')
             ->columns([
                 TextColumn::make('name')
                     ->label('Party-List')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])
@@ -105,6 +107,15 @@ class PartylistResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ])
+            ->where('name', '!=', 'Not Applicable');
+    }
+
     public static function getPages(): array
     {
         return [
@@ -112,11 +123,5 @@ class PartylistResource extends Resource
             'create' => Pages\CreatePartylist::route('/create'),
             'edit' => Pages\EditPartylist::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

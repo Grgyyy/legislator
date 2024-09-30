@@ -3,18 +3,17 @@
 namespace App\Filament\Resources\PartylistResource\Pages;
 
 use App\Models\Partylist;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\PartylistResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreatePartylist extends CreateRecord
 {
     protected static string $resource = PartylistResource::class;
 
     protected static ?string $title = 'Create Party-List';
-
+    
     public function getBreadcrumbs(): array
     {
         return [
@@ -23,6 +22,7 @@ class CreatePartylist extends CreateRecord
         ];
     }
 
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
@@ -30,52 +30,25 @@ class CreatePartylist extends CreateRecord
 
     protected function handleRecordCreation(array $data): Partylist
     {
-        $this->validateUniquePartylist($data['name']);
+        $this->validateUniquePartyList($data['name']);
 
-        return DB::transaction(function () use ($data) {
-            $partylist = Partylist::create([
-                'name' => $data['name'],
-            ]);
-
-            $this->sendCreationSuccessNotification($partylist);
-
-            return $partylist;
-        });
+        return DB::transaction(fn() => Partylist::create([
+            'name' => $data['name'],
+        ]));
     }
 
-    protected function validateUniquePartylist($name)
+    protected function validateUniquePartyList($name)
     {
-        $existingPartylist = Partylist::withTrashed()
+        $partyList = Partylist::withTrashed()
             ->where('name', $name)
             ->first();
 
-        if ($existingPartylist) {
-            $message = $existingPartylist->deleted_at
-                ? 'A partylist with this name exists but is marked as deleted. Please restore it instead of creating a new one.'
-                : 'A partylist with this name already exists. Please choose a different name.';
-
-            $this->handleValidationException($message);
+        if ($partyList) {
+            $message = $partyList->deleted_at 
+                ? 'This party list has been deleted and must be restored before reuse.' 
+                : 'A party list with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Partylist Creation Failed')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
-    }
-
-    protected function sendCreationSuccessNotification($partylist)
-    {
-        Notification::make()
-            ->title('Partylist Created')
-            ->body("{$partylist->name} has been successfully created.")
-            ->success()
-            ->send();
     }
 }
