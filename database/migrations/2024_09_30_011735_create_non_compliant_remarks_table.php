@@ -19,7 +19,8 @@ return new class extends Migration
             $table->foreignId('target_remarks_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->longText('others remarks');
+            $table->longText('others_remarks')
+                ->nullable();
             $table->timestamps();
         });
     }
