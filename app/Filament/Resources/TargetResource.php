@@ -510,12 +510,6 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->label('No. of Slots'),
-                TextColumn::make('qualification_title.pcc')
-                    ->searchable()
-                    ->toggleable()
-                    ->label('Per Capita Cost')
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make('total_amount')
                     ->searchable()
                     ->toggleable()

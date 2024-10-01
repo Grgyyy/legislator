@@ -12,6 +12,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -84,7 +85,58 @@ class NonCompliantRemarkResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('target.allocation.particular.subParticular.fundSource.name')
+                    ->label('Allocation Type'),
+                TextColumn::make('target.allocation.legislator.name')
+                    ->label('Legislator'),
+                TextColumn::make('target.allocation.particular.subParticular.name')
+                    ->label('Particular'),
+                TextColumn::make('target.allocation.soft_or_commitment')
+                    ->label('Allocation Type'),
+                TextColumn::make('target.appropriation_type')
+                    ->label('Appropriation Type')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('target.allocation.year')
+                    ->label('Allocation Year')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('target.tvi.district.name')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('target.tvi.district.municipality.name')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('target.tvi.district.municipality.province.name')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('target.tvi.district.municipality.province.region.name')
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('target.tvi.name')
+                    ->label('Institution'),
+                TextColumn::make('target.allocation.scholarship_program.name')
+                    ->label('Scholarship Program'),
+                TextColumn::make('target.qualification_title.trainingProgram.title')
+                    ->label('Qualification Title'),
+                TextColumn::make('target.qualification_title.trainingProgram.priority.name')
+                    ->label('Priority Sector'),
+                TextColumn::make('target.qualification_title.trainingProgram.tvet.name')
+                    ->label('TVET Sector'),
+                TextColumn::make('target.abdd.name')
+                    ->label('ABDD Sector'),
+                TextColumn::make('target.number_of_slots')
+                    ->searchable()
+                    ->toggleable()
+                    ->label('No. of Slots'),
+                TextColumn::make('target.total_amount')
+                    ->searchable()
+                    ->toggleable()
+                    ->label('Total Amount')
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                TextColumn::make('target_remarks.remarks')
+                    ->label('Remarks'),
             ])
             ->filters([
                 //

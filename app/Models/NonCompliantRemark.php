@@ -20,7 +20,7 @@ class NonCompliantRemark extends Model
         return $this->belongsTo(Target::class);
     }
 
-    public function remarks()
+    public function target_remarks()
     {
         return $this->belongsTo(TargetRemark::class);
     }
