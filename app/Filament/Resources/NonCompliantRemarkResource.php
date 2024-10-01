@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\NonCompliantRemarkResource\Pages;
-use App\Filament\Resources\NonCompliantRemarkResource\RelationManagers;
 use App\Models\NonCompliantRemark;
 use App\Models\Target;
 use Filament\Forms;
@@ -15,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class NonCompliantRemarkResource extends Resource
 {
@@ -55,9 +53,8 @@ class NonCompliantRemarkResource extends Resource
 
         $textInputs = [];
         foreach ($targetData as $key => $value) {
-            // Check if the key is "Per Capita Cost" or "Total Amount" and format accordingly
             if ($key === 'Per Capita Cost' || $key === 'Total Amount') {
-                $value = '₱' . number_format($value, 2); // Format as currency
+                $value = '₱' . number_format($value, 2);
             }
 
             $textInputs[] = TextInput::make($key)
@@ -66,21 +63,21 @@ class NonCompliantRemarkResource extends Resource
                 ->readOnly();
         }
 
-        return $form
-            ->schema([
-                Section::make()
-                ->columns(5) // Adjust number of columns as needed
+        return $form->schema([
+            Section::make()
+                ->columns(5)
                 ->schema($textInputs),
-                Select::make('target_remarks_id')
-                    ->relationship('remarks', 'remarks')
-                    ->required(),
-                TextInput::make('others_remarks')
-                    ->label('Please specify:'),
-                TextInput::make('target_id')
-                    ->default(request()->query('record'))
-                    ->hidden(fn ($record) => $record !== null)
-                    ->readOnly(),
-            ])->columns(1);
+            Select::make('target_remarks_id')
+                ->relationship('remarks', 'remarks')
+                ->required(),
+            TextInput::make('others_remarks')
+                ->label('Please specify:'),
+
+            // Ensure target_id is always passed in form submission
+            TextInput::make('target_id')
+                ->default($targetIdParams)
+                ->readOnly(),
+        ])->columns(1);
     }
 
     public static function table(Table $table): Table
@@ -93,7 +90,7 @@ class NonCompliantRemarkResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -114,7 +111,6 @@ class NonCompliantRemarkResource extends Resource
         return [
             'index' => Pages\ListNonCompliantRemarks::route('/'),
             'create' => Pages\CreateNonCompliantRemark::route('/create'),
-            'edit' => Pages\EditNonCompliantRemark::route('/{record}/edit'),
         ];
     }
 
