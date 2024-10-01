@@ -11,7 +11,7 @@ class NonCompliantRemark extends Model
 
     protected $fillable = [
         'target_id',
-        'remarks_id',
+        'target_remarks_id',
         'others_remarks'
     ];
 

@@ -546,6 +546,14 @@ class TargetResource extends Resource
                         ->label('View Comments')
                         ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
                         ->icon('heroicon-o-chat-bubble-left-ellipsis'),
+                        Action::make('setAsCompliant')
+                        ->label('Set as Compliant')
+                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        ->icon('heroicon-o-check-circle'),
+                        Action::make('setAsNonCompliant')
+                        ->label('Set as Non-Compliant')
+                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        ->icon('heroicon-o-x-circle'),
                     DeleteAction::make(),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),

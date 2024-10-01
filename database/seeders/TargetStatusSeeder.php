@@ -15,7 +15,8 @@ class TargetStatusSeeder extends Seeder
     {
         $target_statuses = [
             ['desc' => 'Pending'],
-            ['desc' => 'Approved'],
+            ['desc' => 'Compliant'],
+            ['desc' => 'Non-Compliant'],
             ['desc' => 'Assigned'],
         ];
 
