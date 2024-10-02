@@ -4,10 +4,10 @@ namespace App\Filament\Resources\ProvinceResource\Pages;
 
 use App\Models\Province;
 use App\Filament\Resources\ProvinceResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Illuminate\Validation\ValidationException;
+use Exception;
 
 class EditProvince extends EditRecord
 {
@@ -26,30 +26,18 @@ class EditProvince extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Province
     {
-        // Validate for unique province name within the same region
         $this->validateUniqueProvince($data['name'], $data['region_id'], $record->id);
 
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('Province record updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Province update successful', null);
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the province: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the province: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the province update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -57,32 +45,18 @@ class EditProvince extends EditRecord
 
     protected function validateUniqueProvince($name, $regionId, $currentId)
     {
-        $query = Province::withTrashed()
+        $province = Province::withTrashed()
             ->where('name', $name)
             ->where('region_id', $regionId)
             ->where('id', '!=', $currentId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Province data exists and is marked as deleted. Data cannot be updated.';
-            } else {
-                $message = 'Province data already exists in this region.';
-            }
-            $this->handleValidationException($message);
+        if ($province) {
+            $message = $province->deleted_at 
+                ? 'This province exists in the region but has been deleted; it must be restored before reuse.' 
+                : 'A province with this name already exists in the specified region.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }

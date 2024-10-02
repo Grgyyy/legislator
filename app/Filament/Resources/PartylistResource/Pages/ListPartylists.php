@@ -3,14 +3,14 @@
 namespace App\Filament\Resources\PartylistResource\Pages;
 
 use App\Filament\Resources\PartylistResource;
-use Filament\Actions\Action;
-use Filament\Forms\Components\FileUpload;
-use Exception;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Notifications\Notification;
-use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
 use App\Imports\PartylistImport;
+use Filament\Resources\Pages\ListRecords;
+use App\Services\NotificationHandler;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListPartylists extends ListRecords
 {
@@ -21,7 +21,7 @@ class ListPartylists extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            '/partylists' => 'Party-List',
+            '/partylists' => 'Party-Lists',
             'List'
         ];
     }
@@ -30,8 +30,9 @@ class ListPartylists extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('RegionImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -40,19 +41,12 @@ class ListPartylists extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new PartylistImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('Partylist import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The party-lists have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('Partylist import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the party-lists: ' . $e->getMessage());
                     }
                 }),
         ];

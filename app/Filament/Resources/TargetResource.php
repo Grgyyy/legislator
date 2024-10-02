@@ -34,6 +34,7 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use App\Filament\Resources\TargetResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Log;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class TargetResource extends Resource
@@ -172,55 +173,155 @@ class TargetResource extends Resource
                                     $set('particular_id', null);
                                 }),
 
-                            Select::make('particular_id')
-                                ->label('Particular')
-                                ->required()
-                                ->searchable()
-                                ->options(function ($get) {
-                                    $legislatorId = $get('legislator_id');
-                                    return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
-                                })
-                                ->reactive()
-                                ->afterStateUpdated(function ($state, callable $set) {
-                                    $set('scholarship_program_id', null);
-                                    $set('qualification_title_id', null);
-                                }),
+                        Select::make('particular_id')
+                            ->label('Particular')
+                            ->required()
+                            ->markAsRequired(false)
+                            ->preload()
+                            ->searchable()
+                            ->options(function ($get) {
+                                $legislatorId = $get('legislator_id');
+                                return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
+                            })
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                // Reset the 'particular_id' field to null when legislator is changed,
+                                // because the available particular options will change.
+                                $set('scholarship_program_id', null);
+        
+                                // Fetch new particular options based on the selected legislator ($state contains legislator_id).
+                                $scholarshipPrograms = self::getScholarshipProgramsOptions($state, $state);
+                        
+                                // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
+                                // can display the correct options based on the selected legislator.
+                                $set('scholarshipProgramsOptions', $scholarshipPrograms);
+                        
+                                // If there's only one particular available, automatically select it.
+                                if (count($scholarshipPrograms) === 1) {
+                                    // Auto-select the only available particular by setting 'particular_id'
+                                    // to the key of the single option.
+                                    $set('scholarship_program_id', key($scholarshipPrograms));
+                                }
+                            })
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                // Reset the 'particular_id' field to null when legislator is changed,
+                                // because the available particular options will change.
+                                $set('allocation_year', null);
+        
+                                // Fetch new particular options based on the selected legislator ($state contains legislator_id).
+                                $year = self::getAllocationYear($state, $state, $state);
+                        
+                                // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
+                                // can display the correct options based on the selected legislator.
+                                $set('allocationYear', $year);
+                        
+                                // If there's only one particular available, automatically select it.
+                                if (count($year) === 1) {
+                                    // Auto-select the only available particular by setting 'particular_id'
+                                    // to the key of the single option.
+                                    $set('allocation_year', key($year));
+                                }
+                            })
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                // Reset the 'particular_id' field to null when legislator is changed,
+                                // because the available particular options will change.
+                                $set('appropriation_type', null);
+        
+                                // Fetch new particular options based on the selected legislator ($state contains legislator_id).
+                                $appropriationType = self::getAppropriationTypeOptions($state);
+                        
+                                // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
+                                // can display the correct options based on the selected legislator.
+                                $set('appropriationType', $appropriationType);
 
-                            Select::make('scholarship_program_id')
-                                ->label('Scholarship Program')
-                                ->required()
-                                ->searchable()
-                                ->options(function ($get) {
-                                    $legislatorId = $get('legislator_id');
-                                    $particularId = $get('particular_id');
-                                    return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
-                                })
-                                ->reactive()
-                                ->afterStateUpdated(function ($state, callable $set) {
-                                    $set('allocation_year', null);
-                                    $set('qualification_title_id', null);
-                                }),
+                        
+                                // // If there's only one particular available, automatically select it.
+                                if (count($appropriationType) === 1) {
+                                    // Auto-select the only available particular by setting 'particular_id'
+                                    // to the key of the single option.
+                                    $set('appropriation_type', key($appropriationType));
+                                }
+                            })
+                            ->reactive()
+                            ->live()
+                            ->native(false)
+                            ->disableOptionWhen(fn ($value) => $value === 'no_legislator'),
+
+                        Select::make('scholarship_program_id')
+                            ->label('Scholarship Program')
+                            ->required()
+                            ->searchable()
+                            ->options(function ($get) {
+                                $legislatorId = $get('legislator_id');
+                                $particularId = $get('particular_id');
+                                return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
+                            })
+                            ->reactive()
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                // Reset the 'particular_id' field to null when legislator is changed,
+                                // because the available particular options will change.
+                                $set('allocation_year', null);
+        
+                                // Fetch new particular options based on the selected legislator ($state contains legislator_id).
+                                $year = self::getAllocationYear($state, $state, $state);
+                        
+                                // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
+                                // can display the correct options based on the selected legislator.
+                                $set('allocationYear', $year);
+                        
+                                // If there's only one particular available, automatically select it.
+                                if (count($year) === 1) {
+                                    // Auto-select the only available particular by setting 'particular_id'
+                                    // to the key of the single option.
+                                    $set('allocation_year', key($year));
+                                }
+                            }),
 
                             Select::make('allocation_year')
                                 ->label('Appropriation Year')
                                 ->required()
                                 ->searchable()
-                                ->options(function ($get) {
+                                ->reactive()
+                            ->live()
+                            ->options(function ($get) {
                                     $legislatorId = $get('legislator_id');
                                     $particularId = $get('particular_id');
                                     $scholarshipProgramId = $get('scholarship_program_id');
                                     return $legislatorId && $particularId && $scholarshipProgramId
                                         ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
                                         : ['' => 'No Allocation Available.'];
-                                }),
+                                })
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                // Reset the 'particular_id' field to null when legislator is changed,
+                                // because the available particular options will change.
+                                $set('appropriation_type', null);
+        
+                                // Fetch new particular options based on the selected legislator ($state contains legislator_id).
+                                $appropriationType = self::getAppropriationTypeOptions($state);
+                        
+                                // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
+                                // can display the correct options based on the selected legislator.
+                                $set('appropriationType', $appropriationType);
 
-                            Select::make('appropriation_type')
-                                ->label('Allocation Type')
-                                ->required()
-                                ->options([
-                                    'Current' => 'Current',
-                                    'Continuing' => 'Continuing',
-                                ]),
+                        
+                                // // If there's only one particular available, automatically select it.
+                                if (count($appropriationType) === 1) {
+                                    // Auto-select the only available particular by setting 'particular_id'
+                                    // to the key of the single option.
+                                    $set('appropriation_type', key($appropriationType));
+                                }
+                            }),
+
+                        Select::make('appropriation_type')
+                            ->label('Allocation Type')
+                            ->required()
+                            ->options(function ($get) {
+                                $year = $get('allocation_year');
+                                return self::getAppropriationTypeOptions($year);
+                            })
+                            ->reactive()
+                            ->live(),
+                            
 
                             Select::make('tvi_id')
                                 ->label('Institution')
@@ -576,6 +677,17 @@ class TargetResource extends Resource
         return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
     }
 
+    protected static function getAppropriationTypeOptions($year) {
+        $yearNow = date('Y');
+    
+        if ($year == $yearNow) {
+            return ["Current" => "Current"];
+        } elseif ($year == $yearNow - 1) {
+            return ["Continuing" => "Continuing"];
+        } else {
+            return ["Unknown" => "Unknown"];
+        }
+    }
 
     protected static function getScholarshipProgramsOptions($legislatorId, $particularId)
     {

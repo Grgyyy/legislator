@@ -2,30 +2,30 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms\Form;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Table;
 use App\Models\Municipality;
-use Filament\Resources\Resource;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Illuminate\Database\Eloquent\Builder;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\MunicipalityResource\Pages;
 use App\Models\Province;
-use Filament\Tables\Actions\BulkActionGroup;
+use App\Filament\Resources\MunicipalityResource\Pages;
+use Filament\Resources\Resource;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\TrashedFilter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class MunicipalityResource extends Resource
 {
@@ -43,27 +43,33 @@ class MunicipalityResource extends Resource
             ->schema([
                 TextInput::make("name")
                     ->label('Municipality')
+                    ->placeholder(placeholder: 'Enter municipality name')
                     ->required()
-                    ->autocomplete(false),
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('Municipality'),
+
                 Select::make("province_id")
                     ->relationship("province", "name")
-                    ->default(fn($get) => request()->get('province_id'))
-                    ->options(function () {
-                        $province = Province::where('name', '!=', 'Not Applicable')->pluck('name', 'id')->toArray();
-                        return !empty($province) ? $province : ['no_province' => 'No Province Available'];
-                    })
                     ->required()
-                    ->native(false)
-                    ->preload()
+                    ->markAsRequired(false)
                     ->searchable()
-                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
+                    ->preload()
+                    ->default(fn($get) => request()->get('province_id'))
+                    ->native(false)
+                    ->options(function () {
+                        return Province::where('name', '!=', 'Not Applicable')
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_province' => 'No Province Available'];
+                    })
+                    ->disableOptionWhen(fn ($value) => $value === 'no_province'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No municipalities yet')
+            ->emptyStateHeading('No municipalities available')
             ->columns([
                 TextColumn::make("name")
                     ->label("Municipality")
@@ -71,11 +77,12 @@ class MunicipalityResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->url(fn($record) => route('filament.admin.resources.municipalities.showDistricts', ['record' => $record->id])),
+                
                 TextColumn::make("province.name")
                     ->searchable()
                     ->toggleable(),
+                
                 TextColumn::make("province.region.name")
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])
@@ -124,6 +131,21 @@ class MunicipalityResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
+
+        $query->withoutGlobalScopes([SoftDeletingScope::class])
+        ->where('name', '!=', 'Not Applicable');
+
+        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            $query->where('province_id', (int) $routeParameter);
+        }
+
+        return $query;
+    }
+
     public static function getPages(): array
     {
         return [
@@ -132,21 +154,5 @@ class MunicipalityResource extends Resource
             'edit' => Pages\EditMunicipality::route('/{record}/edit'),
             'showDistricts' => Pages\ShowDistrict::route('/{record}/districts'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        $query = parent::getEloquentQuery();
-
-        $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->where('name', '!=', 'Not Applicable');
-
-        $routeParameter = request()->route('record');
-
-        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
-            $query->where('province_id', (int) $routeParameter);
-        }
-
-        return $query;
     }
 }

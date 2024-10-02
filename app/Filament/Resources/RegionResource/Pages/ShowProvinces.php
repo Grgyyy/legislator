@@ -3,14 +3,12 @@ namespace App\Filament\Resources\RegionResource\Pages;
 
 use App\Filament\Resources\ProvinceResource;
 use App\Models\Region;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\CreateAction;
 
 class ShowProvinces extends ListRecords
 {
     protected static string $resource = ProvinceResource::class;
-
-    protected ?string $heading = 'Provinces';
 
     public function getBreadcrumbs(): array
     {
@@ -31,8 +29,8 @@ class ShowProvinces extends ListRecords
 
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
                 ->label('New')
+                ->icon('heroicon-m-plus')
                 ->url(route('filament.admin.resources.provinces.create', ['region_id' => $regionId]))
         ];
     }

@@ -3,9 +3,8 @@
 namespace App\Filament\Resources\FundSourceResource\Pages;
 
 use App\Filament\Resources\FundSourceResource;
-use Filament\Actions;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\CreateAction;
 
 class ListFundSources extends ListRecords
 {
@@ -15,8 +14,8 @@ class ListFundSources extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
         ];
     }
 }

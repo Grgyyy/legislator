@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\SubParticularResource\Pages;
 
 use App\Models\SubParticular;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\SubParticularResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateSubParticular extends CreateRecord
 {
@@ -28,57 +27,29 @@ class CreateSubParticular extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
-
     protected function handleRecordCreation(array $data): SubParticular
     {
-        $this->validateUniqueSubParticular($data['name']);
+        $this->validateUniqueSubParticular($data['name'], $data['fund_source_id']);
 
-        return DB::transaction(function () use ($data) {
-            $subParticular = SubParticular::create([
-                'name' => $data['name'],
-                'fund_source_id' => $data['fund_source_id'],
-            ]);
-
-            $this->sendCreationSuccessNotification($subParticular);
-
-            return $subParticular;
-        });
+        return DB::transaction(fn() => SubParticular::create([
+            'name' => $data['name'],
+            'fund_source_id' => $data['fund_source_id']
+        ]));
     }
 
-    protected function validateUniqueSubParticular($name)
+    protected function validateUniqueSubParticular($name, $fundSourceId)
     {
-        $existingSubParticular = SubParticular::withTrashed()
+        $subParticular = SubParticular::withTrashed()
             ->where('name', $name)
+            ->where('fund_source_id', $fundSourceId)
             ->first();
 
-        if ($existingSubParticular) {
-            $message = $existingSubParticular->deleted_at
-                ? 'A sub-particular with this name exists but is marked as deleted. Please restore it instead of creating a new one.'
-                : 'A sub-particular with this name already exists. Please choose a different name.';
-
-            $this->handleValidationException($message);
+        if ($subParticular) {
+            $message = $subParticular->deleted_at 
+                ? 'This particular type has been deleted and must be restored before reuse.' 
+                : 'A particular type with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Sub-Particular Creation Failed')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
-    }
-
-    protected function sendCreationSuccessNotification($subParticular)
-    {
-        Notification::make()
-            ->title('Sub-Particular Created')
-            ->body("{$subParticular->name} has been successfully created.")
-            ->success()
-            ->send();
     }
 }

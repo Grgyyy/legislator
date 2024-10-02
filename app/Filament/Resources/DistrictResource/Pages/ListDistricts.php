@@ -2,15 +2,15 @@
 
 namespace App\Filament\Resources\DistrictResource\Pages;
 
-use Filament\Actions\Action;
-use App\Imports\DistrictImport;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
-use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\DistrictResource;
-use Exception;
+use App\Imports\DistrictImport;
+use App\Services\NotificationHandler;
+use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListDistricts extends ListRecords
 {
@@ -20,8 +20,9 @@ class ListDistricts extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('DistrictImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -30,19 +31,12 @@ class ListDistricts extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new DistrictImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('District import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The district have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('District import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the district: ' . $e->getMessage());
                     }
                 }),
         ];

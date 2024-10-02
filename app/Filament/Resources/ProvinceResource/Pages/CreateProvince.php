@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
 use App\Models\Province;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\ProvinceResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateProvince extends CreateRecord
 {
@@ -28,56 +27,25 @@ class CreateProvince extends CreateRecord
     {
         $this->validateUniqueProvince($data['name'], $data['region_id']);
 
-        return DB::transaction(function () use ($data) {
-
-            $province = Province::create([
-                'name' => $data['name'],
-                'region_id' => $data['region_id'],
-            ]);
-
-            $this->sendCreationSuccessNotification($province);
-
-            return $province;
-        });
+        return DB::transaction(fn() => Province::create([
+            'name' => $data['name'],
+            'region_id' => $data['region_id']
+        ]));
     }
 
     protected function validateUniqueProvince($name, $regionId)
     {
-        $query = Province::withTrashed()
+        $province = Province::withTrashed()
             ->where('name', $name)
             ->where('region_id', $regionId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Province exists in the region but is marked as deleted. Data cannot be created.';
-            } else {
-                $message = 'Province already exists in this region.';
-            }
-            $this->handleValidationException($message);
+        if ($province) {
+            $message = $province->deleted_at 
+                ? 'This province exists in the region but has been deleted; it must be restored before reuse.' 
+                : 'A province with this name already exists in the specified region.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
-    }
-
-    protected function sendCreationSuccessNotification($province)
-    {
-
-        Notification::make()
-            ->title('Province Created')
-            ->body("{$province->name} has been successfully created.")
-            ->success()
-            ->send();
     }
 }

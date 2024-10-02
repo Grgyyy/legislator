@@ -2,16 +2,15 @@
 
 namespace App\Filament\Resources\RegionResource\Pages;
 
-use Filament\Actions;
-use Filament\Actions\Action;
-use App\Imports\RegionImport;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
-use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\RegionResource;
-use Exception;
+use App\Imports\RegionImport;
+use App\Services\NotificationHandler;
+use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListRegions extends ListRecords
 {
@@ -21,8 +20,9 @@ class ListRegions extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('RegionImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -31,23 +31,19 @@ class ListRegions extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new RegionImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('Region import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The regions have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('Region import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the regions: ' . $e->getMessage());
                     }
                 }),
         ];
     }
+}
+
+
     // public function getTabs(): array
     // {
     //     return [
@@ -80,4 +76,3 @@ class ListRegions extends ListRecords
     //             }),
     //     ];
     // }
-}

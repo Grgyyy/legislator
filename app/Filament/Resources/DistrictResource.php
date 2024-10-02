@@ -3,29 +3,29 @@
 namespace App\Filament\Resources;
 
 use App\Models\District;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
+use App\Models\Municipality;
+use App\Filament\Resources\DistrictResource\Pages;
 use Filament\Resources\Resource;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\RestoreBulkAction;
-use App\Filament\Resources\DistrictResource\Pages;
-use App\Models\Municipality;
-use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\RestoreBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DistrictResource extends Resource
 {
@@ -43,40 +43,48 @@ class DistrictResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label('District')
+                    ->placeholder(placeholder: 'Enter district name')
                     ->required()
-                    ->autocomplete(false),
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('District'),
+
                 Select::make('municipality_id')
                     ->relationship('municipality', 'name')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
                     ->default(fn($get) => request()->get('municipality_id'))
+                    ->native(false)
                     ->options(function () {
                         $municipality = Municipality::where('name', '!=', 'Not Applicable')->pluck('name', 'id')->toArray();
                         return !empty($municipality) ? $municipality : ['no_municipality' => 'No Municipality Available'];
                     })
-                    ->required()
-                    ->native(false)
-                    ->preload()
-                    ->searchable()
-                    ->disableOptionWhen(fn($value) => $value === 'no_municipality'),
+                    ->disableOptionWhen(fn ($value) => $value === 'no_municipality'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No districts available')
             ->columns([
                 TextColumn::make('name')
                     ->label('District')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('municipality.name')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('municipality.province.name')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('municipality.province.region.name')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])
@@ -125,6 +133,21 @@ class DistrictResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
+
+        $query->withoutGlobalScopes([SoftDeletingScope::class])
+        ->where('name', '!=', 'Not Applicable');
+
+        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            $query->where('municipality_id', (int) $routeParameter);
+        }
+
+        return $query;
+    }
+    
     public static function getPages(): array
     {
         return [
@@ -132,21 +155,5 @@ class DistrictResource extends Resource
             'create' => Pages\CreateDistrict::route('/create'),
             'edit' => Pages\EditDistrict::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        $query = parent::getEloquentQuery();
-
-        $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->where('name', '!=', 'Not Applicable');
-
-        $routeParameter = request()->route('record');
-
-        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
-            $query->where('municipality_id', (int) $routeParameter);
-        }
-
-        return $query;
     }
 }

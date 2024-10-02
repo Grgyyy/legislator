@@ -2,25 +2,23 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\FundSourceResource\Pages;
 use App\Models\FundSource;
-use Filament\Forms;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use App\Filament\Resources\FundSourceResource\Pages;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -42,20 +40,23 @@ class FundSourceResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
+                    ->label('Fund Source')
+                    ->placeholder(placeholder: 'Enter fund source')
                     ->required()
                     ->autocomplete(false)
-                    ->label('Fund Source'),
+                    ->validationAttribute('Fund Source'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No fund sources available')
             ->columns([
                 TextColumn::make("name")
                     ->label('Fund Source')
-                    ->searchable()
-                    ->toggleable(),
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 TrashedFilter::make()->label('Records'),
@@ -101,6 +102,14 @@ class FundSourceResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
+    }
+
     public static function getPages(): array
     {
         return [
@@ -108,11 +117,5 @@ class FundSourceResource extends Resource
             'create' => Pages\CreateFundSource::route('/create'),
             'edit' => Pages\EditFundSource::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 }

@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\RegionResource\Pages;
 
 use App\Models\Region;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\RegionResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateRegion extends CreateRecord
 {
@@ -20,58 +19,25 @@ class CreateRegion extends CreateRecord
 
     protected function handleRecordCreation(array $data): Region
     {
-
         $this->validateUniqueRegion($data['name']);
 
-        return DB::transaction(function () use ($data) {
-
-            $region = Region::create([
-                'name' => $data['name'],
-            ]);
-
-
-            $this->sendCreationSuccessNotification($region);
-
-            return $region;
-        });
+        return DB::transaction(fn() => Region::create([
+            'name' => $data['name']
+        ]));
     }
 
     protected function validateUniqueRegion($name)
     {
-        $query = Region::withTrashed()
+        $region = Region::withTrashed()
             ->where('name', $name)
             ->first();
 
-
-        if ($query) {
-            $message = $query->deleted_at
-                ? 'A region with this name exists but is marked as deleted. Please restore it instead of creating a new one.'
-                : 'A region with this name already exists. Please choose a different name to create a new region.';
-
-            $this->handleValidationException($message);
+        if ($region) {
+            $message = $region->deleted_at 
+                ? 'This region has been deleted and must be restored before reuse.' 
+                : 'A region with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Region Creation Failed')
-            ->body($message)
-            ->danger()
-            ->send();
-
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
-    }
-    protected function sendCreationSuccessNotification($region)
-    {
-
-        Notification::make()
-            ->title('Region Created')
-            ->body("{$region->name} has been successfully created.")
-            ->success()
-            ->send();
     }
 }

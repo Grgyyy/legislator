@@ -2,15 +2,15 @@
 
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
-use Filament\Actions\Action;
-use App\Imports\ProvinceImport;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
-use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\ProvinceResource;
-use Exception;
+use App\Imports\ProvinceImport;
+use App\Services\NotificationHandler;
+use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListProvinces extends ListRecords
 {
@@ -20,8 +20,9 @@ class ListProvinces extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('ProvinceImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -30,19 +31,12 @@ class ListProvinces extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new ProvinceImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('Province import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The provinces have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('Training Program import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
                     }
                 }),
         ];

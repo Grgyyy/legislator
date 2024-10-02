@@ -2,32 +2,30 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\SubParticularResource\Pages;
-use App\Models\FundSource;
 use App\Models\SubParticular;
-use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use App\Models\FundSource;
+use App\Filament\Resources\SubParticularResource\Pages;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\TrashedFilter;
-use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class SubParticularResource extends Resource
 {
@@ -35,10 +33,10 @@ class SubParticularResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationLabel = "Particular Types";
-
     protected static ?string $navigationParentItem = "Fund Sources";
 
+    protected static ?string $navigationLabel = "Particular Types";
+    
     protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
@@ -46,22 +44,26 @@ class SubParticularResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
+                    ->label('Particular Type')
+                    ->placeholder('Enter particular type')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->label('Particular Type'),
+                    ->validationAttribute('Particular Type'),
+
                 Select::make('fund_source_id')
                     ->relationship('fundSource', 'name')
-                    ->options(function () {
-                        $region = FundSource::all()->pluck('name', 'id')->toArray();
-                        return !empty($region) ? $region : ['no_fund_source' => 'No Fund Source Available'];
-                    })
                     ->required()
                     ->markAsRequired(false)
-                    ->native(false)
                     ->searchable()
                     ->preload()
-                    ->disableOptionWhen(fn($value) => $value === 'no_fund_source'),
+                    ->native(false)
+                    ->options(function () {
+                        return FundSource::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_fund_source' => 'No Fund Source Available'];
+                    })
+                    ->disableOptionWhen(fn ($value) => $value === 'no_fund_source'),
             ]);
     }
 
@@ -71,10 +73,13 @@ class SubParticularResource extends Resource
             ->columns([
                 TextColumn::make('name')
                     ->label('Particular Type')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
+                    
                 TextColumn::make('fundSource.name')
                     ->label('Fund Source')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])
@@ -124,6 +129,14 @@ class SubParticularResource extends Resource
                 ])
             ]);
     }
+        
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
+    }
 
     public static function getPages(): array
     {
@@ -132,13 +145,5 @@ class SubParticularResource extends Resource
             'create' => Pages\CreateSubParticular::route('/create'),
             'edit' => Pages\EditSubParticular::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
     }
 }

@@ -4,14 +4,13 @@ namespace App\Filament\Resources\SubParticularResource\Pages;
 
 use App\Filament\Resources\SubParticularResource;
 use App\Imports\ParticularTypesImport;
-use Filament\Actions\Action;
-use Filament\Forms\Components\FileUpload;
-use Exception;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Notifications\Notification;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
-use App\Imports\PartylistImport;
+use App\Services\NotificationHandler;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListSubParticulars extends ListRecords
 {
@@ -31,8 +30,9 @@ class ListSubParticulars extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('RegionImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -41,19 +41,12 @@ class ListSubParticulars extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new ParticularTypesImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('Particular Types import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The particular types have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('Particular Types import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the particular types: ' . $e->getMessage());
                     }
             }),
         ];
