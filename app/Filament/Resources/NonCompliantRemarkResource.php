@@ -69,14 +69,13 @@ class NonCompliantRemarkResource extends Resource
                 ->columns(5)
                 ->schema($textInputs),
             Select::make('target_remarks_id')
-                ->relationship('remarks', 'remarks')
+                ->relationship('target_remarks', 'remarks')
                 ->required(),
             TextInput::make('others_remarks')
                 ->label('Please specify:'),
-
-            // Ensure target_id is always passed in form submission
             TextInput::make('target_id')
                 ->default($targetIdParams)
+                ->extraAttributes(['class' => 'hidden'])
                 ->readOnly(),
         ])->columns(1);
     }
