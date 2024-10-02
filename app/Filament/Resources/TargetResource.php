@@ -43,6 +43,8 @@ class TargetResource extends Resource
 
     protected static ?string $navigationGroup = 'MANAGE TARGET';
 
+    protected static ?string $navigationLabel = "Pending Targets";
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

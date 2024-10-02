@@ -14,6 +14,16 @@ class CreateNonCompliantRemark extends CreateRecord
 {
     protected static string $resource = NonCompliantRemarkResource::class;
 
+    protected static ?string $title = 'Non-Compliant Targets';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            'Non-Compliant Targets',
+            'List'
+        ];
+    }
+
     protected function handleRecordCreation(array $data): NonCompliantRemark
     {
         return DB::transaction(function () use ($data) {

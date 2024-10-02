@@ -22,6 +22,11 @@ class NonCompliantRemarkResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationGroup = 'MANAGE TARGET';
+
+    protected static ?string $navigationLabel = "Non-Compliant Targets";
+
+
     public static function form(Form $form): Form
     {
         $targetIdParams = request()->query('record');
@@ -74,6 +79,7 @@ class NonCompliantRemarkResource extends Resource
             TextInput::make('others_remarks')
                 ->label('Please specify:'),
             TextInput::make('target_id')
+                ->label('')
                 ->default($targetIdParams)
                 ->extraAttributes(['class' => 'hidden'])
                 ->readOnly(),
@@ -135,6 +141,8 @@ class NonCompliantRemarkResource extends Resource
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make('target_remarks.remarks')
+                    ->label('Remarks'),
+                TextColumn::make('target.targetStatus.desc')
                     ->label('Remarks'),
             ])
             ->filters([
