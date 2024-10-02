@@ -3,9 +3,7 @@
 namespace App\Filament\Resources\SubParticularResource\Pages;
 
 use App\Models\SubParticular;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\SubParticularResource;
-use App\Models\SubParticular;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
