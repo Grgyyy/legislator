@@ -4,10 +4,10 @@ namespace App\Filament\Resources\ParticularResource\Pages;
 
 use App\Models\Particular;
 use App\Filament\Resources\ParticularResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Illuminate\Validation\ValidationException;
+use Exception;
 
 class EditParticular extends EditRecord
 {
@@ -21,28 +21,18 @@ class EditParticular extends EditRecord
     protected function handleRecordUpdate($record, array $data): Particular
     {
         $this->validateUniqueParticular($data['sub_particular_id'], $record->id);
+        $this->validateUniqueParticular($data['sub_particular_id'], $record->id);
 
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('Particular record updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Success', 'Particular has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the particular: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the particular: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the particular update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -50,32 +40,17 @@ class EditParticular extends EditRecord
 
     protected function validateUniqueParticular($sub_particular_id, $currentId)
     {
-        $query = Particular::withTrashed()
-            ->where('partylist_district', $sub_particular_id)
+        $particular = Particular::withTrashed()
             ->where('sub_particular_id', $sub_particular_id)
             ->where('id', '!=', $currentId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Particular data exists and is marked as deleted. Data cannot be updated.';
-            } else {
-                $message = 'Particular data already exists in this district.';
-            }
-            $this->handleValidationException($message);
+        if ($particular) {
+            $message = $particular->deleted_at 
+                ? 'This particular has been deleted. Restoration is required before it can be reused.' 
+                : 'A particular with the specified type and administrative area already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }

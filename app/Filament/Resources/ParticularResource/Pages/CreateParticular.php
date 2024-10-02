@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources\ParticularResource\Pages;
 
+use App\Models\Particular;
+use App\Models\SubParticular;
+use App\Models\Partylist;
 use App\Models\District;
 use App\Models\Municipality;
-use App\Models\Particular;
-use App\Models\Partylist;
 use App\Models\Province;
 use App\Models\Region;
-use App\Models\SubParticular;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\ParticularResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Exception;
 
@@ -27,63 +27,79 @@ class CreateParticular extends CreateRecord
 
     protected function handleRecordCreation(array $data): Particular
     {
+        $this->validateUniqueParticular($data['sub_particular_id']);
+
         return DB::transaction(function () use ($data) {
             try {
                 $subParticular = SubParticular::find($data['sub_particular_id']);
                 if (!$subParticular) {
-                    throw new Exception('SubParticular not found.');
+                    NotificationHandler::handleValidationException('Unexpected Error', 'Particular type does not exist.');
                 }
 
-                $notApplicablePartylist = Partylist::where('name', 'Not Applicable')->first();
-                if (!$notApplicablePartylist) {
-                    throw new Exception('Not Applicable Partylist not found.');
+                $partylist = Partylist::where('name', 'Not Applicable')->first();
+                if (!$partylist) {
+                    NotificationHandler::handleValidationException('Unexpected Error', 'Party-list does not exist.');
                 }
 
                 $region = Region::where('name', 'Not Applicable')->first();
                 if (!$region) {
-                    throw new Exception('Region not found.');
+                    NotificationHandler::handleValidationException('Unexpected Error', 'Region does not exist.');
                 }
 
                 $province = Province::where('name', 'Not Applicable')
                     ->where('region_id', $region->id)
                     ->first();
                 if (!$province) {
-                    throw new Exception('Province not found.');
+                    NotificationHandler::handleValidationException('Unexpected Error', 'Province does not exist.');
                 }
 
                 $municipality = Municipality::where('name', 'Not Applicable')
                     ->where('province_id', $province->id)
                     ->first();
                 if (!$municipality) {
-                    throw new Exception('Municipality not found.');
+                    NotificationHandler::handleValidationException('Unexpected Error', 'Municipality does not exist.');
                 }
 
                 $district = District::where('name', 'Not Applicable')
                     ->where('municipality_id', $municipality->id)
                     ->first();
                 if (!$district) {
-                    throw new Exception('District not found.');
+                    NotificationHandler::handleValidationException('Unexpected Error', 'District does not exist.');
                 }
 
                 $particularData = [
                     'sub_particular_id' => $data['sub_particular_id'],
-                    'partylist_id' => $subParticular->name === 'Partylist' || $subParticular->fundSource->name === 'Partylist' ? $data['partylist_district'] : $notApplicablePartylist->id,
-                    'district_id' => $subParticular->name === 'Partylist' ? $district->id : $data['partylist_district'],
+                    'partylist_id' => $subParticular->name === 'Partylist' ||  $subParticular->fundSource->name === 'Partylist' ? $data['administrative_area'] : $partylist->id,
+                    'district_id' => $subParticular->name === 'Partylist' ||  $subParticular->fundSource->name === 'Partylist' ? $district->id : $data['administrative_area'],
                 ];
 
-                return Particular::create($particularData);
+                $particular = Particular::create($particularData);
 
+                NotificationHandler::sendSuccessNotification('Success', 'Particular has been created successfully.');
+
+                return $particular;
             } catch (Exception $e) {
-                Notification::make()
-                    ->title('Error')
-                    ->body($e->getMessage())
-                    ->danger()
-                    ->send();
-
+                NotificationHandler::sendErrorNotification('Error', $e->getMessage());
+                
                 throw ValidationException::withMessages([
                     'general' => $e->getMessage(),
                 ]);
             }
         });
+    }
+
+    protected function validateUniqueParticular($sub_particular_id)
+    {
+        $particular = Particular::withTrashed()
+            ->where('sub_particular_id', $sub_particular_id)
+            ->first();
+
+        if ($particular) {
+            $message = $particular->deleted_at 
+                ? 'This particular has been deleted and must be restored before reuse.' 
+                : 'A particular with the specified type and administrative area already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
     }
 }

@@ -2,19 +2,18 @@
 
 namespace App\Filament\Resources\ParticularResource\Pages;
 
-use App\Models\SubParticular;
-use Filament\Actions\Action;
-use App\Imports\ParticularImport;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
-use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\ParticularResource;
-use App\Models\FundSource;
 use App\Models\Particular;
-use Exception;
-use Filament\Actions\CreateAction;
+use App\Models\FundSource;
+use App\Filament\Resources\ParticularResource;
 use Filament\Resources\Components\Tab;
+use App\Imports\ParticularImport;
+use Filament\Resources\Pages\ListRecords;
+use App\Services\NotificationHandler;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListParticulars extends ListRecords
 {
@@ -24,8 +23,9 @@ class ListParticulars extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('ParticularImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -34,46 +34,16 @@ class ListParticulars extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new ParticularImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('Particulars import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The particulars have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('Particulars import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the particulars: ' . $e->getMessage());
                     }
                 }),
         ];
     }
-
-    // public function getTabs(): array
-    // {
-    //     $fundSources = FundSource::all();
-
-    //     $tabs = [];
-
-    //     foreach ($fundSources as $fundSource) {
-    //         $tabs[$fundSource->name] = Tab::make()
-    //             ->modifyQueryUsing(function ($query) use ($fundSource) {
-    //                 $query->whereHas('subParticular', function ($subQuery) use ($fundSource) {
-    //                     $subQuery->where('fund_source_id', $fundSource->id);
-    //                 });
-    //             })
-    //             ->badge(function () use ($fundSource) {
-    //                 return Particular::whereHas('subParticular', function ($subQuery) use ($fundSource) {
-    //                     $subQuery->where('fund_source_id', $fundSource->id);
-    //                 })->count();
-    //             });
-    //     }
-
-    //     return $tabs;
-    // }
 
     public function getTabs(): array
     {
@@ -179,3 +149,26 @@ class ListParticulars extends ListRecords
         ];
     }
 }
+
+    // public function getTabs(): array
+    // {
+    //     $fundSources = FundSource::all();
+
+    //     $tabs = [];
+
+    //     foreach ($fundSources as $fundSource) {
+    //         $tabs[$fundSource->name] = Tab::make()
+    //             ->modifyQueryUsing(function ($query) use ($fundSource) {
+    //                 $query->whereHas('subParticular', function ($subQuery) use ($fundSource) {
+    //                     $subQuery->where('fund_source_id', $fundSource->id);
+    //                 });
+    //             })
+    //             ->badge(function () use ($fundSource) {
+    //                 return Particular::whereHas('subParticular', function ($subQuery) use ($fundSource) {
+    //                     $subQuery->where('fund_source_id', $fundSource->id);
+    //                 })->count();
+    //             });
+    //     }
+
+    //     return $tabs;
+    // }
