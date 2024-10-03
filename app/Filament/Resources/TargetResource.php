@@ -43,6 +43,8 @@ class TargetResource extends Resource
 
     protected static ?string $navigationGroup = 'MANAGE TARGET';
 
+    protected static ?string $navigationLabel = "Pending Targets";
+
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form
@@ -510,12 +512,6 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->label('No. of Slots'),
-                TextColumn::make('qualification_title.pcc')
-                    ->searchable()
-                    ->toggleable()
-                    ->label('Per Capita Cost')
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make('total_amount')
                     ->searchable()
                     ->toggleable()
@@ -546,6 +542,14 @@ class TargetResource extends Resource
                         ->label('View Comments')
                         ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
                         ->icon('heroicon-o-chat-bubble-left-ellipsis'),
+                        Action::make('setAsCompliant')
+                        ->label('Set as Compliant')
+                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        ->icon('heroicon-o-check-circle'),
+                        Action::make('setAsNonCompliant')
+                        ->label('Set as Non-Compliant')
+                        ->url(fn($record) => route('filament.admin.resources.non-compliant-remarks.create', ['record' => $record->id]))
+                        ->icon('heroicon-o-x-circle'),
                     DeleteAction::make(),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),

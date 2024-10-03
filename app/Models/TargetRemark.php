@@ -13,4 +13,9 @@ class TargetRemark extends Model
         'remarks',
     ];
 
+    public function non_compliant()
+    {
+        return $this->hasMany(NonCompliantRemark::class);
+    }
+
 }
