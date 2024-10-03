@@ -544,7 +544,7 @@ class TargetResource extends Resource
                         ->icon('heroicon-o-chat-bubble-left-ellipsis'),
                     Action::make('setAsCompliant')
                         ->label('Set as Compliant')
-                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        ->url(fn($record) => route('filament.admin.resources.targets.compliant', ['record' => $record->id]))
                         ->icon('heroicon-o-check-circle'),
                     Action::make('setAsNonCompliant')
                         ->label('Set as Non-Compliant')
@@ -642,6 +642,7 @@ class TargetResource extends Resource
             'index' => Pages\ListTargets::route('/'),
             'create' => Pages\CreateTarget::route('/create'),
             'edit' => Pages\EditTarget::route('/{record}/edit'),
+            'compliant' => Pages\Compliant::route('/{record}/compliant'),
             'showHistory' => Pages\ShowHistory::route('/{record}/history'),
             'showComments' => Pages\ShowComments::route('/{record}/comments'),
         ];
