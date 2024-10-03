@@ -92,9 +92,7 @@ class RegionResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
+            ->withoutGlobalScopes([SoftDeletingScope::class])
             ->whereNot('name', 'Not Applicable');
     }
 

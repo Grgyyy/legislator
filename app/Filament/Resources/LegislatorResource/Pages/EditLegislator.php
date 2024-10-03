@@ -4,10 +4,10 @@ namespace App\Filament\Resources\LegislatorResource\Pages;
 
 use App\Models\Legislator;
 use App\Filament\Resources\LegislatorResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Illuminate\Validation\ValidationException;
+use Exception;
 
 class EditLegislator extends EditRecord
 {
@@ -20,30 +20,18 @@ class EditLegislator extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Legislator
     {
-        // Validate for unique legislator name
         $this->validateUniqueLegislator($data['name'], $record->id);
 
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('Legislator record updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Saved', 'Legislator has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the legislator: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the legislator: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the legislator update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -51,31 +39,17 @@ class EditLegislator extends EditRecord
 
     protected function validateUniqueLegislator($name, $currentId)
     {
-        $query = Legislator::withTrashed()
+        $legislator = Legislator::withTrashed()
             ->where('name', $name)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Legislator data exists and is marked as deleted. Data cannot be updated.';
-            } else {
-                $message = 'Legislator data already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($legislator) {
+            $message = $legislator->deleted_at 
+                ? 'This legislator has been deleted. Restoration is required before it can be reused.' 
+                : 'A legislator with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }

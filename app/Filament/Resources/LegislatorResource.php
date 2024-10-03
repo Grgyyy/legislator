@@ -2,33 +2,32 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\RestoreAction;
-use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use App\Models\Particular;
-use Filament\Pages\Page;
-use Filament\Resources\Pages\CreateRecord;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TrashedFilter;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Filament\Resources\LegislatorResource\Pages;
 use App\Models\Legislator;
+use App\Models\Particular;
 use App\Models\Status;
+use App\Filament\Resources\LegislatorResource\Pages;
+use Filament\Resources\Resource;
+use Filament\Resources\Pages\CreateRecord;
+use Filament\Pages\Page;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -48,81 +47,63 @@ class LegislatorResource extends Resource
             ->schema([
                 TextInput::make("name")
                     ->label('Legislator')
+                    ->placeholder(placeholder: 'Enter legislator name')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->markAsRequired(false),
+                    ->validationAttribute('Legislator'),
+
                 Select::make("particular")
-                    ->multiple()
                     ->relationship("particular", "name")
-                    ->options(fn() => self::getParticularOptions())
                     ->required()
                     ->markAsRequired(false)
-                    ->native(false)
+                    ->searchable()
                     ->preload()
+                    ->multiple()
+                    ->native(false)
+                    ->options(fn() => self::getParticularOptions())
                     ->disableOptionWhen(fn($value) => $value === 'no_particular'),
+                
                 Select::make('status_id')
-                    ->label('Status')
-                    ->default(1)
                     ->relationship('status', 'desc')
-                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
                     ->required()
                     ->markAsRequired(false)
-                    ->native(false)
-                    ->options(fn() => self::getStatusOptions())
+                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
+                    ->default(1)
+                    ->native(false)                    
+                    ->options(function () {
+                        return Status::all()
+                            ->pluck('desc', 'id')
+                            ->toArray() ?: ['no_status' => 'No Status Available'];
+                    })
                     ->disableOptionWhen(fn($value) => $value === 'no_status'),
             ]);
-    }
-
-    protected static function getParticularOptions(): array
-    {
-        return Particular::query()
-            ->with('district')
-            ->get()
-            ->mapWithKeys(fn($item) => self::formatParticular($item))
-            ->toArray() ?: ['no_particular' => 'No Particular Available'];
-    }
-
-    protected static function formatParticular($item): array
-    {
-        $subParticular = $item->subParticular->name;
-
-        if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
-            $formattedName = "{$item->subParticular->name}";
-        } elseif ($subParticular === 'Partylist') {
-            $formattedName = "{$item->subParticular->name} - {$item->partylist->name}";
-        } else {
-            $formattedName = "{$item->subParticular->name} - {$item->district->name}, {$item->district->municipality->name}";
-        }
-
-        return [$item->id => $formattedName];
-    }
-
-    protected static function getStatusOptions(): array
-    {
-        return Status::all()->pluck('desc', 'id')->toArray() ?: ['no_status' => 'No Status Available'];
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No legislators yet')
+            ->emptyStateHeading('no legislators available')
             ->columns([
                 TextColumn::make("name")
-                    ->label('Name')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('particular_name')
                     ->label('Particular')
+                    ->toggleable()
                     ->getStateUsing(fn($record) => self::getParticularNames($record))
-                    ->html()
-                    ->toggleable(),
+                    ->html(),
+                    
                 TextColumn::make("status.desc")
+                    ->searchable()
                     ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
+
                 SelectFilter::make('status')
                     ->label('Status')
                     ->relationship('status', 'desc'),
@@ -184,6 +165,30 @@ class LegislatorResource extends Resource
             ]);
     }
 
+    protected static function getParticularOptions(): array
+    {
+        return Particular::query()
+            ->with('district')
+            ->get()
+            ->mapWithKeys(fn($item) => self::formatParticular($item))
+            ->toArray() ?: ['no_particular' => 'No Particular Available'];
+    }
+
+    protected static function formatParticular($item): array
+    {
+        $subParticular = $item->subParticular->name;
+
+        if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
+            $formattedName = "{$item->subParticular->name}";
+        } elseif ($subParticular === 'Partylist') {
+            $formattedName = "{$item->subParticular->name} - {$item->partylist->name}";
+        } else {
+            $formattedName = "{$item->subParticular->name} - {$item->district->name}, {$item->district->municipality->name}";
+        }
+
+        return [$item->id => $formattedName];
+    }
+
     protected static function getParticularNames($record): string
     {
         return $record->particular->map(function ($particular, $index) {
@@ -201,6 +206,13 @@ class LegislatorResource extends Resource
         })->implode('');
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class])
+            ->whereNotIn('name', ['Regional Office', 'Central Office']);
+    }
+
     public static function getPages(): array
     {
         return [
@@ -209,18 +221,4 @@ class LegislatorResource extends Resource
             'edit' => Pages\EditLegislator::route('/{record}/edit'),
         ];
     }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNotIn('name', ['Regional Office', 'Central Office']);
-    }
-
-
-    // protected static function isTrashedFilterActive(): bool
-    // {
-    //     $filters = request()->query('tableFilters', []);
-    //     return isset($filters['status']['status_id']) && $filters['status']['status_id'] === 'deleted';
-    // }
 }

@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\LegislatorResource\Pages;
 
 use App\Models\Legislator;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\LegislatorResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateLegislator extends CreateRecord
 {
@@ -20,54 +19,29 @@ class CreateLegislator extends CreateRecord
 
     protected function handleRecordCreation(array $data): Legislator
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueLegislator($data['name']);
+        $this->validateUniqueLegislator($data['name']);
 
-            $legislator = Legislator::create([
-                'name' => $data['name'],
-            ]);
+        $legislator = DB::transaction(fn() => Legislator::create([
+            'name' => $data['name'],
+        ]));
 
-            $this->sendCreationSuccessNotification($legislator);
+        NotificationHandler::sendSuccessNotification('Created', 'Legislator has been created successfully.');
 
-            return $legislator;
-        });
+        return $legislator;
     }
 
     protected function validateUniqueLegislator($name)
     {
-        $query = Legislator::withTrashed()
+        $legislator = Legislator::withTrashed()
             ->where('name', $name)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'A legislator with this name exists and is marked as deleted. Data cannot be created.';
-            } else {
-                $message = 'A legislator with this name already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($legislator) {
+            $message = $legislator->deleted_at 
+                ? 'This legislator has been deleted and must be restored before reuse.'
+                : 'A legislator with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
-    }
-
-    protected function sendCreationSuccessNotification($legislator)
-    {
-        Notification::make()
-            ->title('Legislator Created')
-            ->body("{$legislator->name} has been successfully created.")
-            ->success()
-            ->send();
     }
 }

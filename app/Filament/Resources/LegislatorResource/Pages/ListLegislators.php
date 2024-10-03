@@ -2,18 +2,15 @@
 
 namespace App\Filament\Resources\LegislatorResource\Pages;
 
-use Filament\Actions\Action;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
-use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\LegislatorResource;
 use App\Imports\LegislatorImport;
-use App\Models\Legislator;
-use Exception;
+use Filament\Resources\Pages\ListRecords;
+use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Components\Builder;
-use Filament\Resources\Components\Tab;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListLegislators extends ListRecords
 {
@@ -23,8 +20,9 @@ class ListLegislators extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('LegislatorImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -33,23 +31,17 @@ class ListLegislators extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new LegislatorImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('Legislator import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The legislators have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('Legislator import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the legislators: ' . $e->getMessage());
                     }
                 }),
         ];
     }
+}
 
     // public function getTabs(): array
     // {
@@ -71,4 +63,3 @@ class ListLegislators extends ListRecords
     //             }),
     //     ];
     // }
-}
