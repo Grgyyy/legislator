@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
-use App\Filament\Resources\DistrictResource;
 use App\Models\Municipality;
+use App\Filament\Resources\DistrictResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;
 
@@ -36,16 +36,11 @@ class ShowDistrict extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus')
-                ->url(route('filament.admin.resources.districts.create', ['municipality_id' => $municipalityId]))
+                ->url(route('filament.admin.resources.districts.create', ['municipality_id' => $municipalityId])),
         ];
     }
 
     protected function getMunicipalityId(): ?int
-    {
-        return (int) request()->route('record');
-    }
-
-    protected function getRegionId(): ?int
     {
         return (int) request()->route('record');
     }

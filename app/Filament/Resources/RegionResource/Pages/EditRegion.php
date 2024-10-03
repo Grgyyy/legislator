@@ -25,7 +25,7 @@ class EditRegion extends EditRecord
         try {
             $record->update($data);
             
-            NotificationHandler::sendSuccessNotification('Region update successful', null);
+            NotificationHandler::sendSuccessNotification('Saved', 'Region has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
@@ -41,7 +41,7 @@ class EditRegion extends EditRecord
     {
         $region = Region::withTrashed()
             ->where('name', $name)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
         if ($region) {

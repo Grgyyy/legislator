@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
-use App\Filament\Resources\MunicipalityResource;
 use App\Models\Province;
+use App\Filament\Resources\MunicipalityResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;
 

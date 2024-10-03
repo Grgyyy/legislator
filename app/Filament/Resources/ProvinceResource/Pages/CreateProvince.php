@@ -27,10 +27,14 @@ class CreateProvince extends CreateRecord
     {
         $this->validateUniqueProvince($data['name'], $data['region_id']);
 
-        return DB::transaction(fn() => Province::create([
+        $province = DB::transaction(fn() => Province::create([
             'name' => $data['name'],
             'region_id' => $data['region_id']
         ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Province has been created successfully.');
+
+        return $province;
     }
 
     protected function validateUniqueProvince($name, $regionId)

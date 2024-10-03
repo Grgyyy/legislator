@@ -43,6 +43,7 @@ class FundSourceResource extends Resource
                     ->label('Fund Source')
                     ->placeholder(placeholder: 'Enter fund source')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Fund Source'),
             ]);
@@ -51,7 +52,7 @@ class FundSourceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No fund sources available')
+            ->emptyStateHeading('no fund sources available')
             ->columns([
                 TextColumn::make("name")
                     ->label('Fund Source')
@@ -59,36 +60,23 @@ class FundSourceResource extends Resource
                     ->searchable(),
             ])
             ->filters([
-                TrashedFilter::make()->label('Records'),
+                TrashedFilter::make()
+                    ->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed())
-                        ->successNotificationTitle('Fund Source updated successfully.')
-                        ->failureNotificationTitle('Failed to update the Fund Source.'),
-                    DeleteAction::make()
-                        ->successNotificationTitle('Fund Source deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete the Fund Source.'),
-                    RestoreAction::make()
-                        ->successNotificationTitle('Fund Source restored successfully.')
-                        ->failureNotificationTitle('Failed to restore the Fund Source.'),
-                    ForceDeleteAction::make()
-                        ->successNotificationTitle('Fund Source permanently deleted successfully.')
-                        ->failureNotificationTitle('Failed to permanently delete the Fund Source.'),
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->successNotificationTitle('Fund Sources deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete Fund Sources.'),
-                    ForceDeleteBulkAction::make()
-                        ->successNotificationTitle('Fund Sources permanently deleted successfully.')
-                        ->failureNotificationTitle('Failed to permanently delete Fund Sources.'),
-                    RestoreBulkAction::make()
-                        ->successNotificationTitle('Fund Sources restored successfully.')
-                        ->failureNotificationTitle('Failed to restore Fund Sources.'),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

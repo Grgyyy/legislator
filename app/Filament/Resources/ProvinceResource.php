@@ -58,7 +58,7 @@ class ProvinceResource extends Resource
                     ->default(fn($get) => request()->get('region_id'))
                     ->native(false)
                     ->options(function () {
-                        return Region::where('name', '!=', 'Not Applicable')
+                        return Region::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_region' => 'No Region Available'];
                     })
@@ -69,7 +69,7 @@ class ProvinceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No provinces available')
+            ->emptyStateHeading('no provinces available')
             ->columns([
                 TextColumn::make('name')
                     ->label('Province')
@@ -97,22 +97,20 @@ class ProvinceResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->successNotificationTitle('Province records deleted successfully'),
-                    ForceDeleteBulkAction::make()
-                        ->successNotificationTitle('Province records permanently deleted'),
-                    RestoreBulkAction::make()
-                        ->successNotificationTitle('Province records restored successfully'),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('Province'),
-                                Column::make('region.name')
-                                    ->heading('Region'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Province')
-                    ]),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Province'),
+                                    Column::make('region.name')
+                                        ->heading('Region'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Province')
+                        ]),
                 ]),
             ]);
     }
@@ -122,10 +120,8 @@ class ProvinceResource extends Resource
         $query = parent::getEloquentQuery();
         $routeParameter = request()->route('record');
 
-        $query->withoutGlobalScopes([
-            SoftDeletingScope::class,
-        ])
-            ->where('name', '!=', 'Not Applicable');
+        $query->withoutGlobalScopes([SoftDeletingScope::class])
+            ->whereNot('name', 'Not Applicable');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('region_id', (int) $routeParameter);

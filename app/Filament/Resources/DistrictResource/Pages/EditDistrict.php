@@ -31,7 +31,7 @@ class EditDistrict extends EditRecord
         try {
             $record->update($data);
 
-            NotificationHandler::sendSuccessNotification('District update successful', null);
+            NotificationHandler::sendSuccessNotification('Saved', 'District has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
@@ -48,7 +48,7 @@ class EditDistrict extends EditRecord
         $district = District::withTrashed()
             ->where('name', $name)
             ->where('municipality_id', $municipalityId)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
         if ($district) {

@@ -51,7 +51,7 @@ class RegionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No regions available')
+            ->emptyStateHeading('no regions available')
             ->columns([
                 TextColumn::make("name")
                     ->label("Region")
@@ -60,36 +60,23 @@ class RegionResource extends Resource
                     ->url(fn($record) => route('filament.admin.resources.regions.show_provinces', ['record' => $record->id])),
             ])
             ->filters([
-                TrashedFilter::make()->label('Records'),
+                TrashedFilter::make()
+                    ->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed())
-                        ->successNotificationTitle('Region updated successfully.')
-                        ->failureNotificationTitle('Failed to update the region.'),
-                    DeleteAction::make()
-                        ->successNotificationTitle('Region record deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete the region.'),
-                    RestoreAction::make()
-                        ->successNotificationTitle('Region record has been restored successfully.')
-                        ->failureNotificationTitle('Failed to restore the region.'),
-                    ForceDeleteAction::make()
-                        ->successNotificationTitle('Region record has been deleted permanently.')
-                        ->failureNotificationTitle('Failed to permanently delete the region.'),
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->successNotificationTitle('Region records deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete region records.'),
-                    ForceDeleteBulkAction::make()
-                        ->successNotificationTitle('Region records have been deleted permanently.')
-                        ->failureNotificationTitle('Failed to permanently delete region records.'),
-                    RestoreBulkAction::make()
-                        ->successNotificationTitle('Region records have been restored successfully.')
-                        ->failureNotificationTitle('Failed to restore region records.'),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -108,7 +95,7 @@ class RegionResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            ->where('name', '!=', 'Not Applicable');
+            ->whereNot('name', 'Not Applicable');
     }
 
     public static function getPages(): array

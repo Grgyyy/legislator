@@ -33,7 +33,7 @@ class SubParticularSeeder extends Seeder
         // Particulars for each fund source
         $regional_regular_particulars = ['Regular'];
         $central_regular_particulars = ['Regular', 'SDF', 'With Identified TVI', 'RO Programming', 'Vetted', 'Star Rated', 'APACC', 'AIFO', 'EO79', 'EO70', 'KIA/WIA'];
-        $central_legislator_funds_particulars = ['District', 'Partylist', 'Senator', 'House Speaker', 'House Speaker (LAKAS)'];
+        $central_legislator_funds_particulars = ['District', 'Party-List', 'Senator', 'House Speaker', 'House Speaker (LAKAS)'];
 
         // Insert or update particulars for RO - Regular
         foreach ($regional_regular_particulars as $particular) {

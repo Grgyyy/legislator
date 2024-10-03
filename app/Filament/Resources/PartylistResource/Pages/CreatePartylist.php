@@ -22,7 +22,6 @@ class CreatePartylist extends CreateRecord
         ];
     }
 
-
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
@@ -32,9 +31,13 @@ class CreatePartylist extends CreateRecord
     {
         $this->validateUniquePartyList($data['name']);
 
-        return DB::transaction(fn() => Partylist::create([
+        $partylist = DB::transaction(fn() => Partylist::create([
             'name' => $data['name'],
         ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Party-list has been created successfully.');
+
+        return $partylist;
     }
 
     protected function validateUniquePartyList($name)

@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\SubParticularResource\Pages;
 
-use App\Filament\Resources\SubParticularResource;
 use App\Models\SubParticular;
+use App\Filament\Resources\SubParticularResource;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -35,7 +35,7 @@ class EditSubParticular extends EditRecord
         try {
             $record->update($data);
             
-            NotificationHandler::sendSuccessNotification('Particular Type update successful', null);
+            NotificationHandler::sendSuccessNotification('Saved', 'Particular type has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
@@ -52,7 +52,7 @@ class EditSubParticular extends EditRecord
         $subParticular = SubParticular::withTrashed()
             ->where('name', $name)
             ->where('fund_source_id', $fundSourceId)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
         if ($subParticular) {

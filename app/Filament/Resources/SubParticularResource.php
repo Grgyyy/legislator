@@ -70,6 +70,7 @@ class SubParticularResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('no particular types available')
             ->columns([
                 TextColumn::make('name')
                     ->label('Particular Type')
@@ -90,31 +91,17 @@ class SubParticularResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed())
-                        ->successNotificationTitle('Particular Type updated successfully.')
-                        ->failureNotificationTitle('Failed to update Particular Type.'),
-                    DeleteAction::make()
-                        ->successNotificationTitle('Particular Type deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete Particular Type.'),
-                    RestoreAction::make()
-                        ->successNotificationTitle('Particular Type restored successfully.')
-                        ->failureNotificationTitle('Failed to restore Particular Type.'),
-                    ForceDeleteAction::make()
-                        ->successNotificationTitle('Particular Type permanently deleted.')
-                        ->failureNotificationTitle('Failed to permanently delete Particular Type.'),
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->successNotificationTitle('Particular Type records deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete Particular Type records.'),
-                    ForceDeleteBulkAction::make()
-                        ->successNotificationTitle('Particular Type records permanently deleted.')
-                        ->failureNotificationTitle('Failed to permanently delete Particular Type records.'),
-                    RestoreBulkAction::make()
-                        ->successNotificationTitle('Particular Type records restored successfully.')
-                        ->failureNotificationTitle('Failed to restore Particular Type records.'),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

@@ -21,9 +21,13 @@ class CreateFundSource extends CreateRecord
     {
         $this->validateUniqueFundSource($data['name']);
 
-        return DB::transaction(fn() => FundSource::create([
+        $fundSource = DB::transaction(fn() => FundSource::create([
             'name' => $data['name'],
         ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Fund source has been created successfully.');
+
+        return $fundSource;
     }
 
     protected function validateUniqueFundSource($name)

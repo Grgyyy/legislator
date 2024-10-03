@@ -58,7 +58,7 @@ class MunicipalityResource extends Resource
                     ->default(fn($get) => request()->get('province_id'))
                     ->native(false)
                     ->options(function () {
-                        return Province::where('name', '!=', 'Not Applicable')
+                        return Province::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_province' => 'No Province Available'];
                     })
@@ -69,7 +69,7 @@ class MunicipalityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No municipalities available')
+            ->emptyStateHeading('no municipalities available')
             ->columns([
                 TextColumn::make("name")
                     ->label("Municipality")
@@ -93,40 +93,27 @@ class MunicipalityResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed())
-                        ->successNotificationTitle('Municipality updated successfully.')
-                        ->failureNotificationTitle('Failed to update the municipality.'),
-                    DeleteAction::make()
-                        ->successNotificationTitle('Municipality deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete the municipality.'),
-                    RestoreAction::make()
-                        ->successNotificationTitle('Municipality restored successfully.')
-                        ->failureNotificationTitle('Failed to restore the municipality.'),
-                    ForceDeleteAction::make()
-                        ->successNotificationTitle('Municipality permanently deleted.')
-                        ->failureNotificationTitle('Failed to permanently delete the municipality.'),
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->successNotificationTitle('Municipalities deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete municipalities.'),
-                    ForceDeleteBulkAction::make()
-                        ->successNotificationTitle('Municipalities permanently deleted.')
-                        ->failureNotificationTitle('Failed to permanently delete municipalities.'),
-                    RestoreBulkAction::make()
-                        ->successNotificationTitle('Municipalities restored successfully.')
-                        ->failureNotificationTitle('Failed to restore municipalities.'),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')->heading('Municipality'),
-                                Column::make('province.name')->heading('Province'),
-                                Column::make('province.region.name')->heading('Region'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Municipality')
-                    ]),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')->heading('Municipality'),
+                                    Column::make('province.name')->heading('Province'),
+                                    Column::make('province.region.name')->heading('Region'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Municipality')
+                        ]),
                 ]),
             ]);
     }
@@ -137,7 +124,7 @@ class MunicipalityResource extends Resource
         $routeParameter = request()->route('record');
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-        ->where('name', '!=', 'Not Applicable');
+            ->whereNot('name', 'Not Applicable');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('province_id', (int) $routeParameter);
