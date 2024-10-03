@@ -143,7 +143,7 @@ class NonCompliantRemarkResource extends Resource
                 TextColumn::make('target_remarks.remarks')
                     ->label('Remarks'),
                 TextColumn::make('target.targetStatus.desc')
-                    ->label('Remarks'),
+                    ->label('Status'),
             ])
             ->filters([
                 //
