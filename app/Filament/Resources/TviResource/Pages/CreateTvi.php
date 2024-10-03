@@ -3,15 +3,15 @@
 namespace App\Filament\Resources\TviResource\Pages;
 
 use App\Models\Tvi;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\TviResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateTvi extends CreateRecord
 {
     protected static string $resource = TviResource::class;
+
     protected static ?string $title = 'Create Institution';
 
     protected function getRedirectUrl(): string
@@ -22,27 +22,25 @@ class CreateTvi extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            'Institutions',
+            '/tvis' => 'Institutions',
             'Create',
         ];
     }
 
-    // Handle record creation with validation for unique institutions
     protected function handleRecordCreation(array $data): Tvi
     {
-        return DB::transaction(function () use ($data) {
-            // Validate the uniqueness of the institution
-            $this->validateUniqueInstitution($data);
+        $this->validateUniqueInstitution($data);
 
-            // Proceed to create the institution record
-            return Tvi::create($data);
-        });
+        $tvi = DB::transaction(fn() => Tvi::create($data));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Institution has been created successfully.');
+
+        return $tvi;
     }
 
-    // Custom validation for unique institution
     protected function validateUniqueInstitution($data)
     {
-        $query = Tvi::withTrashed()
+        $tvi = Tvi::withTrashed()
             ->where('name', $data['name'])
             ->where('institution_class_id', $data['institution_class_id'])
             ->where('tvi_class_id', $data['tvi_class_id'])
@@ -50,27 +48,24 @@ class CreateTvi extends CreateRecord
             ->where('address', $data['address'])
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'An institution with the same data exists and is marked as deleted. You cannot create it again.';
-            } else {
-                $message = 'An institution with the same data already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($tvi) {
+            $message = $tvi->deleted_at 
+                ? 'This institution with the provided details has been deleted and must be restored before reuse.' 
+                : 'An institution with the provided details already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
 
-    // Handle validation exceptions and show notifications
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
+        $schoolId = Tvi::withTrashed()
+            ->where('school_id', $data['school_id'])
+            ->first();
 
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
+        if ($schoolId) {
+            $message = $schoolId->deleted_at 
+                ? 'An institution with this school ID already exists and has been deleted.' 
+                : 'An institution with this school ID already exists.';
+            
+            NotificationHandler::handleValidationException('Invalid School ID', $message);
+        }
     }
 }

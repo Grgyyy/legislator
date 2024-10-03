@@ -2,15 +2,15 @@
 
 namespace App\Filament\Resources\TviResource\Pages;
 
-use App\Imports\TviImport;
-use Filament\Actions\Action;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Filament\Resources\TviResource;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
+use App\Imports\TviImport;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\ListRecords;
-use Exception;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListTvis extends ListRecords
 {
@@ -18,12 +18,21 @@ class ListTvis extends ListRecords
 
     protected static ?string $title = 'Institutions';
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/tvis' => 'Institutions',
+            'List'
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('TviImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -32,29 +41,14 @@ class ListTvis extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new TviImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('Institution import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The institutions have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('Institution import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institutions: ' . $e->getMessage());
                     }
                 }),
-        ];
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            'Institutions',
-            'List'
         ];
     }
 }
