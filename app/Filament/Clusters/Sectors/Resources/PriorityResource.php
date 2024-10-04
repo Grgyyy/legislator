@@ -1,45 +1,45 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Clusters\Sectors\Resources;
 
+use App\Filament\Clusters\Sectors;
+use App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 use Filament\Forms;
-use App\Models\Tvet;
 use Filament\Tables;
+use App\Models\Priority;
 use Filament\Forms\Form;
+use Filament\Tables\Table;
 use Filament\Resources\Resource;
+use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use App\Filament\Resources\TvetResource\Pages;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\TvetResource\RelationManagers;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\PriorityResource\RelationManagers;
 
-class TvetResource extends Resource
+class PriorityResource extends Resource
 {
-    protected static ?string $model = Tvet::class;
+    protected static ?string $model = Priority::class;
 
-    protected static ?string $navigationGroup = "SECTORS";
+    protected static ?string $cluster = Sectors::class;
 
-    protected static ?string $navigationLabel = "TVET Sectors";
+    protected static ?string $navigationLabel = "Ten Priority Sectors";
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
 
     public static function form(Form $form): Form
     {
@@ -60,9 +60,9 @@ class TvetResource extends Resource
             ->emptyStateHeading('No sectors yet')
             ->columns([
                 TextColumn::make('name')
-                    ->label("Sector")
-                    ->searchable()
+                    ->label('Sector')
                     ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -86,9 +86,9 @@ class TvetResource extends Resource
                         ExcelExport::make()
                             ->withColumns([
                                 Column::make('name')
-                                    ->heading('TVET Sector'),
+                                    ->heading('Top Ten Priority Sector'),
                             ])
-                            ->withFilename(date('m-d-Y') . ' - TVET Sector')
+                            ->withFilename(date('m-d-Y') . ' - Top Ten Priority Sector')
                     ]),
                 ]),
             ]);
@@ -97,9 +97,9 @@ class TvetResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListTvets::route('/'),
-            'create' => Pages\CreateTvet::route('/create'),
-            'edit' => Pages\EditTvet::route('/{record}/edit'),
+            'index' => Pages\ListPriorities::route('/'),
+            'create' => Pages\CreatePriority::route('/create'),
+            'edit' => Pages\EditPriority::route('/{record}/edit'),
         ];
     }
 

@@ -1,21 +1,22 @@
 <?php
-namespace App\Filament\Resources\PriorityResource\Pages;
 
-use App\Models\Priority;
-use App\Filament\Resources\PriorityResource;
+namespace App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
+
+use App\Filament\Clusters\Sectors\Resources\AbddResource;
+use App\Models\Abdd;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 
-class EditPriority extends EditRecord
+class EditAbdd extends EditRecord
 {
-    protected static string $resource = PriorityResource::class;
+    protected static string $resource = AbddResource::class;
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/priorities' => 'Top Ten Priority Sectors',
+            '/abdds' => 'ABDD Sectors',
             'Edit'
         ];
     }
@@ -25,15 +26,15 @@ class EditPriority extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function handleRecordUpdate($record, array $data): Priority
+    protected function handleRecordUpdate($record, array $data): Abdd
     {
-        $this->validateUniquePriority($data['name'], $record->id);
+        $this->validateUniqueAbdd($data['name'], $record->id);
 
         try {
             $record->update($data);
 
             Notification::make()
-                ->title('Priority record updated successfully')
+                ->title('ABDD record updated successfully')
                 ->success()
                 ->send();
 
@@ -41,7 +42,7 @@ class EditPriority extends EditRecord
         } catch (QueryException $e) {
             Notification::make()
                 ->title('Database Error')
-                ->body('An error occurred while updating the priority: ' . $e->getMessage())
+                ->body('An error occurred while updating the ABDD record: ' . $e->getMessage())
                 ->danger()
                 ->send();
         } catch (\Exception $e) {
@@ -55,18 +56,18 @@ class EditPriority extends EditRecord
         return $record;
     }
 
-    protected function validateUniquePriority($name, $currentId)
+    protected function validateUniqueAbdd($name, $currentId)
     {
-        $query = Priority::withTrashed()
+        $query = Abdd::withTrashed()
             ->where('name', $name)
             ->where('id', '!=', $currentId)
             ->first();
 
         if ($query) {
             if ($query->deleted_at) {
-                $message = 'Priority sector data exists and is marked as deleted. Data cannot be updated.';
+                $message = 'ABDD Sector data exists and is marked as deleted. Data cannot be updated.';
             } else {
-                $message = 'Priority sector data already exists.';
+                $message = 'ABDD Sector data already exists.';
             }
             $this->handleValidationException($message);
         }

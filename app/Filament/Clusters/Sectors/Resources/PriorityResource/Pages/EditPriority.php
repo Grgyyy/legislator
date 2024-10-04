@@ -1,21 +1,21 @@
 <?php
-namespace App\Filament\Resources\TvetResource\Pages;
+namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
-use App\Models\Tvet;
-use App\Filament\Resources\TvetResource;
+use App\Models\Priority;
+use App\Filament\Clusters\Sectors\Resources\PriorityResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 
-class EditTvet extends EditRecord
+class EditPriority extends EditRecord
 {
-    protected static string $resource = TvetResource::class;
+    protected static string $resource = PriorityResource::class;
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvets' => 'TVET Sectors',
+            '/priorities' => 'Top Ten Priority Sectors',
             'Edit'
         ];
     }
@@ -25,16 +25,15 @@ class EditTvet extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function handleRecordUpdate($record, array $data): Tvet
+    protected function handleRecordUpdate($record, array $data): Priority
     {
-        // Validate for unique TVET name
-        $this->validateUniqueTvet($data['name'], $record->id);
+        $this->validateUniquePriority($data['name'], $record->id);
 
         try {
             $record->update($data);
 
             Notification::make()
-                ->title('TVET record updated successfully')
+                ->title('Priority record updated successfully')
                 ->success()
                 ->send();
 
@@ -42,7 +41,7 @@ class EditTvet extends EditRecord
         } catch (QueryException $e) {
             Notification::make()
                 ->title('Database Error')
-                ->body('An error occurred while updating the TVET: ' . $e->getMessage())
+                ->body('An error occurred while updating the priority: ' . $e->getMessage())
                 ->danger()
                 ->send();
         } catch (\Exception $e) {
@@ -56,18 +55,18 @@ class EditTvet extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueTvet($name, $currentId)
+    protected function validateUniquePriority($name, $currentId)
     {
-        $query = Tvet::withTrashed()
+        $query = Priority::withTrashed()
             ->where('name', $name)
             ->where('id', '!=', $currentId)
             ->first();
 
         if ($query) {
             if ($query->deleted_at) {
-                $message = 'TVET sector data exists and is marked as deleted. Data cannot be updated.';
+                $message = 'Priority sector data exists and is marked as deleted. Data cannot be updated.';
             } else {
-                $message = 'TVET sector data already exists.';
+                $message = 'Priority sector data already exists.';
             }
             $this->handleValidationException($message);
         }

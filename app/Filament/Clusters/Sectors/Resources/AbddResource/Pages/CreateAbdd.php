@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Filament\Resources\PriorityResource\Pages;
+namespace App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
 
-use App\Models\Priority;
+use App\Filament\Clusters\Sectors\Resources\AbddResource;
+use App\Models\Abdd;
 use Illuminate\Support\Facades\DB;
-use App\Filament\Resources\PriorityResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Validation\ValidationException;
 
-class CreatePriority extends CreateRecord
+class CreateAbdd extends CreateRecord
 {
-    protected static string $resource = PriorityResource::class;
+    protected static string $resource = AbddResource::class;
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/priorities' => 'Top Ten Priority Sectors',
+            '/abdds' => 'ABDD Sectors',
             'Create'
         ];
     }
@@ -26,28 +26,28 @@ class CreatePriority extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function handleRecordCreation(array $data): Priority
+    protected function handleRecordCreation(array $data): Abdd
     {
         return DB::transaction(function () use ($data) {
-            $this->validateUniquePriority($data['name']);
+            // $this->validateUniqueAbdd($data['name']);
 
-            return Priority::create([
+            return Abdd::create([
                 'name' => $data['name'],
             ]);
         });
     }
 
-    protected function validateUniquePriority($name)
+    protected function validateUniqueAbdd($name)
     {
-        $query = Priority::withTrashed()
+        $query = Abdd::withTrashed()
             ->where('name', $name)
             ->first();
 
         if ($query) {
             if ($query->deleted_at) {
-                $message = 'Priority Sector data exists and is marked as deleted. Data cannot be created.';
+                $message = 'ABDD Sector data exists and is marked as deleted. Data cannot be created.';
             } else {
-                $message = 'Priority Sector data already exists.';
+                $message = 'ABDD Sector data already exists.';
             }
             $this->handleValidationException($message);
         }

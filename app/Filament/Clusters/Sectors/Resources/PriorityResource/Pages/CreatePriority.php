@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Filament\Resources\TvetResource\Pages;
+namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
-use App\Models\Tvet;
+use App\Models\Priority;
 use Illuminate\Support\Facades\DB;
-use App\Filament\Resources\TvetResource;
+use App\Filament\Clusters\Sectors\Resources\PriorityResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Validation\ValidationException;
 
-class CreateTvet extends CreateRecord
+class CreatePriority extends CreateRecord
 {
-    protected static string $resource = TvetResource::class;
+    protected static string $resource = PriorityResource::class;
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvets' => 'TVET Sectors',
+            '/priorities' => 'Top Ten Priority Sectors',
             'Create'
         ];
     }
@@ -26,28 +26,28 @@ class CreateTvet extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function handleRecordCreation(array $data): Tvet
+    protected function handleRecordCreation(array $data): Priority
     {
         return DB::transaction(function () use ($data) {
-            $this->validateUniqueTvet($data['name']);
+            $this->validateUniquePriority($data['name']);
 
-            return Tvet::create([
+            return Priority::create([
                 'name' => $data['name'],
             ]);
         });
     }
 
-    protected function validateUniqueTvet($name)
+    protected function validateUniquePriority($name)
     {
-        $query = Tvet::withTrashed()
+        $query = Priority::withTrashed()
             ->where('name', $name)
             ->first();
 
         if ($query) {
             if ($query->deleted_at) {
-                $message = 'TVET Sector data exists and is marked as deleted. Data cannot be created.';
+                $message = 'Priority Sector data exists and is marked as deleted. Data cannot be created.';
             } else {
-                $message = 'TVET Sector data already exists.';
+                $message = 'Priority Sector data already exists.';
             }
             $this->handleValidationException($message);
         }

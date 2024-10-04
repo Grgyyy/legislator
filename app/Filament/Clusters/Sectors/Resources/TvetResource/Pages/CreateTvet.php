@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Filament\Resources\AbddResource\Pages;
+namespace App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
 
-use App\Models\Abdd;
+use App\Models\Tvet;
 use Illuminate\Support\Facades\DB;
-use App\Filament\Resources\AbddResource;
+use App\Filament\Clusters\Sectors\Resources\TvetResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Validation\ValidationException;
 
-class CreateAbdd extends CreateRecord
+class CreateTvet extends CreateRecord
 {
-    protected static string $resource = AbddResource::class;
+    protected static string $resource = TvetResource::class;
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/abdds' => 'ABDD Sectors',
+            '/tvets' => 'TVET Sectors',
             'Create'
         ];
     }
@@ -26,28 +26,28 @@ class CreateAbdd extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function handleRecordCreation(array $data): Abdd
+    protected function handleRecordCreation(array $data): Tvet
     {
         return DB::transaction(function () use ($data) {
-            // $this->validateUniqueAbdd($data['name']);
+            $this->validateUniqueTvet($data['name']);
 
-            return Abdd::create([
+            return Tvet::create([
                 'name' => $data['name'],
             ]);
         });
     }
 
-    protected function validateUniqueAbdd($name)
+    protected function validateUniqueTvet($name)
     {
-        $query = Abdd::withTrashed()
+        $query = Tvet::withTrashed()
             ->where('name', $name)
             ->first();
 
         if ($query) {
             if ($query->deleted_at) {
-                $message = 'ABDD Sector data exists and is marked as deleted. Data cannot be created.';
+                $message = 'TVET Sector data exists and is marked as deleted. Data cannot be created.';
             } else {
-                $message = 'ABDD Sector data already exists.';
+                $message = 'TVET Sector data already exists.';
             }
             $this->handleValidationException($message);
         }

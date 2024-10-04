@@ -1,22 +1,21 @@
 <?php
+namespace App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
 
-namespace App\Filament\Resources\AbddResource\Pages;
-
-use App\Models\Abdd;
-use App\Filament\Resources\AbddResource;
+use App\Models\Tvet;
+use App\Filament\Clusters\Sectors\Resources\TvetResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 
-class EditAbdd extends EditRecord
+class EditTvet extends EditRecord
 {
-    protected static string $resource = AbddResource::class;
+    protected static string $resource = TvetResource::class;
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/abdds' => 'ABDD Sectors',
+            '/tvets' => 'TVET Sectors',
             'Edit'
         ];
     }
@@ -26,15 +25,16 @@ class EditAbdd extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function handleRecordUpdate($record, array $data): Abdd
+    protected function handleRecordUpdate($record, array $data): Tvet
     {
-        $this->validateUniqueAbdd($data['name'], $record->id);
+        // Validate for unique TVET name
+        $this->validateUniqueTvet($data['name'], $record->id);
 
         try {
             $record->update($data);
 
             Notification::make()
-                ->title('ABDD record updated successfully')
+                ->title('TVET record updated successfully')
                 ->success()
                 ->send();
 
@@ -42,7 +42,7 @@ class EditAbdd extends EditRecord
         } catch (QueryException $e) {
             Notification::make()
                 ->title('Database Error')
-                ->body('An error occurred while updating the ABDD record: ' . $e->getMessage())
+                ->body('An error occurred while updating the TVET: ' . $e->getMessage())
                 ->danger()
                 ->send();
         } catch (\Exception $e) {
@@ -56,18 +56,18 @@ class EditAbdd extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueAbdd($name, $currentId)
+    protected function validateUniqueTvet($name, $currentId)
     {
-        $query = Abdd::withTrashed()
+        $query = Tvet::withTrashed()
             ->where('name', $name)
             ->where('id', '!=', $currentId)
             ->first();
 
         if ($query) {
             if ($query->deleted_at) {
-                $message = 'ABDD Sector data exists and is marked as deleted. Data cannot be updated.';
+                $message = 'TVET sector data exists and is marked as deleted. Data cannot be updated.';
             } else {
-                $message = 'ABDD Sector data already exists.';
+                $message = 'TVET sector data already exists.';
             }
             $this->handleValidationException($message);
         }

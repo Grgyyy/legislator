@@ -1,27 +1,27 @@
 <?php
 
-namespace App\Filament\Resources\AbddResource\Pages;
+namespace App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
 
-use Exception;
-use App\Imports\AbddImport;
+use App\Filament\Clusters\Sectors\Resources\TvetResource;
+use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\Action;
+use App\Imports\TvetImport;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Filament\Resources\AbddResource;
 use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Actions\CreateAction;
+use Exception;
 
-class ListAbdds extends ListRecords
+class ListTvets extends ListRecords
 {
-    protected static string $resource = AbddResource::class;
+    protected static string $resource = TvetResource::class;
 
-    protected static ?string $title = 'ABDD Sectors';
+    protected static ?string $title = 'TVET Sectors';
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/abdds' => 'ABDD Sectors',
+            '/tvets' => 'TVET Sectors',
             'List'
         ];
     }
@@ -32,7 +32,7 @@ class ListAbdds extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
-            Action::make('AbddImport')
+            Action::make('TvetImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
@@ -41,16 +41,16 @@ class ListAbdds extends ListRecords
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
                     try {
-                        Excel::import(new AbddImport, $file);
+                        Excel::import(new TvetImport, $file);
                         Notification::make()
                             ->title('Import Successful')
-                            ->body('ABDD Sector import successful!')
+                            ->body('TVET Sector import successful!')
                             ->success()
                             ->send();
                     } catch (Exception $e) {
                         Notification::make()
                             ->title('Import Failed')
-                            ->body('ABDD Sector import failed: ' . $e->getMessage())
+                            ->body('TVET Sector import failed: ' . $e->getMessage())
                             ->danger()
                             ->send();
                     }

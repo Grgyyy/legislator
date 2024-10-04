@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\PriorityResource\Pages;
+namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
-use App\Filament\Resources\PriorityResource;
+use App\Filament\Clusters\Sectors\Resources\PriorityResource;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;

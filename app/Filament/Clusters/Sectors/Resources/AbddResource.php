@@ -1,42 +1,45 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Clusters\Sectors\Resources;
 
+use App\Filament\Clusters\Sectors;
+use App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
+use App\Models\Province;
 use Filament\Forms;
+use App\Models\Abdd;
 use Filament\Tables;
-use App\Models\Priority;
 use Filament\Forms\Form;
-use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use App\Filament\Resources\PriorityResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\AbddResource\RelationManagers;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Filament\Resources\PriorityResource\RelationManagers;
+use Illuminate\Support\Facades\Log;
 
-class PriorityResource extends Resource
+class AbddResource extends Resource
 {
-    protected static ?string $model = Priority::class;
+    protected static ?string $model = Abdd::class;
 
-    protected static ?string $navigationGroup = "SECTORS";
+    protected static ?string $cluster = Sectors::class;
 
-    protected static ?string $navigationLabel = "Ten Priority Sectors";
+    protected static ?string $navigationLabel = "ABDD Sectors";
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
@@ -50,6 +53,19 @@ class PriorityResource extends Resource
                     ->autocomplete(false)
                     ->markAsRequired(false)
                     ->validationAttribute('sector'),
+                Select::make('province')
+                    ->label('Province')
+                    ->multiple()
+                    ->relationship('provinces', 'name')
+                    ->options(function () {
+                        $provinces = Province::whereNot('name', 'Not Applicable')->pluck('name', 'id')->toArray();
+                        return !empty($provinces) ? $provinces : ['no_scholarship_program' => 'No Scholarship Program Available'];
+                    })
+                    ->preload()
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
             ]);
     }
 
@@ -59,9 +75,14 @@ class PriorityResource extends Resource
             ->emptyStateHeading('No sectors yet')
             ->columns([
                 TextColumn::make('name')
-                    ->label('Sector')
-                    ->sortable()
-                    ->searchable(),
+                    ->label("Sector")
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('provinces.name')
+                    ->label('Provinces')
+                    ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(fn($record) => $record->provinces->pluck('name')->implode(', ')),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -85,20 +106,22 @@ class PriorityResource extends Resource
                         ExcelExport::make()
                             ->withColumns([
                                 Column::make('name')
-                                    ->heading('Top Ten Priority Sector'),
+                                    ->heading('ABDD Sector'),
+                                Column::make('provinces.name')
+                                    ->heading('ABDD Sector')
+                                    ->getStateUsing(fn($record) => $record->provinces->pluck('name')->implode(', ')),
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Top Ten Priority Sector')
+                            ->withFilename(date('m-d-Y') . ' - ABDD Sector')
                     ]),
                 ]),
             ]);
     }
-
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPriorities::route('/'),
-            'create' => Pages\CreatePriority::route('/create'),
-            'edit' => Pages\EditPriority::route('/{record}/edit'),
+            'index' => Pages\ListAbdds::route('/'),
+            'create' => Pages\CreateAbdd::route('/create'),
+            'edit' => Pages\EditAbdd::route('/{record}/edit'),
         ];
     }
 
