@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\InstitutionClassResource\Pages;
 
 use App\Models\InstitutionClass;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\InstitutionClassResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateInstitutionClass extends CreateRecord
 {
@@ -20,41 +19,29 @@ class CreateInstitutionClass extends CreateRecord
 
     protected function handleRecordCreation(array $data): InstitutionClass
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueInstitutionClass($data['name']);
+        $this->validateUniqueInstitutionClass($data['name']);
 
-            return InstitutionClass::create([
-                'name' => $data['name'],
-            ]);
-        });
+        $institutionClass = DB::transaction(fn() => InstitutionClass::create([
+            'name' => $data['name'],
+        ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Institution class has been created successfully.');
+
+        return $institutionClass;
     }
 
     protected function validateUniqueInstitutionClass($name)
     {
-        $query = InstitutionClass::withTrashed()
+        $institutionClass = InstitutionClass::withTrashed()
             ->where('name', $name)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Institution Class with this name exists and is marked as deleted. Data cannot be created.';
-            } else {
-                $message = 'Institution Class with this name already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($institutionClass) {
+            $message = $institutionClass->deleted_at 
+                ? 'This institution class has been deleted and must be restored before reuse.' 
+                : 'An institution class with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }
