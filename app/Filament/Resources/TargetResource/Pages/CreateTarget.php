@@ -6,6 +6,7 @@ use App\Filament\Resources\TargetResource;
 use App\Models\Allocation;
 use App\Models\QualificationTitle;
 use App\Models\Target;
+use App\Models\TargetHistory;
 use Illuminate\Support\Facades\DB;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -89,6 +90,28 @@ class CreateTarget extends CreateRecord
 
                 $allocation->balance -= $total_amount;
                 $allocation->save();
+
+                TargetHistory::create([
+                    'target_id' => $target->id,
+                    'allocation_id' => $allocation->id,
+                    'tvi_id' => $targetData['tvi_id'],
+                    'qualification_title_id' => $qualificationTitle->id,
+                    'abdd_id' => $targetData['abdd_id'],
+                    'number_of_slots' => $numberOfSlots,
+                    'total_training_cost_pcc' => $total_training_cost_pcc,
+                    'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
+                    'total_training_support_fund' => $total_training_support_fund,
+                    'total_assessment_fee' => $total_assessment_fee,
+                    'total_entrepeneurship_fee' => $total_entrepeneurship_fee,
+                    'total_new_normal_assisstance' => $total_new_normal_assisstance,
+                    'total_accident_insurance' => $total_accident_insurance,
+                    'total_book_allowance' => $total_book_allowance,
+                    'total_uniform_allowance' => $total_uniform_allowance,
+                    'total_misc_fee' => $total_misc_fee,
+                    'total_amount' => $total_amount,
+                    'appropriation_type' => $targetData['appropriation_type'],
+                    'description' => 'Target Created',
+                ]);
 
                 return $target;
             } else {

@@ -163,7 +163,9 @@ class TargetHistoryResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->label('Date Modified')
-                    ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->format('F j, Y'))
+                    ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->format('F j, Y')),
+                TextColumn::make('description')
+                    ->label('Description')
             ])
             ->filters([
                 //
