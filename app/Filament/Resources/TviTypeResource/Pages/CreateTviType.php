@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\TviTypeResource\Pages;
 
 use App\Models\TviType;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\TviTypeResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateTviType extends CreateRecord
 {
@@ -15,56 +14,44 @@ class CreateTviType extends CreateRecord
 
     protected static ?string $title = 'Create Institution Type';
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/tvi-types' => 'Institution Types',
+            'Create',
+        ];
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
     }
 
-    public function getBreadcrumbs(): array
-    {
-        return [
-            'Institution Types',
-            'Create'
-        ];
-    }
-
     protected function handleRecordCreation(array $data): TviType
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueTviType($data['name']);
+        $this->validateUniqueInstitution($data['name']);
 
-            return TviType::create([
-                'name' => $data['name'],
-            ]);
-        });
+        $tviType = DB::transaction(fn() => TviType::create([
+            'name' => $data['name']
+        ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Institution type has been created successfully.');
+
+        return $tviType;
     }
 
     protected function validateUniqueTviType($name)
     {
-        $query = TviType::withTrashed()
+        $tviType = TviType::withTrashed()
             ->where('name', $name)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Institution Type with this name exists and is marked as deleted. Data cannot be created.';
-            } else {
-                $message = 'Institution Type with this name already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($tviType) {
+            $message = $tviType->deleted_at 
+                ? 'This institution type has been deleted and must be restored before reuse.' 
+                : 'An institution type with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }

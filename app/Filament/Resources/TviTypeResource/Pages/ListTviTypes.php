@@ -3,14 +3,14 @@
 namespace App\Filament\Resources\TviTypeResource\Pages;
 
 use App\Filament\Resources\TviTypeResource;
+use App\Imports\TviTypeImport;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\Action;
-use App\Imports\TviTypeImport;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
-use Exception;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListTviTypes extends ListRecords
 {
@@ -18,12 +18,21 @@ class ListTviTypes extends ListRecords
 
     protected static ?string $title = 'Institution Types';
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/tvi-types' => 'Institution Types',
+            'List'
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('TviTypeImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -32,29 +41,14 @@ class ListTviTypes extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+
                     try {
                         Excel::import(new TviTypeImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('TVI Type import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The institution types have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('TVI Type import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institution types: ' . $e->getMessage());
                     }
                 }),
-        ];
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            'Institution Types',
-            'List'
         ];
     }
 }
