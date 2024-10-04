@@ -52,6 +52,7 @@ return new class extends Migration
             $table->integer('total_amount')
                 ->default(1);
             $table->string('appropriation_type');
+            $table->string('description');
             $table->timestamps();
             $table->softDeletes();
         });
