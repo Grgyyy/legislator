@@ -67,6 +67,8 @@ class TargetResource extends Resource
                             return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
                         })
                         ->reactive()
+                        ->disabled()
+                        ->dehydrated()
                         ->afterStateUpdated(function ($state, callable $set) {
                             $set('particular_id', null);
                         }),
@@ -80,6 +82,8 @@ class TargetResource extends Resource
                             return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
                         })
                         ->reactive()
+                        ->disabled()
+                        ->dehydrated()
                         ->afterStateUpdated(function ($state, callable $set) {
                             $set('scholarship_program_id', null);
                             $set('qualification_title_id', null);
@@ -94,6 +98,8 @@ class TargetResource extends Resource
                             $particularId = $get('particular_id');
                             return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
                         })
+                        ->disabled()
+                        ->dehydrated()
                         ->reactive()
                         ->afterStateUpdated(function ($state, callable $set) {
                             $set('allocation_year', null);
@@ -111,7 +117,9 @@ class TargetResource extends Resource
                             return $legislatorId && $particularId && $scholarshipProgramId
                                 ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
                                 : ['' => 'No Allocation Available.'];
-                        }),
+                        })
+                        ->disabled()
+                        ->dehydrated(),
 
                     Select::make('appropriation_type')
                         ->label('Allocation Type')
@@ -119,7 +127,9 @@ class TargetResource extends Resource
                         ->options([
                             'Current' => 'Current',
                             'Continuing' => 'Continuing',
-                        ]),
+                        ])
+                        ->disabled()
+                        ->dehydrated(),
 
                     Select::make('tvi_id')
                         ->label('Institution')
