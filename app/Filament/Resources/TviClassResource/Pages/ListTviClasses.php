@@ -3,14 +3,14 @@
 namespace App\Filament\Resources\TviClassResource\Pages;
 
 use App\Filament\Resources\TviClassResource;
+use App\Imports\TviClassImport;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\Action;
-use App\Imports\TviClassImport;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
-use Exception;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListTviClasses extends ListRecords
 {
@@ -18,12 +18,21 @@ class ListTviClasses extends ListRecords
 
     protected static ?string $title = 'Institution Classes';
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/tvi-classes' => 'Institution Classes',
+            'List'
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('TviClassImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -32,29 +41,14 @@ class ListTviClasses extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new TviClassImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('Institution Class A import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The institution class have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('Institution Class A import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institution class: ' . $e->getMessage());
                     }
                 }),
-        ];
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            'Institution Classes',
-            'List'
         ];
     }
 }

@@ -29,7 +29,7 @@ class CreateTviType extends CreateRecord
 
     protected function handleRecordCreation(array $data): TviType
     {
-        $this->validateUniqueInstitution($data['name']);
+        $this->validateUniqueTviType($data['name']);
 
         $tviType = DB::transaction(fn() => TviType::create([
             'name' => $data['name']
