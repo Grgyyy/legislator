@@ -57,8 +57,8 @@ class EditSubParticular extends EditRecord
 
         if ($subParticular) {
             $message = $subParticular->deleted_at 
-                ? 'This particular type has been deleted. Restoration is required before it can be reused.' 
-                : 'A particular type with this name already exists.';
+                ? 'This particular type for the selected fund source has been deleted. Restoration is required before it can be reused.' 
+                : 'A particular type for the selected fund source already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
