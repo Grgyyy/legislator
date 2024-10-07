@@ -20,7 +20,7 @@ class EditScholarshipProgram extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): ScholarshipProgram
     {
-        $this->validateUniqueScholarshipProgram($data['code'], $record->id);
+        $this->validateUniqueScholarshipProgram($data, $record->id);
 
         try {
             $record->update($data);
@@ -37,15 +37,29 @@ class EditScholarshipProgram extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueScholarshipProgram($code, $currentId)
+    protected function validateUniqueScholarshipProgram($data, $currentId)
     {
         $schoPro = ScholarshipProgram::withTrashed()
-            ->where('code', $code)
+            ->where('name', $data['name'])
+            ->where('desc', $data['desc'])
             ->whereNot('id', $currentId)
             ->first();
 
         if ($schoPro) {
-            $message = $schoPro->deleted_at 
+            $message = $schoPro->deleted_at
+                ? 'This scholarship program with the provided details has been deleted. Restoration is required before it can be reused.'
+                : 'A scholarship program with the provided details already exists.';
+
+                NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        $code = ScholarshipProgram::withTrashed()
+            ->where('code', $data['code'])
+            ->whereNot('id', $currentId)
+            ->first();
+
+        if ($code) {
+            $message = $code->deleted_at 
                 ? 'A Scholarship Program with this code already exists and has been deleted.' 
                 : 'A Scholarship Program with this code already exists.';
         

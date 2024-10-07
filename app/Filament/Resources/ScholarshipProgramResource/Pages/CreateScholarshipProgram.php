@@ -19,7 +19,7 @@ class CreateScholarshipProgram extends CreateRecord
 
     protected function handleRecordCreation(array $data): ScholarshipProgram
     {
-        $this->validateUniqueScholarshipProgram($data['code']);
+        $this->validateUniqueScholarshipProgram($data);
 
         $schoPro = DB::transaction(fn () => ScholarshipProgram::create([
                 'code' => $data['code'],
@@ -32,14 +32,27 @@ class CreateScholarshipProgram extends CreateRecord
         return $schoPro;
     }
 
-    protected function validateUniqueScholarshipProgram($code)
+    protected function validateUniqueScholarshipProgram($data)
     {
         $schoPro = ScholarshipProgram::withTrashed()
-            ->where('code', $code)
+            ->where('name', $data['name'])
+            ->where('desc', $data['desc'])
             ->first();
 
         if ($schoPro) {
-            $message = $schoPro->deleted_at 
+            $message = $schoPro->deleted_at
+                ? 'This scholarship program with the provided details has been deleted and must be restored before reuse.'
+                : 'A scholarship program with the provided details already exists.';
+
+                NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        $code = ScholarshipProgram::withTrashed()
+            ->where('code', $data)
+            ->first();
+
+        if ($code) {
+            $message = $code->deleted_at 
                 ? 'A Scholarship Program with this code already exists and has been deleted.' 
                 : 'A Scholarship Program with this code already exists.';
         
