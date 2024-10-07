@@ -43,6 +43,7 @@ class RegionResource extends Resource
                     ->label('Region')
                     ->placeholder('Enter region name')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Region'),
             ]);

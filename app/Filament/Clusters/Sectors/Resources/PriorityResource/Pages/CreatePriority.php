@@ -3,20 +3,21 @@
 namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
 use App\Models\Priority;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Clusters\Sectors\Resources\PriorityResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreatePriority extends CreateRecord
 {
     protected static string $resource = PriorityResource::class;
 
+    protected static ?string $title = 'Create Top Ten Priority Sectors';
+
     public function getBreadcrumbs(): array
     {
         return [
-            '/priorities' => 'Top Ten Priority Sectors',
+            '/sectors/priorities' => 'Top Ten Priority Sectors',
             'Create'
         ];
     }
@@ -28,41 +29,29 @@ class CreatePriority extends CreateRecord
 
     protected function handleRecordCreation(array $data): Priority
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniquePriority($data['name']);
+        $this->validateUniquePriority($data['name']);
 
-            return Priority::create([
-                'name' => $data['name'],
-            ]);
-        });
+        $priority = DB::transaction(fn () => Priority::create([
+            'name' => $data['name'],
+        ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'ABDD sector has been created successfully.');
+
+        return $priority;
     }
 
     protected function validateUniquePriority($name)
     {
-        $query = Priority::withTrashed()
+        $priority = Priority::withTrashed()
             ->where('name', $name)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Priority Sector data exists and is marked as deleted. Data cannot be created.';
-            } else {
-                $message = 'Priority Sector data already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($priority) {
+            $message = $priority->deleted_at 
+                ? 'This priority sector has been deleted and must be restored before reuse.'
+                : 'A priority sector with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }

@@ -191,17 +191,19 @@ class LegislatorResource extends Resource
 
     protected static function getParticularNames($record): string
     {
-        return $record->particular->map(function ($particular, $index) {
+        return $record->particular->map(function ($particular, $index) use ($record) {
             $municipalityName = $particular->district->name . ', ' . $particular->district->municipality->name;
 
             $paddingTop = ($index > 0) ? 'padding-top: 15px;' : '';
+            
+            $comma = ($index < $record->particular->count() - 1) ? ',' : '';
 
             if ($particular->subParticular->name === 'Partylist') {
-                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $particular->partylist->name . '</div>';
+                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $particular->partylist->name . $comma . '</div>';
             } elseif (in_array($particular->subParticular->name, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . '</div>';
+                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . $comma . '</div>';
             } else {
-                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $municipalityName . '</div>';
+                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $municipalityName . $comma . '</div>';
             }
         })->implode('');
     }

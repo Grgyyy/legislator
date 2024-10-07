@@ -3,19 +3,21 @@ namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
 use App\Models\Priority;
 use App\Filament\Clusters\Sectors\Resources\PriorityResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Illuminate\Validation\ValidationException;
+use Exception;
 
 class EditPriority extends EditRecord
 {
     protected static string $resource = PriorityResource::class;
 
+    protected static ?string $title = 'Edit Top Ten Priority Sectors';
+
     public function getBreadcrumbs(): array
     {
         return [
-            '/priorities' => 'Top Ten Priority Sectors',
+            '/sectors/priorities' => 'Top Ten Priority Sectors',
             'Edit'
         ];
     }
@@ -32,24 +34,13 @@ class EditPriority extends EditRecord
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('Priority record updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Saved', 'Priority sector has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the priority: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the priority sector: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the priority sector update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -57,31 +48,17 @@ class EditPriority extends EditRecord
 
     protected function validateUniquePriority($name, $currentId)
     {
-        $query = Priority::withTrashed()
+        $priority = Priority::withTrashed()
             ->where('name', $name)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Priority sector data exists and is marked as deleted. Data cannot be updated.';
-            } else {
-                $message = 'Priority sector data already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($priority) {
+            $message = $priority->deleted_at 
+                ? 'This priority sector has been deleted. Restoration is required before it can be reused.' 
+                : 'A priority sector with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }

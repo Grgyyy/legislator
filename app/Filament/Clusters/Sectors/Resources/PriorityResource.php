@@ -2,34 +2,29 @@
 
 namespace App\Filament\Clusters\Sectors\Resources;
 
+use App\Models\Priority;
 use App\Filament\Clusters\Sectors;
 use App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
-use Filament\Forms;
-use Filament\Tables;
-use App\Models\Priority;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use Filament\Tables\Filters\Filter;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\RestoreBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Filament\Resources\PriorityResource\RelationManagers;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PriorityResource extends Resource
 {
@@ -41,23 +36,26 @@ class PriorityResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make('name')
                     ->label('Sector')
+                    ->placeholder('Enter sector name')
                     ->required()
-                    ->autocomplete(false)
                     ->markAsRequired(false)
-                    ->validationAttribute('sector'),
+                    ->autocomplete(false)
+                    ->validationAttribute('Sector'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No sectors yet')
+            ->emptyStateHeading('no sectors available')
             ->columns([
                 TextColumn::make('name')
                     ->label('Sector')
@@ -82,16 +80,23 @@ class PriorityResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('Top Ten Priority Sector'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Top Ten Priority Sector')
-                    ]),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Top Ten Priority Sector'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Top Ten Priority Sector')
+                        ]),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array
@@ -101,13 +106,5 @@ class PriorityResource extends Resource
             'create' => Pages\CreatePriority::route('/create'),
             'edit' => Pages\EditPriority::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
     }
 }

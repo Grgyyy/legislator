@@ -2,36 +2,31 @@
 
 namespace App\Filament\Clusters\Sectors\Resources;
 
+use App\Models\Abdd;
+use App\Models\Province;
 use App\Filament\Clusters\Sectors;
 use App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
-use App\Models\Province;
-use Filament\Forms;
-use App\Models\Abdd;
-use Filament\Tables;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
+use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\AbddResource\RelationManagers;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use Illuminate\Support\Facades\Log;
 
 class AbddResource extends Resource
 {
@@ -43,46 +38,68 @@ class AbddResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?int $navigationSort = 3;
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make('name')
                     ->label('Sector')
+                    ->placeholder('Enter sector name')
                     ->required()
-                    ->autocomplete(false)
                     ->markAsRequired(false)
-                    ->validationAttribute('sector'),
+                    ->autocomplete(false)
+                    ->validationAttribute('Sector'),
+
                 Select::make('province')
                     ->label('Province')
-                    ->multiple()
                     ->relationship('provinces', 'name')
-                    ->options(function () {
-                        $provinces = Province::whereNot('name', 'Not Applicable')->pluck('name', 'id')->toArray();
-                        return !empty($provinces) ? $provinces : ['no_scholarship_program' => 'No Scholarship Program Available'];
-                    })
-                    ->preload()
                     ->required()
                     ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->multiple()
                     ->native(false)
-                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
+                    ->options(function () {
+                        return Province::whereNot('name', 'Not Applicable')
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_province' => 'No Province Available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No sectors yet')
+            ->emptyStateHeading('no sectors available')
             ->columns([
                 TextColumn::make('name')
                     ->label("Sector")
+                    ->sortable()
                     ->searchable()
-                    ->sortable(),
+                    ->toggleable(),
+
                 TextColumn::make('provinces.name')
                     ->label('Provinces')
+                    ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn($record) => $record->provinces->pluck('name')->implode(', ')),
+                    ->formatStateUsing(function ($record) {
+                        $provinces = $record->provinces->pluck('name')->toArray();
+                
+                        $provincesHtml = array_map(function ($name, $index) use ($provinces) {
+                            $paddingTop = $index > 0 ? 'padding-top: 15px;' : '';
+                            
+                            $comma = ($index < count($provinces) - 1) ? ',' : '';
+                
+                            return "<div style='{$paddingTop}'>{$name}{$comma}</div>";
+                        }, $provinces, array_keys($provinces));
+                
+                        return implode('', $provincesHtml);
+                    })
+                    ->html(),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -102,20 +119,28 @@ class AbddResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('ABDD Sector'),
-                                Column::make('provinces.name')
-                                    ->heading('ABDD Sector')
-                                    ->getStateUsing(fn($record) => $record->provinces->pluck('name')->implode(', ')),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - ABDD Sector')
-                    ]),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('ABDD Sector'),
+                                    Column::make('provinces.name')
+                                        ->heading('ABDD Sector')
+                                        ->getStateUsing(fn($record) => $record->provinces->pluck('name')->implode(', ')),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - ABDD Sector')
+                        ]),
                 ]),
             ]);
     }
+    
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
+    }
+
     public static function getPages(): array
     {
         return [
@@ -123,13 +148,5 @@ class AbddResource extends Resource
             'create' => Pages\CreateAbdd::route('/create'),
             'edit' => Pages\EditAbdd::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
     }
 }

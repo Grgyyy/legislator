@@ -2,34 +2,29 @@
 
 namespace App\Filament\Clusters\Sectors\Resources;
 
+use App\Models\Tvet;
 use App\Filament\Clusters\Sectors;
 use App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
-use Filament\Forms;
-use App\Models\Tvet;
-use Filament\Tables;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
+use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\TvetResource\RelationManagers;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class TvetResource extends Resource
 {
@@ -41,6 +36,7 @@ class TvetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -48,22 +44,23 @@ class TvetResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label('Sector')
+                    ->placeholder('Enter sector name')
                     ->required()
-                    ->autocomplete(false)
                     ->markAsRequired(false)
-                    ->validationAttribute('sector'),
+                    ->autocomplete(false)
+                    ->validationAttribute('Sector'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No sectors yet')
+            ->emptyStateHeading('no sectors available')
             ->columns([
                 TextColumn::make('name')
                     ->label("Sector")
-                    ->searchable()
                     ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -83,16 +80,23 @@ class TvetResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('TVET Sector'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - TVET Sector')
-                    ]),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('TVET Sector'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - TVET Sector')
+                        ]),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array
@@ -102,13 +106,5 @@ class TvetResource extends Resource
             'create' => Pages\CreateTvet::route('/create'),
             'edit' => Pages\EditTvet::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
     }
 }

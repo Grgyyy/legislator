@@ -2,21 +2,23 @@
 
 namespace App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
 
-use App\Filament\Clusters\Sectors\Resources\AbddResource;
 use App\Models\Abdd;
-use Filament\Notifications\Notification;
+use App\Filament\Clusters\Sectors\Resources\AbddResource;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Illuminate\Validation\ValidationException;
+use Exception;
 
 class EditAbdd extends EditRecord
 {
     protected static string $resource = AbddResource::class;
 
+    protected static ?string $title = 'Edit ABDD Sectors';
+
     public function getBreadcrumbs(): array
     {
         return [
-            '/abdds' => 'ABDD Sectors',
+            '/sectors/abdds' => 'ABDD Sectors',
             'Edit'
         ];
     }
@@ -33,24 +35,13 @@ class EditAbdd extends EditRecord
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('ABDD record updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Saved', 'ABDD sector has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the ABDD record: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the ABDD sector: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the ABDD sector update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -58,31 +49,17 @@ class EditAbdd extends EditRecord
 
     protected function validateUniqueAbdd($name, $currentId)
     {
-        $query = Abdd::withTrashed()
+        $abdd = Abdd::withTrashed()
             ->where('name', $name)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'ABDD Sector data exists and is marked as deleted. Data cannot be updated.';
-            } else {
-                $message = 'ABDD Sector data already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($abdd) {
+            $message = $abdd->deleted_at 
+                ? 'This ABDD sector has been deleted. Restoration is required before it can be reused.' 
+                : 'An ABDD sector with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }

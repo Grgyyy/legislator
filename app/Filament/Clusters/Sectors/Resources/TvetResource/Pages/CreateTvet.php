@@ -3,20 +3,21 @@
 namespace App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
 
 use App\Models\Tvet;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Clusters\Sectors\Resources\TvetResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateTvet extends CreateRecord
 {
     protected static string $resource = TvetResource::class;
 
+    protected static ?string $title = 'Create TVET Sectors';
+
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvets' => 'TVET Sectors',
+            '/sectors/tvets' => 'TVET Sectors',
             'Create'
         ];
     }
@@ -28,41 +29,29 @@ class CreateTvet extends CreateRecord
 
     protected function handleRecordCreation(array $data): Tvet
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueTvet($data['name']);
+        $this->validateUniqueTvet($data['name']);
 
-            return Tvet::create([
-                'name' => $data['name'],
-            ]);
-        });
+        $tvet = DB::transaction(fn () => Tvet::create([
+            'name' => $data['name'],
+        ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'TVET sector has been created successfully.');
+
+        return $tvet;
     }
 
     protected function validateUniqueTvet($name)
     {
-        $query = Tvet::withTrashed()
+        $tvet = Tvet::withTrashed()
             ->where('name', $name)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'TVET Sector data exists and is marked as deleted. Data cannot be created.';
-            } else {
-                $message = 'TVET Sector data already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($tvet) {
+            $message = $tvet->deleted_at 
+                ? 'This TVET sector has been deleted and must be restored before reuse.'
+                : 'A TVET sector with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }
