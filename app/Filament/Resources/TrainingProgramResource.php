@@ -83,7 +83,8 @@ class TrainingProgramResource extends Resource
                     ->disableOptionWhen(fn($value) => $value === 'no_priority'),
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Program')
-                    ->multiple()
+                    ->multiple(fn($get) => request()->get('scholarship_program_id') === null)
+                    ->default(fn($get) => request()->get('scholarship_program_id'))
                     ->relationship('scholarshipPrograms', 'name')
                     ->options(function () {
                         $scholarshipProgram = ScholarshipProgram::all()->pluck('name', 'id')->toArray();

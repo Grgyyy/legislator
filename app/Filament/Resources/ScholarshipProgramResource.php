@@ -2,30 +2,28 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms\Form;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
 use App\Models\ScholarshipProgram;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\BulkActionGroup;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\ScholarshipProgramResource\Pages;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Resources\Resource;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\Filter;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ScholarshipProgramResource extends Resource
 {
@@ -43,36 +41,47 @@ class ScholarshipProgramResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label("Scholarship Program")
+                    ->placeholder('Enter scholarship program')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->markAsRequired(false),
+                    ->validationAttribute('Scholarship Program'),
+
                 TextInput::make("code")
                     ->label('Scholarship Program Code')
+                    ->placeholder('Enter scholarship program code')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->markAsRequired(false),
+                    ->validationAttribute('Scholarship Program Code'),
+
                 TextInput::make("desc")
                     ->label('Description')
+                    ->placeholder('Enter scholarship program description')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->markAsRequired(false),
+                    ->validationAttribute('Description'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No scholarship programs yet')
+            ->emptyStateHeading('no scholarship programs available')
             ->columns([
                 TextColumn::make("code")
                     ->sortable()
                     ->searchable()
-                    ->url(fn($record) => route('filament.admin.resources.scholarship-programs.showTrainingPrograms', ['record' => $record->id]))
-                    ->toggleable(),
+                    ->toggleable()
+                    ->url(fn($record) => route('filament.admin.resources.scholarship-programs.showTrainingPrograms', ['record' => $record->id])),
+
                 TextColumn::make("name")
                     ->label("Scholarship Program")
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make("desc")
                     ->label("Description")
                     ->searchable()
@@ -96,21 +105,28 @@ class ScholarshipProgramResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('code')
-                                    ->heading('Scholarship Program Code'),
-                                Column::make('name')
-                                    ->heading('Scholarship Program'),
-                                Column::make('desc')
-                                    ->heading('Description'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Scholarship Program')
-                    ]),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('code')
+                                        ->heading('Scholarship Program Code'),
+                                    Column::make('name')
+                                        ->heading('Scholarship Program'),
+                                    Column::make('desc')
+                                        ->heading('Description'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Scholarship Program')
+                        ]),
 
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array
@@ -121,12 +137,5 @@ class ScholarshipProgramResource extends Resource
             'edit' => Pages\EditScholarshipProgram::route('/{record}/edit'),
             'showTrainingPrograms' => Pages\ShowTrainingPrograms::route('/{record}/trainingPrograms')
         ];
-    }
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
     }
 }
