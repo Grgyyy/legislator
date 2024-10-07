@@ -56,6 +56,8 @@ class CompliantTargetsResource extends Resource
                     return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
                 })
                 ->reactive()
+                ->disabled()
+                ->dehydrated()
                 ->afterStateUpdated(function ($state, callable $set) {
                     $set('particular_id', null); // Reset dependent fields
                 }),
@@ -70,6 +72,8 @@ class CompliantTargetsResource extends Resource
                     return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
                 })
                 ->reactive()
+                ->disabled()
+                ->dehydrated()
                 ->afterStateUpdated(function ($state, callable $set) {
                     $set('scholarship_program_id', null);
                     $set('qualification_title_id', null);
@@ -86,6 +90,8 @@ class CompliantTargetsResource extends Resource
                     return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
                 })
                 ->reactive()
+                ->disabled()
+                ->dehydrated()
                 ->afterStateUpdated(function ($state, callable $set) {
                     $set('allocation_year', null);
                     $set('qualification_title_id', null);
@@ -95,6 +101,8 @@ class CompliantTargetsResource extends Resource
                 ->label('Appropriation Year')
                 ->required()
                 ->searchable()
+                ->disabled()
+                ->dehydrated()
                 ->default($record ? $record->allocation->year : null)
                 ->options(function ($get) {
                     $legislatorId = $get('legislator_id');
@@ -109,6 +117,8 @@ class CompliantTargetsResource extends Resource
                 ->label('Allocation Type')
                 ->required()
                 ->default($record ? $record->appropriation_type : null)
+                ->disabled()
+                ->dehydrated()
                 ->options([
                     'Current' => 'Current',
                     'Continuing' => 'Continuing',
@@ -151,7 +161,7 @@ class CompliantTargetsResource extends Resource
 
             TextInput::make('target_id')
                 ->label('Target ID')
-                ->default($record ? $record->id : null)
+                ->default($record ? $record->id : 'id') 
                 ->required()
                 ->numeric(),
         ]);

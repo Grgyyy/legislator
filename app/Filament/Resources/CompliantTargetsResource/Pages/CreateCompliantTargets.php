@@ -112,7 +112,7 @@ class CreateCompliantTargets extends CreateRecord
             'total_misc_fee' => $totals['total_misc_fee'],
             'total_amount' => $totals['total_amount'],
             'appropriation_type' => $data['appropriation_type'],
-            'target_status_id' => $compliantStatusId,
+            'description' => 'Marked as Compliant'
         ]);
     }
 
