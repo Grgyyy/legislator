@@ -2,32 +2,30 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\TrainingProgramResource\Pages;
-use App\Models\Priority;
-use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
+use App\Models\ScholarshipProgram;
 use App\Models\Tvet;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
+use App\Models\Priority;
+use App\Filament\Resources\TrainingProgramResource\Pages;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Table;
 use Filament\Forms\Form;
-use Filament\Tables\Filters\TrashedFilter;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -47,53 +45,65 @@ class TrainingProgramResource extends Resource
             ->schema([
                 TextInput::make('title')
                     ->label(label: "Training Program")
-                    ->autocomplete(false)
+                    ->placeholder('Enter training program')
+                    ->required()
                     ->markAsRequired(false)
-                    ->required(),
+                    ->autocomplete(false)
+                    ->validationAttribute('Training Program'),
+
                 TextInput::make('code')
                     ->label(label: 'Training Program Code')
-                    ->autocomplete(false)
+                    ->placeholder('Enter training program code')
+                    ->required()
                     ->markAsRequired(false)
-                    ->required(),
+                    ->autocomplete(false)
+                    ->validationAttribute('Training Program Code'),
+
                 Select::make('tvet_id')
                     ->label('TVET Sector')
                     ->relationship('tvet', 'name')
-                    ->options(function () {
-                        $tvet = Tvet::all()->pluck('name', 'id')->toArray();
-                        return !empty($tvet) ? $tvet : ['no_tvet' => 'No TVET Sector Available'];
-                    })
-                    ->preload()
-                    ->searchable()
                     ->required()
                     ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
                     ->native(false)
+                    ->options(function () {
+                        return Tvet::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_tvet' => 'No TVET Sector Available'];
+                    })
                     ->disableOptionWhen(fn($value) => $value === 'no_tvet'),
+                
                 Select::make('priority_id')
                     ->label('Priority Sector')
                     ->relationship('priority', 'name')
-                    ->options(function () {
-                        $priority = Priority::all()->pluck('name', 'id')->toArray();
-                        return !empty($priority) ? $priority : ['no_priority' => 'No Priority Sector Available'];
-                    })
-                    ->preload()
-                    ->searchable()
                     ->required()
                     ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
                     ->native(false)
+                    ->options(function () {
+                        return Priority::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_priority' => 'No Priority Sector Available'];
+                    })
                     ->disableOptionWhen(fn($value) => $value === 'no_priority'),
+
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Program')
-                    ->multiple(fn($get) => request()->get('scholarship_program_id') === null)
-                    ->default(fn($get) => request()->get('scholarship_program_id'))
                     ->relationship('scholarshipPrograms', 'name')
-                    ->options(function () {
-                        $scholarshipProgram = ScholarshipProgram::all()->pluck('name', 'id')->toArray();
-                        return !empty($scholarshipProgram) ? $scholarshipProgram : ['no_scholarship_program' => 'No Scholarship Program Available'];
-                    })
-                    ->preload()
                     ->required()
                     ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->multiple(fn($get) => request()->get('scholarship_program_id') === null)
+                    ->default(fn($get) => request()->get('scholarship_program_id'))
                     ->native(false)
+                    ->options(function () {
+                        return ScholarshipProgram::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_scholarship_program' => 'No Scholarship Program Available'];
+                    })
                     ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
             ]);
     }
@@ -101,28 +111,51 @@ class TrainingProgramResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No training programs yet')
+            ->emptyStateHeading('no training programs available')
             ->columns([
                 TextColumn::make('code')
-                    ->searchable()
                     ->sortable()
-                    ->toggleable(),
-                TextColumn::make('title')
                     ->searchable()
                     ->toggleable(),
+
+                TextColumn::make('title')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('priority.name')
                     ->label('Priority Sector')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
+                    
                 TextColumn::make('tvet.name')
                     ->label('TVET Sector')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('scholarshipPrograms.name')
                     ->label('Scholarship Program')
+                    ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', ')),
+                    ->formatStateUsing(function ($record) {
+                        $scholarshipPrograms = $record->scholarshipPrograms->pluck('name')->toArray();
+                    
+                        $schoProHtml = array_map(function ($name, $index) use ($scholarshipPrograms) {
+                            $comma = ($index < count($scholarshipPrograms) - 1) ? ', ' : '';
+                    
+                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+        
+                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+                    
+                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
+                        }, $scholarshipPrograms, array_keys($scholarshipPrograms));
+                    
+                        return implode('', $schoProHtml);
+                    })
+                    ->html(),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -142,25 +175,42 @@ class TrainingProgramResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('code')
-                                    ->heading('Qualification Code'),
-                                Column::make('title')
-                                    ->heading('Qualification Title'),
-                                Column::make('priority.name')
-                                    ->heading('Priority Sector'),
-                                Column::make('tvet.name')
-                                    ->heading('TVET Sector'),
-                                Column::make('formatted_scholarship_programs')
-                                    ->heading('Scholarship Programs')
-                                    ->getStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', ')),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Training Programs')
-                    ]),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('code')
+                                        ->heading('Qualification Code'),
+                                    Column::make('title')
+                                        ->heading('Qualification Title'),
+                                    Column::make('priority.name')
+                                        ->heading('Priority Sector'),
+                                    Column::make('tvet.name')
+                                        ->heading('TVET Sector'),
+                                    Column::make('formatted_scholarship_programs')
+                                        ->heading('Scholarship Programs')
+                                        ->getStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', ')),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Training Programs')
+                        ]),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('id');
+
+        $query->withoutGlobalScopes([SoftDeletingScope::class]);
+
+        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            $query->whereHas('scholarshipPrograms', function (Builder $query) use ($routeParameter) {
+                $query->where('scholarship_programs.id', $routeParameter);
+            });
+        }
+
+        return $query;
     }
 
     public static function getPages(): array
@@ -170,25 +220,5 @@ class TrainingProgramResource extends Resource
             'create' => Pages\CreateTrainingProgram::route('/create'),
             'edit' => Pages\EditTrainingProgram::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-
-        $query = parent::getEloquentQuery();
-
-        $query->withoutGlobalScopes([
-            SoftDeletingScope::class,
-        ]);
-
-        $routeParameter = request()->route('id');
-
-        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
-            $query->whereHas('scholarshipPrograms', function (Builder $query) use ($routeParameter) {
-                $query->where('scholarship_programs.id', $routeParameter);
-            });
-        }
-
-        return $query;
     }
 }

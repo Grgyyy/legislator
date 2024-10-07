@@ -10,8 +10,6 @@ class ShowQualificationTitles extends ListRecords
 {
     protected static string $resource = QualificationTitleResource::class;
 
-    protected static ?string $title = 'Qualification Titles';
-
     public function getBreadcrumbs(): array
     {
         $scholarshipProgramId = $this->getscholarshipProgramId();

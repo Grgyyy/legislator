@@ -35,7 +35,7 @@ class CreatePriority extends CreateRecord
             'name' => $data['name'],
         ]));
 
-        NotificationHandler::sendSuccessNotification('Created', 'ABDD sector has been created successfully.');
+        NotificationHandler::sendSuccessNotification('Created', 'Priority sector has been created successfully.');
 
         return $priority;
     }

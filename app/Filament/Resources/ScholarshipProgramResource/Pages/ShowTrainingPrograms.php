@@ -11,8 +11,6 @@ class ShowTrainingPrograms extends ListRecords
 {
     protected static string $resource = TrainingProgramResource::class;
 
-    protected static ?string $title = 'Training Programs';
-
     public function getBreadcrumbs(): array
     {
         $scholarshipId = $this->getScholarshipProgramId();
