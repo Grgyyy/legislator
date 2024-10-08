@@ -88,15 +88,17 @@ class AbddResource extends Resource
                     ->toggleable()
                     ->formatStateUsing(function ($record) {
                         $provinces = $record->provinces->pluck('name')->toArray();
-                
+                    
                         $provincesHtml = array_map(function ($name, $index) use ($provinces) {
-                            $paddingTop = $index > 0 ? 'padding-top: 15px;' : '';
-                            
-                            $comma = ($index < count($provinces) - 1) ? ',' : '';
-                
-                            return "<div style='{$paddingTop}'>{$name}{$comma}</div>";
+                            $comma = ($index < count($provinces) - 1) ? ', ' : '';
+                    
+                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+        
+                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+                    
+                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
                         }, $provinces, array_keys($provinces));
-                
+                    
                         return implode('', $provincesHtml);
                     })
                     ->html(),

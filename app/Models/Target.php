@@ -20,7 +20,7 @@ class Target extends Model
         'total_cost_of_toolkit_pcc',
         'total_training_support_fund',
         'total_assessment_fee',
-        'total_entrepeneurship_fee',
+        'total_entrepreneurship_fee',
         'total_new_normal_assisstance',
         'total_accident_insurance',
         'total_book_allowance',

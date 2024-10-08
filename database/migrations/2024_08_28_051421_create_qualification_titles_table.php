@@ -22,7 +22,7 @@ return new class extends Migration {
             $table->decimal('cost_of_toolkit_pcc', 10, 2)->default(0);
             $table->decimal('training_support_fund', 10, 2)->default(0);
             $table->decimal('assessment_fee', 10, 2)->default(0);
-            $table->decimal('entrepeneurship_fee', 10, 2)->default(0);
+            $table->decimal('entrepreneurship_fee', 10, 2)->default(0);
             $table->decimal('new_normal_assisstance', 10, 2)->default(0);
             $table->decimal('accident_insurance', 10, 2)->default(0);
             $table->decimal('book_allowance', 10, 2)->default(0);

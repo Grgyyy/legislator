@@ -30,7 +30,7 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
                     'cost_of_toolkit_pcc' => isset($row['cost_of_toolkit_pcc']) ? (float) $row['cost_of_toolkit_pcc'] : 0,
                     'training_support_fund' => isset($row['training_support_fund']) ? (float) $row['training_support_fund'] : 0,
                     'assessment_fee' => isset($row['assessment_fee']) ? (float) $row['assessment_fee'] : 0,
-                    'entrepeneurship_fee' => isset($row['entrepeneurship_fee']) ? (float) $row['entrepeneurship_fee'] : 0,
+                    'entrepreneurship_fee' => isset($row['entrepreneurship_fee']) ? (float) $row['entrepreneurship_fee'] : 0,
                     'new_normal_assisstance' => isset($row['new_normal_assistance']) ? (float) $row['new_normal_assistance'] : 0,
                     'accident_insurance' => isset($row['accident_insurance']) ? (float) $row['accident_insurance'] : 0,
                     'book_allowance' => isset($row['book_allowance']) ? (float) $row['book_allowance'] : 0,

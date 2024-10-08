@@ -61,7 +61,7 @@ class CreateTarget extends CreateRecord
             $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots;
             $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
             $total_assessment_fee = $qualificationTitle->assessment_fee * $numberOfSlots;
-            $total_entrepeneurship_fee = $qualificationTitle->entrepeneurship_fee * $numberOfSlots;
+            $total_entrepreneurship_fee = $qualificationTitle->entrepreneurship_fee * $numberOfSlots;
             $total_new_normal_assisstance = $qualificationTitle->new_normal_assisstance * $numberOfSlots;
             $total_accident_insurance = $qualificationTitle->accident_insurance * $numberOfSlots;
             $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
@@ -80,7 +80,7 @@ class CreateTarget extends CreateRecord
                     'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
                     'total_training_support_fund' => $total_training_support_fund,
                     'total_assessment_fee' => $total_assessment_fee,
-                    'total_entrepeneurship_fee' => $total_entrepeneurship_fee,
+                    'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
                     'total_new_normal_assisstance' => $total_new_normal_assisstance,
                     'total_accident_insurance' => $total_accident_insurance,
                     'total_book_allowance' => $total_book_allowance,

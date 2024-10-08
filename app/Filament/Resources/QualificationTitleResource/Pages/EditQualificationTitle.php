@@ -4,10 +4,10 @@ namespace App\Filament\Resources\QualificationTitleResource\Pages;
 
 use App\Models\QualificationTitle;
 use App\Filament\Resources\QualificationTitleResource;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Notifications\Notification;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
+use Exception;
 
 class EditQualificationTitle extends EditRecord
 {
@@ -20,30 +20,18 @@ class EditQualificationTitle extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): QualificationTitle
     {
-        // Validate unique QualificationTitle before updating
         $this->validateUniqueQualificationTitle($data['training_program_id'], $data['scholarship_program_id'], $record->id);
 
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('Qualification Title updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Saved', 'Qualification title has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the Qualification Title: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the qualification title: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the qualification title update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -51,32 +39,18 @@ class EditQualificationTitle extends EditRecord
 
     protected function validateUniqueQualificationTitle($trainingProgramId, $scholarshipProgramId, $currentId)
     {
-        $query = QualificationTitle::withTrashed()
+        $qualificationTitle = QualificationTitle::withTrashed()
             ->where('training_program_id', $trainingProgramId)
             ->where('scholarship_program_id', $scholarshipProgramId)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
-        if ($query) {
-            $message = $query->deleted_at
-                ? 'A Qualification Title with this combination exists and is marked as deleted. Data cannot be updated.'
-                : 'A Qualification Title with this combination already exists.';
+        if ($qualificationTitle) {
+            $message = $qualificationTitle->deleted_at
+                ? 'This qualification title associated with the training program and scholarship program has been deleted. Restoration is required before it can be reused.'
+                : 'A qualification title associated with the training program and scholarship program already exists.';
 
-            $this->handleValidationException($message);
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'training_program_id' => $message,
-            'scholarship_program_id' => $message,
-        ]);
     }
 }
