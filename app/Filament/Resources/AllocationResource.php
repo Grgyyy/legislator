@@ -21,11 +21,12 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\Filter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -264,25 +265,49 @@ class AllocationResource extends Resource
                 TrashedFilter::make()
                     ->label('Records'),
                 
+                SelectFilter::make('scholarship_program')
+                    ->label('Scholarship Program')
+                    ->relationship('scholarship_program', 'name'),
+                
                 Filter::make('year')
                     ->form([
+                        Select::make('source_of_fund')
+                            ->label('Source of Fund')
+                            ->placeholder('All')
+                            ->default('')
+                            ->options([
+                                'Soft' => 'Soft',
+                                'Commitment' => 'Commitment'
+                            ]),
+
                         TextInput::make('year')
-                            ->label('Year')
-                            ->placeholder('Enter a year')
+                            ->label('Allocation Year')
+                            ->placeholder('Enter allocation year')
                             ->numeric(),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['year'],fn (Builder $query, $year): Builder => $query
-                                ->where('year', $year)
-                            );
+                        ->when(
+                            $data['source_of_fund'] ?? null,
+                            fn (Builder $query, $source_of_fund) => $query->where('soft_or_commitment', $source_of_fund)
+                        )
+                        ->when(
+                            $data['year'] ?? null,
+                            fn (Builder $query, $year) => $query->where('year', $year)
+                        );
                     })
-                    ->indicateUsing(function (array $data): ?string {
-                        if (empty($data['year'])) {
-                            return null;
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                    
+                        if (!empty($data['year'])) {
+                            $indicators[] = 'Allocation Year: ' . $data['year'];
                         }
-                
-                        return 'Allocation Year: ' . $data['year'];
+                    
+                        if (!empty($data['source_of_fund'])) {
+                            $indicators[] = 'Source of Fund: ' . $data['source_of_fund'];
+                        }
+                    
+                        return $indicators;
                     })
             ])
             ->actions([

@@ -24,7 +24,6 @@ class CreateTarget extends CreateRecord
             $targetData = $data['targets'][0] ?? null;
 
             if (!$targetData) {
-                \Log::error('No target data found in the repeater.');
                 throw new \Exception('No target data found.');
             }
 
@@ -32,7 +31,6 @@ class CreateTarget extends CreateRecord
 
             foreach ($requiredFields as $field) {
                 if (!array_key_exists($field, $targetData) || empty($targetData[$field])) {
-                    \Log::error("Validation failed: The field '$field' is required in repeater data.", $data);
                     throw new \InvalidArgumentException("The field '$field' is required.");
                 }
             }
@@ -44,14 +42,12 @@ class CreateTarget extends CreateRecord
                 ->first();
 
             if (!$allocation) {
-                \Log::error('Allocation not found', $targetData);
                 throw new \Exception('Allocation not found');
             }
 
             $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
 
             if (!$qualificationTitle) {
-                \Log::error('Qualification Title not found', $targetData);
                 throw new \Exception('Qualification Title not found');
             }
 
@@ -96,7 +92,6 @@ class CreateTarget extends CreateRecord
 
                 return $target;
             } else {
-                \Log::error('Insufficient balance for allocation', $targetData);
                 throw new \Exception('Insufficient balance for allocation');
             }
         });

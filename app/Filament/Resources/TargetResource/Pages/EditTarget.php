@@ -6,6 +6,7 @@ use App\Filament\Resources\TargetResource;
 use App\Models\Allocation;
 use App\Models\QualificationTitle;
 use App\Models\TargetHistory;
+use Filament\Forms\Components\TextInput;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ class EditTarget extends EditRecord
 
     protected function getFormSchema(): array {
         return [
-            Forms\Components\TextInput::make('name')
+            TextInput::make('name')
         ];
     }
 
