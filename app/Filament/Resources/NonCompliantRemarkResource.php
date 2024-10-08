@@ -24,7 +24,7 @@ class NonCompliantRemarkResource extends Resource
 
     protected static ?string $navigationGroup = 'MANAGE TARGET';
 
-    protected static ?string $navigationLabel = "Non-Compliant Targets";
+    protected static ?string $navigationLabel = "Non-Compliant Targets (non compliant remark)";
 
 
     public static function form(Form $form): Form
