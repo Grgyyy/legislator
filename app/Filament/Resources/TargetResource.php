@@ -558,7 +558,7 @@ class TargetResource extends Resource
                         ->icon('heroicon-o-check-circle'),
                     Action::make('setAsNonCompliant')
                         ->label('Set as Non-Compliant')
-                        ->url(fn($record) => route('filament.admin.resources.non-compliant-remarks.create', ['record' => $record->id]))
+                        ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id]))
                         ->icon('heroicon-o-x-circle'),
                     DeleteAction::make(),
                     RestoreAction::make(),
