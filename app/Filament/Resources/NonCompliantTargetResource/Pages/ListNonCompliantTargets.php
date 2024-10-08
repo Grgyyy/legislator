@@ -10,10 +10,13 @@ class ListNonCompliantTargets extends ListRecords
 {
     protected static string $resource = NonCompliantTargetResource::class;
 
-    // protected function getHeaderActions(): array
-    // {
-    //     return [
-    //         Actions\CreateAction::make(),
-    //     ];
-    // }
+    protected static ?string $title = 'Non-Compliant Targets';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            route('filament.admin.resources.non-compliant-targets.index') => 'Non-Compliant Targets',
+            'List'
+        ];
+    }
 }
