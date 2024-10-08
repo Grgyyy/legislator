@@ -266,100 +266,100 @@ class QualificationTitleResource extends Resource
                     ->label("Training Cost PCC")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make("cost_of_toolkit_pcc")
                     ->label("Cost of Toolkit PCC")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make("training_support_fund")
                     ->label("Training Support Fund")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make("assessment_fee")
                     ->label("Assessment Fee")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make("entrepreneurship_fee")
                     ->label("Entrepreneurship Fee")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make("new_normal_assisstance")
                     ->label("New Normal Assistance")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make("accident_insurance")
                     ->label("Accidental Insurance")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make("book_allowance")
                     ->label("Book Allowance")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make("uniform_allowance")
                     ->label("Uniform Allowance")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make("misc_fee")
                     ->label("Miscellaneous Fee")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make("pcc")
                     ->label("Total PCC")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
 
                 TextColumn::make('hours_duration')
                     ->label('Training Hours')
