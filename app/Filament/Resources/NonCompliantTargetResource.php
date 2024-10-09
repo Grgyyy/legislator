@@ -32,6 +32,8 @@ class NonCompliantTargetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = "Non-Compliant Targets";
+
     public static function form(Form $form): Form
     {
         $urlParams = request()->get('record');

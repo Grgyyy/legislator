@@ -3,8 +3,16 @@
 namespace App\Filament\Resources\NonCompliantTargetResource\Pages;
 
 use App\Filament\Resources\NonCompliantTargetResource;
+use App\Models\Allocation;
+use App\Models\NonCompliantRemark;
+use App\Models\QualificationTitle;
+use App\Models\Target;
+use App\Models\TargetHistory;
+use App\Models\TargetStatus;
+use DB;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateNonCompliantTarget extends CreateRecord
 {
@@ -21,4 +29,77 @@ class CreateNonCompliantTarget extends CreateRecord
             'Mark as Non-Compliant'
         ];
     }
+
+    protected function handleRecordCreation(array $data): Model
+    {
+        return DB::transaction(function () use ($data) {
+            $targetRecord = Target::find($data['target_id']);
+            
+            if (!$targetRecord) {
+                throw new \Exception('Target not found.');
+            }
+            
+            $nonCompliantRecord = TargetStatus::where('desc', self::COMPLIANT_STATUS_DESC)->first();
+            
+            if (!$nonCompliantRecord) {
+                throw new \Exception('Compliant status not found.');
+            }
+
+            // Check if the target is already non-compliant
+            if ($targetRecord->targetStatus->desc !== 'Non-Compliant') {
+                $this->createTargetHistory($targetRecord);
+                $this->updateTargetRecord($targetRecord, $nonCompliantRecord->id);
+            } else {
+                throw new \Exception('Target already marked as Non-Compliant.');
+            }
+            
+            // Optionally, you may want to create a remark if applicable
+            if (isset($data['remarks_id'])) {
+                $this->createTargetRemark($targetRecord, $data);
+            }
+
+            return $targetRecord;
+        });
+    }
+
+
+    private function createTargetHistory($targetRecord) {
+        TargetHistory::create([
+            'target_id' => $targetRecord->id,
+            'allocation_id' => $targetRecord->allocation_id,
+            'tvi_id' => $targetRecord->tvi_id,
+            'qualification_title_id' => $targetRecord->qualification_title_id,
+            'abdd_id' => $targetRecord->abdd_id,
+            'number_of_slots' => $targetRecord->number_of_slots,
+            'total_training_cost_pcc' => $targetRecord->total_training_cost_pcc,
+            'total_cost_of_toolkit_pcc' => $targetRecord->total_cost_of_toolkit_pcc,
+            'total_training_support_fund' => $targetRecord->total_training_support_fund,
+            'total_assessment_fee' => $targetRecord->total_assessment_fee,
+            'total_entrepeneurship_fee' => $targetRecord->total_entrepeneurship_fee,
+            'total_new_normal_assistance' => $targetRecord->total_new_normal_assistance,
+            'total_accident_insurance' => $targetRecord->total_accident_insurance,
+            'total_book_allowance' => $targetRecord->total_book_allowance ?? 0,
+            'total_uniform_allowance' => $targetRecord->total_uniform_allowance,
+            'total_misc_fee' => $targetRecord->total_misc_fee,
+            'total_amount' => $targetRecord->total_amount,
+            'appropriation_type' => $targetRecord->appropriation_type,
+            'description' => 'Marked as Non-Compliant'
+        ]);
+    }
+
+    private function updateTargetRecord($targetRecord, $nonCompliantId) {
+        $targetRecord->update([
+            'target_status_id' => $nonCompliantId,
+        ]);
+    }
+    
+
+    private function createTargetRemark($targetRecord, $data) {
+        NonCompliantRemark::create([
+            'target_id' => $targetRecord->id,
+            'target_remarks_id' => $data['remarks_id'],
+            'others_remarks' => $data['other_remarks'],
+        ]);
+    }
+
 }
