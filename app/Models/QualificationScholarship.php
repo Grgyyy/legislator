@@ -14,11 +14,13 @@ class QualificationScholarship extends Model
         'scholarship_program_id'
     ];
 
-    public function qualificationTitles() {
+    public function qualificationTitles()
+    {
         return $this->hasMany(QualificationTitle::class);
     }
 
-    public function scholarshipPrograms() {
+    public function scholarshipPrograms()
+    {
         return $this->hasMany(ScholarshipProgram::class);
     }
 }

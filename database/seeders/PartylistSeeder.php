@@ -18,8 +18,8 @@ class PartylistSeeder extends Seeder
 
         foreach ($partylists as $partylist) {
             DB::table('partylists')->updateOrInsert(
-                ['name' => $partylist['name']], 
-                $partylist                     
+                ['name' => $partylist['name']],
+                $partylist
             );
         }
     }
