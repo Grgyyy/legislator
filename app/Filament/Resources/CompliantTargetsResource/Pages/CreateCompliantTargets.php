@@ -18,6 +18,8 @@ class CreateCompliantTargets extends CreateRecord
     protected static ?string $title = 'Mark as Compliant Target';
     protected static string $resource = CompliantTargetsResource::class;
 
+    protected static ?string $navigationGroup = 'MANAGE TARGET';
+
     private const COMPLIANT_STATUS_DESC = 'Compliant';
 
     public function getBreadcrumbs(): array

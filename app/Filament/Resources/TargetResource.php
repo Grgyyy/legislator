@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\TargetStatus;
 use App\Models\Tvi;
 use App\Models\Abdd;
 use App\Models\Target;
@@ -406,7 +407,7 @@ class TargetResource extends Resource
         return $table
             ->emptyStateHeading('No targets yet')
             ->columns([
-
+                TextColumn::make('total_amount'),
                 TextColumn::make('fund_source')
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
@@ -657,14 +658,23 @@ class TargetResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
-            ->orderBy('updated_at', 'desc');
-    }
+    // public static function getEloquentQuery(): Builder
+    // {
+    //     $query = parent::getEloquentQuery();
+    //     $routeParameter = request()->route('record');
+    //     $nonCompliantStatus = TargetStatus::where('desc', 'Pending')->first();
+
+    //     if ($nonCompliantStatus) {
+    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
+    //               ->where('target_status_id', '=', $nonCompliantStatus->id); // Use '=' for comparison
+
+    //         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+    //             $query->where('region_id', (int) $routeParameter);
+    //         }
+    //     }
+
+    //     return $query;
+    // }
 
     protected static function getParticularOptions($legislatorId)
     {

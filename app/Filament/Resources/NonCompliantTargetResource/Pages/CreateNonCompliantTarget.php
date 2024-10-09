@@ -13,6 +13,7 @@ use DB;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Log;
 
 class CreateNonCompliantTarget extends CreateRecord
 {
@@ -32,35 +33,39 @@ class CreateNonCompliantTarget extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        return DB::transaction(function () use ($data) {
-            $targetRecord = Target::find($data['target_id']);
-            
-            if (!$targetRecord) {
-                throw new \Exception('Target not found.');
-            }
-            
-            $nonCompliantRecord = TargetStatus::where('desc', self::COMPLIANT_STATUS_DESC)->first();
-            
-            if (!$nonCompliantRecord) {
-                throw new \Exception('Compliant status not found.');
-            }
+        try {
+            return DB::transaction(function () use ($data) {
+                $targetRecord = Target::find($data['target_id']);
+                
+                if (!$targetRecord) {
+                    throw new \Exception('Target not found.');
+                }
+                
+                $nonCompliantRecord = TargetStatus::where('desc', self::COMPLIANT_STATUS_DESC)->first();
+                
+                if (!$nonCompliantRecord) {
+                    throw new \Exception('Compliant status not found.');
+                }
 
-            // Check if the target is already non-compliant
-            if ($targetRecord->targetStatus->desc !== 'Non-Compliant') {
-                $this->createTargetHistory($targetRecord);
-                $this->updateTargetRecord($targetRecord, $nonCompliantRecord->id);
-            } else {
-                throw new \Exception('Target already marked as Non-Compliant.');
-            }
-            
-            // Optionally, you may want to create a remark if applicable
-            if (isset($data['remarks_id'])) {
-                $this->createTargetRemark($targetRecord, $data);
-            }
+                if ($targetRecord->targetStatus->desc !== 'Non-Compliant') {
+                    $this->createTargetHistory($targetRecord);
+                    $this->updateTargetRecord($targetRecord, $nonCompliantRecord->id);
+                    $this->updateAllocation($targetRecord);
+                } else {
+                    throw new \Exception('Target already marked as Non-Compliant.');
+                }
+                
+                if (isset($data['remarks_id'])) {
+                    $this->createTargetRemark($targetRecord, $data);
+                }
 
-            return $targetRecord;
-        });
+                return $targetRecord;
+            });
+        } catch (\Exception $e) {
+            throw new \Exception("Failed to update target: no changes were saved.");
+        }
     }
+
 
 
     private function createTargetHistory($targetRecord) {
@@ -100,6 +105,16 @@ class CreateNonCompliantTarget extends CreateRecord
             'target_remarks_id' => $data['remarks_id'],
             'others_remarks' => $data['other_remarks'],
         ]);
+    }
+
+    private function updateAllocation($targetRecord) {
+        $allocation = Allocation::find($targetRecord->allocation_id);
+        $total_costing = $targetRecord->total_amount;
+    
+        if ($allocation) {
+            $allocation->balance += $total_costing;
+            $allocation->save();
+        }
     }
 
 }

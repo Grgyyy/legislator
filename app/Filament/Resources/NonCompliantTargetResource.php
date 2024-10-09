@@ -12,6 +12,7 @@ use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\Target;
 use App\Models\TargetRemark;
+use App\Models\TargetStatus;
 use App\Models\Tvi;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
@@ -33,6 +34,8 @@ class NonCompliantTargetResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     protected static ?string $navigationLabel = "Non-Compliant Targets";
+
+    protected static ?string $navigationGroup = 'MANAGE TARGET';
 
     public static function form(Form $form): Form
     {
@@ -296,6 +299,24 @@ class NonCompliantTargetResource extends Resource
             'create' => Pages\CreateNonCompliantTarget::route('/create'),
             'edit' => Pages\EditNonCompliantTarget::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
+        $nonCompliantStatus = TargetStatus::where('desc', 'Non-Compliant')->first();
+
+        if ($nonCompliantStatus) {
+            $query->withoutGlobalScopes([SoftDeletingScope::class])
+                  ->where('target_status_id', '=', $nonCompliantStatus->id); // Use '=' for comparison
+
+            if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+                $query->where('region_id', (int) $routeParameter);
+            }
+        }
+
+        return $query;
     }
 
     protected static function getParticularOptions($legislatorId)
