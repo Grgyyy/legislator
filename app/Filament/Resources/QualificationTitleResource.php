@@ -398,6 +398,10 @@ class QualificationTitleResource extends Resource
                 SelectFilter::make('scholarship_program')
                     ->label('Scholarship Program')
                     ->relationship('scholarshipProgram', 'name'),
+                
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->relationship('status', 'desc'),
             ])
             ->actions([
                 ActionGroup::make([

@@ -24,6 +24,7 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -87,6 +88,11 @@ class SubParticularResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
+
+                SelectFilter::make('fund_source')
+                    ->label('Fund Source')
+                    ->relationship('fundSource', 'name'),
+
             ])
             ->actions([
                 ActionGroup::make([
