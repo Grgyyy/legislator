@@ -94,7 +94,7 @@ class EditCompliantTargets extends EditRecord
 
     private function calculateTotalAmount(QualificationTitle $qualificationTitle, int $numberOfSlots): float
     {
-        return $qualificationTitle->pcc * $numberOfSlots; // Assuming this is the total amount
+        return $qualificationTitle->pcc * $numberOfSlots;
     }
 
     private function updateRecord(Model $record, Allocation $allocation, array $data, QualificationTitle $qualificationTitle, int $numberOfSlots, float $totalAmount): void
