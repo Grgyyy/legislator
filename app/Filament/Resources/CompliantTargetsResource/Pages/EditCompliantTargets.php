@@ -15,15 +15,16 @@ class EditCompliantTargets extends EditRecord
 {
     protected static string $resource = CompliantTargetsResource::class;
 
-    protected static ?string $title = "Edit Compliant Target";
-    
+    protected ?string $heading = 'Edit Compliant Targets';
 
-    protected function getHeaderActions(): array
+    public function getBreadcrumbs(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            route('filament.admin.resources.compliant-targets.index') => 'Compliant Targets',
+            'Edit'
         ];
     }
+    
 
     protected function getRedirectUrl(): string
     {

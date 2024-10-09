@@ -26,10 +26,16 @@ class CreateNonCompliantTarget extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            route('filament.admin.resources.non-compliant-targets.index') => 'Targets',
+            route('filament.admin.resources.targets.index') => 'Pending Target',
             'Mark as Non-Compliant'
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('filament.admin.resources.non-compliant-targets.index');
+    }
+
 
     protected function handleRecordCreation(array $data): Model
     {

@@ -35,6 +35,8 @@ class CompliantTargetsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?int $navigationSort = 3;
+
     public static function form(Form $form): Form
     {
         $urlParams = request()->get('record');
@@ -160,8 +162,9 @@ class CompliantTargetsResource extends Resource
                 ->numeric(),
 
             TextInput::make('target_id')
-                ->label('Target ID')
+                ->label('')
                 ->default($record ? $record->id : 'id') 
+                ->extraAttributes(['class' => 'hidden'])
                 ->required()
                 ->numeric(),
         ]);

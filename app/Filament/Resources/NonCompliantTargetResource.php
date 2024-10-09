@@ -37,6 +37,8 @@ class NonCompliantTargetResource extends Resource
 
     protected static ?string $navigationGroup = 'MANAGE TARGET';
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
 {
     return $form->schema(function ($record) {

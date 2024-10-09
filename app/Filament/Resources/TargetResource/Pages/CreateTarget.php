@@ -19,6 +19,16 @@ class CreateTarget extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected ?string $heading = 'Create Pending Targets';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            route('filament.admin.resources.targets.create') => 'Pending Targets',
+            'Create'
+        ];
+    }
+
     protected function handleRecordCreation(array $data): Target
     {
         return DB::transaction(function () use ($data) {

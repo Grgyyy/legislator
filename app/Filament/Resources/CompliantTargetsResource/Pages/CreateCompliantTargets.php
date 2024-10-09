@@ -16,19 +16,24 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateCompliantTargets extends CreateRecord
 {
     protected static ?string $title = 'Mark as Compliant Target';
+
+    protected function getRedirectUrl(): string
+    {
+        return route('filament.admin.resources.compliant-targets.index');
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            route('filament.admin.resources.targets.index') => 'Pending Targets',
+            'Mark as Compliant'
+        ];
+    }
     protected static string $resource = CompliantTargetsResource::class;
 
     protected static ?string $navigationGroup = 'MANAGE TARGET';
 
     private const COMPLIANT_STATUS_DESC = 'Compliant';
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            route('filament.admin.resources.targets.index') => 'Targets',
-            'Mark as Compliant'
-        ];
-    }
 
     protected function handleRecordCreation(array $data): Model
     {

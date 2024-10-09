@@ -48,6 +48,8 @@ class TargetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?int $navigationSort = 1;
+
     public static function form(Form $form): Form
     {
         return $form->schema(function ($record) {
@@ -407,7 +409,6 @@ class TargetResource extends Resource
         return $table
             ->emptyStateHeading('No targets yet')
             ->columns([
-                TextColumn::make('total_amount'),
                 TextColumn::make('fund_source')
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
@@ -658,23 +659,23 @@ class TargetResource extends Resource
         ];
     }
 
-    // public static function getEloquentQuery(): Builder
-    // {
-    //     $query = parent::getEloquentQuery();
-    //     $routeParameter = request()->route('record');
-    //     $nonCompliantStatus = TargetStatus::where('desc', 'Pending')->first();
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
+        $nonCompliantStatus = TargetStatus::where('desc', 'Pending')->first();
 
-    //     if ($nonCompliantStatus) {
-    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
-    //               ->where('target_status_id', '=', $nonCompliantStatus->id); // Use '=' for comparison
+        if ($nonCompliantStatus) {
+            $query->withoutGlobalScopes([SoftDeletingScope::class])
+                  ->where('target_status_id', '=', $nonCompliantStatus->id); // Use '=' for comparison
 
-    //         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
-    //             $query->where('region_id', (int) $routeParameter);
-    //         }
-    //     }
+            if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+                $query->where('region_id', (int) $routeParameter);
+            }
+        }
 
-    //     return $query;
-    // }
+        return $query;
+    }
 
     protected static function getParticularOptions($legislatorId)
     {

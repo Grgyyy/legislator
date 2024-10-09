@@ -14,4 +14,14 @@ class CreateTargetRemark extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
+
+    protected ?string $heading = 'Create a Non-Compliant Target Remark';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            route('filament.admin.resources.target-remarks.create') => 'Non-Compliant Target Remark',
+            'Create'
+        ];
+    }
 }

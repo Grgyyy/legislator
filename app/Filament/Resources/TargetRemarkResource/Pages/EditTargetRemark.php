@@ -21,4 +21,14 @@ class EditTargetRemark extends EditRecord
     {
         return $this->getResource()::getUrl('index');
     }
+
+    protected ?string $heading = 'Edit  Non-Compliant Target Remark';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            route('filament.admin.resources.target-remarks.create') => 'Non-Compliant Target Remark',
+            'Create'
+        ];
+    }
 }

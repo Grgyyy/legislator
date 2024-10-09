@@ -16,6 +16,22 @@ class EditNonCompliantTarget extends EditRecord
 {
     protected static string $resource = NonCompliantTargetResource::class;
 
+    protected ?string $heading = 'Edit Non-Compliant Targets';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            route('filament.admin.resources.non-compliant-targets.index') => 'Non-Compliant Targets',
+            'Edit'
+        ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        return route('filament.admin.resources.targets.index');
+    }
+
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $record = $this->record;
