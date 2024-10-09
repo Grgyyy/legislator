@@ -30,6 +30,9 @@ class TargetRemarksSeeder extends Seeder
             [
                 'remarks' => 'No absorptive capacity is indicated in the Scholarship Information System.'
             ],
+            [
+                'remarks' => 'Others'
+            ],
         ];
 
         foreach ($remarks as $remark) {

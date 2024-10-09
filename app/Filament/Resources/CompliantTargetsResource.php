@@ -54,16 +54,16 @@ class CompliantTargetsResource extends Resource
                         ->has('allocation')
                         ->pluck('name', 'id')
                         ->toArray();
-                    
+
                     return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
                 })
                 ->reactive()
                 ->disabled()
                 ->dehydrated()
                 ->afterStateUpdated(function ($state, callable $set) {
-                    $set('particular_id', null); // Reset dependent fields
+                    $set('particular_id', null);
                 }),
-    
+
             Select::make('particular_id')
                 ->label('Particular')
                 ->required()
@@ -80,7 +80,7 @@ class CompliantTargetsResource extends Resource
                     $set('scholarship_program_id', null);
                     $set('qualification_title_id', null);
                 }),
-    
+
             Select::make('scholarship_program_id')
                 ->label('Scholarship Program')
                 ->required()
@@ -98,7 +98,7 @@ class CompliantTargetsResource extends Resource
                     $set('allocation_year', null);
                     $set('qualification_title_id', null);
                 }),
-    
+
             Select::make('allocation_year')
                 ->label('Appropriation Year')
                 ->required()
@@ -114,7 +114,7 @@ class CompliantTargetsResource extends Resource
                         ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
                         : ['' => 'No Allocation Available.'];
                 }),
-    
+
             Select::make('appropriation_type')
                 ->label('Allocation Type')
                 ->required()
@@ -125,7 +125,7 @@ class CompliantTargetsResource extends Resource
                     'Current' => 'Current',
                     'Continuing' => 'Continuing',
                 ]),
-    
+
             Select::make('tvi_id')
                 ->label('Institution')
                 ->required()
@@ -133,7 +133,7 @@ class CompliantTargetsResource extends Resource
                 ->preload()
                 ->default($record ? $record->tvi_id : null)
                 ->relationship('tvi', 'name'),
-    
+
             Select::make('qualification_title_id')
                 ->label('Qualification Title')
                 ->required()
@@ -143,7 +143,7 @@ class CompliantTargetsResource extends Resource
                     $scholarshipProgramId = $get('scholarship_program_id');
                     return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId) : ['' => 'No Qualification Title Available.'];
                 }),
-    
+
             Select::make('abdd_id')
                 ->label('ABDD Sector')
                 ->required()
@@ -154,7 +154,7 @@ class CompliantTargetsResource extends Resource
                     $tviId = $get('tvi_id');
                     return $tviId ? self::getAbddSectors($tviId) : ['' => 'No ABDD Sector Available.'];
                 }),
-    
+
             TextInput::make('number_of_slots')
                 ->label('Number of Slots')
                 ->default($record ? $record->number_of_slots : null)
@@ -163,13 +163,13 @@ class CompliantTargetsResource extends Resource
 
             TextInput::make('target_id')
                 ->label('')
-                ->default($record ? $record->id : 'id') 
+                ->default($record ? $record->id : 'id')
                 ->extraAttributes(['class' => 'hidden'])
                 ->required()
                 ->numeric(),
         ]);
     }
-    
+
 
     public static function table(Table $table): Table
     {
@@ -233,7 +233,7 @@ class CompliantTargetsResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    EditAction::make(),
+                    // EditAction::make(),
                     Action::make('viewHistory')
                         ->label('View History')
                         ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
@@ -267,7 +267,7 @@ class CompliantTargetsResource extends Resource
         return [
             'index' => Pages\ListCompliantTargets::route('/'),
             'create' => Pages\CreateCompliantTargets::route('/create'),
-            'edit' => Pages\EditCompliantTargets::route('/{record}/edit'),
+            // 'edit' => Pages\EditCompliantTargets::route('/{record}/edit'),
         ];
     }
 
@@ -316,7 +316,7 @@ class CompliantTargetsResource extends Resource
 
     protected static function getAppropriationTypeOptions($year) {
         $yearNow = date('Y');
-    
+
         if ($year == $yearNow) {
             return ["Current" => "Current"];
         } elseif ($year == $yearNow - 1) {

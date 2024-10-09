@@ -5,6 +5,9 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TargetRemarkResource\Pages;
 use App\Filament\Resources\TargetRemarkResource\RelationManagers;
 use App\Models\TargetRemark;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
 use Filament\Forms;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Form;
@@ -12,8 +15,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TargetRemarkResource extends Resource
 {
@@ -21,7 +22,6 @@ class TargetRemarkResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    
     protected static ?string $navigationGroup = "MANAGE TARGET";
     protected static ?string $navigationLabel = "Target Remarks";
 
@@ -47,8 +47,10 @@ class TargetRemarkResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    DeleteAction::make(),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
