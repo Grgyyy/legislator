@@ -194,7 +194,10 @@ class TrainingProgramResource extends Resource
                                         ->heading('TVET Sector'),
                                     Column::make('formatted_scholarship_programs')
                                         ->heading('Scholarship Programs')
-                                        ->getStateUsing(fn($record) => $record->scholarshipPrograms->pluck('name')->implode(', ')),
+                                        ->getStateUsing(fn($record) => $record->scholarshipPrograms
+                                            ->pluck('name')
+                                            ->implode(', ')
+                                        ),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Training Programs')
                         ]),
