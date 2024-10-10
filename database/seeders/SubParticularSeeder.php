@@ -12,7 +12,6 @@ class SubParticularSeeder extends Seeder
      */
     public function run(): void
     {
-        // Fetch fund sources
         $region_regular = DB::table('fund_sources')
             ->where('name', 'RO Regular')
             ->first();
@@ -30,12 +29,10 @@ class SubParticularSeeder extends Seeder
             return;
         }
 
-        // Particulars for each fund source
         $regional_regular_particulars = ['Regular'];
         $central_regular_particulars = ['Regular', 'SDF', 'With Identified TVI', 'RO Programming', 'Vetted', 'Star Rated', 'APACC', 'AIFO', 'EO79', 'EO70', 'KIA/WIA'];
         $central_legislator_funds_particulars = ['District', 'Party-list', 'Senator', 'House Speaker', 'House Speaker (LAKAS)'];
 
-        // Insert or update particulars for RO - Regular
         foreach ($regional_regular_particulars as $particular) {
             DB::table('sub_particulars')->updateOrInsert(
                 ['name' => $particular, 'fund_source_id' => $region_regular->id],
@@ -43,7 +40,6 @@ class SubParticularSeeder extends Seeder
             );
         }
 
-        // Insert or update particulars for CO - Regular
         foreach ($central_regular_particulars as $particular) {
             DB::table('sub_particulars')->updateOrInsert(
                 ['name' => $particular, 'fund_source_id' => $central_regular->id],
@@ -51,7 +47,6 @@ class SubParticularSeeder extends Seeder
             );
         }
 
-        // Insert or update particulars for CO - Legislator Funds
         foreach ($central_legislator_funds_particulars as $particular) {
             DB::table('sub_particulars')->updateOrInsert(
                 ['name' => $particular, 'fund_source_id' => $central_legislator_funds->id],

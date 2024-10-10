@@ -63,7 +63,7 @@ class ProvinceResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_region' => 'No Region Available'];
                     })
-                    ->disableOptionWhen(fn ($value) => $value === 'no_region'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_region'),
             ]);
     }
 
@@ -78,7 +78,7 @@ class ProvinceResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->url(fn($record) => route('filament.admin.resources.provinces.showMunicipalities', ['record' => $record->id])),
-                
+
                 TextColumn::make('region.name')
                     ->searchable()
                     ->toggleable(),

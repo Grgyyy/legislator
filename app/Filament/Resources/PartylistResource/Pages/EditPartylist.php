@@ -34,7 +34,7 @@ class EditPartylist extends EditRecord
 
         try {
             $record->update($data);
-            
+
             NotificationHandler::sendSuccessNotification('Saved', 'Party-list has been updated successfully.');
 
             return $record;
@@ -55,10 +55,10 @@ class EditPartylist extends EditRecord
             ->first();
 
         if ($partyList) {
-            $message = $partyList->deleted_at 
-                ? 'This party-list has been deleted. Restoration is required before it can be reused.' 
+            $message = $partyList->deleted_at
+                ? 'This party-list has been deleted. Restoration is required before it can be reused.'
                 : 'A party-list with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
