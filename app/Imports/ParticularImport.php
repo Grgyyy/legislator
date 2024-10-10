@@ -38,7 +38,6 @@ class ParticularImport implements ToModel, WithHeadingRow
                 $partylist_id = $this->getPartylistId($row['particular'], $row['partylist']);
                 $sub_particular_id = $this->getSubparticularId($row['particular']);
 
-                // Check if a record already exists with the same sub_particular_id, district_id, and partylist_id
                 $particularExists = Particular::where('sub_particular_id', $sub_particular_id)
                     ->where('district_id', $district_id)
                     ->where('partylist_id', $partylist_id)
@@ -142,7 +141,7 @@ class ParticularImport implements ToModel, WithHeadingRow
             throw new \Exception("The {$particularName} particular type does not exist."); 
         }
 
-        if($particularRecord->name === 'Partylist') {
+        if($particularRecord->name === 'Party-list') {
             $partylistRecord = Partylist::where('name', $partylistName)
                 ->whereNull('deleted_at')
                 ->first();

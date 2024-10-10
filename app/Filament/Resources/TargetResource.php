@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\TargetStatus;
 use App\Models\Tvi;
 use App\Models\Abdd;
 use App\Models\Target;
@@ -47,6 +48,8 @@ class TargetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?int $navigationSort = 1;
+
     public static function form(Form $form): Form
     {
         return $form->schema(function ($record) {
@@ -67,6 +70,8 @@ class TargetResource extends Resource
                             return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
                         })
                         ->reactive()
+                        ->disabled()
+                        ->dehydrated()
                         ->afterStateUpdated(function ($state, callable $set) {
                             $set('particular_id', null);
                         }),
@@ -80,6 +85,8 @@ class TargetResource extends Resource
                             return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
                         })
                         ->reactive()
+                        ->disabled()
+                        ->dehydrated()
                         ->afterStateUpdated(function ($state, callable $set) {
                             $set('scholarship_program_id', null);
                             $set('qualification_title_id', null);
@@ -94,6 +101,8 @@ class TargetResource extends Resource
                             $particularId = $get('particular_id');
                             return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
                         })
+                        ->disabled()
+                        ->dehydrated()
                         ->reactive()
                         ->afterStateUpdated(function ($state, callable $set) {
                             $set('allocation_year', null);
@@ -111,7 +120,9 @@ class TargetResource extends Resource
                             return $legislatorId && $particularId && $scholarshipProgramId
                                 ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
                                 : ['' => 'No Allocation Available.'];
-                        }),
+                        })
+                        ->disabled()
+                        ->dehydrated(),
 
                     Select::make('appropriation_type')
                         ->label('Allocation Type')
@@ -119,7 +130,9 @@ class TargetResource extends Resource
                         ->options([
                             'Current' => 'Current',
                             'Continuing' => 'Continuing',
-                        ]),
+                        ])
+                        ->disabled()
+                        ->dehydrated(),
 
                     Select::make('tvi_id')
                         ->label('Institution')
@@ -189,14 +202,14 @@ class TargetResource extends Resource
                                 // Reset the 'particular_id' field to null when legislator is changed,
                                 // because the available particular options will change.
                                 $set('scholarship_program_id', null);
-        
+
                                 // Fetch new particular options based on the selected legislator ($state contains legislator_id).
                                 $scholarshipPrograms = self::getScholarshipProgramsOptions($state, $state);
-                        
+
                                 // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
                                 // can display the correct options based on the selected legislator.
                                 $set('scholarshipProgramsOptions', $scholarshipPrograms);
-                        
+
                                 // If there's only one particular available, automatically select it.
                                 if (count($scholarshipPrograms) === 1) {
                                     // Auto-select the only available particular by setting 'particular_id'
@@ -208,14 +221,14 @@ class TargetResource extends Resource
                                 // Reset the 'particular_id' field to null when legislator is changed,
                                 // because the available particular options will change.
                                 $set('allocation_year', null);
-        
+
                                 // Fetch new particular options based on the selected legislator ($state contains legislator_id).
                                 $year = self::getAllocationYear($state, $state, $state);
-                        
+
                                 // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
                                 // can display the correct options based on the selected legislator.
                                 $set('allocationYear', $year);
-                        
+
                                 // If there's only one particular available, automatically select it.
                                 if (count($year) === 1) {
                                     // Auto-select the only available particular by setting 'particular_id'
@@ -227,15 +240,15 @@ class TargetResource extends Resource
                                 // Reset the 'particular_id' field to null when legislator is changed,
                                 // because the available particular options will change.
                                 $set('appropriation_type', null);
-        
+
                                 // Fetch new particular options based on the selected legislator ($state contains legislator_id).
                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                        
+
                                 // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
                                 // can display the correct options based on the selected legislator.
                                 $set('appropriationType', $appropriationType);
 
-                        
+
                                 // // If there's only one particular available, automatically select it.
                                 if (count($appropriationType) === 1) {
                                     // Auto-select the only available particular by setting 'particular_id'
@@ -263,14 +276,14 @@ class TargetResource extends Resource
                                 // Reset the 'particular_id' field to null when legislator is changed,
                                 // because the available particular options will change.
                                 $set('allocation_year', null);
-        
+
                                 // Fetch new particular options based on the selected legislator ($state contains legislator_id).
                                 $year = self::getAllocationYear($state, $state, $state);
-                        
+
                                 // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
                                 // can display the correct options based on the selected legislator.
                                 $set('allocationYear', $year);
-                        
+
                                 // If there's only one particular available, automatically select it.
                                 if (count($year) === 1) {
                                     // Auto-select the only available particular by setting 'particular_id'
@@ -297,15 +310,15 @@ class TargetResource extends Resource
                                 // Reset the 'particular_id' field to null when legislator is changed,
                                 // because the available particular options will change.
                                 $set('appropriation_type', null);
-        
+
                                 // Fetch new particular options based on the selected legislator ($state contains legislator_id).
                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                        
+
                                 // Update the 'particularOptions' state with the new options so that the 'particular_id' dropdown
                                 // can display the correct options based on the selected legislator.
                                 $set('appropriationType', $appropriationType);
 
-                        
+
                                 // // If there's only one particular available, automatically select it.
                                 if (count($appropriationType) === 1) {
                                     // Auto-select the only available particular by setting 'particular_id'
@@ -323,7 +336,7 @@ class TargetResource extends Resource
                             })
                             ->reactive()
                             ->live(),
-                            
+
 
                             Select::make('tvi_id')
                                 ->label('Institution')
@@ -396,7 +409,6 @@ class TargetResource extends Resource
         return $table
             ->emptyStateHeading('No targets yet')
             ->columns([
-
                 TextColumn::make('fund_source')
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
@@ -542,13 +554,13 @@ class TargetResource extends Resource
                         ->label('View Comments')
                         ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
                         ->icon('heroicon-o-chat-bubble-left-ellipsis'),
-                        Action::make('setAsCompliant')
+                    Action::make('setAsCompliant')
                         ->label('Set as Compliant')
-                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        ->url(fn($record) => route('filament.admin.resources.compliant-targets.create', ['record' => $record->id]))
                         ->icon('heroicon-o-check-circle'),
-                        Action::make('setAsNonCompliant')
+                    Action::make('setAsNonCompliant')
                         ->label('Set as Non-Compliant')
-                        ->url(fn($record) => route('filament.admin.resources.non-compliant-remarks.create', ['record' => $record->id]))
+                        ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id]))
                         ->icon('heroicon-o-x-circle'),
                     DeleteAction::make(),
                     RestoreAction::make(),
@@ -649,11 +661,20 @@ class TargetResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
-            ->orderBy('updated_at', 'desc');
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
+        $nonCompliantStatus = TargetStatus::where('desc', 'Pending')->first();
+
+        if ($nonCompliantStatus) {
+            $query->withoutGlobalScopes([SoftDeletingScope::class])
+                  ->where('target_status_id', '=', $nonCompliantStatus->id); // Use '=' for comparison
+
+            if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+                $query->where('region_id', (int) $routeParameter);
+            }
+        }
+
+        return $query;
     }
 
     protected static function getParticularOptions($legislatorId)
@@ -683,7 +704,7 @@ class TargetResource extends Resource
 
     protected static function getAppropriationTypeOptions($year) {
         $yearNow = date('Y');
-    
+
         if ($year == $yearNow) {
             return ["Current" => "Current"];
         } elseif ($year == $yearNow - 1) {

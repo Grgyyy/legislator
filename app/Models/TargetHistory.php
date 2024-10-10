@@ -27,7 +27,8 @@ class TargetHistory extends Model
         'total_uniform_allowance',
         'total_misc_fee',
         'total_amount',
-        'appropriation_type'
+        'appropriation_type',
+        'description'
     ];
 
     public function target()

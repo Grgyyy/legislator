@@ -20,11 +20,16 @@ class EditTarget extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function getFormSchema(): array {
+    protected ?string $heading = 'Edit Pending Target';
+
+    public function getBreadcrumbs(): array
+    {
         return [
-            TextInput::make('name')
+            route('filament.admin.resources.targets.edit', ['record' => $this->record->id]) => 'Pending Target',
+            'Edit '
         ];
     }
+
 
     protected function mutateFormDataBeforeFill(array $data): array
     {

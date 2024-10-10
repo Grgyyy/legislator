@@ -65,4 +65,9 @@ class Target extends Model
     {
         return $this->hasMany(TargetComment::class);
     }
+
+    public function nonCompliantRemark()
+    {
+        return $this->hasOne(NonCompliantRemark::class);
+    }
 }
