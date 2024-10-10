@@ -4,10 +4,10 @@ namespace App\Filament\Resources\TviResource\Pages;
 
 use App\Models\Tvi;
 use App\Filament\Resources\TviResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Illuminate\Validation\ValidationException;
+use Exception;
 
 class EditTvi extends EditRecord
 {
@@ -15,45 +15,33 @@ class EditTvi extends EditRecord
 
     protected static ?string $title = 'Edit Institution';
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/tvis' => 'Institutions',
+            'Edit'
+        ];
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
     }
 
-    public function getBreadcrumbs(): array
-    {
-        return [
-            'Institutions',
-            'Edit'
-        ];
-    }
-
     protected function handleRecordUpdate($record, array $data): Tvi
     {
-        // Validate for unique institution before updating
         $this->validateUniqueInstitution($data, $record->id);
 
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('Institution updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Saved', 'Institution has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the institution: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the institution: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the institution update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -61,35 +49,34 @@ class EditTvi extends EditRecord
 
     protected function validateUniqueInstitution(array $data, $currentId)
     {
-        $query = Tvi::withTrashed()
+        $tvi = Tvi::withTrashed()
             ->where('name', $data['name'])
             ->where('institution_class_id', $data['institution_class_id'])
             ->where('tvi_class_id', $data['tvi_class_id'])
             ->where('district_id', $data['district_id'])
             ->where('address', $data['address'])
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'An institution with these details exists but is marked as deleted. It cannot be updated.';
-            } else {
-                $message = 'An institution with these details already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($tvi) {
+            $message = $tvi->deleted_at 
+                ? 'This institution with the provided details has been deleted. Restoration is required before it can be reused.' 
+                : 'An institution with the provided details already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
 
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
+        $schoolId = Tvi::withTrashed()
+            ->where('school_id', $data['school_id'])
+            ->whereNot('id', $currentId)
+            ->first();
 
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
+        if ($schoolId) {
+            $message = $schoolId->deleted_at 
+                ? 'An institution with this school ID already exists and has been deleted.' 
+                : 'An institution with this school ID already exists.';
+            
+            NotificationHandler::handleValidationException('Invalid School ID', $message);
+        }
     }
 }

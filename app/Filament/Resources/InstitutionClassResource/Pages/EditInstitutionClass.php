@@ -4,10 +4,10 @@ namespace App\Filament\Resources\InstitutionClassResource\Pages;
 
 use App\Models\InstitutionClass;
 use App\Filament\Resources\InstitutionClassResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Illuminate\Validation\ValidationException;
+use Exception;
 
 class EditInstitutionClass extends EditRecord
 {
@@ -20,30 +20,18 @@ class EditInstitutionClass extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): InstitutionClass
     {
-        // Validate for unique institution class name
         $this->validateUniqueInstitutionClass($data['name'], $record->id);
 
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('Institution Class record updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Saved', 'Institution class has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the institution class: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the institution class: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the institution class update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -51,31 +39,17 @@ class EditInstitutionClass extends EditRecord
 
     protected function validateUniqueInstitutionClass($name, $currentId)
     {
-        $query = InstitutionClass::withTrashed()
+        $institutionClass = InstitutionClass::withTrashed()
             ->where('name', $name)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Institution Class data exists and is marked as deleted. Data cannot be updated.';
-            } else {
-                $message = 'Institution Class data already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($institutionClass) {
+            $message = $institutionClass->deleted_at 
+                ? 'This institution class has been deleted. Restoration is required before it can be reused.' 
+                : 'An institution class with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }

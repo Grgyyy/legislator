@@ -2,27 +2,25 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms\Form;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Table;
 use App\Models\InstitutionClass;
+use App\Filament\Resources\InstitutionClassResource\Pages;
 use Filament\Resources\Resource;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
-use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Filament\Resources\InstitutionClassResource\Pages;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Filters\Filter;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -44,17 +42,19 @@ class InstitutionClassResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
-                    ->required()
-                    ->autocomplete(false)
                     ->label('Institution Class (B)')
-                    ->markAsRequired(false),
+                    ->placeholder(placeholder: 'Enter institution class')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('Institution Class (B)'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No institution class yet')
+            ->emptyStateHeading('no institution class available')
             ->columns([
                 TextColumn::make('name')
                     ->label('Institution Classes (B)')
@@ -77,16 +77,23 @@ class InstitutionClassResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('Institution Class (B)'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Institution Class (B)')
-                    ]),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Institution Class (B)'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Institution Class (B)')
+                        ]),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array
@@ -96,13 +103,5 @@ class InstitutionClassResource extends Resource
             'create' => Pages\CreateInstitutionClass::route('/create'),
             'edit' => Pages\EditInstitutionClass::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
     }
 }

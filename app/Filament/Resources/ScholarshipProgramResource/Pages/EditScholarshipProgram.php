@@ -4,10 +4,10 @@ namespace App\Filament\Resources\ScholarshipProgramResource\Pages;
 
 use App\Models\ScholarshipProgram;
 use App\Filament\Resources\ScholarshipProgramResource;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Notifications\Notification;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
+use Exception;
 
 class EditScholarshipProgram extends EditRecord
 {
@@ -20,62 +20,50 @@ class EditScholarshipProgram extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): ScholarshipProgram
     {
-        // Validate for unique scholarship program name
-        $this->validateUniqueScholarshipProgram($data['name'], $record->id);
+        $this->validateUniqueScholarshipProgram($data, $record->id);
 
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('Scholarship Program record updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Saved', 'Scholarship program has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the scholarship program: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the scholarship program: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the scholarship program update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
     }
 
-    protected function validateUniqueScholarshipProgram($name, $currentId)
+    protected function validateUniqueScholarshipProgram($data, $currentId)
     {
-        $query = ScholarshipProgram::withTrashed()
-            ->where('name', $name)
-            ->where('id', '!=', $currentId)
+        $schoPro = ScholarshipProgram::withTrashed()
+            ->where('name', $data['name'])
+            ->where('desc', $data['desc'])
+            ->whereNot('id', $currentId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Scholarship Program data exists and is marked as deleted. Data cannot be updated.';
-            } else {
-                $message = 'Scholarship Program data already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($schoPro) {
+            $message = $schoPro->deleted_at
+                ? 'This scholarship program with the provided details has been deleted. Restoration is required before it can be reused.'
+                : 'A scholarship program with the provided details already exists.';
+
+                NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
 
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
+        $code = ScholarshipProgram::withTrashed()
+            ->where('code', $data['code'])
+            ->whereNot('id', $currentId)
+            ->first();
 
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
+        if ($code) {
+            $message = $code->deleted_at 
+                ? 'A Scholarship Program with this code already exists and has been deleted.' 
+                : 'A Scholarship Program with this code already exists.';
+        
+            NotificationHandler::handleValidationException('Invalid Code', $message);
+        }
     }
 }

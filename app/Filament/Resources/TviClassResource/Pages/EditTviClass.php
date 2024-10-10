@@ -4,56 +4,44 @@ namespace App\Filament\Resources\TviClassResource\Pages;
 
 use App\Models\TviClass;
 use App\Filament\Resources\TviClassResource;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
-use Filament\Notifications\Notification;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Database\QueryException;
+use Exception;
 
 class EditTviClass extends EditRecord
 {
     protected static string $resource = TviClassResource::class;
 
     protected static ?string $title = 'Edit Institution Class';
+    
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/tvi-classes' => 'Institution Classes',
+            'Edit'
+        ];
+    }
 
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
     }
 
-    public function getBreadcrumbs(): array
-    {
-        return [
-            'Institution Classes',
-            'Edit'
-        ];
-    }
-
     protected function handleRecordUpdate($record, array $data): TviClass
     {
-        // Validate for unique TVI class name
         $this->validateUniqueTviClass($data['name'], $record->id);
 
         try {
             $record->update($data);
 
-            Notification::make()
-                ->title('Institution Class record updated successfully')
-                ->success()
-                ->send();
+            NotificationHandler::sendSuccessNotification('Saved', 'Institution class has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
-            Notification::make()
-                ->title('Database Error')
-                ->body('An error occurred while updating the institution class: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('An unexpected error occurred: ' . $e->getMessage())
-                ->danger()
-                ->send();
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the institution class: ' . $e->getMessage() . ' Please review the details and try again.');
+        } catch (Exception $e) {
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the institution class update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -61,31 +49,17 @@ class EditTviClass extends EditRecord
 
     protected function validateUniqueTviClass($name, $currentId)
     {
-        $query = TviClass::withTrashed()
+        $tviClass = TviClass::withTrashed()
             ->where('name', $name)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Institution Class data exists and is marked as deleted. Data cannot be updated.';
-            } else {
-                $message = 'Institution Class data already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($tviClass) {
+            $message = $tviClass->deleted_at 
+                ? 'This institution class has been deleted. Restoration is required before it can be reused.' 
+                : 'An institution class with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
-
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'name' => $message,
-        ]);
     }
 }

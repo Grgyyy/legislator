@@ -24,6 +24,7 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -70,6 +71,7 @@ class SubParticularResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('no particular types available')
             ->columns([
                 TextColumn::make('name')
                     ->label('Particular Type')
@@ -86,35 +88,26 @@ class SubParticularResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
+
+                SelectFilter::make('fund_source')
+                    ->label('Fund Source')
+                    ->relationship('fundSource', 'name'),
+
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed())
-                        ->successNotificationTitle('Particular Type updated successfully.')
-                        ->failureNotificationTitle('Failed to update Particular Type.'),
-                    DeleteAction::make()
-                        ->successNotificationTitle('Particular Type deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete Particular Type.'),
-                    RestoreAction::make()
-                        ->successNotificationTitle('Particular Type restored successfully.')
-                        ->failureNotificationTitle('Failed to restore Particular Type.'),
-                    ForceDeleteAction::make()
-                        ->successNotificationTitle('Particular Type permanently deleted.')
-                        ->failureNotificationTitle('Failed to permanently delete Particular Type.'),
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->successNotificationTitle('Particular Type records deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete Particular Type records.'),
-                    ForceDeleteBulkAction::make()
-                        ->successNotificationTitle('Particular Type records permanently deleted.')
-                        ->failureNotificationTitle('Failed to permanently delete Particular Type records.'),
-                    RestoreBulkAction::make()
-                        ->successNotificationTitle('Particular Type records restored successfully.')
-                        ->failureNotificationTitle('Failed to restore Particular Type records.'),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -133,9 +126,7 @@ class SubParticularResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array

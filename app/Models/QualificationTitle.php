@@ -18,7 +18,7 @@ class QualificationTitle extends Model
         'cost_of_toolkit_pcc',
         'training_support_fund',
         'assessment_fee',
-        'entrepeneurship_fee',
+        'entrepreneurship_fee',
         'new_normal_assisstance',
         'accident_insurance',
         'book_allowance',

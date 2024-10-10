@@ -3,31 +3,30 @@
 namespace App\Filament\Resources;
 
 use App\Models\TviClass;
-use Filament\Forms\Form;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Actions\BulkActionGroup;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use App\Filament\Resources\TviClassResource\Pages;
 use App\Models\TviType;
-use Filament\Tables\Actions\DeleteBulkAction;
+use App\Filament\Resources\TviClassResource\Pages;
+use Filament\Resources\Resource;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TviClassResource extends Resource
 {
@@ -47,20 +46,25 @@ class TviClassResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label('Institution Class (A)')
+                    ->placeholder(placeholder: 'Enter institution class')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->markAsRequired(false),
+                    ->validationAttribute('Institution Class (A)'),
+
                 Select::make('tvi_type_id')
                     ->label('Institution Type')
                     ->relationship('tviType', 'name')
-                    ->options(function () {
-                        $tviType = TviType::all()->pluck('name', 'id')->toArray();
-                        return !empty($tviType) ? $tviType : ['no_tvi_type' => 'No Institution Type Available'];
-                    })
                     ->required()
                     ->markAsRequired(false)
-                    ->native(false)
+                    ->searchable()
                     ->preload()
+                    ->native(false)
+                    ->options(function () {
+                        return TviType::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_tvi_type' => 'No Institution Type Available'];
+                    })
                     ->disableOptionWhen(fn ($value) => $value === 'no_tvi_type'),
                 ]);
     }
@@ -68,13 +72,14 @@ class TviClassResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No institution class yet')
+            ->emptyStateHeading('no institution classes available')
             ->columns([
                 TextColumn::make('name')
-                    ->Label('Institution Classes (A)')
+                    ->Label('Institution Class (A)')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('tviType.name')
                     ->label('Institution Types')
                     ->searchable()
@@ -83,6 +88,7 @@ class TviClassResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
+
                 SelectFilter::make('tvi_type_id')
                     ->label('Institution Type')
                     ->relationship('tviType', 'name')
@@ -101,21 +107,27 @@ class TviClassResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('Institution Class (A)'),
-                                Column::make('tviType.name')
-                                    ->heading('Institution Type'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Institution Class (A)')
-                    ]),
-
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Institution Class (A)'),
+                                    Column::make('tviType.name')
+                                        ->heading('Institution Type'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Institution Class (A)')
+                        ]),
                 ]),
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
+    }
+    
     public static function getPages(): array
     {
         return [
@@ -123,12 +135,5 @@ class TviClassResource extends Resource
             'create' => Pages\CreateTviClass::route('/create'),
             'edit' => Pages\EditTviClass::route('/{record}/edit'),
         ];
-    }
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class
-            ]);
     }
 }

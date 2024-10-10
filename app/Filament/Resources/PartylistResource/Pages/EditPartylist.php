@@ -35,7 +35,7 @@ class EditPartylist extends EditRecord
         try {
             $record->update($data);
             
-            NotificationHandler::sendSuccessNotification('Party-List update successful', null);
+            NotificationHandler::sendSuccessNotification('Saved', 'Party-list has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
@@ -51,7 +51,7 @@ class EditPartylist extends EditRecord
     {
         $partyList = Partylist::withTrashed()
             ->where('name', $name)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
         if ($partyList) {

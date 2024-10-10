@@ -1,16 +1,16 @@
 <?php
 
-namespace App\Filament\Resources\AbddResource\Pages;
+namespace App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
 
-use Exception;
+use App\Filament\Clusters\Sectors\Resources\AbddResource;
 use App\Imports\AbddImport;
-use Filament\Actions\Action;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Filament\Resources\AbddResource;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
+use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListAbdds extends ListRecords
 {
@@ -21,7 +21,7 @@ class ListAbdds extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            '/abdds' => 'ABDD Sectors',
+            '/sectors/abdds' => 'ABDD Sectors',
             'List'
         ];
     }
@@ -30,8 +30,9 @@ class ListAbdds extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('AbddImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -40,19 +41,12 @@ class ListAbdds extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new AbddImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('ABDD Sector import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The ABDD sectors have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('ABDD Sector import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the ABDD sectors: ' . $e->getMessage());
                     }
                 }),
         ];

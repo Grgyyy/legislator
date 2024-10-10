@@ -21,7 +21,6 @@ class EditParticular extends EditRecord
     protected function handleRecordUpdate($record, array $data): Particular
     {
         $this->validateUniqueParticular($data['sub_particular_id'], $record->id);
-        $this->validateUniqueParticular($data['sub_particular_id'], $record->id);
 
         try {
             $record->update($data);
@@ -42,7 +41,7 @@ class EditParticular extends EditRecord
     {
         $particular = Particular::withTrashed()
             ->where('sub_particular_id', $sub_particular_id)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
         if ($particular) {

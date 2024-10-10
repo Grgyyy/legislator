@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\ScholarshipProgramResource\Pages;
 
 use App\Models\ScholarshipProgram;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\ScholarshipProgramResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateScholarshipProgram extends CreateRecord
 {
@@ -20,43 +19,44 @@ class CreateScholarshipProgram extends CreateRecord
 
     protected function handleRecordCreation(array $data): ScholarshipProgram
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueScholarshipProgram($data['code']);
+        $this->validateUniqueScholarshipProgram($data);
 
-            return ScholarshipProgram::create([
+        $schoPro = DB::transaction(fn () => ScholarshipProgram::create([
                 'code' => $data['code'],
                 'name' => $data['name'],
                 'desc' => $data['desc'],
-            ]);
-        });
+        ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Scholarship program has been created successfully.');
+
+        return $schoPro;
     }
 
-    protected function validateUniqueScholarshipProgram($code)
+    protected function validateUniqueScholarshipProgram($data)
     {
-        $query = ScholarshipProgram::withTrashed()
-            ->where('code', $code)
+        $schoPro = ScholarshipProgram::withTrashed()
+            ->where('name', $data['name'])
+            ->where('desc', $data['desc'])
             ->first();
 
-        if ($query) {
-            if ($query->deleted_at) {
-                $message = 'Scholarship Program with this code exists and is marked as deleted. Data cannot be created.';
-            } else {
-                $message = 'Scholarship Program with this code already exists.';
-            }
-            $this->handleValidationException($message);
+        if ($schoPro) {
+            $message = $schoPro->deleted_at
+                ? 'This scholarship program with the provided details has been deleted and must be restored before reuse.'
+                : 'A scholarship program with the provided details already exists.';
+
+                NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
 
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
+        $code = ScholarshipProgram::withTrashed()
+            ->where('code', $data)
+            ->first();
 
-        throw ValidationException::withMessages([
-            'code' => $message,
-        ]);
+        if ($code) {
+            $message = $code->deleted_at 
+                ? 'A Scholarship Program with this code already exists and has been deleted.' 
+                : 'A Scholarship Program with this code already exists.';
+        
+            NotificationHandler::handleValidationException('Invalid Code', $message);
+        }
     }
 }

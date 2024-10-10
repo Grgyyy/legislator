@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 class CreateDistrict extends CreateRecord
 {
     protected static string $resource = DistrictResource::class;
+
     protected function getRedirectUrl(): string
     {
         $municipalityId = $this->record->municipality_id;
@@ -26,10 +27,14 @@ class CreateDistrict extends CreateRecord
     {
         $this->validateUniqueDistrict($data['name'], $data['municipality_id']);
 
-        return DB::transaction(fn() => District::create([
+        $district = DB::transaction(fn() => District::create([
             'name' => $data['name'],
             'municipality_id' => $data['municipality_id'],
         ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'District has been created successfully.');
+
+        return $district;
     }
 
     protected function validateUniqueDistrict($name, $municipalityId)

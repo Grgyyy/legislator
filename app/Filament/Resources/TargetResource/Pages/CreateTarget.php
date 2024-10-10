@@ -24,7 +24,6 @@ class CreateTarget extends CreateRecord
             $targetData = $data['targets'][0] ?? null;
 
             if (!$targetData) {
-                \Log::error('No target data found in the repeater.');
                 throw new \Exception('No target data found.');
             }
 
@@ -32,7 +31,6 @@ class CreateTarget extends CreateRecord
 
             foreach ($requiredFields as $field) {
                 if (!array_key_exists($field, $targetData) || empty($targetData[$field])) {
-                    \Log::error("Validation failed: The field '$field' is required in repeater data.", $data);
                     throw new \InvalidArgumentException("The field '$field' is required.");
                 }
             }
@@ -44,14 +42,12 @@ class CreateTarget extends CreateRecord
                 ->first();
 
             if (!$allocation) {
-                \Log::error('Allocation not found', $targetData);
                 throw new \Exception('Allocation not found');
             }
 
             $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
 
             if (!$qualificationTitle) {
-                \Log::error('Qualification Title not found', $targetData);
                 throw new \Exception('Qualification Title not found');
             }
 
@@ -61,7 +57,7 @@ class CreateTarget extends CreateRecord
             $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots;
             $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
             $total_assessment_fee = $qualificationTitle->assessment_fee * $numberOfSlots;
-            $total_entrepeneurship_fee = $qualificationTitle->entrepeneurship_fee * $numberOfSlots;
+            $total_entrepreneurship_fee = $qualificationTitle->entrepreneurship_fee * $numberOfSlots;
             $total_new_normal_assisstance = $qualificationTitle->new_normal_assisstance * $numberOfSlots;
             $total_accident_insurance = $qualificationTitle->accident_insurance * $numberOfSlots;
             $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
@@ -80,7 +76,7 @@ class CreateTarget extends CreateRecord
                     'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
                     'total_training_support_fund' => $total_training_support_fund,
                     'total_assessment_fee' => $total_assessment_fee,
-                    'total_entrepeneurship_fee' => $total_entrepeneurship_fee,
+                    'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
                     'total_new_normal_assisstance' => $total_new_normal_assisstance,
                     'total_accident_insurance' => $total_accident_insurance,
                     'total_book_allowance' => $total_book_allowance,
@@ -96,7 +92,6 @@ class CreateTarget extends CreateRecord
 
                 return $target;
             } else {
-                \Log::error('Insufficient balance for allocation', $targetData);
                 throw new \Exception('Insufficient balance for allocation');
             }
         });

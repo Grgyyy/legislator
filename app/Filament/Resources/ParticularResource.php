@@ -96,7 +96,7 @@ class ParticularResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No particulars available')
+            ->emptyStateHeading('no particulars available')
             ->columns([               
                 TextColumn::make("subParticular.name")
                     ->label('Particular Type')
@@ -270,9 +270,7 @@ class ParticularResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
     
     public static function getPages(): array

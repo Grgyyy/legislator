@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
 use App\Models\TrainingProgram;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\TrainingProgramResource;
-use Filament\Notifications\Notification;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class CreateTrainingProgram extends CreateRecord
 {
@@ -20,56 +19,46 @@ class CreateTrainingProgram extends CreateRecord
 
     protected function handleRecordCreation(array $data): TrainingProgram
     {
-        return DB::transaction(function () use ($data) {
-
-            $this->validateUniqueTrainingProgram(
-                $data['code'],
-                $data['title'],
-                $data['tvet_id'],
-                $data['priority_id']
-            );
-
-
-            return TrainingProgram::create([
+        $this->validateUniqueTrainingProgram($data);
+        
+        $trainingProgram = DB::transaction(fn () => TrainingProgram::create([
                 'code' => $data['code'],
                 'title' => $data['title'],
                 'priority_id' => $data['priority_id'],
                 'tvet_id' => $data['tvet_id'],
-            ]);
-        });
+        ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Training program has been created successfully.');
+
+        return $trainingProgram;
     }
 
-
-    protected function validateUniqueTrainingProgram($code, $title, $tvet_id, $priority_id)
+    protected function validateUniqueTrainingProgram($data)
     {
-        $existingProgram = TrainingProgram::withTrashed()
-            ->where('code', $code)
-            ->where('title', $title)
-            ->where('tvet_id', $tvet_id)
-            ->where('priority_id', $priority_id)
+        $trainingProgram = TrainingProgram::withTrashed()
+            ->where('title', $data['title'])
+            ->where('tvet_id', $data['tvet_id'])
+            ->where('priority_id', $data['priority_id'])
             ->first();
 
-        if ($existingProgram) {
+        if ($trainingProgram) {
+            $message = $trainingProgram->deleted_at
+                ? 'This training program with the provided details has been deleted and must be restored before reuse.'
+                : 'A training program with the provided details already exists.';
 
-            $message = $existingProgram->deleted_at
-                ? 'A Training Program with this code and title exists and is marked as deleted. You cannot create it again.'
-                : 'A Training Program with this code and title already exists.';
-
-            $this->handleValidationException($message);
+                NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    }
 
+        $code = TrainingProgram::withTrashed()
+            ->where('code', $data['code'])
+            ->first();
 
-    protected function handleValidationException($message)
-    {
-        Notification::make()
-            ->title('Error')
-            ->body($message)
-            ->danger()
-            ->send();
-
-        throw ValidationException::withMessages([
-            'code' => [$message],
-        ]);
+        if ($code) {
+            $message = $code->deleted_at 
+                ? 'A training program with this code already exists and has been deleted.' 
+                : 'A training program with this code already exists.';
+            
+            NotificationHandler::handleValidationException('Invalid Code', $message);
+        }
     }
 }

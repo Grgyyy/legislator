@@ -54,7 +54,7 @@ class PartylistResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No party-lists available')
+            ->emptyStateHeading('no party-lists available')
             ->columns([
                 TextColumn::make('name')
                     ->label('Party-List')
@@ -68,31 +68,17 @@ class PartylistResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed())
-                        ->successNotificationTitle('Partylist updated successfully.')
-                        ->failureNotificationTitle('Failed to update Partylist.'),
-                    DeleteAction::make()
-                        ->successNotificationTitle('Partylist deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete Partylist.'),
-                    RestoreAction::make()
-                        ->successNotificationTitle('Partylist restored successfully.')
-                        ->failureNotificationTitle('Failed to restore Partylist.'),
-                    ForceDeleteAction::make()
-                        ->successNotificationTitle('Partylist permanently deleted.')
-                        ->failureNotificationTitle('Failed to permanently delete Partylist.'),
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->successNotificationTitle('Partylist records deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete partylist records.'),
-                    ForceDeleteBulkAction::make()
-                        ->successNotificationTitle('Partylist records permanently deleted.')
-                        ->failureNotificationTitle('Failed to permanently delete partylist records.'),
-                    RestoreBulkAction::make()
-                        ->successNotificationTitle('Partylist records restored successfully.')
-                        ->failureNotificationTitle('Failed to restore partylist records.'),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -109,10 +95,8 @@ class PartylistResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
-            ->where('name', '!=', 'Not Applicable');
+            ->withoutGlobalScopes([SoftDeletingScope::class])
+            ->whereNot('name', 'Not Applicable');
     }
 
     public static function getPages(): array

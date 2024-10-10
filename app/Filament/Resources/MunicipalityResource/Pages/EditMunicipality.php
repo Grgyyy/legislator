@@ -31,7 +31,7 @@ class EditMunicipality extends EditRecord
         try {
             $record->update($data);
 
-            NotificationHandler::sendSuccessNotification('Municipality update successful', null);
+            NotificationHandler::sendSuccessNotification('Saved', 'Municipality has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
@@ -48,7 +48,7 @@ class EditMunicipality extends EditRecord
         $municipality = Municipality::withTrashed()
             ->where('name', $name)
             ->where('province_id', $provinceId)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
         if ($municipality) {

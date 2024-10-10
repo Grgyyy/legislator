@@ -2,17 +2,14 @@
 
 namespace App\Filament\Resources\ScholarshipProgramResource\Pages;
 
-use App\Filament\Resources\TrainingProgramResource;
 use App\Models\ScholarshipProgram;
+use App\Filament\Resources\TrainingProgramResource;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Actions;
 use Filament\Actions\CreateAction;
 
 class ShowTrainingPrograms extends ListRecords
 {
     protected static string $resource = TrainingProgramResource::class;
-
-    protected ?string $heading = 'Training Programs';
 
     public function getBreadcrumbs(): array
     {
@@ -20,10 +17,8 @@ class ShowTrainingPrograms extends ListRecords
         
         $scholarship = ScholarshipProgram::find($scholarshipId);
 
-        $scholarshipProgramId = $scholarship->id;
-
         return [
-            route('filament.admin.resources.scholarship-programs.showTrainingPrograms', ['record' => $scholarshipProgramId]) => $scholarship->name ?? 'Scholarship Programs',
+            route('filament.admin.resources.scholarship-programs.showTrainingPrograms', ['record' => $scholarship->id]) => $scholarship->name ?? 'Scholarship Programs',
             'Training Programs',
             'List'
         ];
@@ -31,10 +26,13 @@ class ShowTrainingPrograms extends ListRecords
 
     protected function getHeaderActions(): array
     {
+        $scholarshipProgramId = $this->getScholarshipProgramId();
+
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
                 ->label('New')
+                ->icon('heroicon-m-plus')
+                ->url(route('filament.admin.resources.training-programs.create', ['scholarship_program_id' => $scholarshipProgramId])),
         ];
     }
 
@@ -43,4 +41,3 @@ class ShowTrainingPrograms extends ListRecords
         return (int) request()->route('record');
     }
 }
-

@@ -58,8 +58,9 @@ class DistrictResource extends Resource
                     ->default(fn($get) => request()->get('municipality_id'))
                     ->native(false)
                     ->options(function () {
-                        $municipality = Municipality::where('name', '!=', 'Not Applicable')->pluck('name', 'id')->toArray();
-                        return !empty($municipality) ? $municipality : ['no_municipality' => 'No Municipality Available'];
+                        return Municipality::whereNot('name', 'Not Applicable')
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_municipality' => 'No Municipality Available'];
                     })
                     ->disableOptionWhen(fn ($value) => $value === 'no_municipality'),
             ]);
@@ -68,7 +69,7 @@ class DistrictResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No districts available')
+            ->emptyStateHeading('no districts available')
             ->columns([
                 TextColumn::make('name')
                     ->label('District')
@@ -89,46 +90,34 @@ class DistrictResource extends Resource
                     ->toggleable(),
             ])
             ->filters([
-                TrashedFilter::make()->label('Records'),
+                TrashedFilter::make()
+                    ->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed())
-                        ->successNotificationTitle('District updated successfully.')
-                        ->failureNotificationTitle('Failed to update the district.'),
-                    DeleteAction::make()
-                        ->successNotificationTitle('District deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete the district.'),
-                    RestoreAction::make()
-                        ->successNotificationTitle('District restored successfully.')
-                        ->failureNotificationTitle('Failed to restore the district.'),
-                    ForceDeleteAction::make()
-                        ->successNotificationTitle('District permanently deleted.')
-                        ->failureNotificationTitle('Failed to permanently delete the district.'),
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()
-                        ->successNotificationTitle('Districts deleted successfully.')
-                        ->failureNotificationTitle('Failed to delete districts.'),
-                    ForceDeleteBulkAction::make()
-                        ->successNotificationTitle('Districts permanently deleted.')
-                        ->failureNotificationTitle('Failed to permanently delete districts.'),
-                    RestoreBulkAction::make()
-                        ->successNotificationTitle('Districts restored successfully.')
-                        ->failureNotificationTitle('Failed to restore districts.'),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')->heading('District'),
-                                Column::make('municipality.name')->heading('Municipality'),
-                                Column::make('municipality.province.name')->heading('Province'),
-                                Column::make('municipality.province.region.name')->heading('Region'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - District')
-                    ]),
+                    DeleteBulkAction::make(),
+                    ForceDeleteBulkAction::make(),
+                    RestoreBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')->heading('District'),
+                                    Column::make('municipality.name')->heading('Municipality'),
+                                    Column::make('municipality.province.name')->heading('Province'),
+                                    Column::make('municipality.province.region.name')->heading('Region'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - District')
+                        ]),
                 ]),
             ]);
     }
@@ -139,7 +128,7 @@ class DistrictResource extends Resource
         $routeParameter = request()->route('record');
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-        ->where('name', '!=', 'Not Applicable');
+            ->whereNot('name', 'Not Applicable');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('municipality_id', (int) $routeParameter);

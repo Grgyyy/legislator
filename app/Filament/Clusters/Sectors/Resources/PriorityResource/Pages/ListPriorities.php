@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Filament\Resources\PriorityResource\Pages;
+namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
-use App\Filament\Resources\PriorityResource;
+use App\Filament\Clusters\Sectors\Resources\PriorityResource;
+use App\Imports\TenPrioImport;
+use Filament\Resources\Pages\ListRecords;
+use App\Services\NotificationHandler;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
-use App\Imports\TenPrioImport;
-use Maatwebsite\Excel\Facades\Excel;
-use Filament\Notifications\Notification;
 use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
 use Exception;
 
 class ListPriorities extends ListRecords
@@ -21,7 +21,7 @@ class ListPriorities extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            '/priorities' => 'Top Ten Priority Sectors',
+            '/sectors/priorities' => 'Top Ten Priority Sectors',
             'List'
         ];
     }
@@ -30,8 +30,9 @@ class ListPriorities extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->icon('heroicon-m-plus'),
+
             Action::make('TenPrioImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -40,19 +41,12 @@ class ListPriorities extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new TenPrioImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('Ten Priority Sector import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The priority sectors have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('Ten Priority Sector import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the priority sectors: ' . $e->getMessage());
                     }
                 }),
         ];

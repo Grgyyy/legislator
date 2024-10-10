@@ -31,7 +31,7 @@ class EditProvince extends EditRecord
         try {
             $record->update($data);
 
-            NotificationHandler::sendSuccessNotification('Province update successful', null);
+            NotificationHandler::sendSuccessNotification('Saved', 'Province has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
@@ -48,7 +48,7 @@ class EditProvince extends EditRecord
         $province = Province::withTrashed()
             ->where('name', $name)
             ->where('region_id', $regionId)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
         if ($province) {

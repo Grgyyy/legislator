@@ -3,29 +3,27 @@
 namespace App\Filament\Resources;
 
 use App\Models\TviType;
-use Filament\Forms\Form;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Actions\BulkActionGroup;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use App\Filament\Resources\TviTypeResource\Pages;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Resources\Resource;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\Filter;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TviTypeResource extends Resource
 {
@@ -44,20 +42,24 @@ class TviTypeResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
-                    ->required()
                     ->label('Institution Type')
+                    ->placeholder(placeholder: 'Enter institution type')
+                    ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->markAsRequired(false),
+                    ->validationAttribute('Institution Type'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No institution type yet')
+            ->emptyStateHeading('no institution types available')
             ->columns([
                 TextColumn::make('name')
                     ->label('Institution Types')
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -77,17 +79,23 @@ class TviTypeResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('name')
-                                    ->heading('Institution Type'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Institution Class (B)')
-                    ]),
-
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Institution Type'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Institution Class (B)')
+                        ]),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array
@@ -97,13 +105,5 @@ class TviTypeResource extends Resource
             'create' => Pages\CreateTviType::route('/create'),
             'edit' => Pages\EditTviType::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
     }
 }

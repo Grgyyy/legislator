@@ -1,8 +1,8 @@
 <?php
 namespace App\Filament\Resources\RegionResource\Pages;
 
-use App\Filament\Resources\ProvinceResource;
 use App\Models\Region;
+use App\Filament\Resources\ProvinceResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;
 
@@ -31,7 +31,7 @@ class ShowProvinces extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus')
-                ->url(route('filament.admin.resources.provinces.create', ['region_id' => $regionId]))
+                ->url(route('filament.admin.resources.provinces.create', ['region_id' => $regionId])),
         ];
     }
 

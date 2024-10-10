@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\FundSourceResource\Pages;
 
-use App\Filament\Resources\FundSourceResource;
 use App\Models\FundSource;
+use App\Filament\Resources\FundSourceResource;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -25,7 +25,7 @@ class EditFundSource extends EditRecord
         try {
             $record->update($data);
             
-            NotificationHandler::sendSuccessNotification('Fund source update successful', null);
+            NotificationHandler::sendSuccessNotification('Saved', 'Fund source has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
@@ -41,7 +41,7 @@ class EditFundSource extends EditRecord
     {
         $fundSource = FundSource::withTrashed()
             ->where('name', $name)
-            ->where('id', '!=', $currentId)
+            ->whereNot('id', $currentId)
             ->first();
 
         if ($fundSource) {

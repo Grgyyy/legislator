@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\AllocationResource\Pages;
 
 use App\Models\Allocation;
-use Illuminate\Support\Facades\DB;
 use App\Filament\Resources\AllocationResource;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Validation\ValidationException;
-use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\DB;
 
 class CreateAllocation extends CreateRecord
 {
@@ -20,10 +19,9 @@ class CreateAllocation extends CreateRecord
 
     protected function handleRecordCreation(array $data): Allocation
     {
-        return DB::transaction(function () use ($data) {
-            // $this->validateUniqueAllocation($data);
+        $this->validateUniqueAllocation($data);
 
-            return Allocation::create([
+        $allocation = DB::transaction(fn () => Allocation::create([
                 'soft_or_commitment' => $data['soft_or_commitment'],
                 'legislator_id' => $data['legislator_id'],
                 'particular_id' => $data['particular_id'],
@@ -32,41 +30,28 @@ class CreateAllocation extends CreateRecord
                 'admin_cost' => $data['admin_cost'],
                 'balance' => $data['allocation'] - $data['admin_cost'],
                 'year' => $data['year'],
-            ]);
-        });
+        ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Allocation has been created successfully.');
+
+        return $allocation;
     }
 
-    // protected function validateUniqueAllocation(array $data)
-    // {
-    //     $existingAllocation = Allocation::withTrashed()
-    //         ->where('legislator_id', $data['legislator_id'])
-    //         ->where('particular_id', $data['particular_id'])
-    //         ->where('scholarship_program_id', $data['scholarship_program_id'])
-    //         ->where('year', $data['year'])
-    //         ->first();
+    protected function validateUniqueAllocation(array $data)
+    {
+        $allocation = Allocation::withTrashed()
+            ->where('legislator_id', $data['legislator_id'])
+            ->where('particular_id', $data['particular_id'])
+            ->where('scholarship_program_id', $data['scholarship_program_id'])
+            ->where('year', $data['year'])
+            ->first();
 
-    //     if ($existingAllocation) {
-    //         $message = $existingAllocation->deleted_at
-    //             ? 'An Allocation with this combination exists and is marked as deleted. Data cannot be created.'
-    //             : 'An Allocation with this combination already exists.';
+        if ($allocation) {
+            $message = $allocation->deleted_at
+                ? 'This allocation with the provided details has been deleted and must be restored before reuse..'
+                : 'This Allocation with the provided details already exists.';
 
-    //         $this->handleValidationException($message);
-    //     }
-    // }
-
-    // protected function handleValidationException($message)
-    // {
-    //     Notification::make()
-    //         ->title('Error')
-    //         ->body($message)
-    //         ->danger()
-    //         ->send();
-
-    //     throw ValidationException::withMessages([
-    //         'legislator_id' => $message,
-    //         'particular_id' => $message,
-    //         'scholarship_program_id' => $message,
-    //         'year' => $message,
-    //     ]);
-    // }
+            $this->handleValidationException($message);
+        }
+    }
 }

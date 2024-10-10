@@ -12,9 +12,6 @@ class CreateMunicipality extends CreateRecord
 {
     protected static string $resource = MunicipalityResource::class;
 
-    /**
-     * Get the redirect URL after a municipality is created
-     */
     protected function getRedirectUrl(): string
     {
         $provinceId = $this->record->province_id;
@@ -30,10 +27,14 @@ class CreateMunicipality extends CreateRecord
     {
         $this->validateUniqueMunicipality($data['name'], $data['province_id']);
 
-        return DB::transaction(fn() => Municipality::create([
+        $municipality = DB::transaction(fn() => Municipality::create([
             'name' => $data['name'],
             'province_id' => $data['province_id'],
         ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Municipality has been created successfully.');
+
+        return $municipality;
     }
 
     protected function validateUniqueMunicipality($name, $provinceId)

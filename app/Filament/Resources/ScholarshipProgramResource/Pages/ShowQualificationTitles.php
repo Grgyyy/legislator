@@ -1,16 +1,14 @@
 <?php
 namespace App\Filament\Resources\ScholarshipProgramResource\Pages;
 
-use App\Filament\Resources\QualificationTitleResource;
 use App\Models\ScholarshipProgram;
-use Filament\Actions\CreateAction;
+use App\Filament\Resources\QualificationTitleResource;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\CreateAction;
 
 class ShowQualificationTitles extends ListRecords
 {
     protected static string $resource = QualificationTitleResource::class;
-
-    protected ?string $heading = 'Qualification Titles';
 
     public function getBreadcrumbs(): array
     {
@@ -31,8 +29,8 @@ class ShowQualificationTitles extends ListRecords
 
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
                 ->label('New')
+                ->icon('heroicon-m-plus')
                 ->url(route('filament.admin.resources.qualification_titles.create', ['scholarshipProgram_id' => $scholarshipProgramId]))
         ];
     }
@@ -42,4 +40,3 @@ class ShowQualificationTitles extends ListRecords
         return (int) request()->route('record');
     }
 }
-

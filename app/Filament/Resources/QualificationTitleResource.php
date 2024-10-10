@@ -2,37 +2,35 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms\Form;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use Filament\Forms\Components\Select;
-use Filament\Pages\Page;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Filters\TrashedFilter;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Filament\Resources\QualificationTitleResource\Pages;
-use App\Models\Status;
 use App\Models\TrainingProgram;
-use Filament\Forms\Components\Component;
+use App\Models\Status;
+use App\Filament\Resources\QualificationTitleResource\Pages;
+use Filament\Resources\Resource;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Pages\Page;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\Filter;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class QualificationTitleResource extends Resource
 {
@@ -51,6 +49,17 @@ class QualificationTitleResource extends Resource
                 Select::make('training_program_id')
                     ->label('Training Program')
                     ->relationship('trainingProgram', 'title')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function () {
+                        return TrainingProgram::all()
+                            ->pluck('title', 'id')
+                            ->toArray() ?: ['no_training_program' => 'No Training Program Available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_training_program')
                     ->afterStateUpdated(function (callable $set, $state) {
                         $set('scholarship_program_id', null);
 
@@ -62,18 +71,16 @@ class QualificationTitleResource extends Resource
                             $set('scholarship_program_id', key($scholarshipPrograms));
                         }
                     })
-                    ->options(function () {
-                        return TrainingProgram::all()->pluck('title', 'id')->toArray() ?: ['no_training_program' => 'No Training Program Available'];
-                    })
-                    ->live()
-                    ->preload()
-                    ->searchable()
+                    ->live(),
+
+                Select::make('scholarship_program_id')
+                    ->label('Scholarship Program')
+                    ->relationship('scholarshipProgram', 'name')
                     ->required()
                     ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
                     ->native(false)
-                    ->disableOptionWhen(fn($value) => $value === 'no_training_program'),
-                Select::make('scholarship_program_id')
-                    ->label('Scholarship Programs')
                     ->options(function ($get) {
                         $trainingProgramId = $get('training_program_id');
 
@@ -81,44 +88,43 @@ class QualificationTitleResource extends Resource
                             ? self::getScholarshipProgramsOptions($trainingProgramId)
                             : ['no_scholarship_program' => 'No scholarship program available. Select a training program first.'];
                     })
+                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                     ->reactive()
-                    ->preload()
-                    ->live()
-                    ->searchable()
-                    ->required()
-                    ->markAsRequired(false)
-                    ->native(false)
-                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
+                    ->live(),
+                    
                 TextInput::make('training_cost_pcc')
                     ->label('Training Cost PCC')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->default(0)
                     ->prefix('₱')
+                    ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+
                 TextInput::make('cost_of_toolkit_pcc')
                     ->label('Cost of Toolkit PCC')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->default(0)
                     ->prefix('₱')
+                    ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+
                 TextInput::make('training_support_fund')
                     ->label('Training Support Fund')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->default(0)
                     ->prefix('₱')
+                    ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+
                 TextInput::make('assessment_fee')
                     ->label('Assessment Fee')
                     ->required()
@@ -129,96 +135,106 @@ class QualificationTitleResource extends Resource
                     ->prefix('₱')
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                TextInput::make('entrepeneurship_fee')
-                    ->label('Entrepeneurship Fee')
+
+                TextInput::make('entrepreneurship_fee')
+                    ->label('Entrepreneurship Fee')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->default(0)
                     ->prefix('₱')
+                    ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+
                 TextInput::make('new_normal_assisstance')
                     ->label('New Normal Assisstance')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->default(0)
                     ->prefix('₱')
+                    ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                    
                 TextInput::make('accident_insurance')
                     ->label('Accident Insurance')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->default(0)
                     ->prefix('₱')
+                    ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+
                 TextInput::make('book_allowance')
                     ->label('Book Allowance')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->default(0)
                     ->prefix('₱')
+                    ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+
                 TextInput::make('uniform_allowance')
                     ->label('Uniform Allowance')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->default(0)
                     ->prefix('₱')
+                    ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                    
                 TextInput::make('misc_fee')
                     ->label('Miscellaneous Fee')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->default(0)
                     ->prefix('₱')
+                    ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+
                 TextInput::make('hours_duration')
-                    ->label('Hours duration')
+                    ->label('Hours Duration')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
+                    ->suffix('hrs')
                     ->default(0)
-                    ->minValue(0)
-                    ->suffix('hrs'),
+                    ->minValue(0),
+
                 TextInput::make('days_duration')
                     ->label('Days Duration')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
+                    ->suffix('day(s)')
                     ->default(0)
-                    ->minValue(0)
-                    ->suffix('day(s)'),
+                    ->minValue(0),
+
                 Select::make('status_id')
                     ->label('Status')
+                    ->relationship('status', 'desc')
                     ->required()
                     ->markAsRequired(false)
+                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
+                    ->default(1)
                     ->native(false)
                     ->options(function () {
-                        $status = Status::all()->pluck('desc', 'id')->toArray();
-                        return !empty($status) ? $status : ['no_status' => 'No Status Available'];
+                        return Status::all()
+                            ->pluck('desc', 'id')
+                            ->toArray() ?: ['no_status' => 'No Status Available'];
                     })
-                    ->default(1)
-                    ->relationship('status', 'desc')
-                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
                     ->disableOptionWhen(fn($value) => $value === 'no_status'),
             ]);
     }
@@ -226,157 +242,166 @@ class QualificationTitleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No qualification titles yet')
+            ->emptyStateHeading('no qualification titles available')
             ->columns([
                 TextColumn::make('trainingProgram.code')
                     ->label('Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('trainingProgram.title')
                     ->label('Qualification Title')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('scholarshipProgram.name')
                     ->label('Scholarship Program')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make("training_cost_pcc")
                     ->label("Training Cost PCC")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
+
                 TextColumn::make("cost_of_toolkit_pcc")
                     ->label("Cost of Toolkit PCC")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
+
                 TextColumn::make("training_support_fund")
                     ->label("Training Support Fund")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
+
                 TextColumn::make("assessment_fee")
                     ->label("Assessment Fee")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
-                TextColumn::make("entrepeneurship_fee")
-                    ->label("Entrepeneurship Fee")
+                    }),
+
+                TextColumn::make("entrepreneurship_fee")
+                    ->label("Entrepreneurship Fee")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
+
                 TextColumn::make("new_normal_assisstance")
                     ->label("New Normal Assistance")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
+
                 TextColumn::make("accident_insurance")
                     ->label("Accidental Insurance")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
+
                 TextColumn::make("book_allowance")
                     ->label("Book Allowance")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
+
                 TextColumn::make("uniform_allowance")
                     ->label("Uniform Allowance")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
+
                 TextColumn::make("misc_fee")
                     ->label("Miscellaneous Fee")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
+
                 TextColumn::make("pcc")
                     ->label("Total PCC")
                     ->sortable()
                     ->toggleable()
+                    ->prefix('₱ ')
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
-                    })
-                    ->prefix('₱ '),
+                    }),
+
                 TextColumn::make('hours_duration')
-                    ->label('No. of Training Hours')
+                    ->label('Training Hours')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->suffix(' hrs'),
+                    ->formatStateUsing(function ($state) {
+                        $suffix = $state == 1 ? ' hr' : ' hrs';
+
+                        return $state . $suffix;
+                    }),
+
                 TextColumn::make('days_duration')
-                    ->label('No. of Training Days')
+                    ->label('Training Days')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->suffix(' days'),
+                    ->formatStateUsing(function ($state) {
+                        $suffix = $state == 1 ? ' day' : ' days';
+                        
+                        return $state . $suffix;
+                    }),
+
                 TextColumn::make("status.desc")
+                    ->searchable()
                     ->toggleable(),
             ])
             ->filters([
-                Filter::make('status')
-                    ->form([
-                        Select::make('status_id')
-                            ->label('Status')
-                            ->options([
-                                'all' => 'All',
-                                '1' => 'Active',
-                                '2' => 'Inactive',
-                                'deleted' => 'Recently Deleted',
-                            ])
-                            ->default('all')
-                            ->selectablePlaceholder(false),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['status_id'] === 'all',
-                                fn(Builder $query): Builder => $query->whereNull('deleted_at')
-                            )
-                            ->when(
-                                $data['status_id'] === 'deleted',
-                                fn(Builder $query): Builder => $query->whereNotNull('deleted_at')
-                            )
-                            ->when(
-                                $data['status_id'] === '1',
-                                fn(Builder $query): Builder => $query->where('status_id', 1)->whereNull('deleted_at')
-                            )
-                            ->when(
-                                $data['status_id'] === '2',
-                                fn(Builder $query): Builder => $query->where('status_id', 2)->whereNull('deleted_at')
-                            );
-                    }),
+                TrashedFilter::make()
+                    ->label('Records'),
+
+                SelectFilter::make('training_program')
+                    ->label('Training Program')
+                    ->relationship('trainingProgram', 'title'),
+
+                SelectFilter::make('scholarship_program')
+                    ->label('Scholarship Program')
+                    ->relationship('scholarshipProgram', 'name'),
+                
+                SelectFilter::make('status')
+                    ->label('Status')
+                    ->relationship('status', 'desc'),
             ])
             ->actions([
                 ActionGroup::make([
@@ -392,59 +417,79 @@ class QualificationTitleResource extends Resource
                     DeleteBulkAction::make(),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make(),
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('TrainingProgram.code')
-                                    ->heading('Qualification Code'),
-                                Column::make('TrainingProgram.title')
-                                    ->heading('Qualification Title'),
-                                Column::make('ScholarshipProgram.name')
-                                    ->heading('Scholarship Program'),
-                                Column::make('training_cost_pcc')
-                                    ->heading('Training Cost PCC')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('cost_of_toolkit_pcc')
-                                    ->heading('Cost of Toolkit PCC')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('training_support_fund')
-                                    ->heading('Training Support Fund')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('assessment_fee')
-                                    ->heading('Assessment Fee')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('entrepeneurship_fee')
-                                    ->heading('Entrepreneurship fee')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('new_normal_assisstance')
-                                    ->heading('New normal assistance')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('accident_insurance')
-                                    ->heading('Accidental Insurance')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('book_allowance')
-                                    ->heading('Book Allowance')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('uniform_allowance')
-                                    ->heading('Uniform Allowance')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('misc_fee')
-                                    ->heading('Miscellaneous Fee')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('pcc')
-                                    ->heading('Total PCC')
-                                    ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                Column::make('hours_duration')
-                                    ->heading('Duration (Hrs)'),
-                                Column::make('days_duration')
-                                    ->heading('No. of Training Days'),
-                                Column::make('status.desc')
-                                    ->heading('Status'),
-                            ])
-                            ->withFilename(date('m-d-Y') . ' - Qualification Titles')
-                    ]),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('TrainingProgram.code')
+                                        ->heading('Qualification Code'),
+                                    Column::make('TrainingProgram.title')
+                                        ->heading('Qualification Title'),
+                                    Column::make('ScholarshipProgram.name')
+                                        ->heading('Scholarship Program'),
+                                    Column::make('training_cost_pcc')
+                                        ->heading('Training Cost PCC')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('cost_of_toolkit_pcc')
+                                        ->heading('Cost of Toolkit PCC')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('training_support_fund')
+                                        ->heading('Training Support Fund')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('assessment_fee')
+                                        ->heading('Assessment Fee')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('entrepreneurship_fee')
+                                        ->heading('Entrepreneurship fee')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('new_normal_assisstance')
+                                        ->heading('New normal assistance')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('accident_insurance')
+                                        ->heading('Accidental Insurance')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('book_allowance')
+                                        ->heading('Book Allowance')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('uniform_allowance')
+                                        ->heading('Uniform Allowance')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('misc_fee')
+                                        ->heading('Miscellaneous Fee')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('pcc')
+                                        ->heading('Total PCC')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('hours_duration')
+                                        ->heading('Duration (Hrs)'),
+                                    Column::make('days_duration')
+                                        ->heading('No. of Training Days'),
+                                    Column::make('status.desc')
+                                        ->heading('Status'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Qualification Titles')
+                        ]),
                 ]),
             ]);
+    }
+    
+    public static function getScholarshipProgramsOptions($trainingProgramId): array
+    {
+        if (!$trainingProgramId) {
+            return ['no_training_program' => 'No Training Program Available'];
+        }
+
+        return ScholarshipProgram::whereHas('trainingPrograms', function ($query) use ($trainingProgramId) {
+            $query->where('training_programs.id', $trainingProgramId);
+        })
+            ->pluck('name', 'id')
+            ->toArray();
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array
@@ -454,32 +499,5 @@ class QualificationTitleResource extends Resource
             'create' => Pages\CreateQualificationTitle::route('/create'),
             'edit' => Pages\EditQualificationTitle::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ]);
-    }
-
-    /**
-     * Get available scholarship programs options based on selected training program.
-     *
-     * @param int|null $trainingProgramId
-     * @return array
-     */
-    public static function getScholarshipProgramsOptions($trainingProgramId): array
-    {
-        if (!$trainingProgramId) {
-            return [];
-        }
-
-        return ScholarshipProgram::whereHas('trainingPrograms', function ($query) use ($trainingProgramId) {
-            $query->where('training_programs.id', $trainingProgramId);
-        })
-            ->pluck('name', 'id')
-            ->toArray();
     }
 }

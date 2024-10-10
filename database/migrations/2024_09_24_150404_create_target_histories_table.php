@@ -37,7 +37,7 @@ return new class extends Migration
                 ->default(0);
             $table->integer('total_assessment_fee')
                 ->default(0);
-            $table->integer('total_entrepeneurship_fee')
+            $table->integer('total_entrepreneurship_fee')
                 ->default(0);
             $table->integer('total_new_normal_assisstance')
                 ->default(0);

@@ -2,17 +2,15 @@
 
 namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
-use Filament\Actions;
-use Filament\Actions\Action;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\TrainingProgramsImport;
-use Filament\Notifications\Notification;
-use Filament\Forms\Components\FileUpload;
-use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\TrainingProgramResource;
-use Illuminate\Support\Facades\Redirect;
-use Exception;
+use App\Imports\TrainingProgramsImport;
+use App\Services\NotificationHandler;
+use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ListTrainingPrograms extends ListRecords
 {
@@ -21,9 +19,9 @@ class ListTrainingPrograms extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()
-                ->icon('heroicon-m-plus')
-                ->label('New'),
+            CreateAction::make()  
+                ->label('New')
+                ->icon('heroicon-m-plus'),
 
             Action::make('TrainingProgramsImport')
                 ->label('Import')
@@ -33,19 +31,12 @@ class ListTrainingPrograms extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
+                    
                     try {
                         Excel::import(new TrainingProgramsImport, $file);
-                        Notification::make()
-                            ->title('Import Successful')
-                            ->body('Training Program import successful!')
-                            ->success()
-                            ->send();
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The training programs have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Import Failed')
-                            ->body('Training Program import failed: ' . $e->getMessage())
-                            ->danger()
-                            ->send();
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the training programs: ' . $e->getMessage());
                     }
                 }),
         ];
