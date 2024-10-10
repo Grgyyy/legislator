@@ -127,7 +127,7 @@ class LegislatorImport implements ToModel, WithHeadingRow
             throw new \Exception("The {$particularName} particular type does not exist."); 
         }
 
-        if($particularRecord->name === 'Partylist') {
+        if($particularRecord->name === 'Party-list') {
             $partylistRecord = Partylist::where('name', $partylistName)
                 ->whereNull('deleted_at')
                 ->first();
