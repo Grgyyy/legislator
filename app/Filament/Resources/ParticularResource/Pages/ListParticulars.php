@@ -95,13 +95,13 @@ class ListParticulars extends ListRecords
                             ->where('name', 'District');
                     })->count();
                 }),
-            'Party-List' => Tab::make()
+            'Party-list' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
                         $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();
                         $LegisId = $LegisRecord->id;
                         $subQuery->where('fund_source_id', $LegisId)
-                            ->where('name', 'Partylist');
+                            ->where('name', 'Party-list');
                     });
                 })
                 ->badge(function () {
@@ -109,7 +109,7 @@ class ListParticulars extends ListRecords
                         $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();
                         $LegisId = $LegisRecord->id;
                         $subQuery->where('fund_source_id', $LegisId)
-                            ->where('name', 'Partylist');
+                            ->where('name', 'Party-list');
                     })->count();
                 }),
             'House Speaker' => Tab::make()

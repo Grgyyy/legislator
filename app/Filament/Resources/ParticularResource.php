@@ -112,7 +112,7 @@ class ParticularResource extends Resource
                     ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
                 
                 TextColumn::make("partylist.name")
-                    ->label('Party-List')
+                    ->label('Party-list')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
@@ -217,7 +217,7 @@ class ParticularResource extends Resource
             return ['no_administrative_area' => 'No Administrative Area Available'];
         }
     
-        if ($subParticular->name === 'Partylist') {
+        if ($subParticular->name === 'Party-list') {
             return Partylist::whereNot('name', 'Not Applicable')
                 ->pluck('name', 'id')
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];

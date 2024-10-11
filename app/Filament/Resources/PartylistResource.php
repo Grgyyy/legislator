@@ -34,7 +34,7 @@ class PartylistResource extends Resource
 
     protected static ?string $navigationParentItem = "Fund Sources";
 
-    protected static ?string $navigationLabel = "Party-Lists";
+    protected static ?string $navigationLabel = "Party-lists";
 
     protected static ?int $navigationSort = 1;
 
@@ -43,12 +43,12 @@ class PartylistResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
-                    ->label('Party-List')
+                    ->label('Party-list')
                     ->placeholder(placeholder: 'Enter party-list name')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Party-List'),
+                    ->validationAttribute('Party-list'),
             ]);
     }
 
@@ -58,7 +58,7 @@ class PartylistResource extends Resource
             ->emptyStateHeading('no party-lists available')
             ->columns([
                 TextColumn::make('name')
-                    ->label('Party-List')
+                    ->label('Party-list')
                     ->sortable()
                     ->searchable(),
             ])
@@ -115,9 +115,9 @@ class PartylistResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('Party-List'),
+                                        ->heading('Party-list'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Party-List'),
+                                ->withFilename(date('m-d-Y') . ' - Party-list'),
                         ]),
                 ])
             ]);

@@ -144,11 +144,11 @@ class SubParticularResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('Party Type'),
+                                        ->heading('Particular Type'),
                                     Column::make('fundSource.name')
                                         ->heading('Fund Source'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Party Types'),
+                                ->withFilename(date('m-d-Y') . ' - Particular Types'),
                         ]),
                 ])
             ]);

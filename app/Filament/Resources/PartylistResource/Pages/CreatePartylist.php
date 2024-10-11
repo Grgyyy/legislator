@@ -12,12 +12,12 @@ class CreatePartylist extends CreateRecord
 {
     protected static string $resource = PartylistResource::class;
 
-    protected static ?string $title = 'Create Party-List';
+    protected static ?string $title = 'Create Party-list';
     
     public function getBreadcrumbs(): array
     {
         return [
-            '/partylists' => 'Party-Lists',
+            '/partylists' => 'Party-lists',
             'Create'
         ];
     }

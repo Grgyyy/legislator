@@ -220,7 +220,7 @@ class AllocationResource extends Resource
 
                         $subParticular = $particular->subParticular->name;
 
-                        if ($subParticular === 'Partylist') {
+                        if ($subParticular === 'Party-list') {
                             $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}";
                         } elseif ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
                             $formattedName = "{$particular->subParticular->name}";
@@ -382,7 +382,7 @@ class AllocationResource extends Resource
 
                                             $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
 
-                                            if ($subParticular === 'Partylist') {
+                                            if ($subParticular === 'Party-list') {
                                                 return "{$subParticular} - {$particular->partylist->name}";
                                             } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
                                                 return "{$subParticular}";
@@ -430,7 +430,7 @@ class AllocationResource extends Resource
 
             if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
                 $formattedName = "{$particular->subParticular->name}";
-            } elseif ($subParticular === 'Partylist') {
+            } elseif ($subParticular === 'Party-list') {
                 $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}";
             } else {
                 $formattedName = "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";

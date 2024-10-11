@@ -175,7 +175,7 @@ class LegislatorResource extends Resource
 
                                                 if (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
                                                     $formattedName = "{$subParticular}";
-                                                } elseif ($subParticular === 'Partylist') {
+                                                } elseif ($subParticular === 'Party-list') {
                                                     $formattedName = "{$subParticular} - {$particular->partylist->name}";
                                                 } else {
                                                     $districtName = $district ? $district->name : '';
@@ -211,7 +211,7 @@ class LegislatorResource extends Resource
 
         if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
             $formattedName = "{$item->subParticular->name}";
-        } elseif ($subParticular === 'Partylist') {
+        } elseif ($subParticular === 'Party-list') {
             $formattedName = "{$item->subParticular->name} - {$item->partylist->name}";
         } else {
             $formattedName = "{$item->subParticular->name} - {$item->district->name}, {$item->district->municipality->name}";
@@ -229,7 +229,7 @@ class LegislatorResource extends Resource
             
             $comma = ($index < $record->particular->count() - 1) ? ',' : '';
 
-            if ($particular->subParticular->name === 'Partylist') {
+            if ($particular->subParticular->name === 'Party-list') {
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $particular->partylist->name . $comma . '</div>';
             } elseif (in_array($particular->subParticular->name, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . $comma . '</div>';
