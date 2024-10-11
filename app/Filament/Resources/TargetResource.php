@@ -471,7 +471,7 @@ class TargetResource extends Resource
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
 
                         if ($districtName === 'Not Applicable') {
-                            if ($particular->subParticular && $particular->subParticular->name === 'Partylist') {
+                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
                             } else {
                                 return $particular->subParticular->name ?? 'Unknown SubParticular';
@@ -687,7 +687,7 @@ class TargetResource extends Resource
             ->mapWithKeys(function ($particular) {
 
                 if ($particular->district->name === 'Not Applicable') {
-                    if ($particular->subParticular->name === 'Partylist') {
+                    if ($particular->subParticular->name === 'Party-list') {
                         return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
                     } else {
                         return [$particular->id => $particular->subParticular->name];
@@ -782,7 +782,7 @@ class TargetResource extends Resource
 
         $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
 
-        if ($subParticular === 'Partylist') {
+        if ($subParticular === 'Party-list') {
             return "{$subParticular} - {$particular->partylist->name}";
         } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
             return "{$subParticular}";

@@ -179,8 +179,7 @@ class AllocationImport implements ToModel, WithHeadingRow
         if (!$particularRecord) {
             throw new \Exception("The {$particularName} particular type does not exist."); 
         }
-    
-        // Adjust the check to match the correct spelling
+
         if($particularRecord->name === 'Party-list') {
             $partylistRecord = Partylist::where('name', $partylistName)
                 ->whereNull('deleted_at')
@@ -200,8 +199,7 @@ class AllocationImport implements ToModel, WithHeadingRow
         }
         
         return $partylistRecord->id;  
-    }
-    
+    }    
 
     protected function getParticularId($sub_particular_id, $partylist_id, $district_id) {
         $particularRecord = Particular::where('sub_particular_id', $sub_particular_id)

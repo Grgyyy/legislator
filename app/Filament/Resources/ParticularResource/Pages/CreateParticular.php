@@ -69,8 +69,8 @@ class CreateParticular extends CreateRecord
 
                 $particularData = [
                     'sub_particular_id' => $data['sub_particular_id'],
-                    'partylist_id' => $subParticular->name === 'Partylist' ||  $subParticular->fundSource->name === 'Partylist' ? $data['administrative_area'] : $partylist->id,
-                    'district_id' => $subParticular->name === 'Partylist' ||  $subParticular->fundSource->name === 'Partylist' ? $district->id : $data['administrative_area'],
+                    'partylist_id' => $subParticular->name === 'Party-list' ||  $subParticular->fundSource->name === 'Party-list' ? $data['administrative_area'] : $partylist->id,
+                    'district_id' => $subParticular->name === 'Party-list' ||  $subParticular->fundSource->name === 'Party-list' ? $district->id : $data['administrative_area'],
                 ];
 
                 $particular = Particular::create($particularData);

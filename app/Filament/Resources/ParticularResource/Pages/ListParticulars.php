@@ -95,7 +95,7 @@ class ListParticulars extends ListRecords
                             ->where('name', 'District');
                     })->count();
                 }),
-            'Party-List' => Tab::make()
+            'Party-list' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
                         $LegisRecord = FundSource::where('name', 'CO Legislator Funds')->first();

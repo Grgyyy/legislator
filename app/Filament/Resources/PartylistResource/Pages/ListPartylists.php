@@ -16,12 +16,12 @@ class ListPartylists extends ListRecords
 {
     protected static string $resource = PartylistResource::class;
 
-    protected static ?string $title = 'Party-List';
+    protected static ?string $title = 'Party-list';
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/partylists' => 'Party-Lists',
+            '/partylists' => 'Party-lists',
             'List'
         ];
     }
