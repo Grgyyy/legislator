@@ -14,8 +14,8 @@ class ListUsers extends ListRecords
     {
         return [
             CreateAction::make()
-                ->icon('heroicon-m-plus')
                 ->label('New')
+                ->icon('heroicon-m-plus')
         ];
     }
 }

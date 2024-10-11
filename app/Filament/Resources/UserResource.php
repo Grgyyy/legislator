@@ -2,25 +2,23 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
+use App\Filament\Resources\UserResource\Pages;
 use App\Services\NotificationHandler;
-use Filament\Forms\Components\Select;
+use Filament\Resources\Resource;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
-use Filament\Resources\Resource;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -40,32 +38,43 @@ class UserResource extends Resource
         return $form
             ->schema([
                 TextInput::make("name")
+                    ->placeholder('Enter user full name')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->markAsRequired(false),
+                    ->validationAttribute('Name'),
+
                 TextInput::make("email")
+                    ->placeholder('Enter user email')
                     ->email()
                     ->required()
                     ->markAsRequired(false)
-                    ->autocomplete(false),
+                    ->autocomplete(false)
+                    ->validationAttribute('Email'),
+
                 TextInput::make("password")
+                    ->placeholder('Enter password')
                     ->password()
+                    ->required(fn(string $context): bool => $context === 'create')
                     ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->revealable()
+                    ->length(8)
                     ->dehydrateStateUsing(fn($state) => Hash::make($state))
                     ->dehydrated(fn($state) => filled($state))
-                    ->required(fn(string $context): bool => $context === 'create'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('No users yet')
+            ->emptyStateHeading('No users available')
             ->columns([
                 TextColumn::make("name")
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make("email")
                     ->searchable()
                     ->toggleable(),
@@ -122,6 +131,15 @@ class UserResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ])
+            ->whereNot('id', Auth::id());
+    } 
+
     public static function getPages(): array
     {
         return [
@@ -129,14 +147,5 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([
-                SoftDeletingScope::class,
-            ])
-            ->where('id', '!=', Auth::id());
     }
 }
