@@ -13,12 +13,12 @@ class EditPartylist extends EditRecord
 {
     protected static string $resource = PartylistResource::class;
 
-    protected static ?string $title = 'Edit Party-List';
+    protected static ?string $title = 'Edit Party-list';
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/partylists' => 'Party-Lists',
+            '/partylists' => 'Party-lists',
             'Edit'
         ];
     }

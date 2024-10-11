@@ -6,6 +6,7 @@ use App\Models\Legislator;
 use App\Models\Particular;
 use App\Models\Status;
 use App\Filament\Resources\LegislatorResource\Pages;
+use App\Services\NotificationHandler;
 use Filament\Resources\Resource;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Pages\Page;
@@ -112,16 +113,46 @@ class LegislatorResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Legislator has been deleted successfully.');
+                        }),
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $record->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Legislator has been restored successfully.');
+                        }),
+                    ForceDeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Legislator has been deleted permanently.');
+                        }),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected legislators have been deleted successfully.');
+                        }),
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected legislators have been restored successfully.');
+                        }),
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected legislators have been deleted permanently.');
+                        }),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -144,7 +175,7 @@ class LegislatorResource extends Resource
 
                                                 if (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
                                                     $formattedName = "{$subParticular}";
-                                                } elseif ($subParticular === 'Partylist') {
+                                                } elseif ($subParticular === 'Party-list') {
                                                     $formattedName = "{$subParticular} - {$particular->partylist->name}";
                                                 } else {
                                                     $districtName = $district ? $district->name : '';
@@ -180,7 +211,7 @@ class LegislatorResource extends Resource
 
         if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
             $formattedName = "{$item->subParticular->name}";
-        } elseif ($subParticular === 'Partylist') {
+        } elseif ($subParticular === 'Party-list') {
             $formattedName = "{$item->subParticular->name} - {$item->partylist->name}";
         } else {
             $formattedName = "{$item->subParticular->name} - {$item->district->name}, {$item->district->municipality->name}";
@@ -198,7 +229,7 @@ class LegislatorResource extends Resource
             
             $comma = ($index < $record->particular->count() - 1) ? ',' : '';
 
-            if ($particular->subParticular->name === 'Partylist') {
+            if ($particular->subParticular->name === 'Party-list') {
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $particular->partylist->name . $comma . '</div>';
             } elseif (in_array($particular->subParticular->name, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . $comma . '</div>';

@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Models\FundSource;
 use App\Filament\Resources\FundSourceResource\Pages;
+use App\Services\NotificationHandler;
 use Filament\Resources\Resource;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -67,16 +68,46 @@ class FundSourceResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Fund source has been deleted successfully.');
+                        }),
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $record->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Fund source has been restored successfully.');
+                        }),
+                    ForceDeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Fund source has been deleted permanently.');
+                        }),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected fund sources have been deleted successfully.');
+                        }),
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected fund sources have been restored successfully.');
+                        }),
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected fund sources have been deleted permanently.');
+                        }),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

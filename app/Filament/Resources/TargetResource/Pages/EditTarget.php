@@ -72,7 +72,7 @@ class EditTarget extends EditRecord
                 'total_cost_of_toolkit_pcc' => $record->total_cost_of_toolkit_pcc,
                 'total_training_support_fund' => $record->total_training_support_fund,
                 'total_assessment_fee' => $record->total_assessment_fee,
-                'total_entrepreneurship_fee' => $record->total_entrepeneurship_fee,
+                'total_entrepreneurship_fee' => $record->total_entrepreneurship_fee,
                 'total_new_normal_assisstance' => $record->total_new_normal_assisstance,
                 'total_accident_insurance' => $record->total_accident_insurance,
                 'total_book_allowance' => $record->total_book_allowance,

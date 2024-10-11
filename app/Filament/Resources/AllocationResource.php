@@ -6,6 +6,7 @@ use App\Models\Allocation;
 use App\Models\ScholarshipProgram;
 use App\Models\Legislator;
 use App\Filament\Resources\AllocationResource\Pages;
+use App\Services\NotificationHandler;
 use Filament\Resources\Resource;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -219,7 +220,7 @@ class AllocationResource extends Resource
 
                         $subParticular = $particular->subParticular->name;
 
-                        if ($subParticular === 'Partylist') {
+                        if ($subParticular === 'Party-list') {
                             $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}";
                         } elseif ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
                             $formattedName = "{$particular->subParticular->name}";
@@ -314,16 +315,46 @@ class AllocationResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Allocation has been deleted successfully.');
+                        }),
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $record->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Allocation has been restored successfully.');
+                        }),
+                    ForceDeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Allocation has been deleted permanently.');
+                        }),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected allocations have been deleted successfully.');
+                        }),
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected allocations have been restored successfully.');
+                        }),
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected allocations have been deleted permanently.');
+                        }),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -351,7 +382,7 @@ class AllocationResource extends Resource
 
                                             $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
 
-                                            if ($subParticular === 'Partylist') {
+                                            if ($subParticular === 'Party-list') {
                                                 return "{$subParticular} - {$particular->partylist->name}";
                                             } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
                                                 return "{$subParticular}";
@@ -399,7 +430,7 @@ class AllocationResource extends Resource
 
             if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
                 $formattedName = "{$particular->subParticular->name}";
-            } elseif ($subParticular === 'Partylist') {
+            } elseif ($subParticular === 'Party-list') {
                 $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}";
             } else {
                 $formattedName = "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";

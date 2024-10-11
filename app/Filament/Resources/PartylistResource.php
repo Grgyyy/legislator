@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Models\Partylist;
 use App\Filament\Resources\PartylistResource\Pages;
+use App\Services\NotificationHandler;
 use Filament\Resources\Resource;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -33,7 +34,7 @@ class PartylistResource extends Resource
 
     protected static ?string $navigationParentItem = "Fund Sources";
 
-    protected static ?string $navigationLabel = "Party-Lists";
+    protected static ?string $navigationLabel = "Party-lists";
 
     protected static ?int $navigationSort = 1;
 
@@ -42,12 +43,12 @@ class PartylistResource extends Resource
         return $form
             ->schema([
                 TextInput::make('name')
-                    ->label('Party-List')
+                    ->label('Party-list')
                     ->placeholder(placeholder: 'Enter party-list name')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Party-List'),
+                    ->validationAttribute('Party-list'),
             ]);
     }
 
@@ -57,7 +58,7 @@ class PartylistResource extends Resource
             ->emptyStateHeading('no party-lists available')
             ->columns([
                 TextColumn::make('name')
-                    ->label('Party-List')
+                    ->label('Party-list')
                     ->sortable()
                     ->searchable(),
             ])
@@ -69,24 +70,54 @@ class PartylistResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Party-list has been deleted successfully.');
+                        }),
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $record->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Party-list has been restored successfully.');
+                        }),
+                    ForceDeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Party-list has been deleted permanently.');
+                        }),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected party-lists have been deleted successfully.');
+                        }),
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected party-lists have been restored successfully.');
+                        }),
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected party-lists have been deleted permanently.');
+                        }),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('Party-List'),
+                                        ->heading('Party-list'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Party-List'),
+                                ->withFilename(date('m-d-Y') . ' - Party-list'),
                         ]),
                 ])
             ]);

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Models\Province;
 use App\Models\Region;
 use App\Filament\Resources\ProvinceResource\Pages;
+use App\Services\NotificationHandler;
 use Filament\Resources\Resource;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -90,16 +91,46 @@ class ProvinceResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Province has been deleted successfully.');
+                        }),
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $record->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Province has been restored successfully.');
+                        }),
+                    ForceDeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Province has been deleted permanently.');
+                        }),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected provinces have been deleted successfully.');
+                        }),
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected provinces have been restored successfully.');
+                        }),
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected provinces have been deleted permanently.');
+                        }),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

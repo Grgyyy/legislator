@@ -94,7 +94,7 @@ class TargetHistoryResource extends Resource
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
 
                         if ($districtName === 'Not Applicable') {
-                            if ($particular->subParticular && $particular->subParticular->name === 'Partylist') {
+                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
                             } else {
                                 return $particular->subParticular->name ?? 'Unknown SubParticular';
