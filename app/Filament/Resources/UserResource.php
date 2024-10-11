@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Models\User;
 use App\Filament\Resources\UserResource\Pages;
 use App\Services\NotificationHandler;
+use Closure;
 use Filament\Resources\Resource;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -55,13 +56,19 @@ class UserResource extends Resource
                 TextInput::make("password")
                     ->placeholder('Enter password')
                     ->password()
+                    ->revealable()
                     ->required(fn(string $context): bool => $context === 'create')
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->revealable()
-                    ->length(8)
                     ->dehydrateStateUsing(fn($state) => Hash::make($state))
                     ->dehydrated(fn($state) => filled($state))
+                    ->regex('/^[A-Za-z0-9]+$/')
+                    ->minValue(8)
+                    ->validationAttribute('Password')
+                    ->validationMessages([
+                        'regex' => 'The password must not contain special characters.',
+                        'min' => 'Password must be at least 8 characters long.'
+                    ])
             ]);
     }
 
