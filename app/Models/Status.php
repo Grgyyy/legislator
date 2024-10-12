@@ -15,7 +15,8 @@ class Status extends Model
     ];
 
 
-    public function legislator() {
+    public function legislator()
+    {
         return $this->hasMany(Legislator::class);
     }
 
@@ -25,11 +26,13 @@ class Status extends Model
         return $this->hasMany(QualificationTitle::class);
     }
 
-    public function scholarshipPrograms() {
+    public function scholarshipPrograms()
+    {
         return $this->hasMany(ScholarshipProgram::class);
     }
 
-    public function tvis() {
+    public function tvis()
+    {
         return $this->hasMany(Tvi::class);
     }
 }

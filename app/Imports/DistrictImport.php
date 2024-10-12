@@ -36,7 +36,7 @@ class DistrictImport implements ToModel, WithHeadingRow
                     ->where('municipality_id', $municipality_id)
                     ->exists();
 
-                if(!$districtIsExist) {
+                if (!$districtIsExist) {
                     return new District([
                         'name' => $row['district'],
                         'municipality_id' => $municipality_id,
@@ -64,8 +64,8 @@ class DistrictImport implements ToModel, WithHeadingRow
     public function getRegionId(string $regionName)
     {
         $region = Region::where('name', $regionName)
-                    ->whereNull('deleted_at')
-                    ->first();
+            ->whereNull('deleted_at')
+            ->first();
 
         if (!$region) {
             throw new \Exception("Region with name '{$regionName}' not found. No changes were saved.");
