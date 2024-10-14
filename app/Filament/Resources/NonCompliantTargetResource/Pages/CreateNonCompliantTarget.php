@@ -86,7 +86,7 @@ class CreateNonCompliantTarget extends CreateRecord
             'total_cost_of_toolkit_pcc' => $targetRecord->total_cost_of_toolkit_pcc,
             'total_training_support_fund' => $targetRecord->total_training_support_fund,
             'total_assessment_fee' => $targetRecord->total_assessment_fee,
-            'total_entrepeneurship_fee' => $targetRecord->total_entrepeneurship_fee,
+            'total_entrepreneurship_fee' => $targetRecord->total_entrepreneurship_fee,
             'total_new_normal_assistance' => $targetRecord->total_new_normal_assistance,
             'total_accident_insurance' => $targetRecord->total_accident_insurance,
             'total_book_allowance' => $targetRecord->total_book_allowance ?? 0,
