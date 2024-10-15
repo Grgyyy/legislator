@@ -81,6 +81,7 @@ class EditTarget extends EditRecord
                 'total_amount' => $record->total_amount,
                 'appropriation_type' => $record->appropriation_type,
                 'target_status_id' => $record->target_status_id,
+                'description' => 'Target Edited',
             ]);
 
             $existingTotalAmount = $record->total_amount ?? 0;

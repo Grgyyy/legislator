@@ -62,10 +62,10 @@ class TargetResource extends Resource
                                     ->whereNull('deleted_at')
                                     ->has('allocation')
                                     ->pluck('name', 'id')
-                                    ->toArray() ?: ['no_legislators' => 'No Legislator Available'];
+                                    ->toArray() ?: ['no_legislators' => 'No legislator available'];
                             })
-                            ->dehydrated()
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(),
 
                         Select::make('particular_id')
                             ->label('Particular')
@@ -76,10 +76,10 @@ class TargetResource extends Resource
 
                                 return $legislatorId
                                     ? self::getParticularOptions($legislatorId)
-                                    : ['no_particular' => 'No Particular Available.'];
+                                    : ['no_particular' => 'No particular available'];
                             })
-                            ->dehydrated()
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(),
 
                         Select::make('scholarship_program_id')
                             ->label('Scholarship Program')
@@ -91,10 +91,10 @@ class TargetResource extends Resource
 
                                 return $legislatorId
                                     ? self::getScholarshipProgramsOptions($legislatorId, $particularId)
-                                    : ['no_scholarship_program' => 'No Scholarship Program Available.'];
+                                    : ['no_scholarship_program' => 'No scholarship program available'];
                             })
-                            ->dehydrated()
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(),
 
                         Select::make('allocation_year')
                             ->label('Appropriation Year')
@@ -107,10 +107,10 @@ class TargetResource extends Resource
 
                                 return $legislatorId && $particularId && $scholarshipProgramId
                                     ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
-                                    : ['no_allocation' => 'No Allocation Available.'];
+                                    : ['no_allocation' => 'No allocation available'];
                             })
-                            ->dehydrated()
-                            ->disabled(),
+                            ->disabled()
+                            ->dehydrated(),
 
                         Select::make('appropriation_type')
                             ->label('Appropriation Type')
@@ -134,7 +134,7 @@ class TargetResource extends Resource
                             ->options(function () {
                                 return TVI::whereNot('name', 'Not Applicable')
                                     ->pluck('name', 'id')
-                                    ->toArray() ?: ['no_tvi' => 'No Institution Available'];
+                                    ->toArray() ?: ['no_tvi' => 'No institution available'];
                             })
                             ->disableOptionWhen(fn ($value) => $value === 'no_tvi'),
 
@@ -150,7 +150,7 @@ class TargetResource extends Resource
 
                                 return $scholarshipProgramId
                                     ? self::getQualificationTitles($scholarshipProgramId)
-                                    : ['no_qualification_title' => 'No Qualification Title Available.'];
+                                    : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
                             })
                             ->disableOptionWhen(fn ($value) => $value === 'no_qualification_title'),
 
@@ -165,7 +165,7 @@ class TargetResource extends Resource
 
                                 return $tviId
                                     ? self::getAbddSectors($tviId)
-                                    : ['no_abddd' => 'No ABDD Sector Available'];
+                                    : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
                             })
                             ->disableOptionWhen(fn ($value) => $value === 'no_abddd'),
 
@@ -199,11 +199,9 @@ class TargetResource extends Resource
                                             ->whereNull('deleted_at')
                                             ->has('allocation')
                                             ->pluck('name', 'id')
-                                            ->toArray() ?: ['no_legislators' => 'No Legislator Available'];
+                                            ->toArray() ?: ['no_legislator' => 'No legislator available'];
                                     })
                                     ->disableOptionWhen(fn ($value) => $value === 'no_legislators')
-                                    ->live()
-                                    ->reactive()
                                     ->afterStateUpdated(function ($state, callable $set) {
                                         if (!$state) {
                                             $set('particular_id', null);
@@ -253,9 +251,11 @@ class TargetResource extends Resource
                                             $set('allocation_year', null);
                                             $set('appropriation_type', null);
                                         }
-                                    }),
+                                    })
+                                    ->reactive()
+                                    ->live(),
 
-                                    Select::make('particular_id')
+                                Select::make('particular_id')
                                     ->label('Particular')
                                     ->required()
                                     ->markAsRequired(false)
@@ -308,15 +308,13 @@ class TargetResource extends Resource
                                                     return [];
                                                 })->toArray();
                                 
-                                                return $options ?: ['no_particular' => 'No Particular Available'];
+                                                return $options ?: ['no_particular' => 'No particular available'];
                                             }
                                         }
                                 
-                                        return ['no_particular' => 'No Particular Available'];
+                                        return ['no_particular' => 'No particular available. Select a legislator first.'];
                                     })
                                     ->disableOptionWhen(fn ($value) => $value === 'no_particular')
-                                    ->reactive()
-                                    ->live()
                                     ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                         if (!$state) {
                                             $set('scholarship_program_id', null);
@@ -348,7 +346,9 @@ class TargetResource extends Resource
                                             $set('allocation_year', null);
                                             $set('appropriation_type', null);
                                         }
-                                    }),
+                                    })
+                                    ->reactive()
+                                    ->live(),
                                 
                             Select::make('scholarship_program_id')
                                 ->label('Scholarship Program')
@@ -363,7 +363,7 @@ class TargetResource extends Resource
 
                                     return $legislatorId
                                         ? self::getScholarshipProgramsOptions($legislatorId, $particularId)
-                                        : ['no_scholarship_program' => 'No Scholarship Program Available'];
+                                        : ['no_scholarship_program' => 'No scholarship program available. Select a particular first.'];
                                 })
                                 ->disableOptionWhen(fn ($value) => $value === 'no_scholarship_program')
                                 ->afterStateUpdated(function ($state, callable $set, callable $get) {
@@ -413,7 +413,7 @@ class TargetResource extends Resource
 
                                     return $legislatorId
                                         ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
-                                        : ['no_allocation' => 'No Allocation Available.'];
+                                        : ['no_allocation' => 'No appropriation year available. Select a scholarship program first'];
                                 })
                                 ->disableOptionWhen(fn ($value) => $value === 'no_allocation')
                                 ->afterStateUpdated(function ($state, callable $set) {
@@ -442,7 +442,7 @@ class TargetResource extends Resource
 
                                     return $year
                                         ? self::getAppropriationTypeOptions($year)
-                                        : ['no_allocation' => 'No Allocation Available.'];
+                                        : ['no_allocation' => 'No appropriation type available. Select an appropriation year first.'];
                                 })
                                 ->disableOptionWhen(fn ($value) => $value === 'no_allocation')
                                 ->reactive()
@@ -459,7 +459,7 @@ class TargetResource extends Resource
                                 ->options(function () {
                                     return TVI::whereNot('name', 'Not Applicable')
                                         ->pluck('name', 'id')
-                                        ->toArray() ?: ['no_tvi' => 'No Institution Available'];
+                                        ->toArray() ?: ['no_tvi' => 'No institution available'];
                                 })
                                 ->disableOptionWhen(fn ($value) => $value === 'no_tvi'),
 
@@ -475,7 +475,7 @@ class TargetResource extends Resource
 
                                     return $scholarshipProgramId
                                         ? self::getQualificationTitles($scholarshipProgramId)
-                                        : ['no_qualification_title' => 'No Qualification Title Available.'];
+                                        : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
                                 })
                                 ->disableOptionWhen(fn ($value) => $value === 'no_qualification_title'),
 
@@ -490,7 +490,7 @@ class TargetResource extends Resource
 
                                     return $tviId
                                         ? self::getAbddSectors($tviId)
-                                        : ['no_abddd' => 'No ABDD Sector Available'];
+                                        : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
                                 })
                                 ->disableOptionWhen(fn ($value) => $value === 'no_abddd'),
 
@@ -555,20 +555,20 @@ class TargetResource extends Resource
                         $legislator = $record->allocation->legislator;
 
                         if (!$legislator) {
-                            return 'No Legislator Available';
+                            return 'No legislator available';
                         }
 
                         $particulars = $legislator->particular;
 
                         if ($particulars->isEmpty()) {
-                            return 'No Particular Available';
+                            return 'No particular available';
                         }
 
                         $particular = $record->allocation->particular;
                         $subParticular = $particular->subParticular;
                         $fundSource = $subParticular ? $subParticular->fundSource : null;
 
-                        return $fundSource ? $fundSource->name : 'No Fund Source Available';
+                        return $fundSource ? $fundSource->name : 'No fund source available';
                     }),
 
                 TextColumn::make('allocation.legislator.name')
@@ -598,13 +598,13 @@ class TargetResource extends Resource
                         $legislator = $record->allocation->legislator;
 
                         if (!$legislator) {
-                            return 'No Legislator Available';
+                            return 'No legislator available';
                         }
 
                         $particulars = $legislator->particular;
 
                         if ($particulars->isEmpty()) {
-                            return 'No Particular Available';
+                            return 'No particular available';
                         }
 
                         $particular = $particulars->first();
@@ -664,12 +664,12 @@ class TargetResource extends Resource
                         $qualificationTitle = $record->qualification_title;
 
                         if (!$qualificationTitle) {
-                            return 'No Qualification Title Available';
+                            return 'No qualification title available';
                         }
 
                         $trainingProgram = $qualificationTitle->trainingProgram;
 
-                        return $trainingProgram ? $trainingProgram->title : 'No Training Program Available';
+                        return $trainingProgram ? $trainingProgram->title : 'No training program available';
                     }),
 
                 TextColumn::make('allocation.scholarship_program.name')
@@ -742,20 +742,20 @@ class TargetResource extends Resource
                                             $legislator = $record->allocation->legislator;
 
                                             if (!$legislator) {
-                                                return 'No Legislator Available';
+                                                return 'No legislator available';
                                             }
 
                                             $particulars = $legislator->particular;
 
                                             if ($particulars->isEmpty()) {
-                                                return 'No Particular Available';
+                                                return 'No particular available';
                                             }
 
                                             $particular = $record->allocation->particular;
                                             $subParticular = $particular->subParticular;
                                             $fundSource = $subParticular ? $subParticular->fundSource : null;
 
-                                            return $fundSource ? $fundSource->name : 'No Fund Source Available';
+                                            return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
@@ -788,7 +788,7 @@ class TargetResource extends Resource
 
                                             $trainingProgram = $qualificationTitle->trainingProgram;
 
-                                            return $trainingProgram ? $trainingProgram->title : 'No Training Program Available';
+                                            return $trainingProgram ? $trainingProgram->title : 'No training program available';
                                         }),
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
@@ -830,7 +830,7 @@ class TargetResource extends Resource
                 }
 
             })
-            ->toArray() ?: ['no_particular' => 'No Particular Available'];
+            ->toArray() ?: ['no_particular' => 'No particular available'];
     }
 
     protected static function getScholarshipProgramsOptions($legislatorId, $particularId) {
@@ -839,7 +839,7 @@ class TargetResource extends Resource
                 ->where('particular_id', $particularId);
         })
             ->pluck('name', 'id')
-            ->toArray() ?: ['no_scholarship_program' => 'No Scholarship Program Available'];
+            ->toArray() ?: ['no_scholarship_program' => 'No scholarship program available'];
     }
 
     protected static function getAllocationYear($legislatorId, $particularId, $scholarshipProgramId) {
@@ -850,7 +850,7 @@ class TargetResource extends Resource
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->whereIn('year', [$yearNow, $yearNow - 1])
             ->pluck('year', 'year')
-            ->toArray() ?: ['no_allocation' => 'No Allocation Available.'];
+            ->toArray() ?: ['no_allocation' => 'No allocation available'];
     }
 
     protected static function getAppropriationTypeOptions($year) {
@@ -881,7 +881,7 @@ class TargetResource extends Resource
         $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
 
         if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
-            return ['' => 'No ABDD Sectors Available.'];
+            return ['' => 'No ABDD sector available'];
         }
 
         $abddSectors = $tvi->district->municipality->province->abdds()
@@ -889,7 +889,7 @@ class TargetResource extends Resource
             ->pluck('name', 'id')
             ->toArray();
 
-        return empty($abddSectors) ? ['' => 'No ABDD Sectors Available.'] : $abddSectors;
+        return empty($abddSectors) ? ['' => 'No ABDD sector available'] : $abddSectors;
     }
 
     public function getFormattedParticularAttribute()
@@ -897,7 +897,7 @@ class TargetResource extends Resource
         $particular = $this->allocation->particular ?? null;
 
         if (!$particular) {
-            return 'No Particular Available';
+            return 'No particular available';
         }
 
         $district = $particular->district;
@@ -932,27 +932,27 @@ class TargetResource extends Resource
 
     protected function getFormattedScholarshipProgramAttribute($allocation)
     {
-        return $this->$allocation->scholarship_program->name ?? 'No Scholarship Program Available';
+        return $this->$allocation->scholarship_program->name ?? 'No scholarship program available';
     }
     protected function getFundSource($abddSectorsallocation)
     {
         $legislator = $this->$$abddSectorsallocation->legislator;
 
         if (!$legislator) {
-            return 'No Legislator Available';
+            return 'No legislator available';
         }
 
         $particulars = $legislator->particular;
 
         if ($particulars->isEmpty()) {
-            return 'No Particular Available';
+            return 'No particular available';
         }
 
         $particular = $this->$abddSectorsallocation->particular;
         $subParticular = $particular->subParticular;
         $fundSource = $subParticular ? $subParticular->fundSource : null;
 
-        return $fundSource ? $fundSource->name : 'No Fund Source Available';
+        return $fundSource ? $fundSource->name : 'No fund source available';
     }
 
     public static function getPages(): array
