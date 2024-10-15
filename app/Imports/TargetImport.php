@@ -3,13 +3,18 @@
 namespace App\Imports;
 
 use Throwable;
-use App\Models\Target;
-use App\Models\Legislator;
 use App\Models\Tvi;
+use App\Models\Abdd;
+use App\Models\Region;
+use App\Models\Target;
+use App\Models\District;
+use App\Models\Province;
+use App\Models\Partylist;
 use App\Models\Allocation;
+use App\Models\Legislator;
+use App\Models\Municipality;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use App\Models\TargetStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -22,241 +27,302 @@ class TargetImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
-        // Log the incoming row data for debugging
-        Log::info('Processing row:', $row);
-
         try {
-            // Validate required fields
-            $this->validateRow($row);
+            if (!$this->validateRow($row)) {
+                return null;
+            }
 
             return DB::transaction(function () use ($row) {
                 $legislator_id = $this->getLegislatorId($row['legislator']);
-                $institutionData = $this->getInstitutionData($row['institution'], $row['district'], $row['municipality'], $row['province'], $row['region']);
-
-                // $tvi_id = $institutionData['tvi_id'];
-                $tvi_id = $institutionData->id;
-
-
-                $appropriation_type = $row['appropriation_type'];
-                $allocation_year_id = $this->getAllocationId($row['allocation']);
                 $particular_id = $this->getParticularId($row['particular']);
-                $qualification_title_id = $this->getQualificationTitleId($row['qualification_title']);
-                $scholarship_program_id = $this->getScholarshipProgramId($row['scholarship_program']);
-                $status_id = $this->getStatusId($row['status']);
-                $allocation_id = $this->getAllocationId($row['allocation']);
+                $tvi = $this->getInstitutionData($row['institution'], $this->getDistrictId($this->getMunicipalityId($this->getProvinceId($this->getRegionId($row['region']), $row['province']), $row['municipality']), $row['district']));
 
-                return Target::create([
-                    'fund_source_id' => $this->getFundSourceIdByLegislator($legislator_id),
+                $year = $row['year'] ?? date('Y');
+                $abdd_id = $this->getAbddId($row['abdd'] ?? null, $tvi->id);
+                if (is_null($abdd_id)) {
+                    Log::warning("ABDD ID is null for row: " . json_encode($row) . ". Skipping import for this row.");
+                    return null;
+                }
+
+                $qualificationTitleId = $this->getQualificationTitleId($row['qualification_title']);
+                if (is_null($qualificationTitleId)) {
+                    Log::warning("Qualification Title not found for row: " . json_encode($row));
+                    return null;
+                }
+
+                $numberOfSlots = $row['number_of_slots'] ?? 0;
+                $qualificationTitle = QualificationTitle::find($qualificationTitleId);
+                $costs = $this->calculateTotalAmount($qualificationTitle, $numberOfSlots);
+                $total_amount = $costs['total_amount'];
+                $total_training_cost_pcc = $costs['total_training_cost_pcc'];
+                $total_cost_of_toolkit_pcc = $costs['total_cost_of_toolkit_pcc'];
+                $total_training_support_fund = $costs['total_training_support_fund'];
+                $total_assessment_fee = $costs['total_assessment_fee'];
+                $total_entrepreneurship_fee = $costs['total_entrepreneurship_fee'];
+                $total_new_normal_assistance = $costs['total_new_normal_assistance'];
+                $total_accident_insurance = $costs['total_accident_insurance'];
+                $total_book_allowance = $costs['total_book_allowance'];
+                $total_uniform_allowance = $costs['total_uniform_allowance'];
+                $total_misc_fee = $costs['total_misc_fee'];
+
+                Log::info("Saving Target data: ", [
+                    'allocation_id' => $this->getAllocationId($row, $legislator_id, $particular_id),
                     'legislator_id' => $legislator_id,
-                    'soft_or_commitment_id' => $this->getSoftOrCommitmentByLegislator($legislator_id),
-                    'appropriation_type' => $appropriation_type,
-                    'allocation_year_id' => $allocation_year_id,
-                    'allocation_id' => $allocation_id,
                     'particular_id' => $particular_id,
-
-
-                    // 'district_id' => $institutionData['district_id'],
-                    // 'municipality_id' => $institutionData['municipality_id'],
-                    // 'province_id' => $institutionData['province_id'],
-                    // 'region_id' => $institutionData['region_id'],
-                    // 'tvi_type_id' => $institutionData['tvi_type_id'],
-                    // 'tvi_class_id' => $institutionData['tvi_class_id'],
-
-
-                    'tvi_id' => $tvi_id, // Add this line
-                    'qualification_title_id' => $qualification_title_id,
-                    'scholarship_program_id' => $scholarship_program_id,
-                    'number_of_slots' => $row['no_of_slots'],
-                    'total_amount' => $row['total_amount'],
-                    'status_id' => $status_id,
+                    'tvi_id' => $tvi->id,
+                    'abdd_id' => $abdd_id,
+                    'scholarship_program_id' => $this->getScholarshipProgramId($row['scholarship_program']),
+                    'qualification_title_id' => $qualificationTitleId,
+                    'appropriation_type' => $row['appropriation_type'],
+                    'year' => $year,
+                    'number_of_slots' => $numberOfSlots,
+                    'total_amount' => $total_amount,
                 ]);
 
-
+                return Target::create([
+                    'allocation_id' => $this->getAllocationId($row, $legislator_id, $particular_id),
+                    'legislator_id' => $legislator_id,
+                    'tvi_id' => $tvi->id,
+                    'abdd_id' => $abdd_id,
+                    'scholarship_program_id' => $this->getScholarshipProgramId($row['scholarship_program']),
+                    'qualification_title_id' => $qualificationTitleId,
+                    'appropriation_type' => $row['appropriation_type'],
+                    'year' => $year,
+                    'number_of_slots' => $numberOfSlots,
+                    'total_amount' => $total_amount,
+                    'target_status_id' => 1,
+                    'total_training_cost_pcc' => $total_training_cost_pcc,
+                    'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
+                    'total_training_support_fund' => $total_training_support_fund,
+                    'total_assessment_fee' => $total_assessment_fee,
+                    'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
+                    'total_new_normal_assistance' => $total_new_normal_assistance,
+                    'total_accident_insurance' => $total_accident_insurance,
+                    'total_book_allowance' => $total_book_allowance,
+                    'total_uniform_allowance' => $total_uniform_allowance,
+                    'total_misc_fee' => $total_misc_fee,
+                ]);
             });
-
-
-
         } catch (Throwable $e) {
-            $this->logImportError($e, $row); // Log error with row data
+            Log::error("Import failed for row: " . json_encode($row) . ". Error: " . $e->getMessage());
             throw new \Exception("Import failed for row: " . json_encode($row) . ". Error: " . $e->getMessage());
         }
     }
 
     protected function validateRow(array $row)
     {
-        $requiredColumns = [
-            'legislator',
-            'particular',
-            'appropriation_type',
-            'allocation',
-            'institution',
-            'qualification_title',
-            'scholarship_program',
-            'no_of_slots',
-            'total_amount',
-            'status'
+        $requiredFields = [
+            'legislator' => 'Legislator name is required.',
+            'particular' => 'Particular name is required.',
+            'institution' => 'Institution name is required.',
+            'scholarship_program' => 'Scholarship Program name is required.',
+            'qualification_title' => 'Qualification Title is required.',
+            'number_of_slots' => 'Number of slots is required.',
+            'appropriation_type' => 'Appropriation type is required.',
+            'abdd' => 'ABDD name is required.',
+            'year' => 'Allocation year is required.',
         ];
 
-        foreach ($requiredColumns as $column) {
-            if (empty($row[$column])) {
-                throw new \Exception("Missing value for '{$column}'. Row data: " . json_encode($row));
+        $missingFields = [];
+
+        foreach ($requiredFields as $field => $errorMessage) {
+            if (empty($row[$field])) {
+                $missingFields[] = $errorMessage;
             }
         }
-    }
 
-    protected function logImportError(Throwable $e, array $row)
-    {
-        Log::error('Failed to import Targets: ' . $e->getMessage(), [
-            'row_data' => $row,
-            'error_trace' => $e->getTraceAsString()
-        ]);
-    }
-    protected function getInstitutionData(string $institutionName, $districtName, $municipalityName, $provinceName, $regionName)
-    {
-        $institution = Tvi::where('name', $institutionName)
-            ->where('district_id', $districtName)
-            ->where('district.municipality', $municipalityName)
-            ->where('district.municipality.province', $provinceName)
-            ->where('district.municipality.province.region', $regionName)
-            ->firstOrFail();
-
-        if (!$institution) {
-            throw new \Exception("No Institution found for Institution name: {$institutionName}");
+        if (!empty($missingFields)) {
+            Log::warning("Missing required fields for row: " . json_encode($missingFields) . " in row: " . json_encode($row));
+            return false;
         }
 
-        return $institution;
+        if (!is_numeric($row['number_of_slots'])) {
+            Log::warning("Invalid value for number of slots in row: " . json_encode($row));
+            return false;
+        }
 
-
-
-        // with([
-        //     'district',
-        //     'district.municipality',
-        //     'district.municipality.province',
-        //     'district.municipality.province.region',
-        //     'tviClass.tviType'
-        // ])
-        // where('name', $institutionName)
-        //     ->where('name', $institutionName)
-        //     ->where('name', $institutionName)
-        //     ->where('name', $institutionName)
-        //     ->where('name', $institutionName)
-        //     ->firstOrFail();
-
-        // return [
-        //     'tvi_id' => $institution->id,
-        //     'district_id' => $institution->district->id,
-        //     'municipality_id' => $institution->district->municipality->id,
-        //     'province_id' => $institution->district->municipality->province->id,
-        //     'region_id' => $institution->district->municipality->province->region->id,
-        //     'tvi_type_id' => $institution->tviClass->tviType->id,
-        //     'tvi_class_id' => $institution->tvi_class_id,
-        // ];
+        return true;
     }
-
-
 
     protected function getLegislatorId(string $legislatorName)
     {
         return Legislator::where('name', $legislatorName)->firstOrFail()->id;
     }
+
     protected function getFundSourceIdByLegislator(int $legislatorId)
     {
-        $allocation = Allocation::with(['particular.subParticular.fundSource'])
+        return Allocation::with(['particular.subParticular.fundSource'])
             ->where('legislator_id', $legislatorId)
-            ->first();
-
-        Log::info('Fetching fund source for legislator', ['legislator_id' => $legislatorId, 'allocation' => $allocation]);
-
-        if (!$allocation) {
-            throw new \Exception("No allocation found for legislator ID: {$legislatorId}");
-        }
-
-        $subParticular = $allocation->particular->subParticular;
-        $fundSource = $subParticular ? $subParticular->fundSource : null;
-
-        if (!$fundSource) {
-            Log::error('No associated Fund Source found', ['legislator_id' => $legislatorId, 'allocation_id' => $allocation->id]);
-            throw new \Exception("No associated Fund Source found for legislator ID: {$legislatorId}");
-        }
-
-        Log::info('Fund Source found', ['fund_source_id' => $fundSource->id]);
-
-        return $fundSource->id;
+            ->firstOrFail()
+            ->particular->subParticular->fundSource->id;
     }
-
-
 
     protected function getSoftOrCommitmentByLegislator(int $legislatorId)
     {
-        // Assuming Legislator model has a relationship to Allocation that has soft_or_commitment
-        $allocation = Allocation::where('legislator_id', $legislatorId)->firstOrFail();
-        return $allocation->soft_or_commitment; // Adjust if you need an ID or if the column is different
-    }
-
-    protected function getAllocationId(string $allocationYear)
-    {
-        return Allocation::where('year', $allocationYear)->firstOrFail()->id;
+        return Allocation::where('legislator_id', $legislatorId)->firstOrFail()->soft_or_commitment;
     }
 
     protected function getParticularId(string $particularName)
     {
-        Log::info("Searching for Particular with name '{$particularName}' linked to a legislator with an allocation.");
-
         $allocation = Allocation::whereHas('legislator.particular.subParticular', function ($query) use ($particularName) {
             $query->where('name', $particularName);
-        })->first();
-
-        if (!$allocation) {
-            throw new \Exception("Particular with name '{$particularName}' not found, or it is not associated with any Legislator having an Allocation and a SubParticular. No changes were saved.");
-        }
-
-        $legislator = $allocation->legislator;
-
-        if (!$legislator) {
-            throw new \Exception("No Legislator found for the Allocation. No changes were saved.");
-        }
-
-        $particular = $legislator->particular()->whereHas('subParticular', function ($query) use ($particularName) {
-            $query->where('name', $particularName);
-        })->first();
-
-        if (!$particular) {
-            throw new \Exception("Particular with name '{$particularName}' not found for the associated Legislator. No changes were saved.");
-        }
-
-        return $particular->id;
-    }
-
-    protected function getQualificationTitleId(string $qualificationName)
-    {
-        $qualification = QualificationTitle::whereHas('trainingProgram', function ($query) use ($qualificationName) {
-            $query->where('title', $qualificationName);
         })->firstOrFail();
-        return $qualification->id;
+
+        return $allocation->legislator->particular()->whereHas('subParticular', function ($query) use ($particularName) {
+            $query->where('name', $particularName);
+        })->firstOrFail()->id;
     }
 
-    protected function getScholarshipProgramId(string $scholarshipProgramName)
+    protected function getPartylistId(?string $partylistName)
     {
-        $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)->firstOrFail();
-        return $scholarshipProgram->id;
+        if ($partylistName) {
+            return Partylist::where('name', $partylistName)->firstOrFail()->id;
+        }
+        return null;
     }
 
-    protected function getStatusId(string $statusName)
+    protected function getRegionId($regionName)
     {
-        Log::info('Searching for Status with desc', ['status_name' => trim($statusName)]);
+        return Region::where('name', $regionName)->whereNull('deleted_at')->firstOrFail()->id;
+    }
 
-        $status = TargetStatus::where('desc', trim($statusName))->first();
+    protected function getProvinceId($regionId, $provinceName)
+    {
+        return Province::where('name', $provinceName)
+            ->where('region_id', $regionId)
+            ->whereNull('deleted_at')
+            ->firstOrFail()->id;
+    }
 
-        if (!$status) {
-            Log::error('Status not found', ['status_name' => $statusName]);
-            throw new \Exception("There was an issue importing the Status: Status '{$statusName}' not found.");
+    protected function getMunicipalityId($provinceId, $municipalityName)
+    {
+        return Municipality::where('name', $municipalityName)
+            ->where('province_id', $provinceId)
+            ->whereNull('deleted_at')
+            ->firstOrFail()->id;
+    }
+
+    protected function getDistrictId($municipalityId, $districtName)
+    {
+        return District::where('name', $districtName)
+            ->where('municipality_id', $municipalityId)
+            ->whereNull('deleted_at')
+            ->firstOrFail()->id;
+    }
+
+    protected function getInstitutionData($institutionName, $districtId)
+    {
+        return Tvi::where('name', $institutionName)
+            ->where('district_id', $districtId)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
+    }
+
+    protected function getAbddId(?string $abddName, int $tvi_id)
+    {
+        // Log the input parameters
+        Log::info('Attempting to retrieve ABDD ID', [
+            'abddName' => $abddName,
+            'tvi_id' => $tvi_id,
+        ]);
+
+        // If abddName is empty, log and handle accordingly
+        if (empty($abddName)) {
+            Log::warning('ABDD name is empty, setting abdd_id to null');
+            return null; // Return null or a default value
         }
 
-        Log::info('Status found', ['status_id' => $status->id, 'status_name' => $statusName]);
+        try {
+            // Find the TVI record to get the province_id
+            $tvi_record = Tvi::findOrFail($tvi_id);
+            $province_id = $tvi_record->district->municipality->province_id;
 
-        return $status->id;
+            // Use the many-to-many relationship to find the ABDD ID
+            $abdd = Abdd::where('name', $abddName)
+                ->whereHas('provinces', function ($query) use ($province_id) {
+                    $query->where('provinces.id', $province_id); // Fully qualify the column
+                })
+                ->first();
+
+            if (!$abdd) {
+                Log::error("ABDD with name '$abddName' not found in province with ID $province_id.");
+                throw new \Exception("ABDD with name '$abddName' not found in province with ID $province_id.");
+            }
+
+            Log::info('Successfully retrieved ABDD ID', ['abdd_id' => $abdd->id]);
+            return $abdd->id; // Return the found ABDD ID
+        } catch (Throwable $e) {
+            Log::error("Error retrieving ABDD ID: " . $e->getMessage());
+            return null; // Return null in case of error
+        }
+    }
+
+    protected function getQualificationTitleId($qualificationTitleName)
+    {
+        Log::info("Looking for Qualification Title: " . $qualificationTitleName);
+
+        $qualificationTitle = QualificationTitle::whereHas('trainingProgram', function ($query) use ($qualificationTitleName) {
+            $query->where('title', $qualificationTitleName);
+        })->first();
+
+        if (!$qualificationTitle) {
+            Log::warning("Qualification Title not found: " . $qualificationTitleName);
+            return null; // or handle as needed
+        }
+
+        return $qualificationTitle->id;
     }
 
 
 
+    protected function getScholarshipProgramId($scholarshipProgram)
+    {
+        return ScholarshipProgram::where('name', $scholarshipProgram)
+            ->whereNull('deleted_at')
+            ->first()->id ?? null;
+    }
+
+    protected function getAllocationId(array $row, int $legislatorId, int $particularId)
+    {
+        return Allocation::where('legislator_id', $legislatorId)
+            ->where('particular_id', $particularId)
+            ->first()->id ?? null;
+    }
+
+    protected function calculateTotalAmount(QualificationTitle $qualificationTitle, int $numberOfSlots)
+    {
+        $total_training_cost_pcc = $qualificationTitle->training_cost * $numberOfSlots;
+        $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit * $numberOfSlots;
+        $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
+        $total_assessment_fee = $qualificationTitle->assessment_fee * $numberOfSlots;
+        $total_entrepreneurship_fee = $qualificationTitle->entrepreneurship_fee * $numberOfSlots;
+        $total_new_normal_assistance = $qualificationTitle->new_normal_assistance * $numberOfSlots;
+        $total_accident_insurance = $qualificationTitle->accident_insurance * $numberOfSlots;
+        $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
+        $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
+        $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
+
+        return [
+            'total_amount' => $total_training_cost_pcc +
+                $total_cost_of_toolkit_pcc +
+                $total_training_support_fund +
+                $total_assessment_fee +
+                $total_entrepreneurship_fee +
+                $total_new_normal_assistance +
+                $total_accident_insurance +
+                $total_book_allowance +
+                $total_uniform_allowance +
+                $total_misc_fee,
+            'total_training_cost_pcc' => $total_training_cost_pcc,
+            'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
+            'total_training_support_fund' => $total_training_support_fund,
+            'total_assessment_fee' => $total_assessment_fee,
+            'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
+            'total_new_normal_assistance' => $total_new_normal_assistance,
+            'total_accident_insurance' => $total_accident_insurance,
+            'total_book_allowance' => $total_book_allowance,
+            'total_uniform_allowance' => $total_uniform_allowance,
+            'total_misc_fee' => $total_misc_fee,
+        ];
+    }
 }
