@@ -223,17 +223,33 @@ class TargetResource extends Resource
 
                                         $currentYear = now()->year;
 
-                                        if (count($allocations) === 1) {
+                                        if (count($particularOptions) === 1) {
                                             $set('particular_id', key($particularOptions));
-                                            $set('scholarship_program_id', key($scholarshipProgramOptions));
-                                            $set('allocation_year', key($appropriationYearOptions));
-
-                                            if (key($appropriationYearOptions) == $currentYear) {
-                                                $set('appropriation_type', 'Current');
-                                            }
                                         } else {
                                             $set('particular_id', null);
+                                        }
+
+                                        if (count($scholarshipProgramOptions) === 1) {
+                                            $set('scholarship_program_id', key($scholarshipProgramOptions));
+                                        } else {
                                             $set('scholarship_program_id', null);
+                                        }
+
+                                        $particularId = $particularOptions ? key($particularOptions) : null;
+                                        $scholarshipProgramId = $scholarshipProgramOptions ? key($scholarshipProgramOptions) : null;
+
+                                        if ($particularId && $scholarshipProgramId) {
+                                            if (count($allocations) === 1) {
+                                                $set('allocation_year', key($appropriationYearOptions));
+
+                                                if (key($appropriationYearOptions) == $currentYear) {
+                                                    $set('appropriation_type', 'Current');
+                                                }
+                                            } else {
+                                                $set('allocation_year', null);
+                                                $set('appropriation_type', null);
+                                            }
+                                        } else {
                                             $set('allocation_year', null);
                                             $set('appropriation_type', null);
                                         }
