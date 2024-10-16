@@ -58,7 +58,9 @@ class LegislatorImport implements ToModel, WithHeadingRow
     }
 
     protected function getRegionId($regionName) {
-        $regionRecord = Region::where('name', $regionName)->whereNull('deleted_at')->first();
+        $regionRecord = Region::where('name', $regionName)
+            ->whereNull('deleted_at')
+            ->first();
 
         if (!$regionRecord) {
             throw new \Exception("The {$regionName} region does not exist.");
