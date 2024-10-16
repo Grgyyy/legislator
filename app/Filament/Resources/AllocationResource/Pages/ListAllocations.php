@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\AllocationResource\Pages;
 
 use App\Filament\Resources\AllocationResource;
+use App\Filament\Resources\AllocationResource\Widgets\StatsOverview;
 use App\Imports\AllocationImport;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
@@ -14,6 +16,8 @@ use Exception;
 
 class ListAllocations extends ListRecords
 {
+    use ExposesTableToWidgets;
+
     protected static string $resource = AllocationResource::class;
 
     protected function getHeaderActions(): array
@@ -39,6 +43,13 @@ class ListAllocations extends ListRecords
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the allocations: ' . $e->getMessage());
                     }
                 }),
+        ];
+    }
+
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            StatsOverview::class,
         ];
     }
 }
