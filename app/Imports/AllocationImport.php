@@ -111,7 +111,9 @@ class AllocationImport implements ToModel, WithHeadingRow
 
    
     protected function getRegionId($regionName) {
-        $regionRecord = Region::where('name', $regionName)->whereNull('deleted_at')->first();
+        $regionRecord = Region::where('name', $regionName)
+            ->whereNull('deleted_at')
+            ->first();
 
         if (!$regionRecord) {
             throw new \Exception("The {$regionName} region does not exist.");
@@ -175,7 +177,7 @@ class AllocationImport implements ToModel, WithHeadingRow
         $particularRecord = SubParticular::where('name', $particularName)
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$particularRecord) {
             throw new \Exception("The {$particularName} particular type does not exist."); 
         }
@@ -184,7 +186,7 @@ class AllocationImport implements ToModel, WithHeadingRow
             $partylistRecord = Partylist::where('name', $partylistName)
                 ->whereNull('deleted_at')
                 ->first();
-    
+
             if (!$partylistRecord) {
                 throw new \Exception("The {$partylistName} partylist does not exist."); 
             }
@@ -192,14 +194,14 @@ class AllocationImport implements ToModel, WithHeadingRow
             $partylistRecord = Partylist::where('name', 'Not Applicable')
                 ->whereNull('deleted_at')
                 ->first();
-    
+
             if (!$partylistRecord) {
                 throw new \Exception("The Not Applicable partylist does not exist."); 
             }
         }
         
         return $partylistRecord->id;  
-    }    
+    }
 
     protected function getParticularId($sub_particular_id, $partylist_id, $district_id) {
         $particularRecord = Particular::where('sub_particular_id', $sub_particular_id)
