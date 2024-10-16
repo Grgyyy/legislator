@@ -29,57 +29,40 @@ class TargetImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         try {
-            // Validate the row first.
-            if (!$this->validateRow($row)) {
-                return null;
-            }
+            $this->validateRow($row);
+            $this->validateNumberOfSlots($row['number_of_slots']);
+            $this->validateYear($row['year']);
 
-            return DB::transaction(function () use ($row) {
-                // Retrieve necessary IDs and data.
+            DB::transaction(function () use ($row) {
                 $legislator_id = $this->getLegislatorId($row['legislator']);
                 $particular_id = $this->getParticularId($row['particular']);
+
                 $districtId = $this->getDistrictId($this->getMunicipalityId($this->getProvinceId($this->getRegionId($row['region']), $row['province']), $row['municipality']), $row['district']);
                 $tvi = $this->getInstitutionData($row['institution'], $districtId);
 
                 $year = $row['year'] ?? date('Y');
-                $abdd_id = $this->getAbddId($row['abdd'] ?? null, $tvi->id);
-                if (is_null($abdd_id)) {
-                    Log::warning("ABDD ID is null for row: " . json_encode($row) . ". Skipping import for this row.");
-                    return null;
-                }
+                $abdd_id = $this->getAbddId($row['abdd_sector'], $tvi->id);
 
                 $qualificationTitleId = $this->getQualificationTitleId($row['qualification_title']);
-                if (is_null($qualificationTitleId)) {
-                    Log::warning("Qualification Title not found for row: " . json_encode($row));
-                    return null;
-                }
-
-                $numberOfSlots = $row['number_of_slots'] ?? 0;
-                $qualificationTitle = QualificationTitle::find($qualificationTitleId);
-                $costs = $this->calculateTotalAmount($qualificationTitle, $numberOfSlots);
-
+                $numberOfSlots = $row['number_of_slots'];
                 $scholarshipProgramId = $this->getScholarshipProgramId($row['scholarship_program']);
-                $allocationId = $this->getAllocationId($row, $legislator_id, $particular_id, $year, $scholarshipProgramId);
 
-                if (is_null($allocationId)) {
-                    Log::warning("Allocation not found for row: " . json_encode($row) . ". Skipping import for this row.");
-                    return null;
-                }
+                $allocation = $this->getAllocationId($row, $legislator_id, $particular_id, $year, $scholarshipProgramId);
 
-                // Prepare data for creation.
+                $costs = $this->getQualificationCosts($qualificationTitleId, $numberOfSlots);
+
                 $targetData = [
-                    'allocation_id' => $allocationId,
+                    'allocation_id' => $allocation->id,
                     'legislator_id' => $legislator_id,
                     'tvi_id' => $tvi->id,
                     'abdd_id' => $abdd_id,
-                    'scholarship_program_id' => $this->getScholarshipProgramId($row['scholarship_program']),
+                    'scholarship_program_id' => $scholarshipProgramId,
                     'qualification_title_id' => $qualificationTitleId,
                     'appropriation_type' => $row['appropriation_type'],
                     'year' => $year,
                     'number_of_slots' => $numberOfSlots,
                     'total_amount' => $costs['total_amount'],
                     'target_status_id' => 1,
-                    // Include all the cost breakdown fields
                     'total_training_cost_pcc' => $costs['total_training_cost_pcc'],
                     'total_cost_of_toolkit_pcc' => $costs['total_cost_of_toolkit_pcc'],
                     'total_training_support_fund' => $costs['total_training_support_fund'],
@@ -92,7 +75,6 @@ class TargetImport implements ToModel, WithHeadingRow
                     'total_misc_fee' => $costs['total_misc_fee'],
                 ];
 
-                // Create the target and the history record.
                 $target = Target::create($targetData);
 
                 TargetHistory::create(array_merge($targetData, [
@@ -100,11 +82,12 @@ class TargetImport implements ToModel, WithHeadingRow
                     'description' => 'Target Created',
                 ]));
 
-                return $target;
+                $allocation->balance -= $costs['total_amount'];
+                $allocation->save();
             });
         } catch (Throwable $e) {
-            Log::error("Import failed for row: " . json_encode($row) . ". Error: " . $e->getMessage());
-            throw new \Exception("Import failed for row: " . json_encode($row) . ". Error: " . $e->getMessage());
+            Log::error("Import failed: " . $e->getMessage());
+            throw $e;
         }
     }
 
@@ -112,184 +95,247 @@ class TargetImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         $requiredFields = [
-            'legislator' => 'Legislator name is required.',
-            'particular' => 'Particular name is required.',
-            'institution' => 'Institution name is required.',
-            'scholarship_program' => 'Scholarship Program name is required.',
-            'qualification_title' => 'Qualification Title is required.',
-            'number_of_slots' => 'Number of slots is required.',
-            'appropriation_type' => 'Appropriation type is required.',
-            'abdd' => 'ABDD name is required.',
-            'year' => 'Allocation year is required.',
+            'legislator',
+            'particular',
+            'institution',
+            'partylist',
+            'district',
+            'municipality',
+            'province',
+            'region',
+            'scholarship_program',
+            'qualification_title',
+            'abdd_sector',
+            'appropriation_type',
+            'year',
+            'number_of_slots',
         ];
 
-        $missingFields = [];
-
-        foreach ($requiredFields as $field => $errorMessage) {
+        foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
-                $missingFields[] = $errorMessage;
+                throw new \Exception("The field '{$field}' is required and cannot be null or empty. No changes were saved.");
             }
         }
-
-        if (!empty($missingFields)) {
-            Log::warning("Missing required fields for row: " . json_encode($missingFields) . " in row: " . json_encode($row));
-            return false;
-        }
-
-        if (!is_numeric($row['number_of_slots'])) {
-            Log::warning("Invalid value for number of slots in row: " . json_encode($row));
-            return false;
-        }
-
-        return true;
     }
+
+    protected function validateNumberOfSlots(int $number_of_slots)
+    {
+        if ($number_of_slots < 10 || $number_of_slots > 25) {
+            throw new \Exception("The field '{$number_of_slots}' in Number of Slot should be greater than or equal to 10 and less than equal to 25 ");
+        }
+    }
+
+    protected function validateYear(int $year)
+    {
+        $currentYear = date('Y');
+        $pastYear = $currentYear - 1;
+        if ($year != $currentYear && $year != $pastYear) {
+            throw new \Exception("The provided year '{$year}' must be either the current year '{$currentYear}' or the previous year '{$pastYear}'.");
+        }
+    }
+
 
     protected function getLegislatorId(string $legislatorName)
     {
-        return Legislator::where('name', $legislatorName)->firstOrFail()->id;
+        $legislator = Legislator::where('name', $legislatorName)->first();
+
+        if (!$legislator) {
+            throw new \Exception("Legislator not found for name: {$legislatorName}");
+        }
+
+        return $legislator->id;
     }
 
-    protected function getFundSourceIdByLegislator(int $legislatorId)
-    {
-        return Allocation::with(['particular.subParticular.fundSource'])
-            ->where('legislator_id', $legislatorId)
-            ->firstOrFail()
-            ->particular->subParticular->fundSource->id;
-    }
-
-    protected function getSoftOrCommitmentByLegislator(int $legislatorId)
-    {
-        return Allocation::where('legislator_id', $legislatorId)->firstOrFail()->soft_or_commitment;
-    }
 
     protected function getParticularId(string $particularName)
     {
         $allocation = Allocation::whereHas('legislator.particular.subParticular', function ($query) use ($particularName) {
             $query->where('name', $particularName);
-        })->firstOrFail();
+        })->first();
 
-        return $allocation->legislator->particular()->whereHas('subParticular', function ($query) use ($particularName) {
+        if (!$allocation) {
+            throw new \Exception("Allocation with particular name '{$particularName}' not found.");
+        }
+
+        $particular = $allocation->legislator->particular()->whereHas('subParticular', function ($query) use ($particularName) {
             $query->where('name', $particularName);
-        })->firstOrFail()->id;
+        })->first();
+
+        if (!$particular) {
+            throw new \Exception("Particular with name '{$particularName}' not found for legislator ID: " . $allocation->legislator_id);
+        }
+
+        return $particular->id;
+    }
+    protected function getFundSourceIdByLegislator(int $legislatorId)
+    {
+        $allocation = Allocation::with(['particular.subParticular.fundSource'])
+            ->where('legislator_id', $legislatorId)
+            ->first();
+
+        if (!$allocation || !$allocation->particular || !$allocation->particular->subParticular || !$allocation->particular->subParticular->fundSource) {
+            throw new \Exception("Fund source not found for legislator ID: " . $legislatorId);
+        }
+
+        return $allocation->particular->subParticular->fundSource->id;
+    }
+
+    protected function getSoftOrCommitmentByLegislator(int $legislatorId)
+    {
+        $allocation = Allocation::where('legislator_id', $legislatorId)->first();
+
+        if (!$allocation) {
+            throw new \Exception("Allocation not found for legislator ID: " . $legislatorId);
+        }
+
+        return $allocation->soft_or_commitment;
     }
 
     protected function getPartylistId(?string $partylistName)
     {
-        if ($partylistName) {
-            return Partylist::where('name', $partylistName)->firstOrFail()->id;
+
+        $partylist = Partylist::where('name', $partylistName)->first();
+
+        if (!$partylist) {
+            throw new \Exception("Partylist not found for name: {$partylistName}");
         }
-        return null;
-    }
 
-    protected function getRegionId($regionName)
-    {
-        return Region::where('name', $regionName)->whereNull('deleted_at')->firstOrFail()->id;
-    }
-
-    protected function getProvinceId($regionId, $provinceName)
-    {
-        return Province::where('name', $provinceName)
-            ->where('region_id', $regionId)
-            ->whereNull('deleted_at')
-            ->firstOrFail()->id;
-    }
-
-    protected function getMunicipalityId($provinceId, $municipalityName)
-    {
-        return Municipality::where('name', $municipalityName)
-            ->where('province_id', $provinceId)
-            ->whereNull('deleted_at')
-            ->firstOrFail()->id;
+        return $partylist->id;
     }
 
     protected function getDistrictId($municipalityId, $districtName)
     {
-        return District::where('name', $districtName)
+        $district = District::where('name', $districtName)
             ->where('municipality_id', $municipalityId)
             ->whereNull('deleted_at')
-            ->firstOrFail()->id;
+            ->first();
+
+        if (!$district) {
+            throw new \Exception($districtName, $municipalityId);
+        }
+
+        return $district->id;
+    }
+
+    protected function getMunicipalityId($provinceId, $municipalityName)
+    {
+        $municipality = Municipality::where('name', $municipalityName)
+            ->where('province_id', $provinceId)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$municipality) {
+            throw new \Exception($municipalityName, $provinceId);
+        }
+
+        return $municipality->id;
+    }
+    protected function getProvinceId($regionId, $provinceName)
+    {
+        $province = Province::where('name', $provinceName)
+            ->where('region_id', $regionId)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$province) {
+            throw new \Exception($provinceName, $regionId);
+        }
+        return $province->id;
+    }
+    protected function getRegionId(string $regionName)
+    {
+        $region = Region::where('name', $regionName)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$region) {
+            throw new \Exception("Region not found for name: {$regionName}");
+        }
+
+        return $region->id;
     }
 
     protected function getInstitutionData($institutionName, $districtId)
     {
-        return Tvi::where('name', $institutionName)
+        $institution = Tvi::where('name', $institutionName)
             ->where('district_id', $districtId)
             ->whereNull('deleted_at')
-            ->firstOrFail();
-    }
+            ->first();
 
-    protected function getAbddId(?string $abddName, int $tvi_id)
-    {
-        // Log the input parameters
-        Log::info('Attempting to retrieve ABDD ID', [
-            'abddName' => $abddName,
-            'tvi_id' => $tvi_id,
-        ]);
-
-        // If abddName is empty, log and handle accordingly
-        if (empty($abddName)) {
-            Log::warning('ABDD name is empty, setting abdd_id to null');
-            return null; // Return null or a default value
+        if (!$institution) {
+            throw new \Exception($institutionName, $districtId);
         }
 
-        try {
-            // Find the TVI record to get the province_id
-            $tvi_record = Tvi::findOrFail($tvi_id);
-            $province_id = $tvi_record->district->municipality->province_id;
-
-            // Use the many-to-many relationship to find the ABDD ID
-            $abdd = Abdd::where('name', $abddName)
-                ->whereHas('provinces', function ($query) use ($province_id) {
-                    $query->where('provinces.id', $province_id); // Fully qualify the column
-                })
-                ->first();
-
-            if (!$abdd) {
-                Log::error("ABDD with name '$abddName' not found in province with ID $province_id.");
-                throw new \Exception("ABDD with name '$abddName' not found in province with ID $province_id.");
-            }
-
-            Log::info('Successfully retrieved ABDD ID', ['abdd_id' => $abdd->id]);
-            return $abdd->id; // Return the found ABDD ID
-        } catch (Throwable $e) {
-            Log::error("Error retrieving ABDD ID: " . $e->getMessage());
-            return null; // Return null in case of error
-        }
+        return $institution;
     }
 
     protected function getQualificationTitleId($qualificationTitleName)
     {
-        Log::info("Looking for Qualification Title: " . $qualificationTitleName);
-
         $qualificationTitle = QualificationTitle::whereHas('trainingProgram', function ($query) use ($qualificationTitleName) {
             $query->where('title', $qualificationTitleName);
         })->first();
 
         if (!$qualificationTitle) {
-            Log::warning("Qualification Title not found: " . $qualificationTitleName);
-            return null; // or handle as needed
+            throw new \Exception($qualificationTitleName);
         }
 
         return $qualificationTitle->id;
     }
 
+    protected function getAbddId(string $abddName, int $tvi_id)
+    {
 
+        $tvi_record = Tvi::findOrFail($tvi_id);
+        $province_id = $tvi_record->district->municipality->province_id;
 
+        $abdd = Abdd::where('name', $abddName)
+            ->whereHas('provinces', function ($query) use ($province_id) {
+                $query->where('provinces.id', $province_id);
+            })
+            ->first();
+
+        if (!$abdd) {
+            throw new \Exception("ABDD with name '$abddName' not found in province with ID $province_id.");
+        }
+
+        return $abdd->id;
+    }
     protected function getScholarshipProgramId($scholarshipProgram)
     {
-        return ScholarshipProgram::where('name', $scholarshipProgram)
+        $scholarship = ScholarshipProgram::where('name', $scholarshipProgram)
             ->whereNull('deleted_at')
-            ->first()->id ?? null;
+            ->first();
+
+        if (!$scholarship) {
+            throw new \Exception($scholarshipProgram);
+        }
+
+        return $scholarship->id;
     }
 
-    protected function getAllocationId(array $row, int $legislatorId, int $particularId, int $allocationYear, int $scholarshipProgramId)
+    protected function getAllocationId(array $row, int $legislator_id, int $particular_id, int $year, int $scholarship_program_id)
     {
-        return Allocation::where('legislator_id', $legislatorId)
-            ->where('particular_id', $particularId)
-            ->where('year', $allocationYear)
-            ->where('scholarship_program_id', $scholarshipProgramId)
-            ->value('id');
+        $allocationId = Allocation::where('legislator_id', $legislator_id)
+            ->where('particular_id', $particular_id)
+            ->where('year', $year)
+            ->where('scholarship_program_id', $scholarship_program_id)
+            ->first();
+        if (!$allocationId) {
+            throw new \Exception("Allocation not found for legislator ID {$legislator_id}, particular ID {$particular_id}, year {$year}, and scholarship program ID {$scholarship_program_id}.");
+        }
+
+        return $allocationId;
     }
+
+    protected function getQualificationCosts(int $qualificationTitleId, int $numberOfSlots)
+    {
+        $qualificationTitle = QualificationTitle::find($qualificationTitleId);
+        if (!$qualificationTitle) {
+            throw new \Exception("Qualification Title with ID {$qualificationTitleId} not found.");
+        }
+        return $this->calculateTotalAmount($qualificationTitle, $numberOfSlots);
+    }
+
 
     protected function calculateTotalAmount(QualificationTitle $qualificationTitle, int $numberOfSlots)
     {

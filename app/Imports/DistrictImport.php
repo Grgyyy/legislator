@@ -56,7 +56,7 @@ class DistrictImport implements ToModel, WithHeadingRow
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
-                throw new \Exception("Validation error: The field '{$field}' is required and cannot be null or empty. No changes were saved.");
+                throw new \Exception("The field '{$field}' is required and cannot be null or empty. No changes were saved.");
             }
         }
     }

@@ -46,7 +46,7 @@ class ListTargets extends ListRecords
                         Excel::import(new TargetImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The institution class have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institution class: ' . $e->getMessage());
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
                     }
                 }),
         ];
