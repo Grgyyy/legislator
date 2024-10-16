@@ -12,29 +12,28 @@ class ShowMunicipalities extends ListRecords
     protected static string $resource = MunicipalityResource::class;
 
     public function getBreadcrumbs(): array
-{
-    $provinceId = $this->getProvinceId();
-    $province = Province::find($provinceId);
+    {
+        $provinceId = $this->getProvinceId();
+        $province = Province::find($provinceId);
 
-    // Check if the province exists
-    if (!$province) {
+        if (!$province) {
+            return [
+                route('filament.admin.resources.regions.index') => 'Regions',
+                'Provinces' => 'Provinces',
+                'Municipalities' => 'Municipalities',
+                'List' => 'List',
+            ];
+        }
+
+        $region = $province->region;
+
         return [
-            route('filament.admin.resources.regions.index') => 'Regions',
-            'Provinces' => 'Provinces',
-            'Municipalities' => 'Municipalities',
-            'List' => 'List',
+            route('filament.admin.resources.regions.show_provinces', ['record' => $region->id]) => $region ? $region->name : 'Regions',
+            route('filament.admin.resources.provinces.showMunicipalities', ['record' => $provinceId]) => $province->name,
+            'Municipalities',
+            'List',
         ];
     }
-
-    $region = $province->region;
-
-    return [
-        route('filament.admin.resources.regions.show_provinces', ['record' => $region->id]) => $region ? $region->name : 'Regions',
-        route('filament.admin.resources.provinces.showMunicipalities', ['record' => $provinceId]) => $province->name,
-        'Municipalities',
-        'List',
-    ];
-}
 
 
     protected function getHeaderActions(): array
