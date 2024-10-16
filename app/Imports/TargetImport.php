@@ -13,6 +13,7 @@ use App\Models\Partylist;
 use App\Models\Allocation;
 use App\Models\Legislator;
 use App\Models\Municipality;
+use App\Models\TargetHistory;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use Illuminate\Support\Facades\DB;
@@ -28,14 +29,17 @@ class TargetImport implements ToModel, WithHeadingRow
     public function model(array $row)
     {
         try {
+            // Validate the row first.
             if (!$this->validateRow($row)) {
                 return null;
             }
 
             return DB::transaction(function () use ($row) {
+                // Retrieve necessary IDs and data.
                 $legislator_id = $this->getLegislatorId($row['legislator']);
                 $particular_id = $this->getParticularId($row['particular']);
-                $tvi = $this->getInstitutionData($row['institution'], $this->getDistrictId($this->getMunicipalityId($this->getProvinceId($this->getRegionId($row['region']), $row['province']), $row['municipality']), $row['district']));
+                $districtId = $this->getDistrictId($this->getMunicipalityId($this->getProvinceId($this->getRegionId($row['region']), $row['province']), $row['municipality']), $row['district']);
+                $tvi = $this->getInstitutionData($row['institution'], $districtId);
 
                 $year = $row['year'] ?? date('Y');
                 $abdd_id = $this->getAbddId($row['abdd'] ?? null, $tvi->id);
@@ -53,34 +57,18 @@ class TargetImport implements ToModel, WithHeadingRow
                 $numberOfSlots = $row['number_of_slots'] ?? 0;
                 $qualificationTitle = QualificationTitle::find($qualificationTitleId);
                 $costs = $this->calculateTotalAmount($qualificationTitle, $numberOfSlots);
-                $total_amount = $costs['total_amount'];
-                $total_training_cost_pcc = $costs['total_training_cost_pcc'];
-                $total_cost_of_toolkit_pcc = $costs['total_cost_of_toolkit_pcc'];
-                $total_training_support_fund = $costs['total_training_support_fund'];
-                $total_assessment_fee = $costs['total_assessment_fee'];
-                $total_entrepreneurship_fee = $costs['total_entrepreneurship_fee'];
-                $total_new_normal_assistance = $costs['total_new_normal_assistance'];
-                $total_accident_insurance = $costs['total_accident_insurance'];
-                $total_book_allowance = $costs['total_book_allowance'];
-                $total_uniform_allowance = $costs['total_uniform_allowance'];
-                $total_misc_fee = $costs['total_misc_fee'];
 
-                Log::info("Saving Target data: ", [
-                    'allocation_id' => $this->getAllocationId($row, $legislator_id, $particular_id),
-                    'legislator_id' => $legislator_id,
-                    'particular_id' => $particular_id,
-                    'tvi_id' => $tvi->id,
-                    'abdd_id' => $abdd_id,
-                    'scholarship_program_id' => $this->getScholarshipProgramId($row['scholarship_program']),
-                    'qualification_title_id' => $qualificationTitleId,
-                    'appropriation_type' => $row['appropriation_type'],
-                    'year' => $year,
-                    'number_of_slots' => $numberOfSlots,
-                    'total_amount' => $total_amount,
-                ]);
+                $scholarshipProgramId = $this->getScholarshipProgramId($row['scholarship_program']);
+                $allocationId = $this->getAllocationId($row, $legislator_id, $particular_id, $year, $scholarshipProgramId);
 
-                return Target::create([
-                    'allocation_id' => $this->getAllocationId($row, $legislator_id, $particular_id),
+                if (is_null($allocationId)) {
+                    Log::warning("Allocation not found for row: " . json_encode($row) . ". Skipping import for this row.");
+                    return null;
+                }
+
+                // Prepare data for creation.
+                $targetData = [
+                    'allocation_id' => $allocationId,
                     'legislator_id' => $legislator_id,
                     'tvi_id' => $tvi->id,
                     'abdd_id' => $abdd_id,
@@ -89,25 +77,37 @@ class TargetImport implements ToModel, WithHeadingRow
                     'appropriation_type' => $row['appropriation_type'],
                     'year' => $year,
                     'number_of_slots' => $numberOfSlots,
-                    'total_amount' => $total_amount,
+                    'total_amount' => $costs['total_amount'],
                     'target_status_id' => 1,
-                    'total_training_cost_pcc' => $total_training_cost_pcc,
-                    'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
-                    'total_training_support_fund' => $total_training_support_fund,
-                    'total_assessment_fee' => $total_assessment_fee,
-                    'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
-                    'total_new_normal_assistance' => $total_new_normal_assistance,
-                    'total_accident_insurance' => $total_accident_insurance,
-                    'total_book_allowance' => $total_book_allowance,
-                    'total_uniform_allowance' => $total_uniform_allowance,
-                    'total_misc_fee' => $total_misc_fee,
-                ]);
+                    // Include all the cost breakdown fields
+                    'total_training_cost_pcc' => $costs['total_training_cost_pcc'],
+                    'total_cost_of_toolkit_pcc' => $costs['total_cost_of_toolkit_pcc'],
+                    'total_training_support_fund' => $costs['total_training_support_fund'],
+                    'total_assessment_fee' => $costs['total_assessment_fee'],
+                    'total_entrepreneurship_fee' => $costs['total_entrepreneurship_fee'],
+                    'total_new_normal_assistance' => $costs['total_new_normal_assistance'],
+                    'total_accident_insurance' => $costs['total_accident_insurance'],
+                    'total_book_allowance' => $costs['total_book_allowance'],
+                    'total_uniform_allowance' => $costs['total_uniform_allowance'],
+                    'total_misc_fee' => $costs['total_misc_fee'],
+                ];
+
+                // Create the target and the history record.
+                $target = Target::create($targetData);
+
+                TargetHistory::create(array_merge($targetData, [
+                    'target_id' => $target->id,
+                    'description' => 'Target Created',
+                ]));
+
+                return $target;
             });
         } catch (Throwable $e) {
             Log::error("Import failed for row: " . json_encode($row) . ". Error: " . $e->getMessage());
             throw new \Exception("Import failed for row: " . json_encode($row) . ". Error: " . $e->getMessage());
         }
     }
+
 
     protected function validateRow(array $row)
     {
@@ -282,11 +282,13 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first()->id ?? null;
     }
 
-    protected function getAllocationId(array $row, int $legislatorId, int $particularId)
+    protected function getAllocationId(array $row, int $legislatorId, int $particularId, int $allocationYear, int $scholarshipProgramId)
     {
         return Allocation::where('legislator_id', $legislatorId)
             ->where('particular_id', $particularId)
-            ->first()->id ?? null;
+            ->where('year', $allocationYear)
+            ->where('scholarship_program_id', $scholarshipProgramId)
+            ->value('id');
     }
 
     protected function calculateTotalAmount(QualificationTitle $qualificationTitle, int $numberOfSlots)
