@@ -7,6 +7,9 @@ use App\Models\TviClass;
 use App\Models\InstitutionClass;
 use App\Models\District;
 use App\Filament\Resources\TviResource\Pages;
+use App\Models\Municipality;
+use App\Models\Province;
+use App\Models\Region;
 use App\Services\NotificationHandler;
 use Filament\Resources\Resource;
 use Filament\Forms\Form;
@@ -28,6 +31,7 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -203,7 +207,82 @@ class TviResource extends Resource
                     
                 SelectFilter::make('institution_class_id')
                     ->label("Institution Class (B)")
-                    ->relationship('InstitutionClass', 'name')
+                    ->relationship('InstitutionClass', 'name'),
+
+                Filter::make('institution')
+                    ->form([
+                        Select::make('province_id')
+                            ->label('Province')
+                            ->placeholder('All')
+                            ->options(Province::whereNot('name', 'Not Applicable')->pluck('name', 'id'))
+                            ->afterStateUpdated(function (callable $set, $state) {
+                                $set('municipality_id', null);
+                                $set('district_id', null);
+                            })
+                            ->reactive(),
+                
+                        Select::make('municipality_id')
+                            ->label('Municipality')
+                            ->placeholder('All')
+                            ->options(function ($get) {
+                                $provinceId = $get('province_id');
+                                
+                                return Municipality::where('province_id', $provinceId)
+                                    ->pluck('name', 'id');
+                            })
+                            ->afterStateUpdated(function (callable $set) {
+                                $set('district_id', null);
+                            })
+                            ->reactive(),
+                    
+                        Select::make('district_id')
+                            ->label('District')
+                            ->placeholder('All')
+                            ->options(function ($get) {
+                                $municipalityId = $get('municipality_id');
+                                
+                                return District::where('municipality_id', $municipalityId)
+                                    ->pluck('name', 'id');
+                            }),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['province_id'] ?? null,
+                                fn (Builder $query, $provinceId) => $query->whereHas('district', function (Builder $query) use ($provinceId) {
+                                    $query->whereHas('municipality', function (Builder $query) use ($provinceId) {
+                                        $query->where('province_id', $provinceId);
+                                    });
+                                })
+                            )
+                            ->when(
+                                $data['municipality_id'] ?? null,
+                                fn (Builder $query, $municipalityId) => $query->whereHas('district', function (Builder $query) use ($municipalityId) {
+                                    $query->where('municipality_id', $municipalityId);
+                                })
+                            )
+                            ->when(
+                                $data['district_id'] ?? null,
+                                fn (Builder $query, $districtId) => $query->where('district_id', $districtId)
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                
+                        if (!empty($data['province_id'])) {
+                            $indicators[] = 'Province: ' . Province::find($data['province_id'])->name;
+                        }
+                
+                        if (!empty($data['municipality_id'])) {
+                            $indicators[] = 'Municipality: ' . Municipality::find($data['municipality_id'])->name;
+                        }
+                
+                        if (!empty($data['district_id'])) {
+                            $indicators[] = 'District: ' . District::find($data['district_id'])->name;
+                        }
+                
+                        return $indicators;
+                    })
             ])
             ->actions([
                 ActionGroup::make([

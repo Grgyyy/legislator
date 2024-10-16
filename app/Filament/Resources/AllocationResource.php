@@ -270,21 +270,22 @@ class AllocationResource extends Resource
                     ->label('Scholarship Program')
                     ->relationship('scholarship_program', 'name'),
                 
-                Filter::make('year')
+                Filter::make('allocation')
                     ->form([
                         Select::make('source_of_fund')
                             ->label('Source of Fund')
                             ->placeholder('All')
-                            ->default('')
                             ->options([
                                 'Soft' => 'Soft',
                                 'Commitment' => 'Commitment'
-                            ]),
+                            ])
+                            ->reactive(),
 
                         TextInput::make('year')
                             ->label('Allocation Year')
                             ->placeholder('Enter allocation year')
-                            ->numeric(),
+                            ->numeric()
+                            ->reactive(),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
