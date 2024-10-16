@@ -95,23 +95,35 @@ class MunicipalityResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make()
+                        DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
-
+                    
                             NotificationHandler::sendSuccessNotification('Deleted', 'Municipality has been deleted successfully.');
+                    
+                            return redirect()->route('filament.admin.resources.provinces.showMunicipalities', [
+                                'record' => $record->province_id,
+                            ]); 
                         }),
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Municipality has been restored successfully.');
+
+                            return redirect()->route('filament.admin.resources.provinces.showMunicipalities', [
+                                'record' => $record->province_id,
+                            ]); 
                         }),
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Municipality has been deleted permanently.');
+
+                            return redirect()->route('filament.admin.resources.provinces.showMunicipalities', [
+                                'record' => $record->province_id,
+                            ]); 
                         }),
                 ])
             ])
