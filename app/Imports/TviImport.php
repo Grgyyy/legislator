@@ -36,10 +36,12 @@ class TviImport implements ToModel, WithHeadingRow
                 $provinceId = $this->getProvinceId($regionId, $row['province']);
                 $municipalityId = $this->getMunicipalityId($provinceId, $row['municipality']);
                 $districtId = $this->getDistrictId($municipalityId, $row['district']);
+                $tviCode = $row['school_id'] ? $row['school_id'] : null;
 
 
                 $tviRecord = Tvi::where('name', $row['institution_name'])
-                    ->where('district_id', $districtId)
+                    ->where('school_id', $tviCode)
+                    ->where('address', $row['full_address'])
                     ->first();
 
                 if (!$tviRecord) {
