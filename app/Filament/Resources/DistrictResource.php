@@ -79,7 +79,7 @@ class DistrictResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('municipality.name')
-                    ->searchable()
+                    ->searchable()  
                     ->toggleable(),
 
                 TextColumn::make('municipality.province.name')
