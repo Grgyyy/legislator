@@ -13,9 +13,9 @@ return new class extends Migration {
         Schema::create('training_programs', function (Blueprint $table) {
             $table->id();
             $table->string('code')
-                ->unique()
                 ->nullable();
-            $table->string('title');
+            $table->string('title')
+                ->unique();
             $table->foreignId('priority_id')
                 ->constrained()
                 ->cascadeOnDelete();

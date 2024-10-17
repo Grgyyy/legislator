@@ -195,7 +195,6 @@ class AllocationResource extends Resource
             ->columns([
                 TextColumn::make('soft_or_commitment')
                     ->label('Source of Fund')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make("legislator.name")
@@ -204,7 +203,6 @@ class AllocationResource extends Resource
                     ->toggleable(),
                     
                 TextColumn::make("particular.name")
-                    ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $particular = $record->particular;
@@ -235,7 +233,6 @@ class AllocationResource extends Resource
                 TextColumn::make("scholarship_program.name")
                     ->label('Scholarship Program')
                     ->sortable()
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make("allocation")
@@ -259,7 +256,6 @@ class AllocationResource extends Resource
 
                 TextColumn::make("year")
                     ->sortable()
-                    ->searchable()
                     ->toggleable(),
             ])
             ->filters([

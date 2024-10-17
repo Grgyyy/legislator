@@ -79,7 +79,7 @@ class DistrictResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('municipality.name')
-                    ->searchable()
+                    ->searchable()  
                     ->toggleable(),
 
                 TextColumn::make('municipality.province.name')
@@ -103,18 +103,30 @@ class DistrictResource extends Resource
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'District has been deleted successfully.');
+
+                            return redirect()->route('filament.admin.resources.municipalities.showDistricts', [
+                                'record' => $record->municipality_id,
+                            ]); 
                         }),
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'District has been restored successfully.');
+
+                            return redirect()->route('filament.admin.resources.municipalities.showDistricts', [
+                                'record' => $record->municipality_id,
+                            ]); 
                         }),
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'District has been deleted permanently.');
+
+                            return redirect()->route('filament.admin.resources.municipalities.showDistricts', [
+                                'record' => $record->municipality_id,
+                            ]); 
                         }),
                 ])
             ])

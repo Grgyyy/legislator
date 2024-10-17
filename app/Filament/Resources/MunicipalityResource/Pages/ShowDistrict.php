@@ -16,17 +16,28 @@ class ShowDistrict extends ListRecords
         $municipalityId = $this->getMunicipalityId();
         $municipality = Municipality::find($municipalityId);
 
+        if (!$municipality) {
+            return [
+                route('filament.admin.resources.regions.index') => 'Regions',
+                'Provinces' => 'Provinces',
+                'Municipalities' => 'Municipalities',
+                'Districts' => 'Districts',
+                'List' => 'List',
+            ];
+        }
+
         $province = $municipality->province;
-        $region = $municipality->province->region;
+        $region = $province ? $province->region : null;
 
         return [
-            route('filament.admin.resources.regions.show_provinces', ['record' => $region->id]) => $municipality ? $region->name : 'Regions',
-            route('filament.admin.resources.provinces.showMunicipalities', ['record' => $province->id]) => $municipality ? $province->name : 'Provinces',
-            route('filament.admin.resources.municipalities.showDistricts', ['record' => $municipalityId]) => $municipality ? $municipality->name : 'Municipalities',
+            route('filament.admin.resources.regions.show_provinces', ['record' => $region->id ?? null]) => $region ? $region->name : 'Regions',
+            route('filament.admin.resources.provinces.showMunicipalities', ['record' => $province->id ?? null]) => $province ? $province->name : 'Provinces',
+            route('filament.admin.resources.municipalities.showDistricts', ['record' => $municipalityId]) => $municipality->name,
             'Districts',
-            'List'
+            'List',
         ];
     }
+
 
     protected function getHeaderActions(): array
     {

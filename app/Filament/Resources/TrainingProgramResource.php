@@ -56,7 +56,6 @@ class TrainingProgramResource extends Resource
                 TextInput::make('code')
                     ->label(label: 'Training Program Code')
                     ->placeholder('Enter training program code')
-                    ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Training Program Code'),
