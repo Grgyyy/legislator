@@ -714,6 +714,7 @@ class TargetResource extends Resource
                     ForceDeleteAction::make(),
                 ])
             ])
+
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
@@ -744,6 +745,7 @@ class TargetResource extends Resource
 
                                             return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
+
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
                                     Column::make('allocation.soft_or_commitment')
@@ -751,9 +753,37 @@ class TargetResource extends Resource
                                     Column::make('appropriation_type')
                                         ->heading('Appropriation Type'),
                                     Column::make('allocation.year')
-                                        ->heading('Allocation'),
-                                    Column::make('formatted_particular')
-                                        ->heading('Particular'),
+                                        ->heading('Appropriation Year'),
+                                    Column::make('allocation.particular')
+                                        ->heading('Particular')
+                                        ->getStateUsing(function ($record) {
+                                            $particular = $record->allocation->particular;
+
+                                            if (!$particular) {
+                                                return ['no_particular' => 'No Particular Available'];
+                                            }
+
+                                            $district = $particular->district;
+                                            $municipality = $district ? $district->municipality : null;
+                                            $province = $municipality ? $municipality->province : null;
+
+                                            $districtName = $district ? $district->name : 'Unknown District';
+                                            $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                                            $provinceName = $province ? $province->name : 'Unknown Province';
+
+                                            $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
+
+                                            if ($subParticular === 'Party-list') {
+                                                return "{$subParticular} - {$particular->partylist->name}";
+                                            } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                                                return "{$subParticular}";
+                                            } else {
+                                                return "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                            }
+                                        }),
+
+                                    Column::make('tvi.name')
+                                        ->heading('Institution'),
                                     Column::make('tvi.district.name')
                                         ->heading('District'),
                                     Column::make('tvi.district.municipality.name')
@@ -762,12 +792,19 @@ class TargetResource extends Resource
                                         ->heading('Province'),
                                     Column::make('tvi.district.municipality.province.region.name')
                                         ->heading('Region'),
-                                    Column::make('tvi.name')
-                                        ->heading('Institution'),
+
+                                    Column::make('tvi.address')
+                                        ->heading('Address'),
+
                                     Column::make('tvi.tviClass.tviType.name')
                                         ->heading('TVI Type'),
+
                                     Column::make('tvi.tviClass.name')
-                                        ->heading('TVI Class'),
+                                        ->heading('Institution Class(A)'),
+
+                                    Column::make('tvi.InstitutionClass.name')
+                                        ->heading('Institution Class(B)'),
+
                                     Column::make('qualification_title.training_program.title')
                                         ->heading('Qualification Title')
                                         ->getStateUsing(function ($record) {
@@ -779,14 +816,120 @@ class TargetResource extends Resource
                                         }),
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
+
+                                    Column::make('abdd.name')
+                                        ->heading('ABDD Sector'),
+
+                                    Column::make('qualification_title.trainingProgram.priority.name')
+                                        ->heading('Ten Priority Sector'),
+
+                                    Column::make('qualification_title.trainingProgram.tvet.name')
+                                        ->heading('TVET Sector'),
+
+
                                     Column::make('number_of_slots')
                                         ->heading('No. of slots'),
-                                    Column::make('qualification_title.pcc')
-                                        ->heading('Per Capita Cost')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+
+                                    Column::make('training_cost_per_slot')
+                                        ->heading('Training Cost')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('cost_of_toolkit_per_slot')
+                                        ->heading('Cost of Toolkit')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('training_support_fund_per_slot')
+                                        ->heading('Training Support Fund')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_support_fund'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('assessment_fee_per_slot')
+                                        ->heading('Assessment Fee')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_assessment_fee'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('entrepreneurship_fee_per_slot')
+                                        ->heading('Entrepreneurship Fee')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_entrepreneurship_fee'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('new_normal_assistance_per_slot')
+                                        ->heading('New Normal Assistance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_new_normal_assistance'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('accident_insurance_per_slot')
+                                        ->heading('Accident Insurance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_accident_insurance'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('book_allowance_per_slot')
+                                        ->heading('Book Allowance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_book_allowance'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('uniform_allowance_per_slot')
+                                        ->heading('Uniform Allowance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_uniform_allowance'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('misc_fee_per_slot')
+                                        ->heading('Miscellaneous Fee')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_misc_fee'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('total_amount_per_slot')
+                                        ->heading('PCC')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_amount'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('total_training_cost_pcc')
+                                        ->heading('Total Training Cost')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('total_cost_of_toolkit_pcc')
+                                        ->heading('Total Cost of Toolkit')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('total_training_support_fund')
+                                        ->heading('Total Training Support Fund')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('total_assessment_fee')
+                                        ->heading('Total Assessment Fee')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('total_entrepreneurship_fee')
+                                        ->heading('Total Entrepreneurship Fee')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('total_new_normal_assisstance')
+                                        ->heading('Total New Normal Assistance')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('total_accident_insurance')
+                                        ->heading('Total Accident Insurance')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+
+                                    Column::make('total_book_allowance')
+                                        ->heading('Total Book Allowance')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('total_uniform_allowance')
+                                        ->heading('Total Uniform Allowance')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                    Column::make('total_misc_fee')
+                                        ->heading('Total Miscellaneous Fee')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
                                     Column::make('total_amount')
-                                        ->heading('Total amount')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->heading('Total PCC')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
@@ -794,8 +937,25 @@ class TargetResource extends Resource
                         ]),
                 ]),
             ]);
+
     }
 
+    protected static function calculateCostPerSlot($record, $costProperty)
+    {
+        $totalCost = $record->{$costProperty};
+        $slots = $record->number_of_slots;
+
+        if ($slots > 0) {
+            return $totalCost / $slots;
+        }
+
+        return 0;
+    }
+
+    protected static function formatCurrency($amount)
+    {
+        return '₱ ' . number_format($amount, 2, '.', ',');
+    }
     protected static function getParticularOptions($legislatorId)
     {
         return Particular::whereHas('allocation', function ($query) use ($legislatorId) {
@@ -881,33 +1041,32 @@ class TargetResource extends Resource
         return empty($abddSectors) ? ['' => 'No ABDD sector available'] : $abddSectors;
     }
 
-    public function getFormattedParticularAttribute()
-    {
-        $particular = $this->allocation->particular ?? null;
+    // public function getFormattedParticularAttribute()
+    // {
+    //     $particular = $this->allocation->particular ?? null;
 
-        if (!$particular) {
-            return 'No particular available';
-        }
+    //     if (!$particular) {
+    //         return 'No particular available';
+    //     }
 
-        $district = $particular->district;
-        $municipality = $district ? $district->municipality : null;
-        $province = $municipality ? $municipality->province : null;
+    //     $district = $particular->district;
+    //     $municipality = $district ? $district->municipality : null;
+    //     $province = $municipality ? $municipality->province : null;
 
-        $districtName = $district ? $district->name : 'Unknown District';
-        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-        $provinceName = $province ? $province->name : 'Unknown Province';
+    //     $districtName = $district ? $district->name : 'Unknown District';
+    //     $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+    //     $provinceName = $province ? $province->name : 'Unknown Province';
 
-        $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
+    //     $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
 
-        if ($subParticular === 'Party-list') {
-            return "{$subParticular} - {$particular->partylist->name}";
-        } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-            return "{$subParticular}";
-        } else {
-            return "{$subParticular} - {$districtName}, {$municipalityName}";
-        }
-    }
-
+    //     if ($subParticular === 'Party-list') {
+    //         return "{$subParticular} - {$particular->partylist->name}";
+    //     } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+    //         return "{$subParticular}";
+    //     } else {
+    //         return "{$subParticular} - {$districtName}, {$municipalityName}";
+    //     }
+    // }
 
     protected function getFormattedTotalAmountAttribute($total_amount)
     {
@@ -944,6 +1103,8 @@ class TargetResource extends Resource
         return $fundSource ? $fundSource->name : 'No fund source available';
     }
 
+
+
     public static function getPages(): array
     {
         return [
@@ -972,4 +1133,5 @@ class TargetResource extends Resource
 
         return $query;
     }
+
 }
