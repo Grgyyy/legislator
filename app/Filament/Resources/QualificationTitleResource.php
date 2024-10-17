@@ -25,6 +25,7 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\SelectColumn;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -384,9 +385,14 @@ class QualificationTitleResource extends Resource
                         return $state . $suffix;
                     }),
 
-                TextColumn::make("status.desc")
-                    ->searchable()
-                    ->toggleable(),
+                SelectColumn::make('status_id')
+                    ->label('Status')
+                    ->options([
+                        '1' => 'Active',
+                        '2' => 'Inactive',
+                    ])
+                    ->disablePlaceholderSelection()
+                    ->extraAttributes(['style' => 'width: 125px;'])
             ])
             ->filters([
                 TrashedFilter::make()
