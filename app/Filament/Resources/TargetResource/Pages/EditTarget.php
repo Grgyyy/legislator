@@ -129,6 +129,7 @@ class EditTarget extends EditRecord
                     'total_misc_fee' => $total_misc_fee,
                     'total_amount' => $total_amount,
                     'appropriation_type' => $data['appropriation_type'],
+                    // 'description' => $data['description'],
                     'target_status_id' => 1,
                 ]);
 

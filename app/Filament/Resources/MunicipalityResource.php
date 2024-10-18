@@ -78,11 +78,11 @@ class MunicipalityResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->url(fn($record) => route('filament.admin.resources.municipalities.showDistricts', ['record' => $record->id])),
-                
+
                 TextColumn::make("province.name")
                     ->searchable()
                     ->toggleable(),
-                
+
                 TextColumn::make("province.region.name")
                     ->searchable()
                     ->toggleable(),

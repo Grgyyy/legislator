@@ -41,7 +41,7 @@ class ListPartylists extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
-                    
+
                     try {
                         Excel::import(new PartylistImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The party-lists have been successfully imported from the file.');

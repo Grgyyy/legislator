@@ -55,25 +55,27 @@ class ParticularResource extends Resource
                         return SubParticular::with('fundSource')
                             ->get()
                             ->mapWithKeys(function ($subParticular) {
-                                return [$subParticular->id => ($subParticular->name === 'Regular') 
-                                        ? $subParticular->fundSource->name 
-                                        : $subParticular->name];
+                                return [
+                                    $subParticular->id => ($subParticular->name === 'Regular')
+                                        ? $subParticular->fundSource->name
+                                        : $subParticular->name
+                                ];
                             })
                             ->toArray() ?: ['no_subparticular' => 'No Particular Type Available'];
                     })
-                    ->disableOptionWhen(fn ($value) => $value === 'no_subparticular')
+                    ->disableOptionWhen(fn($value) => $value === 'no_subparticular')
                     ->afterStateUpdated(function (callable $set, $state) {
                         $set('administrative_area', null);
-                        
+
                         $administrativeArea = self::getAdministrativeAreaOptions($state);
                         $set('administrativeAreaOptions', $administrativeArea);
-                        
+
                         if (count($administrativeArea) === 1) {
                             $set('administrative_area', key($administrativeArea));
                         }
                     })
                     ->live(),
-                
+
                 Select::make('administrative_area')
                     ->label('Administrative Area')
                     ->required()
@@ -88,7 +90,7 @@ class ParticularResource extends Resource
                             ? self::getAdministrativeAreaOptions($subParticularId)
                             : ['no_administrative_area' => 'No administrative area available. Select a particular type first.'];
                     })
-                    ->disableOptionWhen(fn ($value) => $value === 'no_administrative_area')
+                    ->disableOptionWhen(fn($value) => $value === 'no_administrative_area')
                     ->reactive()
                     ->live(),
             ]);
@@ -98,49 +100,49 @@ class ParticularResource extends Resource
     {
         return $table
             ->emptyStateHeading('no particulars available')
-            ->columns([               
+            ->columns([
                 TextColumn::make("subParticular.name")
                     ->label('Particular Type')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                
+
                 TextColumn::make("subParticular.fundSource.name")
                     ->label('Fund Source')
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
-                
+                    ->formatStateUsing(fn($state) => $state === 'Not Applicable' ? '-' : $state),
+
                 TextColumn::make("partylist.name")
                     ->label('Party-list')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
-                
+                    ->formatStateUsing(fn($state) => $state === 'Not Applicable' ? '-' : $state),
+
                 TextColumn::make("district.name")
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
-                
+                    ->formatStateUsing(fn($state) => $state === 'Not Applicable' ? '-' : $state),
+
                 TextColumn::make("district.municipality.name")
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
-                
+                    ->formatStateUsing(fn($state) => $state === 'Not Applicable' ? '-' : $state),
+
                 TextColumn::make("district.municipality.province.name")
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
-                
+                    ->formatStateUsing(fn($state) => $state === 'Not Applicable' ? '-' : $state),
+
                 TextColumn::make("district.municipality.province.region.name")
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state === 'Not Applicable' ? '-' : $state),
+                    ->formatStateUsing(fn($state) => $state === 'Not Applicable' ? '-' : $state),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -210,19 +212,20 @@ class ParticularResource extends Resource
             ]);
     }
 
-    protected static function getAdministrativeAreaOptions($subParticularId) {
+    protected static function getAdministrativeAreaOptions($subParticularId)
+    {
         $subParticular = SubParticular::find($subParticularId);
-    
+
         if (!$subParticularId) {
             return ['no_administrative_area' => 'No Administrative Area Available'];
         }
-    
+
         if ($subParticular->name === 'Party-list') {
             return Partylist::whereNot('name', 'Not Applicable')
                 ->pluck('name', 'id')
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
-        } 
-        
+        }
+
         if ($subParticular->fundSource->name === 'RO Regular') {
             return District::where('name', 'Not Applicable')
                 ->whereHas('municipality', function ($query) {
@@ -239,8 +242,8 @@ class ParticularResource extends Resource
                     return [$district->id => $district->municipality->province->region->name];
                 })
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
-        } 
-        
+        }
+
         if ($subParticular->fundSource->name === 'CO Regular') {
             return District::where('name', 'Not Applicable')
                 ->whereHas('municipality', function ($query) {
@@ -284,9 +287,9 @@ class ParticularResource extends Resource
                     $municipalityName = optional($district->municipality)->name ?? '-';
                     $provinceName = optional(optional($district->municipality)->province)->name ?? '-';
                     $regionName = optional(optional(optional($district->municipality)->province)->region)->name ?? '-';
-        
+
                     return [
-                        $district->id => $district->name 
+                        $district->id => $district->name
                             . ", " . $municipalityName
                             . ", " . $provinceName
                             . ", " . $regionName
@@ -294,7 +297,7 @@ class ParticularResource extends Resource
                 })
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
         }
-    
+
         return ['no_administrative_area' => 'No Administrative Area Available'];
     }
 
@@ -303,7 +306,7 @@ class ParticularResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
-    
+
     public static function getPages(): array
     {
         return [

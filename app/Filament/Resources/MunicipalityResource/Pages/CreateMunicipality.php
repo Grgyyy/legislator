@@ -45,10 +45,10 @@ class CreateMunicipality extends CreateRecord
             ->first();
 
         if ($municipality) {
-            $message = $municipality->deleted_at 
-                ? 'This municipality exists in the province but has been deleted; it must be restored before reuse.' 
+            $message = $municipality->deleted_at
+                ? 'This municipality exists in the province but has been deleted; it must be restored before reuse.'
                 : 'A municipality with this name already exists in the specified province.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

@@ -63,7 +63,7 @@ class DistrictResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_municipality' => 'No Municipality Available'];
                     })
-                    ->disableOptionWhen(fn ($value) => $value === 'no_municipality'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_municipality'),
             ]);
     }
 
@@ -179,7 +179,7 @@ class DistrictResource extends Resource
 
         return $query;
     }
-    
+
     public static function getPages(): array
     {
         return [
