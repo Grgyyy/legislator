@@ -206,6 +206,8 @@ class TargetHistoryResource extends Resource
             $query->where('target_id', (int) $routeParameter);
         }
 
-        return $query;
+        return $query->orderBy('updated_at', 'desc');
     }
+
+
 }
