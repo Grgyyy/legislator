@@ -90,7 +90,8 @@ class TargetCommentResource extends Resource
 
             TextInput::make('target_id')
                 ->default(request()->query('record'))
-                ->hidden(fn ($record) => $record !== null) // Only hide it if updating an existing record
+                ->label('')
+                ->extraAttributes(['class' => 'hidden'])
                 ->readOnly(),
 
         ]);
