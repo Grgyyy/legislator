@@ -24,6 +24,7 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\SelectColumn;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -76,8 +77,7 @@ class LegislatorResource extends Resource
                         return Status::all()
                             ->pluck('desc', 'id')
                             ->toArray() ?: ['no_status' => 'No Status Available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_status'),
+                    }),
             ]);
     }
 
@@ -97,9 +97,13 @@ class LegislatorResource extends Resource
                     ->getStateUsing(fn($record) => self::getParticularNames($record))
                     ->html(),
                     
-                TextColumn::make("status.desc")
-                    ->searchable()
-                    ->toggleable(),
+                SelectColumn::make('status_id')
+                    ->label('Status')
+                    ->options([
+                        '1' => 'Active',
+                        '2' => 'Inactive',
+                    ])
+                    ->disablePlaceholderSelection()
             ])
             ->filters([
                 TrashedFilter::make()
