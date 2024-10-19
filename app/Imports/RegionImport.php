@@ -28,7 +28,7 @@ class RegionImport implements ToModel, WithHeadingRow
 
                 $regionIsExist = Region::where('name', $row['region'])->exists();
 
-                if(!$regionIsExist) {
+                if (!$regionIsExist) {
                     return new Region([
                         'name' => $row['region'],
                     ]);

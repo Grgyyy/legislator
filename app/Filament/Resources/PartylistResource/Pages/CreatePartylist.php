@@ -13,7 +13,7 @@ class CreatePartylist extends CreateRecord
     protected static string $resource = PartylistResource::class;
 
     protected static ?string $title = 'Create Party-list';
-    
+
     public function getBreadcrumbs(): array
     {
         return [
@@ -47,10 +47,10 @@ class CreatePartylist extends CreateRecord
             ->first();
 
         if ($partyList) {
-            $message = $partyList->deleted_at 
-                ? 'This party-list has been deleted and must be restored before reuse.' 
+            $message = $partyList->deleted_at
+                ? 'This party-list has been deleted and must be restored before reuse.'
                 : 'A party-list with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

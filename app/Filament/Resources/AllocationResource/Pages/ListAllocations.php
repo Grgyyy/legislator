@@ -31,11 +31,12 @@ class ListAllocations extends ListRecords
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
-                    FileUpload::make('attachment'),
+                    FileUpload::make('attachment')
+                        ->required(),
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
-                    
+
                     try {
                         Excel::import(new AllocationImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The allocations have been successfully imported from the file.');
@@ -46,10 +47,3 @@ class ListAllocations extends ListRecords
         ];
     }
 
-    protected function getHeaderWidgets(): array
-    {
-        return [
-            StatsOverview::class,
-        ];
-    }
-}

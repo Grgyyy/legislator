@@ -15,11 +15,13 @@ class SubParticular extends Model
         'fund_source_id'
     ];
 
-    public function particular() {
+    public function particular()
+    {
         return $this->hasMany(Particular::class);
     }
 
-    public function fundSource() {
+    public function fundSource()
+    {
         return $this->belongsTo(FundSource::class);
     }
 }

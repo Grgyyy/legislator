@@ -34,7 +34,7 @@ class ListParticulars extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
-                    
+
                     try {
                         Excel::import(new ParticularImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The particulars have been successfully imported from the file.');
@@ -150,25 +150,25 @@ class ListParticulars extends ListRecords
     }
 }
 
-    // public function getTabs(): array
-    // {
-    //     $fundSources = FundSource::all();
+// public function getTabs(): array
+// {
+//     $fundSources = FundSource::all();
 
-    //     $tabs = [];
+//     $tabs = [];
 
-    //     foreach ($fundSources as $fundSource) {
-    //         $tabs[$fundSource->name] = Tab::make()
-    //             ->modifyQueryUsing(function ($query) use ($fundSource) {
-    //                 $query->whereHas('subParticular', function ($subQuery) use ($fundSource) {
-    //                     $subQuery->where('fund_source_id', $fundSource->id);
-    //                 });
-    //             })
-    //             ->badge(function () use ($fundSource) {
-    //                 return Particular::whereHas('subParticular', function ($subQuery) use ($fundSource) {
-    //                     $subQuery->where('fund_source_id', $fundSource->id);
-    //                 })->count();
-    //             });
-    //     }
+//     foreach ($fundSources as $fundSource) {
+//         $tabs[$fundSource->name] = Tab::make()
+//             ->modifyQueryUsing(function ($query) use ($fundSource) {
+//                 $query->whereHas('subParticular', function ($subQuery) use ($fundSource) {
+//                     $subQuery->where('fund_source_id', $fundSource->id);
+//                 });
+//             })
+//             ->badge(function () use ($fundSource) {
+//                 return Particular::whereHas('subParticular', function ($subQuery) use ($fundSource) {
+//                     $subQuery->where('fund_source_id', $fundSource->id);
+//                 })->count();
+//             });
+//     }
 
-    //     return $tabs;
-    // }
+//     return $tabs;
+// }

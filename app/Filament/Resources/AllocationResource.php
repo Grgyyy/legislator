@@ -73,7 +73,7 @@ class AllocationResource extends Resource
                         $set('particular_id', null);
 
                         $particulars = self::getParticularOptions($state);
-                        
+
                         $set('particularOptions', $particulars);
 
                         if (count($particulars) === 1) {
@@ -114,7 +114,7 @@ class AllocationResource extends Resource
                             ->toArray() ?: ['no_scholarship_program' => 'No Scholarship Program Available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
-                
+
                 TextInput::make('allocation')
                     ->label('Allocation')
                     ->required()
@@ -153,7 +153,7 @@ class AllocationResource extends Resource
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                     ->afterStateUpdated(function (callable $set, $state, $get) {
                         $allocation = floatval($get('allocation'));
-                        
+
                         $set('balance', $allocation - $state);
                     })
                     ->reactive()
@@ -202,7 +202,7 @@ class AllocationResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                    
+
                 TextColumn::make("particular.name")
                     ->searchable()
                     ->toggleable()
@@ -243,14 +243,14 @@ class AllocationResource extends Resource
                     ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-                
+
                 TextColumn::make("admin_cost")
                     ->label('Admin Cost')
                     ->sortable()
                     ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-                
+
                 TextColumn::make("balance")
                     ->sortable()
                     ->toggleable()
@@ -265,10 +265,11 @@ class AllocationResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
-                
+
                 SelectFilter::make('scholarship_program')
                     ->label('Scholarship Program')
                     ->relationship('scholarship_program', 'name'),
+
                 
                 Filter::make('allocation')
                     ->form([
@@ -289,26 +290,26 @@ class AllocationResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                        ->when(
-                            $data['source_of_fund'] ?? null,
-                            fn (Builder $query, $source_of_fund) => $query->where('soft_or_commitment', $source_of_fund)
-                        )
-                        ->when(
-                            $data['year'] ?? null,
-                            fn (Builder $query, $year) => $query->where('year', $year)
-                        );
+                            ->when(
+                                $data['source_of_fund'] ?? null,
+                                fn(Builder $query, $source_of_fund) => $query->where('soft_or_commitment', $source_of_fund)
+                            )
+                            ->when(
+                                $data['year'] ?? null,
+                                fn(Builder $query, $year) => $query->where('year', $year)
+                            );
                     })
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
-                    
+
                         if (!empty($data['year'])) {
                             $indicators[] = 'Allocation Year: ' . $data['year'];
                         }
-                    
+
                         if (!empty($data['source_of_fund'])) {
                             $indicators[] = 'Source of Fund: ' . $data['source_of_fund'];
                         }
-                    
+
                         return $indicators;
                     })
             ])

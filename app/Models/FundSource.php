@@ -14,7 +14,8 @@ class FundSource extends Model
         'name',
     ];
 
-    public function subParticular() {
+    public function subParticular()
+    {
         return $this->hasMany(SubParticular::class);
     }
 }

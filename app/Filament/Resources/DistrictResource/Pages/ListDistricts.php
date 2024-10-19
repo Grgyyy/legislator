@@ -31,7 +31,7 @@ class ListDistricts extends ListRecords
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
-                    
+
                     try {
                         Excel::import(new DistrictImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The district have been successfully imported from the file.');
