@@ -45,5 +45,7 @@ class ListAllocations extends ListRecords
                     }
                 }),
         ];
+
     }
+}
 
