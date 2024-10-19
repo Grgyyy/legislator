@@ -19,7 +19,7 @@ class ListTrainingPrograms extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()  
+            CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
@@ -27,11 +27,12 @@ class ListTrainingPrograms extends ListRecords
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
-                    FileUpload::make('attachment'),
+                    FileUpload::make('attachment')
+                        ->required(),
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
-                    
+
                     try {
                         Excel::import(new TrainingProgramsImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The training programs have been successfully imported from the file.');

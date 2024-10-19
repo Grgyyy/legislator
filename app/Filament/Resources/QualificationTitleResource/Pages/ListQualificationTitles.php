@@ -27,17 +27,18 @@ class ListQualificationTitles extends ListRecords
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
-                    FileUpload::make('attachment'),
+                    FileUpload::make('attachment')
+                        ->required(),
                 ])
                 ->action(function (array $data) {
                     $file = storage_path('app/public/' . $data['attachment']);
-                    
+
                     try {
                         Excel::import(new QualificationTitleImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The qualification titles have been successfully imported from the file.');
                     } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the qualification titles: ' . $e->getMessage());
-                    } 
+                    }
                 })
         ];
     }
