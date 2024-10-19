@@ -90,7 +90,8 @@ class TargetCommentResource extends Resource
 
             TextInput::make('target_id')
                 ->default(request()->query('record'))
-                ->hidden(fn ($record) => $record !== null) // Only hide it if updating an existing record
+                ->label('')
+                ->extraAttributes(['class' => 'hidden'])
                 ->readOnly(),
 
         ]);
@@ -132,11 +133,11 @@ class TargetCommentResource extends Resource
     {
         $query = parent::getEloquentQuery();
         $routeParameter = request()->route('record');
-
+    
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('target_id', (int) $routeParameter);
         }
-
-        return $query;
-    }
+    
+        return $query->orderBy('updated_at', 'desc');
+    }    
 }

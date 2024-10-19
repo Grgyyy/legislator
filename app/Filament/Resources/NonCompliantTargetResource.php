@@ -14,6 +14,12 @@ use App\Models\Target;
 use App\Models\TargetRemark;
 use App\Models\TargetStatus;
 use App\Models\Tvi;
+use Filament\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Forms;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -283,11 +289,25 @@ class NonCompliantTargetResource extends Resource
                         return 'N/A';
                         }),
             ])
+            ->recordUrl(
+                fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]),
+            )
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    EditACtion::make()
+                        ->hidden(fn($record) => $record->trashed()),
+                    Action::make('viewHistory')
+                        ->label('View History')
+                        ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
+                        ->icon('heroicon-o-magnifying-glass'),
+                    Action::make('viewComment')
+                        ->label('View Comments')
+                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        ->icon('heroicon-o-chat-bubble-left-ellipsis'),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
