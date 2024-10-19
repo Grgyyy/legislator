@@ -37,11 +37,12 @@ class ListSubParticulars extends ListRecords
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
-                    FileUpload::make('attachment'),
+                    FileUpload::make('attachment')
+                        ->required(),
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
-                    
+
                     try {
                         Excel::import(new ParticularTypesImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The particular types have been successfully imported from the file.');

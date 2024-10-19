@@ -27,11 +27,12 @@ class ListLegislators extends ListRecords
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
-                    FileUpload::make('attachment'),
+                    FileUpload::make('attachment')
+                        ->required(),
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
-                    
+
                     try {
                         Excel::import(new LegislatorImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The legislators have been successfully imported from the file.');
@@ -43,23 +44,23 @@ class ListLegislators extends ListRecords
     }
 }
 
-    // public function getTabs(): array
-    // {
-    //     return [
-    //         'All' => Tab::make(),
-    //         'Active' => Tab::make()
-    //             ->modifyQueryUsing(function ($query) {
-    //                 $query->where('status_id', '1');
-    //             })
-    //             ->badge(function () {
-    //                 return Legislator::where('status_id', '1')->count();
-    //             }),
-    //         'Inactive' => Tab::make()
-    //             ->modifyQueryUsing(function ($query) {
-    //                 $query->where('status_id', '2');
-    //             })
-    //             ->badge(function () {
-    //                 return Legislator::where('status_id', '2')->count();
-    //             }),
-    //     ];
-    // }
+// public function getTabs(): array
+// {
+//     return [
+//         'All' => Tab::make(),
+//         'Active' => Tab::make()
+//             ->modifyQueryUsing(function ($query) {
+//                 $query->where('status_id', '1');
+//             })
+//             ->badge(function () {
+//                 return Legislator::where('status_id', '1')->count();
+//             }),
+//         'Inactive' => Tab::make()
+//             ->modifyQueryUsing(function ($query) {
+//                 $query->where('status_id', '2');
+//             })
+//             ->badge(function () {
+//                 return Legislator::where('status_id', '2')->count();
+//             }),
+//     ];
+// }

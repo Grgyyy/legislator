@@ -37,11 +37,12 @@ class ListPriorities extends ListRecords
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
-                    FileUpload::make('attachment'),
+                    FileUpload::make('attachment')
+                    ->required(),
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
-                    
+
                     try {
                         Excel::import(new TenPrioImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The priority sectors have been successfully imported from the file.');
