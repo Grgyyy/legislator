@@ -124,10 +124,6 @@ class TargetHistoryResource extends Resource
                 TextColumn::make('tvi.district.municipality.province.region.name')
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('abdd.name')
-                    ->searchable()
-                    ->toggleable()
-                    ->label('ABDD Sector'),
                 TextColumn::make('tvi.name')
                     ->searchable()
                     ->toggleable()
@@ -151,6 +147,20 @@ class TargetHistoryResource extends Resource
 
                         return $trainingProgram ? $trainingProgram->title : 'No Training Program Available';
                     }),
+                TextColumn::make('abdd.name')
+                    ->label('ABDD Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.tvet.name')
+                    ->label('TVET Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.priority.name')
+                    ->label('Priority Sector')
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('allocation.scholarship_program.name')
                     ->label('Scholarship Program'),
                 TextColumn::make('number_of_slots')

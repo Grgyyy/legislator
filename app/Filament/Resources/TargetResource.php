@@ -659,6 +659,21 @@ class TargetResource extends Resource
                         return $trainingProgram ? $trainingProgram->title : 'No training program available';
                     }),
 
+                TextColumn::make('abdd.name')
+                    ->label('ABDD Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.tvet.name')
+                    ->label('TVET Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.priority.name')
+                    ->label('Priority Sector')
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('allocation.scholarship_program.name')
                     ->label('Scholarship Program')
                     ->searchable()
