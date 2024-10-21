@@ -131,6 +131,8 @@ class CompliantTargetsResource extends Resource
                 ->required()
                 ->searchable()
                 ->preload()
+                ->disabled()
+                ->dehydrated()
                 ->default($record ? $record->tvi_id : null)
                 ->relationship('tvi', 'name'),
 
@@ -138,6 +140,8 @@ class CompliantTargetsResource extends Resource
                 ->label('Qualification Title')
                 ->required()
                 ->searchable()
+                ->disabled()
+                ->dehydrated()
                 ->default($record ? $record->qualification_title_id : null)
                 ->options(function ($get) {
                     $scholarshipProgramId = $get('scholarship_program_id');
@@ -149,6 +153,8 @@ class CompliantTargetsResource extends Resource
                 ->required()
                 ->searchable()
                 ->preload()
+                ->disabled()
+                ->dehydrated()
                 ->default($record ? $record->abdd_id : null)
                 ->options(function ($get) {
                     $tviId = $get('tvi_id');
@@ -158,6 +164,8 @@ class CompliantTargetsResource extends Resource
             TextInput::make('number_of_slots')
                 ->label('Number of Slots')
                 ->default($record ? $record->number_of_slots : null)
+                ->disabled()
+                ->dehydrated()
                 ->required()
                 ->numeric(),
 
@@ -166,6 +174,8 @@ class CompliantTargetsResource extends Resource
                 ->default($record ? $record->id : 'id')
                 ->extraAttributes(['class' => 'hidden'])
                 ->required()
+                ->disabled()
+                ->dehydrated()
                 ->numeric(),
         ]);
     }
