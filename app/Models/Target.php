@@ -70,4 +70,9 @@ class Target extends Model
     {
         return $this->hasOne(NonCompliantRemark::class);
     }
+
+    public function legislator()
+    {
+        return $this->hasOne(Legislator::class);
+    }
 }

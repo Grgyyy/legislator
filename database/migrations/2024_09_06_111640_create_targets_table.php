@@ -18,7 +18,6 @@ return new class extends Migration {
             $table->foreignId('tvi_id')
                 ->constrained()
                 ->cascadeOnDelete();
-
             $table->foreignId('qualification_title_id')
                 ->constrained()
                 ->cascadeOnDelete();
@@ -26,6 +25,10 @@ return new class extends Migration {
                 ->constrained()
                 ->cascadeOnDelete();
             $table->integer('number_of_slots');
+            $table->foreignId('legislator_id')
+            ->nullable()
+            ->constrained()
+            ->cascadeOnDelete();
 
             $table->integer('total_training_cost_pcc')
                 ->default(0);

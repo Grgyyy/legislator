@@ -22,8 +22,6 @@ class Legislator extends Model
         return $this->belongsTo(Status::class);
     }
 
-
-
     public function allocation()
     {
         return $this->hasMany(Allocation::class);
