@@ -27,10 +27,9 @@ class CreateParticular extends CreateRecord
 
     protected function handleRecordCreation(array $data): Particular
     {
-        $this->validateUniqueParticular($data['sub_particular_id']);
-
         return DB::transaction(function () use ($data) {
             try {
+                // Retrieve the necessary models
                 $subParticular = SubParticular::find($data['sub_particular_id']);
                 if (!$subParticular) {
                     NotificationHandler::handleValidationException('Unexpected Error', 'Particular type does not exist.');
@@ -67,12 +66,26 @@ class CreateParticular extends CreateRecord
                     NotificationHandler::handleValidationException('Unexpected Error', 'District does not exist.');
                 }
 
+                // Conditional variables for partylist and district IDs
+                $partylistId = ($subParticular->name === 'Party-list' || $subParticular->fundSource->name === 'Party-list')
+                    ? $data['administrative_area']
+                    : $partylist->id;
+
+                $districtId = ($subParticular->name === 'Party-list' || $subParticular->fundSource->name === 'Party-list')
+                    ? $district->id
+                    : $data['administrative_area'];
+
+                // Validate uniqueness before creating the record
+                $this->validateUniqueParticular($data['sub_particular_id'], $partylistId, $districtId);
+
+                // Prepare the data for creation
                 $particularData = [
                     'sub_particular_id' => $data['sub_particular_id'],
-                    'partylist_id' => $subParticular->name === 'Party-list' ||  $subParticular->fundSource->name === 'Party-list' ? $data['administrative_area'] : $partylist->id,
-                    'district_id' => $subParticular->name === 'Party-list' ||  $subParticular->fundSource->name === 'Party-list' ? $district->id : $data['administrative_area'],
+                    'partylist_id' => $partylistId,
+                    'district_id' => $districtId,
                 ];
 
+                // Create the Particular record
                 $particular = Particular::create($particularData);
 
                 NotificationHandler::sendSuccessNotification('Success', 'Particular has been created successfully.');
@@ -80,7 +93,7 @@ class CreateParticular extends CreateRecord
                 return $particular;
             } catch (Exception $e) {
                 NotificationHandler::sendErrorNotification('Error', $e->getMessage());
-                
+
                 throw ValidationException::withMessages([
                     'general' => $e->getMessage(),
                 ]);
@@ -88,18 +101,21 @@ class CreateParticular extends CreateRecord
         });
     }
 
-    protected function validateUniqueParticular($sub_particular_id)
+    protected function validateUniqueParticular($sub_particular_id, $partylist_id, $district_id)
     {
-        $particular = Particular::withTrashed()
+        // Check for existing records with the same combination
+        $existingParticular = Particular::withTrashed()
             ->where('sub_particular_id', $sub_particular_id)
+            ->where('partylist_id', $partylist_id)
+            ->where('district_id', $district_id)
             ->first();
 
-        if ($particular) {
-            $message = $particular->deleted_at 
+        if ($existingParticular) {
+            $message = $existingParticular->deleted_at 
                 ? 'This particular has been deleted and must be restored before reuse.' 
-                : 'A particular with the specified type and administrative area already exists.';
-            
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+                : 'A particular with the specified type, party list, and district already exists.';
+
+            NotificationHandler::handleValidationException('Validation Error', $message);
         }
     }
 }

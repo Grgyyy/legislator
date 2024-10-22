@@ -29,8 +29,8 @@ class SubParticularSeeder extends Seeder
             return;
         }
 
-        $regional_regular_particulars = ['Regular'];
-        $central_regular_particulars = ['Regular', 'SDF', 'With Identified TVI', 'RO Programming', 'Vetted', 'Star Rated', 'APACC', 'AIFO', 'EO79', 'EO70', 'KIA/WIA'];
+        $regional_regular_particulars = ['RO Regular'];
+        $central_regular_particulars = ['CO Regular', 'SDF', 'With Identified TVI', 'RO Programming', 'Vetted', 'Star Rated', 'APACC', 'AIFO', 'EO79', 'EO70', 'KIA/WIA'];
         $central_legislator_funds_particulars = ['District', 'Party-list', 'Senator', 'House Speaker', 'House Speaker (LAKAS)'];
 
         foreach ($regional_regular_particulars as $particular) {

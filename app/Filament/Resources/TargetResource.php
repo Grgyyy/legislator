@@ -181,7 +181,19 @@ class TargetResource extends Resource
                             ->validationMessages([
                                 'min' => 'The number of slots must be at least 10.',
                                 'max' => 'The number of slots must not exceed 25.'
-                            ])
+                            ]),
+                        Select::make('legislator_id')
+                            ->label('Attribution Receiver')
+                            ->required()
+                            ->markAsRequired(false)
+                            ->options(function () {
+                                return Legislator::where('status_id', 1)
+                                    ->whereNull('deleted_at')
+                                    ->pluck('name', 'id')
+                                    ->toArray() ?: ['no_legislators' => 'No legislator available'];
+                            })
+                            ->disabled()
+                            ->dehydrated(),
                     ];
                 } else {
                     return [
@@ -480,6 +492,7 @@ class TargetResource extends Resource
                                             : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
+                                    
 
                                 TextInput::make('number_of_slots')
                                     ->label('Number of Slots')
@@ -493,7 +506,17 @@ class TargetResource extends Resource
                                     ->validationMessages([
                                         'min' => 'The number of slots must be at least 10.',
                                         'max' => 'The number of slots must not exceed 25.'
-                                    ])
+                                    ]),
+                                Select::make('legislator_id')
+                                    ->label('Attribution Receiver')
+                                    ->required()
+                                    ->markAsRequired(false)
+                                    ->options(function () {
+                                        return Legislator::where('status_id', 1)
+                                            ->whereNull('deleted_at')
+                                            ->pluck('name', 'id')
+                                            ->toArray() ?: ['no_legislators' => 'No legislator available'];
+                                    }),
                             ])
                             ->columns(5)
                             ->columnSpanFull()
@@ -658,6 +681,21 @@ class TargetResource extends Resource
 
                         return $trainingProgram ? $trainingProgram->title : 'No training program available';
                     }),
+
+                TextColumn::make('abdd.name')
+                    ->label('ABDD Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.tvet.name')
+                    ->label('TVET Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.priority.name')
+                    ->label('Priority Sector')
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make('allocation.scholarship_program.name')
                     ->label('Scholarship Program')

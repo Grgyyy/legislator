@@ -16,6 +16,7 @@ class Target extends Model
         'abdd_id',
         'qualification_title_id',
         'number_of_slots',
+        'legislator_id',
         'total_training_cost_pcc',
         'total_cost_of_toolkit_pcc',
         'total_training_support_fund',
@@ -69,5 +70,10 @@ class Target extends Model
     public function nonCompliantRemark()
     {
         return $this->hasOne(NonCompliantRemark::class);
+    }
+
+    public function legislator()
+    {
+        return $this->hasOne(Legislator::class);
     }
 }
