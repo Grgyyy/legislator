@@ -20,6 +20,8 @@ class Allocation extends Model
         'allocation',
         'admin_cost',
         'balance',
+        'attribution_sent',
+        'attribution_received',
         'year'
     ];
 

@@ -26,9 +26,9 @@ return new class extends Migration {
                 ->cascadeOnDelete();
             $table->integer('number_of_slots');
             $table->foreignId('legislator_id')
-            ->nullable()
-            ->constrained()
-            ->cascadeOnDelete();
+                ->nullable()
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->integer('total_training_cost_pcc')
                 ->default(0);
