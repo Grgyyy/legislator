@@ -65,14 +65,14 @@ class LegislatorResource extends Resource
                     ->native(false)
                     ->options(fn() => self::getParticularOptions())
                     ->disableOptionWhen(fn($value) => $value === 'no_particular'),
-                
+
                 Select::make('status_id')
                     ->relationship('status', 'desc')
                     ->required()
                     ->markAsRequired(false)
                     ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
                     ->default(1)
-                    ->native(false)                    
+                    ->native(false)
                     ->options(function () {
                         return Status::all()
                             ->pluck('desc', 'id')
@@ -96,7 +96,7 @@ class LegislatorResource extends Resource
                     ->toggleable()
                     ->getStateUsing(fn($record) => self::getParticularNames($record))
                     ->html(),
-                    
+
                 SelectColumn::make('status_id')
                     ->label('Status')
                     ->options([
@@ -230,7 +230,7 @@ class LegislatorResource extends Resource
             $municipalityName = $particular->district->name . ', ' . $particular->district->municipality->name;
 
             $paddingTop = ($index > 0) ? 'padding-top: 15px;' : '';
-            
+
             $comma = ($index < $record->particular->count() - 1) ? ',' : '';
 
             if ($particular->subParticular->name === 'Party-list') {
