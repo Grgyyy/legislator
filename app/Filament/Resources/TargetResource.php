@@ -53,7 +53,7 @@ class TargetResource extends Resource
             ->schema(function ($record) {
                 if ($record) {
                     return [
-                        Select::make('legislator_id')
+                        Select::make('allocation_legislator_id')
                             ->label('Legislator')
                             ->required()
                             ->markAsRequired(false)
@@ -72,7 +72,7 @@ class TargetResource extends Resource
                             ->required()
                             ->markAsRequired(false)
                             ->options(function ($get) {
-                                $legislatorId = $get('legislator_id');
+                                $legislatorId = $get('allocation_legislator_id');
 
                                 return $legislatorId
                                     ? self::getParticularOptions($legislatorId)
@@ -86,7 +86,7 @@ class TargetResource extends Resource
                             ->required()
                             ->markAsRequired(false)
                             ->options(function ($get) {
-                                $legislatorId = $get('legislator_id');
+                                $legislatorId = $get('allocation_legislator_id');
                                 $particularId = $get('particular_id');
 
                                 return $legislatorId
@@ -101,7 +101,7 @@ class TargetResource extends Resource
                             ->required()
                             ->markAsRequired(false)
                             ->options(function ($get) {
-                                $legislatorId = $get('legislator_id');
+                                $legislatorId = $get('allocation_legislator_id');
                                 $particularId = $get('particular_id');
                                 $scholarshipProgramId = $get('scholarship_program_id');
 
@@ -199,7 +199,7 @@ class TargetResource extends Resource
                     return [
                         Repeater::make('targets')
                             ->schema([
-                                Select::make('legislator_id')
+                                Select::make('allocation_legislator_id')
                                     ->label('Legislator')
                                     ->required()
                                     ->markAsRequired(false)
@@ -275,7 +275,7 @@ class TargetResource extends Resource
                                     ->searchable()
                                     ->native(false)
                                     ->options(function ($get) {
-                                        $legislator_id = $get('legislator_id');
+                                        $legislator_id = $get('allocation_legislator_id');
                                         $legislatorRecords = Legislator::find($legislator_id);
 
                                         if ($legislatorRecords) {
@@ -330,7 +330,7 @@ class TargetResource extends Resource
                                             return;
                                         }
 
-                                        $legislator_id = $get('legislator_id');
+                                        $legislator_id = $get('allocation_legislator_id');
                                         $allocations = Allocation::where('legislator_id', $legislator_id)
                                             ->where('particular_id', $state)
                                             ->with('particular', 'scholarship_program')
@@ -365,7 +365,7 @@ class TargetResource extends Resource
                                     ->searchable()
                                     ->native(false)
                                     ->options(function ($get) {
-                                        $legislatorId = $get('legislator_id');
+                                        $legislatorId = $get('allocation_legislator_id');
                                         $particularId = $get('particular_id');
 
                                         return $legislatorId
@@ -380,7 +380,7 @@ class TargetResource extends Resource
                                             return;
                                         }
 
-                                        $legislator_id = $get('legislator_id');
+                                        $legislator_id = $get('allocation_legislator_id');
                                         $particular_id = $get('particular_id');
                                         $allocations = Allocation::where('legislator_id', $legislator_id)
                                             ->where('particular_id', $particular_id)
@@ -414,7 +414,7 @@ class TargetResource extends Resource
                                     ->searchable()
                                     ->native(false)
                                     ->options(function ($get) {
-                                        $legislatorId = $get('legislator_id');
+                                        $legislatorId = $get('allocation_legislator_id');
                                         $particularId = $get('particular_id');
                                         $scholarshipProgramId = $get('scholarship_program_id');
 
@@ -441,8 +441,10 @@ class TargetResource extends Resource
                                     ->label('Allocation Type')
                                     ->required()
                                     ->options(function ($get) {
-                                        $year = $get('allocation_year');
-                                        return self::getAppropriationTypeOptions($year);
+                                        return ([
+                                            "Current" => "Current",
+                                            "Continuing" => "Continuing"
+                                        ]);
                                     })
                                     ->reactive()
                                     ->live(),
@@ -492,7 +494,7 @@ class TargetResource extends Resource
                                             : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
-                                    
+
 
                                 TextInput::make('number_of_slots')
                                     ->label('Number of Slots')
@@ -516,7 +518,8 @@ class TargetResource extends Resource
                                             ->whereNull('deleted_at')
                                             ->pluck('name', 'id')
                                             ->toArray() ?: ['no_legislators' => 'No legislator available'];
-                                    }),
+                                    })
+                                    ->searchable(),
                             ])
                             ->columns(5)
                             ->columnSpanFull()
@@ -531,17 +534,17 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-    
+
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-    
+
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-    
+
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-    
+
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
