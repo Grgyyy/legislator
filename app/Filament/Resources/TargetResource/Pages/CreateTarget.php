@@ -55,10 +55,8 @@ class CreateTarget extends CreateRecord
                 }
             }
 
-            // Corrected legislator retrieval using first()
             $attributedLegislator = Legislator::where('id', $targetData['legislator_id'])->first();
 
-            // Fetch allocation
             $allocation = Allocation::where('legislator_id', $targetData['allocation_legislator_id'])
                 ->where('particular_id', $targetData['particular_id'])
                 ->where('scholarship_program_id', $targetData['scholarship_program_id'])
@@ -69,7 +67,6 @@ class CreateTarget extends CreateRecord
                 throw new \Exception('Allocation not found.');
             }
 
-            // Fetch qualification title
             $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
             if (!$qualificationTitle) {
                 throw new \Exception('Qualification Title not found.');
@@ -77,7 +74,6 @@ class CreateTarget extends CreateRecord
 
             $numberOfSlots = $targetData['number_of_slots'] ?? 0;
 
-            // Calculate total costs
             $total_training_cost_pcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
             $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots;
             $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
@@ -112,14 +108,16 @@ class CreateTarget extends CreateRecord
                     'total_amount' => $total_amount,
                     'appropriation_type' => $targetData['appropriation_type'],
                     'target_status_id' => 1,
-                    'legislator_id' => $attributedLegislator->id ?? null, // Fixed the legislator assignment
+                    'legislator_id' => $attributedLegislator->id ?? null,
                 ]);
 
-                // Update allocation balance
                 $allocation->balance -= $total_amount;
+
+                if ($attributedLegislator) {
+                    $allocation->attribution_sent = $total_amount;
+                }
                 $allocation->save();
 
-                // Create target history
                 TargetHistory::create([
                     'target_id' => $target->id,
                     'allocation_id' => $allocation->id,
