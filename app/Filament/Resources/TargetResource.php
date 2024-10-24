@@ -560,7 +560,6 @@ class TargetResource extends Resource
             ->columns([
                 TextColumn::make('fund_source')
                     ->label('Fund Source')
-                    ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
@@ -595,21 +594,17 @@ class TargetResource extends Resource
 
                 TextColumn::make('allocation.soft_or_commitment')
                     ->label('Source of Fund')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('appropriation_type')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('allocation.year')
                     ->sortable()
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('allocation.legislator.particular.subParticular')
                     ->label('Particular')
-                    ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
@@ -643,19 +638,15 @@ class TargetResource extends Resource
                     }),
 
                 TextColumn::make('tvi.district.name')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('tvi.district.municipality.name')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('tvi.district.municipality.province.name')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('tvi.district.municipality.province.region.name')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('tvi.name')
@@ -665,17 +656,14 @@ class TargetResource extends Resource
 
                 TextColumn::make('tvi.tviClass.tviType.name')
                     ->label('Institution Type')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('tvi.tviClass.name')
                     ->label('Institution Class')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('qualification_title.training_program.title')
                     ->label('Qualification Title')
-                    ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $qualificationTitle = $record->qualification_title;
@@ -691,17 +679,14 @@ class TargetResource extends Resource
 
                 TextColumn::make('abdd.name')
                     ->label('ABDD Sector')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('qualification_title.trainingProgram.tvet.name')
                     ->label('TVET Sector')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('qualification_title.trainingProgram.priority.name')
                     ->label('Priority Sector')
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('allocation.scholarship_program.name')
@@ -712,19 +697,16 @@ class TargetResource extends Resource
                 TextColumn::make('number_of_slots')
                     ->label('Number of Slots')
                     ->sortable()
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
-                    ->searchable()
                     ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
                 TextColumn::make('targetStatus.desc')
                     ->label('Status')
-                    ->searchable()
                     ->toggleable(),
             ])
             ->recordUrl(
