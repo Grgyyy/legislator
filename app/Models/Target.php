@@ -74,6 +74,6 @@ class Target extends Model
 
     public function legislator()
     {
-        return $this->hasOne(Legislator::class);
+        return $this->belongsTo(Legislator::class);
     }
 }

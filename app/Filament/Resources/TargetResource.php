@@ -587,6 +587,12 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
+                TextColumn::make('legislator.name')
+                    ->label('Attribution')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('allocation.soft_or_commitment')
                     ->label('Source of Fund')
                     ->searchable()
