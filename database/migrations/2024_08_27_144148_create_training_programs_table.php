@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('training_programs', function (Blueprint $table) {
             $table->id();
             $table->string('code')
-                ->unique()
+                // ->unique()
                 ->nullable();
             $table->string('title');
             $table->foreignId('priority_id')
