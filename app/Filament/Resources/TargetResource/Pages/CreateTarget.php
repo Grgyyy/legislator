@@ -4,6 +4,7 @@ namespace App\Filament\Resources\TargetResource\Pages;
 
 use App\Filament\Resources\TargetResource;
 use App\Models\Allocation;
+use App\Models\Legislator;
 use App\Models\QualificationTitle;
 use App\Models\Target;
 use App\Models\TargetHistory;
@@ -38,7 +39,15 @@ class CreateTarget extends CreateRecord
                 throw new \Exception('No target data found.');
             }
 
-            $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'tvi_id', 'appropriation_type'];
+            $requiredFields = [
+                'allocation_legislator_id',
+                'particular_id',
+                'scholarship_program_id',
+                'qualification_title_id',
+                'number_of_slots',
+                'tvi_id',
+                'appropriation_type',
+            ];
 
             foreach ($requiredFields as $field) {
                 if (!array_key_exists($field, $targetData) || empty($targetData[$field])) {
@@ -46,24 +55,29 @@ class CreateTarget extends CreateRecord
                 }
             }
 
-            $allocation = Allocation::where('legislator_id', $targetData['legislator_id'])
+            // Corrected legislator retrieval using first()
+            $attributedLegislator = Legislator::where('id', $targetData['legislator_id'])->first();
+
+            // Fetch allocation
+            $allocation = Allocation::where('legislator_id', $targetData['allocation_legislator_id'])
                 ->where('particular_id', $targetData['particular_id'])
                 ->where('scholarship_program_id', $targetData['scholarship_program_id'])
                 ->where('year', $targetData['allocation_year'])
                 ->first();
 
             if (!$allocation) {
-                throw new \Exception('Allocation not found');
+                throw new \Exception('Allocation not found.');
             }
 
+            // Fetch qualification title
             $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
-
             if (!$qualificationTitle) {
-                throw new \Exception('Qualification Title not found');
+                throw new \Exception('Qualification Title not found.');
             }
 
             $numberOfSlots = $targetData['number_of_slots'] ?? 0;
 
+            // Calculate total costs
             $total_training_cost_pcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
             $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots;
             $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
@@ -76,7 +90,9 @@ class CreateTarget extends CreateRecord
             $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
             $total_amount = $qualificationTitle->pcc * $numberOfSlots;
 
+            // Check allocation balance
             if ($allocation->balance >= $total_amount) {
+                // Create target
                 $target = Target::create([
                     'allocation_id' => $allocation->id,
                     'tvi_id' => $targetData['tvi_id'],
@@ -96,11 +112,14 @@ class CreateTarget extends CreateRecord
                     'total_amount' => $total_amount,
                     'appropriation_type' => $targetData['appropriation_type'],
                     'target_status_id' => 1,
+                    'legislator_id' => $attributedLegislator->id ?? null, // Fixed the legislator assignment
                 ]);
 
+                // Update allocation balance
                 $allocation->balance -= $total_amount;
                 $allocation->save();
 
+                // Create target history
                 TargetHistory::create([
                     'target_id' => $target->id,
                     'allocation_id' => $allocation->id,
@@ -125,7 +144,7 @@ class CreateTarget extends CreateRecord
 
                 return $target;
             } else {
-                throw new \Exception('Insufficient balance for allocation');
+                throw new \Exception('Insufficient balance for allocation.');
             }
         });
     }

@@ -511,8 +511,6 @@ class TargetResource extends Resource
                                     ]),
                                 Select::make('legislator_id')
                                     ->label('Attribution Receiver')
-                                    ->required()
-                                    ->markAsRequired(false)
                                     ->options(function () {
                                         return Legislator::where('status_id', 1)
                                             ->whereNull('deleted_at')
