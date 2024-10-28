@@ -13,8 +13,7 @@ return new class extends Migration {
         Schema::create('tvis', function (Blueprint $table) {
             $table->id();
             $table->string('school_id')
-                ->nullable()
-                ->unique();
+                ->nullable();
             $table->string('name');
             $table->foreignId('district_id')
                 ->constrained()
