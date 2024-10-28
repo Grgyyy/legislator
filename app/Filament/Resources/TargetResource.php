@@ -53,6 +53,19 @@ class TargetResource extends Resource
             ->schema(function ($record) {
                 if ($record) {
                     return [
+                        Select::make('legislator_id')
+                            ->label('Attribution Sender')
+                            ->required()
+                            ->markAsRequired(false)
+                            ->options(function () {
+                                return Legislator::where('status_id', 1)
+                                    ->whereNull('deleted_at')
+                                    ->pluck('name', 'id')
+                                    ->toArray() ?: ['no_legislators' => 'No legislator available'];
+                            })
+                            ->disabled()
+                            ->dehydrated(),
+
                         Select::make('allocation_legislator_id')
                             ->label('Legislator')
                             ->required()
@@ -182,23 +195,20 @@ class TargetResource extends Resource
                                 'min' => 'The number of slots must be at least 10.',
                                 'max' => 'The number of slots must not exceed 25.'
                             ]),
-                        Select::make('legislator_id')
-                            ->label('Attribution Receiver')
-                            ->required()
-                            ->markAsRequired(false)
-                            ->options(function () {
-                                return Legislator::where('status_id', 1)
-                                    ->whereNull('deleted_at')
-                                    ->pluck('name', 'id')
-                                    ->toArray() ?: ['no_legislators' => 'No legislator available'];
-                            })
-                            ->disabled()
-                            ->dehydrated(),
                     ];
                 } else {
                     return [
                         Repeater::make('targets')
                             ->schema([
+                                Select::make('legislator_id')
+                                    ->label('Attribution Receiver')
+                                    ->options(function () {
+                                        return Legislator::where('status_id', 1)
+                                            ->whereNull('deleted_at')
+                                            ->pluck('name', 'id')
+                                            ->toArray() ?: ['no_legislators' => 'No legislator available'];
+                                    })
+                                    ->searchable(),
                                 Select::make('allocation_legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -509,15 +519,6 @@ class TargetResource extends Resource
                                         'min' => 'The number of slots must be at least 10.',
                                         'max' => 'The number of slots must not exceed 25.'
                                     ]),
-                                Select::make('legislator_id')
-                                    ->label('Attribution Receiver')
-                                    ->options(function () {
-                                        return Legislator::where('status_id', 1)
-                                            ->whereNull('deleted_at')
-                                            ->pluck('name', 'id')
-                                            ->toArray() ?: ['no_legislators' => 'No legislator available'];
-                                    })
-                                    ->searchable(),
                             ])
                             ->columns(5)
                             ->columnSpanFull()
