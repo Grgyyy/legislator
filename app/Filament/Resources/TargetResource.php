@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\SubParticular;
 use App\Models\Target;
 use App\Models\TargetStatus;
 use App\Models\Allocation;
@@ -201,12 +202,40 @@ class TargetResource extends Resource
                         Repeater::make('targets')
                             ->schema([
                                 Select::make('legislator_id')
-                                    ->label('Attribution Receiver')
+                                    ->label('Attribution Sender')
                                     ->options(function () {
-                                        return Legislator::where('status_id', 1)
+                                        $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
+                                            ->pluck('id');
+
+                                        $legislators = Legislator::where('status_id', 1)
                                             ->whereNull('deleted_at')
+                                            ->has('allocation')
+                                            ->whereHas('particular', function ($query) use ($houseSpeakerIds) {
+                                                $query->whereIn('sub_particular_id', $houseSpeakerIds);
+                                            })
                                             ->pluck('name', 'id')
-                                            ->toArray() ?: ['no_legislators' => 'No legislator available'];
+                                            ->toArray();
+
+                                        return !empty($legislators) ? $legislators : ['no_legislators' => 'No legislator available'];
+                                    })
+                                    ->searchable(),
+
+                                Select::make('attribution_particular_id')
+                                    ->label('Sender Particular')
+                                    ->options(function ($get) {
+                                        $legislatorId = $get('legislator_id');
+
+                                        if ($legislatorId) {
+                                            return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
+                                                $query->where('legislator_particular.legislator_id', $legislatorId);
+                                            })
+                                            ->with('subParticular')
+                                            ->get()
+                                            ->pluck('subParticular.name', 'id')
+                                            ->toArray();
+                                        }
+
+                                        return [];
                                     })
                                     ->searchable(),
                                 Select::make('allocation_legislator_id')

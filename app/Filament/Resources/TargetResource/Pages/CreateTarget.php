@@ -90,6 +90,7 @@ class CreateTarget extends CreateRecord
             if ($allocation->balance >= $total_amount) {
                 // Create target
                 $target = Target::create([
+                    'legislator_id' => $attributedLegislator->id ?? null,
                     'allocation_id' => $allocation->id,
                     'tvi_id' => $targetData['tvi_id'],
                     'qualification_title_id' => $qualificationTitle->id,
@@ -108,13 +109,12 @@ class CreateTarget extends CreateRecord
                     'total_amount' => $total_amount,
                     'appropriation_type' => $targetData['appropriation_type'],
                     'target_status_id' => 1,
-                    'legislator_id' => $attributedLegislator->id ?? null,
                 ]);
 
                 $allocation->balance -= $total_amount;
 
                 if ($attributedLegislator) {
-                    $allocation->attribution_sent = $total_amount;
+                    $allocation->attribution_received = $total_amount;
                 }
                 $allocation->save();
 
