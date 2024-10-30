@@ -25,7 +25,7 @@ class TargetRemarkResource extends Resource
     protected static ?string $navigationGroup = "MANAGE TARGET";
     protected static ?string $navigationLabel = "Target Remarks";
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {
