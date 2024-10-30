@@ -55,7 +55,6 @@ class EditTarget extends EditRecord
             throw new \Exception('Allocation not found for the provided legislator and scholarship program.');
         }
 
-        // Calculate new costs based on qualification title
         $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
         if (!$qualificationTitle) {
             throw new \Exception('Qualification Title not found');
@@ -64,16 +63,13 @@ class EditTarget extends EditRecord
         $numberOfSlots = $data['number_of_slots'] ?? 0;
         $total_amount = $qualificationTitle->pcc * $numberOfSlots;
 
-        // Check if there are sufficient funds
         if ($allocation->balance >= $total_amount) {
-            // Update allocation balance
             $allocation->balance -= $total_amount;
             $allocation->save();
 
-            // Log target history before making any changes
             TargetHistory::create([
                 'target_id' => $record->id,
-                'allocation_id' => $allocation->id, // Update to new allocation id
+                'allocation_id' => $allocation->id,
                 'tvi_id' => $data['tvi_id'],
                 'qualification_title_id' => $data['qualification_title_id'],
                 'abdd_id' => $data['abdd_id'],
@@ -90,11 +86,10 @@ class EditTarget extends EditRecord
                 'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
                 'total_amount' => $total_amount,
                 'appropriation_type' => $data['appropriation_type'],
-                'target_status_id' => 1, // Use the appropriate status
+                'target_status_id' => 1,
                 'description' => 'Target Edited',
             ]);
 
-            // Update the target record
             $record->update([
                 'allocation_id' => $allocation->id,
                 'tvi_id' => $data['tvi_id'],
@@ -103,7 +98,7 @@ class EditTarget extends EditRecord
                 'number_of_slots' => $data['number_of_slots'],
                 'total_amount' => $total_amount,
                 'appropriation_type' => $data['appropriation_type'],
-                'target_status_id' => 1, // Update status as necessary
+                'target_status_id' => 1,
             ]);
 
             return $record;

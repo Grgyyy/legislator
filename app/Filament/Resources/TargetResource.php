@@ -406,7 +406,7 @@ class TargetResource extends Resource
                                     ->reactive()
                                     ->live(),
 
-                                Select::make('allocation_year')
+                                    Select::make('allocation_year')
                                     ->label('Appropriation Year')
                                     ->required()
                                     ->markAsRequired(false)
@@ -414,7 +414,7 @@ class TargetResource extends Resource
                                     ->searchable()
                                     ->native(false)
                                     ->options(function ($get) {
-                                        $legislatorId = $get('legislator_id');
+                                        $legislatorId = $get('allocation_legislator_id');
                                         $particularId = $get('particular_id');
                                         $scholarshipProgramId = $get('scholarship_program_id');
 
@@ -441,8 +441,10 @@ class TargetResource extends Resource
                                     ->label('Allocation Type')
                                     ->required()
                                     ->options(function ($get) {
-                                        $year = $get('allocation_year');
-                                        return self::getAppropriationTypeOptions($year);
+                                        return ([
+                                            "Current" => "Current",
+                                            "Continuing" => "Continuing"
+                                        ]);
                                     })
                                     ->reactive()
                                     ->live(),
@@ -492,7 +494,7 @@ class TargetResource extends Resource
                                             : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
-                                    
+
 
                                 TextInput::make('number_of_slots')
                                     ->label('Number of Slots')
@@ -507,16 +509,6 @@ class TargetResource extends Resource
                                         'min' => 'The number of slots must be at least 10.',
                                         'max' => 'The number of slots must not exceed 25.'
                                     ]),
-                                Select::make('legislator_id')
-                                    ->label('Attribution Receiver')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->options(function () {
-                                        return Legislator::where('status_id', 1)
-                                            ->whereNull('deleted_at')
-                                            ->pluck('name', 'id')
-                                            ->toArray() ?: ['no_legislators' => 'No legislator available'];
-                                    }),
                             ])
                             ->columns(5)
                             ->columnSpanFull()
@@ -531,17 +523,17 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-    
+
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-    
+
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-    
+
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-    
+
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
