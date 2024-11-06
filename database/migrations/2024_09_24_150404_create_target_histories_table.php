@@ -29,6 +29,10 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
             $table->integer('number_of_slots');
+            $table->foreignId('attribution_allocation_id')
+                ->nullable()
+                ->constrained('allocations')
+                ->cascadeOnDelete();
             $table->integer('total_training_cost_pcc')
                 ->default(0);
             $table->integer('total_cost_of_toolkit_pcc')

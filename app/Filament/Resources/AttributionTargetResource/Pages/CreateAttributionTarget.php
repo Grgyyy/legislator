@@ -6,6 +6,7 @@ use App\Filament\Resources\AttributionTargetResource;
 use App\Models\Allocation;
 use App\Models\QualificationTitle;
 use App\Models\Target;
+use App\Models\TargetHistory;
 use DB;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
@@ -50,7 +51,6 @@ class CreateAttributionTarget extends CreateRecord
                 }
             }
 
-            // Find the sender allocation
             $senderAllocation = Allocation::where('legislator_id', $targetData['attribution_sender'])
                 ->where('particular_id', $targetData['attribution_sender_particular'])
                 ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
@@ -61,13 +61,11 @@ class CreateAttributionTarget extends CreateRecord
                 throw new \Exception('Attribution Sender Allocation not found');
             }
 
-            // Check for existing receiver allocation
             $receiverAllocation = Allocation::where('legislator_id', $targetData['attribution_receiver'])
                 ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
                 ->where('year', $targetData['allocation_year'])
                 ->first();
 
-            // Create receiver allocation only if it does not exist
             if (!$receiverAllocation) {
                 $receiverAllocation = Allocation::create([
                     'soft_or_commitment' => 'Soft',
@@ -129,6 +127,29 @@ class CreateAttributionTarget extends CreateRecord
 
                 $receiverAllocation->attribution_received += $total_amount;
                 $receiverAllocation->save();
+
+                TargetHistory::create([
+                    'target_id' => $target->id,
+                    'allocation_id' => $senderAllocation->id,
+                    'attribution_allocation_id' => $receiverAllocation->id,
+                    'tvi_id' => $targetData['tvi_id'],
+                    'qualification_title_id' => $qualificationTitle->id,
+                    'abdd_id' => $targetData['abdd_id'],
+                    'number_of_slots' => $numberOfSlots,
+                    'total_training_cost_pcc' => $total_training_cost_pcc,
+                    'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
+                    'total_training_support_fund' => $total_training_support_fund,
+                    'total_assessment_fee' => $total_assessment_fee,
+                    'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
+                    'total_new_normal_assisstance' => $total_new_normal_assisstance,
+                    'total_accident_insurance' => $total_accident_insurance,
+                    'total_book_allowance' => $total_book_allowance,
+                    'total_uniform_allowance' => $total_uniform_allowance,
+                    'total_misc_fee' => $total_misc_fee,
+                    'total_amount' => $total_amount,
+                    'appropriation_type' => $targetData['attribution_appropriation_type'],
+                    'description' => 'Target Created',
+                ]);
 
                 return $target;
             } else {
