@@ -41,7 +41,7 @@ class CreateAttributionTarget extends CreateRecord
 
             $requiredFields = [
                 'attribution_sender', 'attribution_sender_particular', 'attribution_scholarship_program', 
-                'allocation_year', 'attribution_appropriation_type', 'attribution_receiver', 
+                'allocation_year', 'attribution_appropriation_type', 'attribution_receiver', 'attribution_receiver_particular',
                 'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots'
             ];
 
@@ -61,7 +61,8 @@ class CreateAttributionTarget extends CreateRecord
                 throw new \Exception('Attribution Sender Allocation not found');
             }
 
-            $receiverAllocation = Allocation::where('legislator_id', $targetData['attribution_receiver'])
+            $receiverAllocation = Allocation::where('legislator_id', $targetData['attribution_receiver']) 
+                ->where('particular_id', $targetData['attribution_receiver_particular'])
                 ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
                 ->where('year', $targetData['allocation_year'])
                 ->first();

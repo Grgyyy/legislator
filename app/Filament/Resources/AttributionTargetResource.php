@@ -392,6 +392,25 @@ class AttributionTargetResource extends Resource
                                         })
                                         ->searchable(),
 
+                                    Select::make('attribution_receiver_particular')
+                                        ->label('Receiver Particular')
+                                        ->options(function ($get) {
+                                            $legislatorId = $get('attribution_receiver');
+    
+                                            if ($legislatorId) {
+                                                return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
+                                                    $query->where('legislator_particular.legislator_id', $legislatorId);
+                                                })
+                                                ->with('subParticular')
+                                                ->get()
+                                                ->pluck('subParticular.name', 'id')
+                                                ->toArray();
+                                            }
+    
+                                            return [];
+                                        })
+                                        ->searchable(),
+
                                     Select::make('tvi_id')
                                         ->label('Institution')
                                         ->relationship('tvi', 'name')
