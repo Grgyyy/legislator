@@ -182,18 +182,6 @@ class TargetResource extends Resource
                                 'min' => 'The number of slots must be at least 10.',
                                 'max' => 'The number of slots must not exceed 25.'
                             ]),
-                        Select::make('legislator_id')
-                            ->label('Attribution Receiver')
-                            ->required()
-                            ->markAsRequired(false)
-                            ->options(function () {
-                                return Legislator::where('status_id', 1)
-                                    ->whereNull('deleted_at')
-                                    ->pluck('name', 'id')
-                                    ->toArray() ?: ['no_legislators' => 'No legislator available'];
-                            })
-                            ->disabled()
-                            ->dehydrated(),
                     ];
                 } else {
                     return [
