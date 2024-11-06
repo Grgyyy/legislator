@@ -63,6 +63,9 @@ class EditTarget extends EditRecord
         $numberOfSlots = $data['number_of_slots'] ?? 0;
         $total_amount = $qualificationTitle->pcc * $numberOfSlots;
 
+        $allocation->balance += $record['total_amount'];
+        $allocation->save();
+        
         if ($allocation->balance >= $total_amount) {
             $allocation->balance -= $total_amount;
             $allocation->save();
