@@ -6,6 +6,7 @@ use App\Filament\Resources\AttributionTargetResource\Pages;
 use App\Models\Allocation;
 use App\Models\Legislator;
 use App\Models\Particular;
+use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SubParticular;
 use App\Models\Target;
@@ -352,7 +353,7 @@ class AttributionTargetResource extends Resource
                                         ->preload()
                                         ->native(false)
                                         ->options(function ($get) {
-                                            $scholarshipProgramId = $get('scholarship_program_id');
+                                            $scholarshipProgramId = $get('attribution_scholarship_program');
     
                                             return $scholarshipProgramId
                                                 ? self::getQualificationTitles($scholarshipProgramId)
@@ -467,5 +468,31 @@ class AttributionTargetResource extends Resource
             ->whereIn('year', [$yearNow, $yearNow - 1])
             ->pluck('year', 'year')
             ->toArray() ?: ['no_allocation' => 'No allocation available'];
+    }
+    protected static function getQualificationTitles($scholarshipProgramId)
+    {
+        return QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
+            ->where('status_id', 1)
+            ->whereNull('deleted_at')
+            ->with('trainingProgram')
+            ->get()
+            ->pluck('trainingProgram.title', 'id')
+            ->toArray();
+    }
+
+    protected static function getAbddSectors($tviId)
+    {
+        $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
+
+        if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
+            return ['' => 'No ABDD sector available'];
+        }
+
+        $abddSectors = $tvi->district->municipality->province->abdds()
+            ->select('abdds.id', 'abdds.name')
+            ->pluck('name', 'id')
+            ->toArray();
+
+        return empty($abddSectors) ? ['' => 'No ABDD sector available'] : $abddSectors;
     }
 }
