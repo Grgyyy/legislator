@@ -11,6 +11,7 @@ use App\Models\ScholarshipProgram;
 use App\Models\SubParticular;
 use App\Models\Target;
 use App\Models\Tvi;
+use Filament\Tables\Actions\EditAction;
 use Filament\Forms;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -22,6 +23,10 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+
 
 class AttributionTargetResource extends Resource
 {
@@ -660,13 +665,26 @@ class AttributionTargetResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    EditAction::make(),
+                    Action::make('viewHistory')
+                        ->label('View History')
+                        ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
+                        ->icon('heroicon-o-magnifying-glass'),
+                    Action::make('viewComment')
+                        ->label('View Comments')
+                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        ->icon('heroicon-o-chat-bubble-left-ellipsis'),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->recordUrl(
+                fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id])
+            );
     }
 
     public static function getRelations(): array
