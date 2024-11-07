@@ -19,6 +19,8 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -699,7 +701,8 @@ class AttributionTargetResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    EditAction::make(),
+                    EditAction::make()
+                        ->hidden(fn($record) => $record->trashed()),
                     Action::make('viewHistory')
                         ->label('View History')
                         ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
@@ -708,6 +711,17 @@ class AttributionTargetResource extends Resource
                         ->label('View Comments')
                         ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
                         ->icon('heroicon-o-chat-bubble-left-ellipsis'),
+                    Action::make('setAsCompliant')
+                        ->label('Set as Compliant')
+                        ->url(fn($record) => route('filament.admin.resources.compliant-targets.create', ['record' => $record->id]))
+                        ->icon('heroicon-o-check-circle'),
+                    Action::make('setAsNonCompliant')
+                        ->label('Set as Non-Compliant')
+                        ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id]))
+                        ->icon('heroicon-o-x-circle'),
+                    DeleteAction::make(),
+                    RestoreAction::make(),
+                    ForceDeleteAction::make(),
                 ]),
             ])
             ->bulkActions([
