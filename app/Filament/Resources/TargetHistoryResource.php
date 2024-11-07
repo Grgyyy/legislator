@@ -61,13 +61,14 @@ class TargetHistoryResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->label('Fund Source'),
-                TextColumn::make('allocation.legislator.name')
+                    
+                TextColumn::make('attributionAllocation.legislator.name')
                     ->label('Legislator I')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('attributionAllocation.legislator.name')
+                TextColumn::make('allocation.legislator.name')
                     ->label('Legislator II')
                     ->sortable()
                     ->searchable()

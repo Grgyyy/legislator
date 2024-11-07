@@ -549,13 +549,13 @@ class AttributionTargetResource extends Resource
                         return $fundSource ? $fundSource->name : 'No fund source available';
                     }),
                 
-                TextColumn::make('allocation.legislator.name')
+                TextColumn::make('attributionAllocation.legislator.name')
                     ->label('Legislator I')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('attributionAllocation.legislator.name')
+                TextColumn::make('allocation.legislator.name')
                     ->label('Legislator II')
                     ->sortable()
                     ->searchable()
