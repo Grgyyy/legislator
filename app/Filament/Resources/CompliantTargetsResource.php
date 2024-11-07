@@ -188,7 +188,7 @@ class CompliantTargetsResource extends Resource
                 TextColumn::make('allocation.particular.subParticular.fundSource.name')
                     ->label('Allocation Type'),
                 TextColumn::make('allocation.legislator.name')
-                    ->label('Legislator'),
+                    ->label('Legislator I'),
                 TextColumn::make('attributionAllocation.legislator.name')
                     ->label('Legislator II'),
                 TextColumn::make('allocation.particular.subParticular.name')
