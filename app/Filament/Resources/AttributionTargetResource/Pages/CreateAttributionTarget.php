@@ -101,8 +101,8 @@ class CreateAttributionTarget extends CreateRecord
 
             if($senderAllocation->balance >= $total_amount) {
                 $target = Target::create([
-                    'allocation_id' => $senderAllocation->id,
-                    'attribution_allocation_id' => $receiverAllocation->id,
+                    'allocation_id' => $receiverAllocation->id,
+                    'attribution_allocation_id' => $senderAllocation->id,
                     'tvi_id' => $targetData['tvi_id'],
                     'qualification_title_id' => $qualificationTitle->id,
                     'abdd_id' => $targetData['abdd_id'],
@@ -131,8 +131,8 @@ class CreateAttributionTarget extends CreateRecord
 
                 TargetHistory::create([
                     'target_id' => $target->id,
-                    'allocation_id' => $senderAllocation->id,
-                    'attribution_allocation_id' => $receiverAllocation->id,
+                    'allocation_id' => $receiverAllocation->id,
+                    'attribution_allocation_id' => $senderAllocation->id,
                     'tvi_id' => $targetData['tvi_id'],
                     'qualification_title_id' => $qualificationTitle->id,
                     'abdd_id' => $targetData['abdd_id'],

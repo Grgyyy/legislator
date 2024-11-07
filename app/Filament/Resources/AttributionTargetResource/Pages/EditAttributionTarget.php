@@ -96,8 +96,8 @@ class EditAttributionTarget extends EditRecord
 
                 TargetHistory::create([
                     'target_id' => $record->id,
-                    'allocation_id' => $senderAllocation->id,
-                    'attribution_allocation_id' => $receiverAllocation->id,
+                    'allocation_id' => $receiverAllocation->id,
+                    'attribution_allocation_id' => $senderAllocation->id,
                     'tvi_id' => $data['tvi_id'],
                     'qualification_title_id' => $data['qualification_title_id'],
                     'abdd_id' => $data['abdd_id'],
@@ -119,8 +119,8 @@ class EditAttributionTarget extends EditRecord
                 ]);
 
                 $record->update([
-                    'allocation_id' => $senderAllocation->id,
-                    'attribution_allocation_id' => $receiverAllocation->id,
+                    'allocation_id' => $receiverAllocation->id,
+                    'attribution_allocation_id' => $senderAllocation->id,
                     'tvi_id' => $data['tvi_id'],
                     'qualification_title_id' => $data['qualification_title_id'],
                     'abdd_id' => $data['abdd_id'],
