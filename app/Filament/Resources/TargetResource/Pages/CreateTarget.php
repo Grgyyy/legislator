@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\TargetResource\Pages;
 
-use App\Filament\Resources\TargetResource;
-use App\Models\Allocation;
-use App\Models\QualificationTitle;
+use Exception;
 use App\Models\Target;
+use App\Models\Allocation;
 use App\Models\TargetHistory;
+use App\Models\QualificationTitle;
 use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
+use App\Filament\Resources\TargetResource;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateTarget extends CreateRecord
@@ -33,16 +35,28 @@ class CreateTarget extends CreateRecord
     {
         return DB::transaction(function () use ($data) {
             if (!isset($data['targets']) || empty($data['targets'])) {
-                throw new \Exception('No target data found.');
+                Notification::make()
+                    ->title('Error')
+                    ->danger()
+                    ->body('No target data found.')
+                    ->send();
+                // Throw an exception to avoid returning null
+                throw new Exception('No target data found.');
             }
 
             $lastCreatedTarget = null;
 
             foreach ($data['targets'] as $targetData) {
-                $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'tvi_id', 'appropriation_type'];
+                $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'tvi_id', 'lappropriation_type'];
 
                 foreach ($requiredFields as $field) {
                     if (!array_key_exists($field, $targetData) || empty($targetData[$field])) {
+                        Notification::make()
+                            ->title('Missing Required Field')
+                            ->danger()
+                            ->body("The field '$field' is required.")
+                            ->send();
+                        // Throw an exception to avoid returning null
                         throw new \InvalidArgumentException("The field '$field' is required.");
                     }
                 }
@@ -54,13 +68,23 @@ class CreateTarget extends CreateRecord
                     ->first();
 
                 if (!$allocation) {
-                    throw new \Exception('Allocation not found');
+                    Notification::make()
+                        ->title('Error')
+                        ->danger()
+                        ->body('Allocation not found.')
+                        ->send();
+                    throw new Exception('Allocation not found.');
                 }
 
                 $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
 
                 if (!$qualificationTitle) {
-                    throw new \Exception('Qualification Title not found');
+                    Notification::make()
+                        ->title('Error')
+                        ->danger()
+                        ->body('Qualification Title not found.')
+                        ->send();
+                    throw new Exception('Qualification Title not found.');
                 }
 
                 $numberOfSlots = $targetData['number_of_slots'] ?? 0;
@@ -129,18 +153,29 @@ class CreateTarget extends CreateRecord
 
                     $lastCreatedTarget = $target;
                 } else {
-                    session()->flash('error', 'Targets created successfully.');
-
+                    Notification::make()
+                        ->title('Error')
+                        ->danger()
+                        ->body('Insufficient allocation balance.')
+                        ->send();
+                    throw new Exception('Insufficient allocation balance.');
                 }
             }
 
+            // Ensure a target was created
             if ($lastCreatedTarget === null) {
-                throw new \Exception('No targets were created.');
+                Notification::make()
+                    ->title('Error')
+                    ->danger()
+                    ->body('No targets were created.')
+                    ->send();
+                throw new Exception('No targets were created.');
             }
 
             return $lastCreatedTarget;
         });
     }
+
 
 
 }
