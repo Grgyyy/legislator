@@ -10,6 +10,7 @@ use App\Models\NonCompliantTarget;
 use App\Models\Particular;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
+use App\Models\SubParticular;
 use App\Models\Target;
 use App\Models\TargetRemark;
 use App\Models\TargetStatus;
@@ -48,11 +49,65 @@ class NonCompliantTargetResource extends Resource
     public static function form(Form $form): Form
 {
     return $form->schema(function ($record) {
-        // Function to create common fields
         $createCommonFields = function ($record, $isDisabled = true) {
             return [
-                Select::make('legislator_id')
-                    ->label('Legislator Name')
+                Select::make('sender_legislator_id')
+                    ->label('Attribution Sender')
+                    ->required()
+                    ->searchable()
+                    ->default($record->attributionAllocation->legislator_id ?? null)
+                    ->options(function () {
+                        $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
+                            ->pluck('id');
+
+                        $legislators = Legislator::where('status_id', 1)
+                            ->whereNull('deleted_at')
+                            ->has('allocation')
+                            ->whereHas('particular', function ($query) use ($houseSpeakerIds) {
+                                $query->whereIn('sub_particular_id', $houseSpeakerIds);
+                            })
+                            ->pluck('name', 'id')
+                            ->toArray();
+
+                        return !empty($legislators) ? $legislators : ['no_legislators' => 'No legislator available'];
+                    })
+                    ->reactive()
+                    ->disabled()
+                    ->dehydrated()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $set('particular_id', null); 
+                    }),
+
+                Select::make('sender_particular_id')
+                    ->label('Particular')
+                    ->required()
+                    ->searchable()
+                    ->default($record->attributionAllocation->particular_id ?? null)
+                    ->options(function ($get) {
+                        $legislatorId = $get('sender_legislator_id'); 
+
+                        if ($legislatorId) {
+                            return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
+                                $query->where('legislator_particular.legislator_id', $legislatorId);
+                            })
+                            ->with('subParticular')
+                            ->get()
+                            ->pluck('subParticular.name', 'id')
+                            ->toArray();
+                        }
+
+                        return [];
+                    })
+                    ->reactive()
+                    ->disabled()
+                    ->dehydrated()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $set('scholarship_program_id', null);
+                        $set('qualification_title_id', null);
+                    }),
+
+                Select::make('receiver_legislator_id')
+                    ->label('Attribution Receiver')
                     ->required()
                     ->searchable()
                     ->default($record ? $record->allocation->legislator_id : null)
@@ -69,17 +124,28 @@ class NonCompliantTargetResource extends Resource
                     ->disabled()
                     ->dehydrated()
                     ->afterStateUpdated(function ($state, callable $set) {
-                        $set('particular_id', null); // Reset dependent fields
+                        $set('particular_id', null); 
                     }),
 
-                Select::make('particular_id')
+                Select::make('receiver_particular_id')
                     ->label('Particular')
                     ->required()
                     ->searchable()
-                    ->default($record ? $record->allocation->particular_id : null)
+                    ->default($record->allocation->particular_id ?? null)
                     ->options(function ($get) {
-                        $legislatorId = $get('legislator_id');
-                        return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
+                        $legislatorId = $get('receiver_legislator_id'); 
+
+                        if ($legislatorId) {
+                            return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
+                                $query->where('legislator_particular.legislator_id', $legislatorId);
+                            })
+                            ->with('subParticular')
+                            ->get()
+                            ->pluck('subParticular.name', 'id')
+                            ->toArray();
+                        }
+
+                        return [];
                     })
                     ->reactive()
                     ->disabled()
@@ -93,10 +159,10 @@ class NonCompliantTargetResource extends Resource
                     ->label('Scholarship Program')
                     ->required()
                     ->searchable()
-                    ->default($record ? $record->allocation->scholarship_program_id : null)
+                    ->default($record ? $record->attributionAllocation->scholarship_program_id : null)
                     ->options(function ($get) {
-                        $legislatorId = $get('legislator_id');
-                        $particularId = $get('particular_id');
+                        $legislatorId = $get('sender_legislator_id');
+                        $particularId = $get('sender_particular_id');
                         return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
                     })
                     ->reactive()
