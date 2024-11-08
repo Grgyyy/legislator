@@ -37,11 +37,15 @@ class EditNonCompliantTarget extends EditRecord
         $record = $this->record;
         $allocation = $record->allocation;
 
-        $data['legislator_id'] = $data['legislator_id'] ?? $allocation->legislator_id ?? null;
-        $data['particular_id'] = $data['particularId'] ?? $allocation->particular_id ?? null;
-        $data['scholarship_program_id'] = $data['scholarship_program_id'] ?? $allocation->scholarship_program_id ?? null;
-        $data['allocation_year'] = $data['allocation_year'] ?? $allocation->year ?? null;
-        $data['target_id'] = $data['target_id'] ?? $record->id ?? null;
+        $data['sender_legislator_id'] = $record->attributionAllocation->legislator_id ?? null;
+        $data['sender_particular_id'] = $record->attributionAllocation->particular_id ?? null;
+        $data['receiver_legislator_id'] = $record->allocation->legislator_id ?? null;
+        $data['receiver_particular_id'] = $record->allocation->particular_id ?? null;
+
+
+        $data['scholarship_program_id'] = $record->allocation->scholarship_program_id ?? null;
+        $data['allocation_year'] = $record->allocation->year ?? null;
+        $data['target_id'] = $record->id ?? null;
 
         return $data;
     }

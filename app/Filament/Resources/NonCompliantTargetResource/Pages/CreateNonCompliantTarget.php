@@ -106,11 +106,22 @@ class CreateNonCompliantTarget extends CreateRecord
     
 
     private function createTargetRemark($targetRecord, $data) {
-        NonCompliantRemark::create([
-            'target_id' => $targetRecord->id,
-            'target_remarks_id' => $data['remarks_id'],
-            'others_remarks' => $data['other_remarks'],
-        ]);
+        $targetRemark = NonCompliantRemark::where('target_id', $targetRecord->id)->first();
+
+        if($targetRemark) {
+            $targetRemark->update([
+                'target_remarks_id' => $data['remarks_id'],
+                'others_remarks' => $data['other_remarks']
+            ]);
+        }
+        else {
+            NonCompliantRemark::create([
+                'target_id' => $targetRecord->id,
+                'target_remarks_id' => $data['remarks_id'],
+                'others_remarks' => $data['other_remarks'],
+            ]);
+        }
+        
     }
 
     private function updateAllocation($targetRecord) {
