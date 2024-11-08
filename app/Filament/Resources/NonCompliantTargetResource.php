@@ -53,9 +53,8 @@ class NonCompliantTargetResource extends Resource
             return [
                 Select::make('sender_legislator_id')
                     ->label('Attribution Sender')
-                    ->required()
                     ->searchable()
-                    ->default($record->attributionAllocation->legislator_id ?? null)
+                    ->default($record->attributionAllocation->legislator_id ?? null) // Simplified with null coalescing
                     ->options(function () {
                         $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
                             ->pluck('id');
@@ -72,17 +71,16 @@ class NonCompliantTargetResource extends Resource
                         return !empty($legislators) ? $legislators : ['no_legislators' => 'No legislator available'];
                     })
                     ->reactive()
-                    ->disabled()
-                    ->dehydrated()
+                    ->disabled()  // Verify that this should be disabled
+                    ->dehydrated() // Verify that this should be dehydrated
                     ->afterStateUpdated(function ($state, callable $set) {
-                        $set('particular_id', null); 
+                        $set('sender_particular_id', null); 
                     }),
 
                 Select::make('sender_particular_id')
                     ->label('Particular')
-                    ->required()
                     ->searchable()
-                    ->default($record->attributionAllocation->particular_id ?? null)
+                    ->default($record->attributionAllocation->particular_id ?? null) 
                     ->options(function ($get) {
                         $legislatorId = $get('sender_legislator_id'); 
 
@@ -99,8 +97,8 @@ class NonCompliantTargetResource extends Resource
                         return [];
                     })
                     ->reactive()
-                    ->disabled()
-                    ->dehydrated()
+                    ->disabled()  
+                    ->dehydrated() 
                     ->afterStateUpdated(function ($state, callable $set) {
                         $set('scholarship_program_id', null);
                         $set('qualification_title_id', null);
@@ -159,10 +157,10 @@ class NonCompliantTargetResource extends Resource
                     ->label('Scholarship Program')
                     ->required()
                     ->searchable()
-                    ->default($record ? $record->attributionAllocation->scholarship_program_id : null)
+                    ->default($record ? $record->allocation->scholarship_program_id : null)
                     ->options(function ($get) {
-                        $legislatorId = $get('sender_legislator_id');
-                        $particularId = $get('sender_particular_id');
+                        $legislatorId = $get('receiver_legislator_id');
+                        $particularId = $get('receiver_particular_id');
                         return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
                     })
                     ->reactive()
@@ -418,30 +416,6 @@ class NonCompliantTargetResource extends Resource
         return $query;
     }
 
-    protected static function getParticularOptions($legislatorId)
-    {
-        $particulars = Particular::whereHas('allocation', function ($query) use ($legislatorId) {
-            $query->where('legislator_id', $legislatorId);
-        })
-            ->with('subParticular')
-            ->get()
-            ->mapWithKeys(function ($particular) {
-
-                if ($particular->district->name === 'Not Applicable') {
-                    if ($particular->subParticular->name === 'Partylist') {
-                        return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
-                    } else {
-                        return [$particular->id => $particular->subParticular->name];
-                    }
-                } else {
-                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->municipality->name];
-                }
-
-            })
-            ->toArray();
-
-        return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
-    }
 
     protected static function getAppropriationTypeOptions($year) {
         $yearNow = date('Y');
