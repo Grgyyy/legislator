@@ -77,14 +77,9 @@ class EditNonCompliantTarget extends EditRecord
                 ->first();
 
             if (!$receiverAllocation) {
-                throw new \Exception('Attribution Sender Allocation not found');
+                throw new \Exception('Attribution Receiver Allocation not found');
             }
-
             
-            if (!$receiverAllocation) {
-                throw new \Exception('Attribution Sender Allocation not found');
-            }
-
             $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
 
             if (!$qualificationTitle) {
@@ -96,7 +91,6 @@ class EditNonCompliantTarget extends EditRecord
 
 
             if ($senderAllocation) {
-                $senderAllocation->balance += $record['total_amount'];
                 $senderAllocation->attribution_sent -= $record['total_amount'];
                 $senderAllocation->save();
 
@@ -104,7 +98,7 @@ class EditNonCompliantTarget extends EditRecord
                 $receiverAllocation->save();
             }
             else {
-                $receiverAllocation->balance += $record['total_amount'];
+                $receiverAllocation->attribution_received -= $total_amount;
                 $receiverAllocation->save();
             }
 

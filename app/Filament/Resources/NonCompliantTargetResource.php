@@ -331,25 +331,20 @@ class NonCompliantTargetResource extends Resource
                 TextColumn::make('nonCompliantRemark.target_remarks.remarks')
                     ->label('Remarks')
                     ->formatStateUsing(function ($record) {
-                        // Check if nonCompliantRemark exists
                         if ($record->nonCompliantRemark) {
-                            // Fetch the target_remarks collection
-                            $targetRemarks = $record->nonCompliantRemark->target_remarks;
-
-                            // Check if there are any remarks
-                            if ($targetRemarks && $targetRemarks->count() > 0) {
-                                // Return the first remark
-                                return $targetRemarks->first()->remarks ?? 'N/A';
-                            }
+                            $targetRemarksId = $record->nonCompliantRemark->target_remarks_id;
+                            
+                            $remark = TargetRemark::find($targetRemarksId);
+    
+                            return $remark->remarks ?? 'N/A';
                         }
+                        
                         return 'N/A';
-                    }),
+                    }),                
                 TextColumn::make('nonCompliantRemark.others_remarks')
                     ->label('Other')
                     ->formatStateUsing(function ($record) {
-                        // Check if nonCompliantRemark exists
                         if ($record->nonCompliantRemark) {
-                            // Directly return others_remarks
                             return $record->nonCompliantRemark->others_remarks ?? 'N/A';
                         }
                         return 'N/A';
