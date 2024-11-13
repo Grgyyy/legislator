@@ -10,6 +10,7 @@ use App\Models\NonCompliantTarget;
 use App\Models\Particular;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
+use App\Models\SubParticular;
 use App\Models\Target;
 use App\Models\TargetRemark;
 use App\Models\TargetStatus;
@@ -43,16 +44,68 @@ class NonCompliantTargetResource extends Resource
 
     protected static ?string $navigationGroup = 'MANAGE TARGET';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
 {
     return $form->schema(function ($record) {
-        // Function to create common fields
         $createCommonFields = function ($record, $isDisabled = true) {
             return [
-                Select::make('legislator_id')
-                    ->label('Legislator Name')
+                Select::make('sender_legislator_id')
+                    ->label('Attribution Sender')
+                    ->searchable()
+                    ->default($record->attributionAllocation->legislator_id ?? null) // Simplified with null coalescing
+                    ->options(function () {
+                        $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
+                            ->pluck('id');
+
+                        $legislators = Legislator::where('status_id', 1)
+                            ->whereNull('deleted_at')
+                            ->has('allocation')
+                            ->whereHas('particular', function ($query) use ($houseSpeakerIds) {
+                                $query->whereIn('sub_particular_id', $houseSpeakerIds);
+                            })
+                            ->pluck('name', 'id')
+                            ->toArray();
+
+                        return !empty($legislators) ? $legislators : ['no_legislators' => 'No legislator available'];
+                    })
+                    ->reactive()
+                    ->disabled()  // Verify that this should be disabled
+                    ->dehydrated() // Verify that this should be dehydrated
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $set('sender_particular_id', null); 
+                    }),
+
+                Select::make('sender_particular_id')
+                    ->label('Particular')
+                    ->searchable()
+                    ->default($record->attributionAllocation->particular_id ?? null) 
+                    ->options(function ($get) {
+                        $legislatorId = $get('sender_legislator_id'); 
+
+                        if ($legislatorId) {
+                            return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
+                                $query->where('legislator_particular.legislator_id', $legislatorId);
+                            })
+                            ->with('subParticular')
+                            ->get()
+                            ->pluck('subParticular.name', 'id')
+                            ->toArray();
+                        }
+
+                        return [];
+                    })
+                    ->reactive()
+                    ->disabled()  
+                    ->dehydrated() 
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $set('scholarship_program_id', null);
+                        $set('qualification_title_id', null);
+                    }),
+
+                Select::make('receiver_legislator_id')
+                    ->label('Attribution Receiver')
                     ->required()
                     ->searchable()
                     ->default($record ? $record->allocation->legislator_id : null)
@@ -69,17 +122,28 @@ class NonCompliantTargetResource extends Resource
                     ->disabled()
                     ->dehydrated()
                     ->afterStateUpdated(function ($state, callable $set) {
-                        $set('particular_id', null); // Reset dependent fields
+                        $set('particular_id', null); 
                     }),
 
-                Select::make('particular_id')
+                Select::make('receiver_particular_id')
                     ->label('Particular')
                     ->required()
                     ->searchable()
-                    ->default($record ? $record->allocation->particular_id : null)
+                    ->default($record->allocation->particular_id ?? null)
                     ->options(function ($get) {
-                        $legislatorId = $get('legislator_id');
-                        return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
+                        $legislatorId = $get('receiver_legislator_id'); 
+
+                        if ($legislatorId) {
+                            return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
+                                $query->where('legislator_particular.legislator_id', $legislatorId);
+                            })
+                            ->with('subParticular')
+                            ->get()
+                            ->pluck('subParticular.name', 'id')
+                            ->toArray();
+                        }
+
+                        return [];
                     })
                     ->reactive()
                     ->disabled()
@@ -95,8 +159,8 @@ class NonCompliantTargetResource extends Resource
                     ->searchable()
                     ->default($record ? $record->allocation->scholarship_program_id : null)
                     ->options(function ($get) {
-                        $legislatorId = $get('legislator_id');
-                        $particularId = $get('particular_id');
+                        $legislatorId = $get('receiver_legislator_id');
+                        $particularId = $get('receiver_particular_id');
                         return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
                     })
                     ->reactive()
@@ -214,8 +278,10 @@ class NonCompliantTargetResource extends Resource
             ->columns([
                 TextColumn::make('allocation.particular.subParticular.fundSource.name')
                     ->label('Allocation Type'),
+                TextColumn::make('attributionAllocation.legislator.name')
+                    ->label('Legislator I'),
                 TextColumn::make('allocation.legislator.name')
-                    ->label('Legislator'),
+                    ->label('Legislator II'),
                 TextColumn::make('allocation.particular.subParticular.name')
                     ->label('Particular'),
                 TextColumn::make('allocation.soft_or_commitment')
@@ -265,25 +331,20 @@ class NonCompliantTargetResource extends Resource
                 TextColumn::make('nonCompliantRemark.target_remarks.remarks')
                     ->label('Remarks')
                     ->formatStateUsing(function ($record) {
-                        // Check if nonCompliantRemark exists
                         if ($record->nonCompliantRemark) {
-                            // Fetch the target_remarks collection
-                            $targetRemarks = $record->nonCompliantRemark->target_remarks;
-
-                            // Check if there are any remarks
-                            if ($targetRemarks && $targetRemarks->count() > 0) {
-                                // Return the first remark
-                                return $targetRemarks->first()->remarks ?? 'N/A';
-                            }
+                            $targetRemarksId = $record->nonCompliantRemark->target_remarks_id;
+                            
+                            $remark = TargetRemark::find($targetRemarksId);
+    
+                            return $remark->remarks ?? 'N/A';
                         }
+                        
                         return 'N/A';
-                    }),
+                    }),                
                 TextColumn::make('nonCompliantRemark.others_remarks')
                     ->label('Other')
                     ->formatStateUsing(function ($record) {
-                        // Check if nonCompliantRemark exists
                         if ($record->nonCompliantRemark) {
-                            // Directly return others_remarks
                             return $record->nonCompliantRemark->others_remarks ?? 'N/A';
                         }
                         return 'N/A';
@@ -350,30 +411,6 @@ class NonCompliantTargetResource extends Resource
         return $query;
     }
 
-    protected static function getParticularOptions($legislatorId)
-    {
-        $particulars = Particular::whereHas('allocation', function ($query) use ($legislatorId) {
-            $query->where('legislator_id', $legislatorId);
-        })
-            ->with('subParticular')
-            ->get()
-            ->mapWithKeys(function ($particular) {
-
-                if ($particular->district->name === 'Not Applicable') {
-                    if ($particular->subParticular->name === 'Partylist') {
-                        return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
-                    } else {
-                        return [$particular->id => $particular->subParticular->name];
-                    }
-                } else {
-                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->municipality->name];
-                }
-
-            })
-            ->toArray();
-
-        return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
-    }
 
     protected static function getAppropriationTypeOptions($year) {
         $yearNow = date('Y');

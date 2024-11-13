@@ -28,7 +28,17 @@ class EditNonCompliantTarget extends EditRecord
 
     protected function getRedirectUrl(): string
     {
-        return route('filament.admin.resources.targets.index');
+        $record = $this->record;
+        $attributionAllocation = $record->attribution_allocation_id;
+
+        if($attributionAllocation) {
+            return route('filament.admin.resources.attribution-targets.index');
+        }
+        else 
+        {
+            return route('filament.admin.resources.targets.index');
+        }
+        
     }
 
 
@@ -37,119 +47,123 @@ class EditNonCompliantTarget extends EditRecord
         $record = $this->record;
         $allocation = $record->allocation;
 
-        $data['legislator_id'] = $data['legislator_id'] ?? $allocation->legislator_id ?? null;
-        $data['particular_id'] = $data['particularId'] ?? $allocation->particular_id ?? null;
-        $data['scholarship_program_id'] = $data['scholarship_program_id'] ?? $allocation->scholarship_program_id ?? null;
-        $data['allocation_year'] = $data['allocation_year'] ?? $allocation->year ?? null;
-        $data['target_id'] = $data['target_id'] ?? $record->id ?? null;
+        $data['sender_legislator_id'] = $record->attributionAllocation->legislator_id ?? null;
+        $data['sender_particular_id'] = $record->attributionAllocation->particular_id ?? null;
+        $data['receiver_legislator_id'] = $record->allocation->legislator_id ?? null;
+        $data['receiver_particular_id'] = $record->allocation->particular_id ?? null;
+
+
+        $data['scholarship_program_id'] = $record->allocation->scholarship_program_id ?? null;
+        $data['allocation_year'] = $record->allocation->year ?? null;
+        $data['target_id'] = $record->id ?? null;
 
         return $data;
     }
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        return DB::transaction(function () use ($record, $data) {
-            $allocation = $this->getAllocation($data);
-            $qualificationTitle = $this->getQualificationTitle($data);
-
-            $numberOfSlots = $data['number_of_slots'] ?? 0;
-            $totalAmount = $this->calculateTotalAmount($qualificationTitle, $numberOfSlots);
-
-            if ($allocation->balance >= $totalAmount) {
-                $this->updateRecord($record, $allocation, $data, $qualificationTitle, $numberOfSlots, $totalAmount);
-                $this->logTargetHistory($record, $allocation, $data, $qualificationTitle, $numberOfSlots, $totalAmount);
-
-                return $record;
-            } else {
-                throw new \Exception('Insufficient balance for allocation');
-            }
-        });
-    }
-
-
-    private function getAllocation(array $data): Allocation
-    {
-        $allocation = Allocation::where('legislator_id', $data['legislator_id'])
-            ->where('particular_id', $data['particular_id'])
-            ->where('scholarship_program_id', $data['scholarship_program_id'])
-            ->where('year', $data['allocation_year'])
-            ->first();
-
-        if (!$allocation) {
-            throw new \Exception('Allocation not found for the provided legislator and scholarship program.');
+        try {
+            return DB::transaction(function () use ($record, $data) {
+           
+                $senderAllocation = Allocation::where('legislator_id', $data['sender_legislator_id'])
+                ->where('particular_id', $data['sender_particular_id'])
+                ->where('scholarship_program_id', $data['scholarship_program_id'])
+                ->where('year', $data['allocation_year'])
+                ->first();
+    
+                $receiverAllocation = Allocation::where('legislator_id', $data['receiver_legislator_id']) 
+                    ->where('particular_id', $data['receiver_particular_id'])
+                    ->where('scholarship_program_id', $data['scholarship_program_id'])
+                    ->where('year', $data['allocation_year'])
+                    ->first();
+    
+                if (!$receiverAllocation) {
+                    throw new \Exception('Attribution Receiver Allocation not found');
+                }
+                
+                $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
+    
+                if (!$qualificationTitle) {
+                    throw new \Exception('Qualification Title not found');
+                }
+    
+                $numberOfSlots = $data['number_of_slots'] ?? 0;
+                $total_amount = $qualificationTitle->pcc * $numberOfSlots;
+    
+    
+                $allocationUsing = $senderAllocation ? $senderAllocation : $receiverAllocation;
+    
+                if ($allocationUsing->balance >= $total_amount) {
+                    if ($senderAllocation) {
+                        $senderAllocation->balance -= $total_amount;
+                        $senderAllocation->attribution_sent += $total_amount;
+                        $senderAllocation->save();
+    
+                        $receiverAllocation->attribution_received += $total_amount;
+                        $receiverAllocation->save();
+                    }
+                    else {
+                        $receiverAllocation->balance -= $total_amount;
+                        $receiverAllocation->save();
+                    }
+    
+    
+                    TargetHistory::create([
+                        'target_id' => $record->id,
+                        'allocation_id' => $receiverAllocation->id,
+                        'attribution_allocation_id' => $senderAllocation ? $senderAllocation->id : null,
+                        'tvi_id' => $data['tvi_id'],
+                        'qualification_title_id' => $data['qualification_title_id'],
+                        'abdd_id' => $data['abdd_id'],
+                        'number_of_slots' => $data['number_of_slots'],
+                        'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
+                        'total_cost_of_toolkit_pcc' => $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots,
+                        'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
+                        'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
+                        'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
+                        'total_new_normal_assisstance' => $qualificationTitle->new_normal_assisstance * $numberOfSlots,
+                        'total_accident_insurance' => $qualificationTitle->accident_insurance * $numberOfSlots,
+                        'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
+                        'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
+                        'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
+                        'total_amount' => $total_amount,
+                        'appropriation_type' => $data['appropriation_type'],
+                        'target_status_id' => 1,
+                        'description' => 'Target Edited'
+                    ]);
+    
+    
+                    $record->update([
+                        'allocation_id' => $receiverAllocation->id,
+                        'attribution_allocation_id' =>  $senderAllocation ? $senderAllocation->id : null,
+                        'tvi_id' => $data['tvi_id'],
+                        'qualification_title_id' => $data['qualification_title_id'],
+                        'abdd_id' => $data['abdd_id'],
+                        'number_of_slots' => $data['number_of_slots'],
+                        'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
+                        'total_cost_of_toolkit_pcc' => $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots,
+                        'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
+                        'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
+                        'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
+                        'total_new_normal_assisstance' => $qualificationTitle->new_normal_assisstance * $numberOfSlots,
+                        'total_accident_insurance' => $qualificationTitle->accident_insurance * $numberOfSlots,
+                        'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
+                        'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
+                        'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
+                        'total_amount' => $total_amount,
+                        'appropriation_type' => $data['appropriation_type'],
+                        'target_status_id' => 1,
+                    ]);
+    
+                    return $record;
+                }
+                else {
+                    throw new \Exception('Insufficient balance for allocation');
+                }
+            }); 
         }
-
-        return $allocation;
-    }
-
-    private function getQualificationTitle(array $data): QualificationTitle
-    {
-        $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
-        if (!$qualificationTitle) {
-            throw new \Exception('Qualification Title not found');
+        catch (\Exception $e) {
+            throw new \Exception("Failed to update target: " . $e->getMessage());
         }
-
-        return $qualificationTitle;
     }
-
-    private function calculateTotalAmount(QualificationTitle $qualificationTitle, int $numberOfSlots): float
-    {
-        return $qualificationTitle->pcc * $numberOfSlots;
-    }
-
-
-    private function updateRecord(Model $record, Allocation $allocation, array $data, QualificationTitle $qualificationTitle, int $numberOfSlots, float $totalAmount): void
-    {
-        $totalTrainingCostPcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
-
-        $record->update([
-            'allocation_id' => $allocation->id,
-            'tvi_id' => $data['tvi_id'],
-            'qualification_title_id' => $data['qualification_title_id'],
-            'abdd_id' => $data['abdd_id'],
-            'number_of_slots' => $data['number_of_slots'],
-            'total_training_cost_pcc' => $totalTrainingCostPcc,
-            'total_cost_of_toolkit_pcc' => $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots,
-            'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
-            'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
-            'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
-            'total_new_normal_assisstance' => $qualificationTitle->new_normal_assisstance * $numberOfSlots,
-            'total_accident_insurance' => $qualificationTitle->accident_insurance * $numberOfSlots,
-            'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
-            'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
-            'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => $totalAmount,
-            'appropriation_type' => $data['appropriation_type'],
-            'target_status_id' => 1,
-        ]);
-
-        $allocation->balance -= $totalAmount;
-        $allocation->save();
-    }
-
-    private function logTargetHistory(Model $record, Allocation $allocation, array $data, QualificationTitle $qualificationTitle, int $numberOfSlots, float $totalAmount): void
-    {
-        TargetHistory::create([
-            'target_id' => $record->id,
-            'allocation_id' => $allocation->id,
-            'tvi_id' => $data['tvi_id'],
-            'qualification_title_id' => $data['qualification_title_id'],
-            'abdd_id' => $data['abdd_id'],
-            'number_of_slots' => $data['number_of_slots'],
-            'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
-            'total_cost_of_toolkit_pcc' => $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots,
-            'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
-            'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
-            'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
-            'total_new_normal_assisstance' => $qualificationTitle->new_normal_assisstance * $numberOfSlots,
-            'total_accident_insurance' => $qualificationTitle->accident_insurance * $numberOfSlots,
-            'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
-            'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
-            'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => $totalAmount,
-            'appropriation_type' => $data['appropriation_type'],
-            'description' => 'Non-Compliant Reprocessed',
-        ]);
-    }
-
 }

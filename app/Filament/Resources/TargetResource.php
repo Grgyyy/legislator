@@ -182,18 +182,6 @@ class TargetResource extends Resource
                                 'min' => 'The number of slots must be at least 10.',
                                 'max' => 'The number of slots must not exceed 25.'
                             ]),
-                        Select::make('legislator_id')
-                            ->label('Attribution Receiver')
-                            ->required()
-                            ->markAsRequired(false)
-                            ->options(function () {
-                                return Legislator::where('status_id', 1)
-                                    ->whereNull('deleted_at')
-                                    ->pluck('name', 'id')
-                                    ->toArray() ?: ['no_legislators' => 'No legislator available'];
-                            })
-                            ->disabled()
-                            ->dehydrated(),
                     ];
                 } else {
                     return [
@@ -1150,11 +1138,13 @@ class TargetResource extends Resource
     {
         $query = parent::getEloquentQuery();
         $routeParameter = request()->route('record');
-        $nonCompliantStatus = TargetStatus::where('desc', 'Pending')->first();
+        $pendingStatus = TargetStatus::where('desc', 'Pending')
+            ->first();
 
-        if ($nonCompliantStatus) {
+        if ($pendingStatus) {
             $query->withoutGlobalScopes([SoftDeletingScope::class])
-                ->where('target_status_id', '=', $nonCompliantStatus->id);
+                ->where('target_status_id', '=', $pendingStatus->id)
+                ->where('attribution_allocation_id', null);
 
             if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
                 $query->where('region_id', (int) $routeParameter);

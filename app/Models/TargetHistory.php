@@ -12,6 +12,7 @@ class TargetHistory extends Model
     protected $fillable = [
         'target_id',
         'allocation_id',
+        'attribution_allocation_id',
         'tvi_id',
         'abdd_id',
         'qualification_title_id',
@@ -39,6 +40,11 @@ class TargetHistory extends Model
     public function allocation()
     {
         return $this->belongsTo(Allocation::class);
+    }
+
+    public function attributionAllocation()
+    {
+        return $this->belongsTo(Allocation::class, 'attribution_allocation_id');
     }
 
     public function tvi()
