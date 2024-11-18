@@ -254,19 +254,6 @@ class AllocationResource extends Resource
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                TextColumn::make("attribution_sent")
-                    ->sortable()
-                    // ->toggleable()
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),    
-                
-                TextColumn::make("attribution_received")
-                    ->sortable()
-                    // ->toggleable()
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-                    
-                    
                 TextColumn::make("year")
                     ->sortable()
                     ->toggleable(),

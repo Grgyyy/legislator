@@ -256,13 +256,13 @@ class AllocationResource extends Resource
 
                 TextColumn::make("attribution_sent")
                     ->sortable()
-                    // ->toggleable()
+                    ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),    
                 
                 TextColumn::make("attribution_received")
                     ->sortable()
-                    // ->toggleable()
+                    ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                     
