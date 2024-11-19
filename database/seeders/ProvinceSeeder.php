@@ -141,15 +141,12 @@ class ProvinceSeeder extends Seeder
             $region = Region::where('code', $regionId)->first();
 
             if ($region) {
-                Province::updateOrCreate(
-                    ['code' => $code], 
-                    [
-                        'name' => $name,
-                        'region_id' => $region->id,
-                    ]
-                );
+                Province::create([
+                    'code' => $code,
+                    'name' => $name,
+                    'region_id' => $region->id,
+                ]);
             } else {
-                // Optionally log missing regions for debugging
                 $this->command->warn("Region not found for Province: {$name} ({$code})");
             }
         }
