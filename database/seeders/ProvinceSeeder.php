@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Province;
+use App\Models\Region;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -14,151 +16,142 @@ class ProvinceSeeder extends Seeder
     {
         // Define provinces with their corresponding region codes
         $provinces = [
-            // National Capital Region (NCR)
-            ['CaMaNaVa', 1],
-            ['MuntiParLasTaPat', 1],
-            ['PaMaMariSan', 1],
-            ['Quezon City', 1],
-            ['Manila City', 1],
-            ['Pasay-Makati', 1],
-            ['Not Applicable', 1],
 
-            // Cordillera Administrative Region (CAR)
-            ['Abra', 2],
-            ['Apayao', 2],
-            ['Benguet', 2],
-            ['Ifugao', 2],
-            ['Kalinga', 2],
-            ['Mountain Province', 2],
-            ['Not Applicable', 2],
+            ['0128', 'Ilocos Norte'],
+            ['0129', 'Ilocos Sur'],
+            ['0133', 'La Union'],
+            ['0155', 'Pangasinan'],
 
-            // Region I: Ilocos Region
-            ['Ilocos Norte', 3],
-            ['Ilocos Sur', 3],
-            ['La Union', 3],
-            ['Pangasinan', 3],
-            ['Not Applicable', 3],
+            ['0209', 'Batanes'],
+            ['0215', 'Cagayan'],
+            ['0231', 'Isabela'],
+            ['0250', 'Nueva Vizcaya'],
+            ['0257', 'Quirino'],
 
-            // Region II: Cagayan Valley
-            ['Batanes', 4],
-            ['Cagayan', 4],
-            ['Isabela', 4],
-            ['Nueva Vizcaya', 4],
-            ['Quirino', 4],
-            ['Not Applicable', 4],
+            ['0308', 'Bataan'],
+            ['0314', 'Bulacan'],
+            ['0330', 'Pampanga'],
+            ['0331', 'Zambales'],
+            ['0349', 'Nueva Ecija'],
+            ['0354', 'Pampanga'],
+            ['0369', 'Tarlac'],
+            ['0371', 'Zambales'],
+            ['0377', 'Aurora'],
 
-            // Region III: Central Luzon
-            ['Aurora', 5],
-            ['Bataan', 5],
-            ['Bulacan', 5],
-            ['Nueva Ecija', 5],
-            ['Pampanga', 5],
-            ['Tarlac', 5],
-            ['Zambales', 5],
-            ['Not Applicable', 5],
+            ['0410	', 'Batangas'],
+            ['0421', 'Cavite'],
+            ['0434', 'Laguna'],
+            ['0456', 'Quezon'],
+            ['0458', 'Rizal'],
 
-            // Region IV-A: CALABARZON
-            ['Batangas', 6],
-            ['Cavite', 6],
-            ['Laguna', 6],
-            ['Quezon', 6],
-            ['Rizal', 6],
-            ['Not Applicable', 6],
+            ['0505', 'Albay'],
+            ['0516', 'Camarines Norte'],
+            ['0517', 'Camarines Sur	'],
+            ['0520', 'Catanduanes'],
+            ['0541', 'Masbate'],
+            ['0562', 'Sorsogon'],
 
-            // Region IV-B: MIMAROPA
-            ['Marinduque', 7],
-            ['Occidental Mindoro', 7],
-            ['Oriental Mindoro', 7],
-            ['Palawan', 7],
-            ['Romblon', 7],
-            ['Not Applicable', 7],
+            ['0604', 'Aklan'],
+            ['0606', 'Antique'],
+            ['0619', 'Capiz'],
+            ['0630', 'Iloilo'],
+            ['0645', 'Negros Occidental	'],
+            ['0679', 'Guimaras'],
+            
+            ['0712', 'Bohol'],
+            ['0722', 'Cebu'],
+            ['0746', 'Negros Oriental'],
+            ['0761', 'Siquijor'],
 
-            // Region V: Bicol Region
-            ['Albay', 8],
-            ['Camarines Norte', 8],
-            ['Camarines Sur', 8],
-            ['Catanduanes', 8],
-            ['Masbate', 8],
-            ['Sorsogon', 8],
-            ['Not Applicable', 8],
+            ['0826', 'Eastern Samar'],
+            ['0837', 'Leyte'],
+            ['0848', 'Northern Samar'],
+            ['0860', 'Samar (Western Samar)'],
+            ['0864	', 'Southern Leyte'],
+            ['0878', 'Biliran'],
 
-            // Region VI: Western Visayas
-            ['Aklan', 9],
-            ['Antique', 9],
-            ['Capiz', 9],
-            ['Iloilo', 9],
-            ['Negros Occidental', 9],
-            ['Not Applicable', 9],
+            ['0972', 'Zamboanga del Norte'],
+            ['0973', 'Zamboanga del Sur'],
+            ['0983', 'Zamboanga Sibugay'],
+            ['0997', 'City of Isabela'],
 
-            // Region VII: Central Visayas
-            ['Bohol', 10],
-            ['Cebu', 10],
-            ['Negros Oriental', 10],
-            ['Siquijor', 10],
-            ['Not Applicable', 10],
+            ['1013', 'Bukidnon'],
+            ['1018', 'Camiguin'],
+            ['1035', 'Lanao del Norte'],
+            ['1042', 'Misamis Occidental'],
+            ['1043', 'Misamis Oriental'],
 
-            // Region VIII: Eastern Visayas
-            ['Biliran', 11],
-            ['Eastern Samar', 11],
-            ['Leyte', 11],
-            ['Northern Samar', 11],
-            ['Samar', 11],
-            ['Southern Leyte', 11],
-            ['Not Applicable', 11],
+            ['1123', 'Davao del Norte'],
+            ['1124', 'Davao del Sur'],
+            ['1125', 'Davao Oriental'],
+            ['1182', 'Davao de Oro'],
+            ['1186', 'Davao Occidental'],
 
-            // Region IX: Zamboanga Peninsula
-            ['Zamboanga del Norte', 12],
-            ['Zamboanga del Sur', 12],
-            ['Zamboanga Sibugay', 12],
-            ['Not Applicable', 12],
+            ['1247', 'North Cotabato'],
+            ['1265', 'South Cotabato'],
+            ['1265', 'Sultan Kudarat'],
+            ['1280', 'Sarangani'],
+            ['1298', 'Cotabato City'],
 
-            // Region X: Northern Mindanao
-            ['Bukidnon', 13],
-            ['Camiguin', 13],
-            ['Lanao del Norte', 13],
-            ['Misamis Occidental', 13],
-            ['Misamis Oriental', 13],
-            ['Not Applicable', 13],
+            ['1300', 'CaMaNaVa'],
+            ['1300', 'MuntiParLasTaPat'],
+            ['1300', 'PasMak'],
+            ['1300', 'PaMaMariSan'],
+            ['1300', 'Manila City'],
+            ['1300', 'Quezon City'],
 
-            // Region XI: Davao Region
-            ['Davao de Oro', 14],
-            ['Davao del Norte', 14],
-            ['Davao del Sur', 14],
-            ['Davao Occidental', 14],
-            ['Davao Oriental', 14],
-            ['Not Applicable', 14],
+            ['1401', 'Abra'],
+            ['1411', 'Benguet'],
+            ['1427', 'Ifugao'],
+            ['1432', 'Kalinga'],
+            ['1444', 'Mountain Province	'],
+            ['1481', 'Apayao'],
 
-            // Region XII: SOCCSKSARGEN
-            ['Cotabato', 15],
-            ['Sarangani', 15],
-            ['South Cotabato', 15],
-            ['Sultan Kudarat', 15],
-            ['Not Applicable', 15],
+            ['1602', 'Agusan del Norte'],
+            ['1603', 'Agusan del Sur'],
+            ['1667', 'Surigao del Norte'],
+            ['1668', 'Surigao del Sur'],
+            ['1685', 'Dinagat Islands'],
 
-            // Region XIII: Caraga
-            ['Agusan del Norte', 16],
-            ['Agusan del Sur', 16],
-            ['Bislig City', 16],
-            ['Surigao del Norte', 16],
-            ['Surigao del Sur', 16],
-            ['Not Applicable', 16],
+            ['1740', 'Marinduque'],
+            ['1751', 'Occidental Mindoro'],
+            ['1752', 'Oriental Mindoro'],
+            ['1753', 'Palawan'],
+            ['1759', 'Romblon'],
 
-            // Bangsamoro Autonomous Region in Muslim Mindanao (BARMM)
-            ['Basilan', 17],
-            ['Lanao del Sur', 17],
-            ['Maguindanao', 17],
-            ['Sulu', 17],
-            ['Tawi-Tawi', 17],
-            ['Not Applicable', 17],
+            ['1845', 'Negros Occidental'],
+            ['1846', 'Negros Oriental'],
+            ['1861', 'Siquijor'],
 
-            ['Not Applicable', 18],
+            ['1907', 'Basilan'],
+            ['1936', 'Lanao del Sur'],
+            ['1966', 'Sulu'],
+            ['1970', 'Tawi-tawi'],
+            ['1987', 'Maguindanao del Norte'],
+            ['1988', 'Maguindanao del Sur'],
+            ['1999', 'Interim Province Code for 63 barangays of BARMM based on PSA Board Resolution No. 13 Series of 2021'],
+
+            ['0000', 'Not Applicable'],
+
         ];
 
-        foreach ($provinces as [$name, $region]) {
-            DB::table('provinces')->updateOrInsert(
-                ['name' => $name, 'region_id' => $region],
-                ['name' => $name, 'region_id' => $region]
-            );
+        foreach ($provinces as [$code, $name]) {
+            $regionId = substr(trim($code), 0, 2);
+
+            $region = Region::where('code', $regionId)->first();
+
+            if ($region) {
+                Province::updateOrCreate(
+                    ['code' => $code], 
+                    [
+                        'name' => $name,
+                        'region_id' => $region->id,
+                    ]
+                );
+            } else {
+                // Optionally log missing regions for debugging
+                $this->command->warn("Region not found for Province: {$name} ({$code})");
+            }
         }
     }
 }

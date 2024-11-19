@@ -16,6 +16,7 @@ class Province extends Model
 
     protected $fillable = [
         'name',
+        'code',
         'region_id',
     ];
 
@@ -24,9 +25,9 @@ class Province extends Model
         return $this->belongsTo(Region::class);
     }
 
-    public function municipality()
+    public function district()
     {
-        return $this->hasMany(Municipality::class);
+        return $this->hasMany(District::class);
     }
 
     public function abdds()

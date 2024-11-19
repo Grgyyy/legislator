@@ -22,7 +22,8 @@ class CreateRegion extends CreateRecord
         $this->validateUniqueRegion($data['name']);
 
         $region = DB::transaction(fn() => Region::create([
-            'name' => $data['name']
+            'name' => $data['name'],
+            'code' => $data['code']
         ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'Region has been created successfully.');

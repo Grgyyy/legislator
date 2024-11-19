@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\District;
-use App\Models\Municipality;
+use App\Models\Province;
 use App\Filament\Resources\DistrictResource\Pages;
 use App\Services\NotificationHandler;
 use Filament\Resources\Resource;
@@ -36,7 +36,7 @@ class DistrictResource extends Resource
 
     protected static ?string $navigationParentItem = "Regions";
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {
@@ -50,20 +50,25 @@ class DistrictResource extends Resource
                     ->autocomplete(false)
                     ->validationAttribute('District'),
 
-                Select::make('municipality_id')
-                    ->relationship('municipality', 'name')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->preload()
-                    ->default(fn($get) => request()->get('municipality_id'))
-                    ->native(false)
-                    ->options(function () {
-                        return Municipality::whereNot('name', 'Not Applicable')
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_municipality' => 'No Municipality Available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_municipality'),
+                TextInput::make("code")
+                    ->label('Code')
+                    ->placeholder('Enter code name')
+                    ->autocomplete(false),
+
+                // Select::make('province_id')
+                //     ->relationship('municipality', 'name')
+                //     ->required()
+                //     ->markAsRequired(false)
+                //     ->searchable()
+                //     ->preload()
+                //     // ->default(fn($get) => request()->get('province_id'))
+                //     ->native(false)
+                //     ->options(function () {
+                //         return Province::whereNot('name', 'Not Applicable')
+                //             ->pluck('name', 'id')
+                //             ->toArray() ?: ['no_province' => 'No province Available'];
+                //     })
+                //     ->disableOptionWhen(fn($value) => $value === 'no_province'),
             ]);
     }
 
@@ -72,24 +77,29 @@ class DistrictResource extends Resource
         return $table
             ->emptyStateHeading('no districts available')
             ->columns([
+                TextColumn::make('code')
+                    ->label('Code')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('name')
                     ->label('District')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('municipality.name')
+                TextColumn::make('province.name')
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('municipality.province.name')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('municipality.province.region.name')
+                TextColumn::make('province.region.name')
                     ->searchable()
                     ->toggleable(),
             ])
+            ->recordUrl(
+                fn($record) => route('filament.admin.resources.municipalities.showMunicipality', ['record' => $record->id]),
+            )
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
@@ -162,7 +172,7 @@ class DistrictResource extends Resource
             ->whereNot('name', 'Not Applicable');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
-            $query->where('municipality_id', (int) $routeParameter);
+            $query->where('province_id', (int) $routeParameter);
         }
 
         return $query;
@@ -174,6 +184,7 @@ class DistrictResource extends Resource
             'index' => Pages\ListDistricts::route('/'),
             'create' => Pages\CreateDistrict::route('/create'),
             'edit' => Pages\EditDistrict::route('/{record}/edit'),
+            'showDistricts' => Pages\ShowDistrict::route('/{record}/districts'),
         ];
     }
 }

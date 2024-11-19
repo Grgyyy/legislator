@@ -10,9 +10,11 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('provinces', function (Blueprint $table) {
+        Schema::create('provinces', function (Blueprint $table) { 
             $table->id();
             $table->string("name");
+            $table->string("code")
+                ->nullable();
             $table->foreignId('region_id')
                 ->constrained()
                 ->cascadeOnDelete();

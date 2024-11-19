@@ -42,6 +42,12 @@ class ProvinceResource extends Resource
     {
         return $form
             ->schema([
+                TextInput::make('code')
+                    ->label('Province Code')
+                    ->placeholder('Enter province Code')
+                    ->autocomplete(false)
+                    ->validationAttribute('Province'),
+
                 TextInput::make('name')
                     ->label('Province')
                     ->placeholder(placeholder: 'Enter province name')
@@ -72,17 +78,25 @@ class ProvinceResource extends Resource
         return $table
             ->emptyStateHeading('no provinces available')
             ->columns([
+                TextColumn::make('code')
+                    ->label('Code')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('name')
                     ->label('Province')
                     ->sortable()
                     ->searchable()
-                    ->toggleable()
-                    ->url(fn($record) => route('filament.admin.resources.provinces.showMunicipalities', ['record' => $record->id])),
+                    ->toggleable(),
 
                 TextColumn::make('region.name')
                     ->searchable()
                     ->toggleable(),
             ])
+            ->recordUrl(
+                fn($record) => route('filament.admin.resources.districts.showDistricts', ['record' => $record->id]),
+            )
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
@@ -167,7 +181,7 @@ class ProvinceResource extends Resource
             'index' => Pages\ListProvinces::route('/'),
             'create' => Pages\CreateProvince::route('/create'),
             'edit' => Pages\EditProvince::route('/{record}/edit'),
-            'showMunicipalities' => Pages\ShowMunicipalities::route('/{record}/municipalities'),
+            'showProvince' => Pages\ShowProvinces::route('/{record}/provinces'),
         ];
     }
 }

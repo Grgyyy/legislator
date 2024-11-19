@@ -47,6 +47,13 @@ class RegionResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Region'),
+                TextInput::make("code")
+                    ->label('UACS Code')
+                    ->placeholder('Enter UACS Code')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('Region'),
             ]);
     }
 
@@ -55,12 +62,18 @@ class RegionResource extends Resource
         return $table
             ->emptyStateHeading('no regions available')
             ->columns([
+                TextColumn::make("code")
+                    ->label("Code")
+                    ->sortable()
+                    ->searchable(),
                 TextColumn::make("name")
                     ->label("Region")
                     ->sortable()
-                    ->searchable()
-                    ->url(fn($record) => route('filament.admin.resources.regions.show_provinces', ['record' => $record->id])),
+                    ->searchable(),
             ])
+            ->recordUrl(
+                fn($record) => route('filament.admin.resources.provinces.showProvince', ['record' => $record->id]),
+            )
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
@@ -134,7 +147,7 @@ class RegionResource extends Resource
             'index' => Pages\ListRegions::route('/'),
             'create' => Pages\CreateRegion::route('/create'),
             'edit' => Pages\EditRegion::route('/{record}/edit'),
-            'show_provinces' => Pages\ShowProvinces::route('/{record}/provinces'),
+            // 'show_provinces' => Pages\ShowProvinces::route('/{record}/provinces'),
         ];
     }
 }
