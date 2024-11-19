@@ -14,7 +14,6 @@ return new class extends Migration {
             $table->id();
             $table->string("name");
             $table->string("code")
-                ->unique()
                 ->nullable();
             $table->foreignId('region_id')
                 ->constrained()
