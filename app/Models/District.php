@@ -14,12 +14,16 @@ class District extends Model
 
     protected $fillable = [
         'name',
-        'municipality_id',
+        'province_id',
     ];
 
-    public function municipality()
+    public function province()
     {
-        return $this->belongsTo(Municipality::class);
+        return $this->belongsTo(Province::class);
+    }
+
+    public function municipality() {
+        return $this->hasMany(Municipality::class);
     }
 
     public function particular()

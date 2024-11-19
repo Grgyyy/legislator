@@ -14,7 +14,11 @@ return new class extends Migration
         Schema::create('municipalities', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('province_id')
+            $table->string('class');
+            $table->string("code")
+                ->unique()
+                ->nullable();
+            $table->foreignId('district_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->timestamps();

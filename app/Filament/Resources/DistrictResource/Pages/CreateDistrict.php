@@ -25,11 +25,11 @@ class CreateDistrict extends CreateRecord
 
     protected function handleRecordCreation(array $data): District
     {
-        $this->validateUniqueDistrict($data['name'], $data['municipality_id']);
+        $this->validateUniqueDistrict($data['name'], $data['province_id']);
 
         $district = DB::transaction(fn() => District::create([
             'name' => $data['name'],
-            'municipality_id' => $data['municipality_id'],
+            'province_id' => $data['province_id'],
         ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'District has been created successfully.');
@@ -37,11 +37,11 @@ class CreateDistrict extends CreateRecord
         return $district;
     }
 
-    protected function validateUniqueDistrict($name, $municipalityId)
+    protected function validateUniqueDistrict($name, $provinceId)
     {
         $district = District::withTrashed()
             ->where('name', $name)
-            ->where('municipality_id', $municipalityId)
+            ->where('province_id', $provinceId)
             ->first();
 
         if ($district) {

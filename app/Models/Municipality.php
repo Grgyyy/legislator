@@ -14,11 +14,13 @@ class Municipality extends Model
 
     protected $fillable = [
         'name',
-        'province_id',
+        'code',
+        'class',
+        'district_id',
     ];
 
-    public function province()
+    public function district()
     {
-        return $this->belongsTo(Province::class);
+        return $this->belongsTo(District::class);
     }
 }

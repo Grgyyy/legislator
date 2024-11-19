@@ -25,11 +25,13 @@ class CreateMunicipality extends CreateRecord
 
     protected function handleRecordCreation(array $data): Municipality
     {
-        $this->validateUniqueMunicipality($data['name'], $data['province_id']);
+        $this->validateUniqueMunicipality($data['name'], $data['district_id']);
 
         $municipality = DB::transaction(fn() => Municipality::create([
             'name' => $data['name'],
-            'province_id' => $data['province_id'],
+            'class' => $data['class'],
+            'code' => $data['code'],
+            'district_id' => $data['district_id']
         ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'Municipality has been created successfully.');
@@ -37,17 +39,17 @@ class CreateMunicipality extends CreateRecord
         return $municipality;
     }
 
-    protected function validateUniqueMunicipality($name, $provinceId)
+    protected function validateUniqueMunicipality($name, $districtId)
     {
         $municipality = Municipality::withTrashed()
             ->where('name', $name)
-            ->where('province_id', $provinceId)
+            ->where('district_id', $districtId)
             ->first();
 
         if ($municipality) {
             $message = $municipality->deleted_at
-                ? 'This municipality exists in the province but has been deleted; it must be restored before reuse.'
-                : 'A municipality with this name already exists in the specified province.';
+                ? 'This municipality exists in the district but has been deleted; it must be restored before reuse.'
+                : 'A municipality with this name already exists in the specified district.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

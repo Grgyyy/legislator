@@ -1,5 +1,5 @@
 <?php
-namespace App\Filament\Resources\RegionResource\Pages;
+namespace App\Filament\Resources\ProvinceResource\Pages;
 
 use App\Models\Region;
 use App\Filament\Resources\ProvinceResource;
@@ -17,7 +17,7 @@ class ShowProvinces extends ListRecords
         $region = Region::find($regionId);
 
         return [
-            route('filament.admin.resources.regions.show_provinces', ['record' => $regionId]) => $region ? $region->name : 'Regions',
+            route('filament.admin.resources.regions.index', ['record' => $region->id]) => $region ? $region->name : 'Regions',
             'Provinces',
             'List'
         ];
