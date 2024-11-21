@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\TargetResource\Pages;
 
-use App\Filament\Resources\TargetResource;
-use App\Models\Allocation;
-use App\Models\QualificationTitle;
+use Exception;
 use App\Models\Target;
+use App\Models\Allocation;
 use App\Models\TargetHistory;
+use App\Models\QualificationTitle;
 use Illuminate\Support\Facades\DB;
+use Filament\Notifications\Notification;
+use App\Filament\Resources\TargetResource;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateTarget extends CreateRecord
@@ -32,101 +34,148 @@ class CreateTarget extends CreateRecord
     protected function handleRecordCreation(array $data): Target
     {
         return DB::transaction(function () use ($data) {
-            $targetData = $data['targets'][0] ?? null;
-
-            if (!$targetData) {
-                throw new \Exception('No target data found.');
+            if (!isset($data['targets']) || empty($data['targets'])) {
+                Notification::make()
+                    ->title('Error')
+                    ->danger()
+                    ->body('No target data found.')
+                    ->send();
+                // Throw an exception to avoid returning null
+                throw new Exception('No target data found.');
             }
 
-            $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'tvi_id', 'appropriation_type'];
+            $lastCreatedTarget = null;
 
-            foreach ($requiredFields as $field) {
-                if (!array_key_exists($field, $targetData) || empty($targetData[$field])) {
-                    throw new \InvalidArgumentException("The field '$field' is required.");
+            foreach ($data['targets'] as $targetData) {
+                $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'tvi_id', 'lappropriation_type'];
+
+                foreach ($requiredFields as $field) {
+                    if (!array_key_exists($field, $targetData) || empty($targetData[$field])) {
+                        Notification::make()
+                            ->title('Missing Required Field')
+                            ->danger()
+                            ->body("The field '$field' is required.")
+                            ->send();
+                        // Throw an exception to avoid returning null
+                        throw new \InvalidArgumentException("The field '$field' is required.");
+                    }
+                }
+
+                $allocation = Allocation::where('legislator_id', $targetData['legislator_id'])
+                    ->where('particular_id', $targetData['particular_id'])
+                    ->where('scholarship_program_id', $targetData['scholarship_program_id'])
+                    ->where('year', $targetData['allocation_year'])
+                    ->first();
+
+                if (!$allocation) {
+                    Notification::make()
+                        ->title('Error')
+                        ->danger()
+                        ->body('Allocation not found.')
+                        ->send();
+                    throw new Exception('Allocation not found.');
+                }
+
+                $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
+
+                if (!$qualificationTitle) {
+                    Notification::make()
+                        ->title('Error')
+                        ->danger()
+                        ->body('Qualification Title not found.')
+                        ->send();
+                    throw new Exception('Qualification Title not found.');
+                }
+
+                $numberOfSlots = $targetData['number_of_slots'] ?? 0;
+
+                $total_training_cost_pcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
+                $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots;
+                $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
+                $total_assessment_fee = $qualificationTitle->assessment_fee * $numberOfSlots;
+                $total_entrepreneurship_fee = $qualificationTitle->entrepreneurship_fee * $numberOfSlots;
+                $total_new_normal_assisstance = $qualificationTitle->new_normal_assisstance * $numberOfSlots;
+                $total_accident_insurance = $qualificationTitle->accident_insurance * $numberOfSlots;
+                $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
+                $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
+                $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
+                $total_amount = $qualificationTitle->pcc * $numberOfSlots;
+
+                if ($allocation->balance >= $total_amount) {
+                    // Create the target record
+                    $target = Target::create([
+                        'allocation_id' => $allocation->id,
+                        'tvi_id' => $targetData['tvi_id'],
+                        'qualification_title_id' => $qualificationTitle->id,
+                        'abdd_id' => $targetData['abdd_id'],
+                        'number_of_slots' => $numberOfSlots,
+                        'total_training_cost_pcc' => $total_training_cost_pcc,
+                        'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
+                        'total_training_support_fund' => $total_training_support_fund,
+                        'total_assessment_fee' => $total_assessment_fee,
+                        'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
+                        'total_new_normal_assisstance' => $total_new_normal_assisstance,
+                        'total_accident_insurance' => $total_accident_insurance,
+                        'total_book_allowance' => $total_book_allowance,
+                        'total_uniform_allowance' => $total_uniform_allowance,
+                        'total_misc_fee' => $total_misc_fee,
+                        'total_amount' => $total_amount,
+                        'appropriation_type' => $targetData['appropriation_type'],
+                        'target_status_id' => 1,
+                    ]);
+
+                    // Update allocation balance
+                    $allocation->balance -= $total_amount;
+                    $allocation->save();
+
+                    // Create target history entry
+                    TargetHistory::create([
+                        'target_id' => $target->id,
+                        'allocation_id' => $allocation->id,
+                        'tvi_id' => $targetData['tvi_id'],
+                        'qualification_title_id' => $qualificationTitle->id,
+                        'abdd_id' => $targetData['abdd_id'],
+                        'number_of_slots' => $numberOfSlots,
+                        'total_training_cost_pcc' => $total_training_cost_pcc,
+                        'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
+                        'total_training_support_fund' => $total_training_support_fund,
+                        'total_assessment_fee' => $total_assessment_fee,
+                        'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
+                        'total_new_normal_assisstance' => $total_new_normal_assisstance,
+                        'total_accident_insurance' => $total_accident_insurance,
+                        'total_book_allowance' => $total_book_allowance,
+                        'total_uniform_allowance' => $total_uniform_allowance,
+                        'total_misc_fee' => $total_misc_fee,
+                        'total_amount' => $total_amount,
+                        'appropriation_type' => $targetData['appropriation_type'],
+                        'description' => 'Target Created',
+                    ]);
+
+                    $lastCreatedTarget = $target;
+                } else {
+                    Notification::make()
+                        ->title('Error')
+                        ->danger()
+                        ->body('Insufficient allocation balance.')
+                        ->send();
+                    throw new Exception('Insufficient allocation balance.');
                 }
             }
 
-            $allocation = Allocation::where('legislator_id', $targetData['legislator_id'])
-                ->where('particular_id', $targetData['particular_id'])
-                ->where('scholarship_program_id', $targetData['scholarship_program_id'])
-                ->where('year', $targetData['allocation_year'])
-                ->first();
-
-            if (!$allocation) {
-                throw new \Exception('Allocation not found');
+            // Ensure a target was created
+            if ($lastCreatedTarget === null) {
+                Notification::make()
+                    ->title('Error')
+                    ->danger()
+                    ->body('No targets were created.')
+                    ->send();
+                throw new Exception('No targets were created.');
             }
 
-            $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
-
-            if (!$qualificationTitle) {
-                throw new \Exception('Qualification Title not found');
-            }
-
-            $numberOfSlots = $targetData['number_of_slots'] ?? 0;
-
-            $total_training_cost_pcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
-            $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots;
-            $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
-            $total_assessment_fee = $qualificationTitle->assessment_fee * $numberOfSlots;
-            $total_entrepreneurship_fee = $qualificationTitle->entrepreneurship_fee * $numberOfSlots;
-            $total_new_normal_assisstance = $qualificationTitle->new_normal_assisstance * $numberOfSlots;
-            $total_accident_insurance = $qualificationTitle->accident_insurance * $numberOfSlots;
-            $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
-            $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
-            $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
-            $total_amount = $qualificationTitle->pcc * $numberOfSlots;
-
-            if ($allocation->balance >= $total_amount) {
-                $target = Target::create([
-                    'allocation_id' => $allocation->id,
-                    'tvi_id' => $targetData['tvi_id'],
-                    'qualification_title_id' => $qualificationTitle->id,
-                    'abdd_id' => $targetData['abdd_id'],
-                    'number_of_slots' => $numberOfSlots,
-                    'total_training_cost_pcc' => $total_training_cost_pcc,
-                    'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
-                    'total_training_support_fund' => $total_training_support_fund,
-                    'total_assessment_fee' => $total_assessment_fee,
-                    'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
-                    'total_new_normal_assisstance' => $total_new_normal_assisstance,
-                    'total_accident_insurance' => $total_accident_insurance,
-                    'total_book_allowance' => $total_book_allowance,
-                    'total_uniform_allowance' => $total_uniform_allowance,
-                    'total_misc_fee' => $total_misc_fee,
-                    'total_amount' => $total_amount,
-                    'appropriation_type' => $targetData['appropriation_type'],
-                    'target_status_id' => 1,
-                ]);
-
-                $allocation->balance -= $total_amount;
-                $allocation->save();
-
-                TargetHistory::create([
-                    'target_id' => $target->id,
-                    'allocation_id' => $allocation->id,
-                    'tvi_id' => $targetData['tvi_id'],
-                    'qualification_title_id' => $qualificationTitle->id,
-                    'abdd_id' => $targetData['abdd_id'],
-                    'number_of_slots' => $numberOfSlots,
-                    'total_training_cost_pcc' => $total_training_cost_pcc,
-                    'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
-                    'total_training_support_fund' => $total_training_support_fund,
-                    'total_assessment_fee' => $total_assessment_fee,
-                    'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
-                    'total_new_normal_assisstance' => $total_new_normal_assisstance,
-                    'total_accident_insurance' => $total_accident_insurance,
-                    'total_book_allowance' => $total_book_allowance,
-                    'total_uniform_allowance' => $total_uniform_allowance,
-                    'total_misc_fee' => $total_misc_fee,
-                    'total_amount' => $total_amount,
-                    'appropriation_type' => $targetData['appropriation_type'],
-                    'description' => 'Target Created',
-                ]);
-
-                return $target;
-            } else {
-                throw new \Exception('Insufficient balance for allocation');
-            }
+            return $lastCreatedTarget;
         });
     }
+
+
+
 }

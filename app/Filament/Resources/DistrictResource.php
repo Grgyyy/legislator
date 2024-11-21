@@ -50,25 +50,25 @@ class DistrictResource extends Resource
                     ->autocomplete(false)
                     ->validationAttribute('District'),
 
-                TextInput::make("code")
+                TextInput::make('code')
                     ->label('Code')
-                    ->placeholder('Enter code name')
-                    ->autocomplete(false),
+                    ->placeholder('Enter district code')
+                    ->autocomplete(false)
+                    ->integer(),
 
-                // Select::make('province_id')
-                //     ->relationship('municipality', 'name')
-                //     ->required()
-                //     ->markAsRequired(false)
-                //     ->searchable()
-                //     ->preload()
-                //     // ->default(fn($get) => request()->get('province_id'))
-                //     ->native(false)
-                //     ->options(function () {
-                //         return Province::whereNot('name', 'Not Applicable')
-                //             ->pluck('name', 'id')
-                //             ->toArray() ?: ['no_province' => 'No province Available'];
-                //     })
-                //     ->disableOptionWhen(fn($value) => $value === 'no_province'),
+                Select::make('province_id')
+                    ->label('Province')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function () {
+                        return Province::whereNot('name', 'Not Applicable')
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_province' => 'No province Available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
             ]);
     }
 

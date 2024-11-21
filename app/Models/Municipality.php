@@ -16,11 +16,16 @@ class Municipality extends Model
         'name',
         'code',
         'class',
-        'district_id',
+        'province_id',
     ];
 
     public function district()
     {
-        return $this->belongsTo(District::class);
+        return $this->belongsToMany(District::class, 'district_municipalities')->withTimestamps();
+    }
+
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
     }
 }

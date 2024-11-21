@@ -146,7 +146,6 @@ class TargetImport implements ToModel, WithHeadingRow
         return $legislator->id;
     }
 
-
     protected function getParticularId(string $particularName)
     {
         $allocation = Allocation::whereHas('legislator.particular.subParticular', function ($query) use ($particularName) {
