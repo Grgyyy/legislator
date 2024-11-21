@@ -14,6 +14,7 @@ class District extends Model
 
     protected $fillable = [
         'name',
+        'code',
         'province_id',
     ];
 
@@ -22,8 +23,9 @@ class District extends Model
         return $this->belongsTo(Province::class);
     }
 
-    public function municipality() {
-        return $this->hasMany(Municipality::class);
+    public function municipality()
+    {
+        return $this->belongsToMany(Municipality::class, 'district_municipalities')->withTimestamps();
     }
 
     public function particular()

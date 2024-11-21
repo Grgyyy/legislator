@@ -27,6 +27,7 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Models\Province;
 
 class MunicipalityResource extends Resource
 {
@@ -62,19 +63,19 @@ class MunicipalityResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false),
 
-                Select::make("district_id")
-                    ->relationship("district", "name")
+                Select::make('province_id')
+                    ->label('Province')
                     ->required()
                     ->markAsRequired(false)
                     ->searchable()
                     ->preload()
                     ->native(false)
                     ->options(function () {
-                        return District::whereNot('name', 'Not Applicable')
+                        return Province::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_district' => 'No District Available'];
+                            ->toArray() ?: ['no_province' => 'No province Available'];
                     })
-                    ->disableOptionWhen(fn ($value) => $value === 'no_district'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
             ]);
     }
 
@@ -97,15 +98,15 @@ class MunicipalityResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make("district.name")
-                    ->searchable()
-                    ->toggleable(),
-                
-                TextColumn::make("district.province.name")
+                // TextColumn::make("district.name")
+                //     ->searchable()
+                //     ->toggleable(),
+
+                TextColumn::make("province.name")
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make("district.province.region.name")
+                TextColumn::make("province.region.name")
                     ->searchable()
                     ->toggleable(),
             ])

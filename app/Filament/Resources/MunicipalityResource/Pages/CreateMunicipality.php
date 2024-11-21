@@ -14,24 +14,24 @@ class CreateMunicipality extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        $provinceId = $this->record->province_id;
+        // $provinceId = $this->record->province_id;
 
-        if ($provinceId) {
-            return route('filament.admin.resources.provinces.showMunicipalities', ['record' => $provinceId]);
-        }
+        // if ($provinceId) {
+        //     return route('filament.admin.resources.provinces.showMunicipalities', ['record' => $provinceId]);
+        // }
 
         return $this->getResource()::getUrl('index');
     }
 
     protected function handleRecordCreation(array $data): Municipality
     {
-        $this->validateUniqueMunicipality($data['name'], $data['district_id']);
+        $this->validateUniqueMunicipality($data['name'], $data['class'], $data['code'], $data['province_id']);
 
         $municipality = DB::transaction(fn() => Municipality::create([
             'name' => $data['name'],
             'class' => $data['class'],
             'code' => $data['code'],
-            'district_id' => $data['district_id']
+            'province_id' => $data['province_id'],
         ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'Municipality has been created successfully.');
@@ -39,11 +39,13 @@ class CreateMunicipality extends CreateRecord
         return $municipality;
     }
 
-    protected function validateUniqueMunicipality($name, $districtId)
+    protected function validateUniqueMunicipality($name, $provinceId, $class, $code)
     {
         $municipality = Municipality::withTrashed()
             ->where('name', $name)
-            ->where('district_id', $districtId)
+            ->where('class', $class)
+            ->where('code', $code)
+            ->where('province_id', $provinceId)
             ->first();
 
         if ($municipality) {

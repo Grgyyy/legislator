@@ -13,20 +13,34 @@ class EditDistrict extends EditRecord
 {
     protected static string $resource = DistrictResource::class;
 
+    // protected function getRedirectUrl(): string
+    // {
+    //     $municipalityId = $this->record->municipality_id;
+
+    //     if ($municipalityId) {
+    //         return route('filament.admin.resources.municipalities.showDistricts', ['record' => $municipalityId]);
+    //     }
+
+    //     return $this->getResource()::getUrl('index');
+    // }
+
     protected function getRedirectUrl(): string
     {
-        $municipalityId = $this->record->municipality_id;
+        $municipalities = $this->record->municipalities;
 
-        if ($municipalityId) {
-            return route('filament.admin.resources.municipalities.showDistricts', ['record' => $municipalityId]);
+        if ($municipalities->isNotEmpty()) {
+            return route('filament.admin.resources.municipalities.showDistricts', [
+                'record' => $municipalities->first()->id,
+            ]);
         }
 
         return $this->getResource()::getUrl('index');
     }
 
+
     protected function handleRecordUpdate($record, array $data): District
     {
-        $this->validateUniqueDistrict($data['name'], $data['municipality_id'], $record->id);
+        $this->validateUniqueDistrict($data['name'], $record->id);
 
         try {
             $record->update($data);
@@ -43,19 +57,18 @@ class EditDistrict extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueDistrict($name, $municipalityId, $currentId)
+    protected function validateUniqueDistrict($name, $currentId)
     {
         $district = District::withTrashed()
             ->where('name', $name)
-            ->where('municipality_id', $municipalityId)
             ->whereNot('id', $currentId)
             ->first();
 
         if ($district) {
-            $message = $district->deleted_at 
-                ? 'This district exists in the municipality but has been deleted; it must be restored before reuse.' 
+            $message = $district->deleted_at
+                ? 'This district exists in the municipality but has been deleted; it must be restored before reuse.'
                 : 'A district with this name already exists in the specified municipality.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

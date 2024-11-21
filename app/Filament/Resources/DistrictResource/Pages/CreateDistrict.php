@@ -25,30 +25,38 @@ class CreateDistrict extends CreateRecord
 
     protected function handleRecordCreation(array $data): District
     {
-        $this->validateUniqueDistrict($data['name'], $data['province_id']);
+
+
+        $this->validateUniqueDistrict($data['name'], $data['code'], $data['province_id']);
 
         $district = DB::transaction(fn() => District::create([
             'name' => $data['name'],
+            'code' => $data['code'],
             'province_id' => $data['province_id'],
         ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'District has been created successfully.');
 
         return $district;
+        // dd($data);
     }
 
-    protected function validateUniqueDistrict($name, $provinceId)
+
+
+
+    protected function validateUniqueDistrict($name, $provinceId, $code)
     {
         $district = District::withTrashed()
             ->where('name', $name)
+            ->where('code', $code)
             ->where('province_id', $provinceId)
             ->first();
 
         if ($district) {
-            $message = $district->deleted_at 
-                ? 'This district exists in the municipality but has been deleted; it must be restored before reuse.' 
+            $message = $district->deleted_at
+                ? 'This district exists in the municipality but has been deleted; it must be restored before reuse.'
                 : 'A district with this name already exists in the specified municipality.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
