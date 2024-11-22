@@ -2,32 +2,32 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AttributionTargetResource\Pages;
+use App\Models\Target;
 use App\Models\Allocation;
+use App\Models\ScholarshipProgram;
+use App\Models\QualificationTitle;
 use App\Models\Legislator;
 use App\Models\Particular;
-use App\Models\QualificationTitle;
-use App\Models\ScholarshipProgram;
 use App\Models\SubParticular;
-use App\Models\Target;
 use App\Models\Tvi;
-use Filament\Tables\Actions\EditAction;
-use Filament\Forms;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
+use App\Filament\Resources\AttributionTargetResource\Pages;
+use App\Services\NotificationHandler;
 use Filament\Resources\Resource;
+use Filament\Forms\Form;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Table;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Tables\Actions\ActionGroup;
 use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 
 
 class AttributionTargetResource extends Resource
@@ -38,10 +38,9 @@ class AttributionTargetResource extends Resource
 
     protected static ?string $navigationLabel = "Attribution Targets";
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-arrow-path-rounded-square';
 
     protected static ?int $navigationSort = 2;
-
 
     public static function form(Form $form): Form
     {
