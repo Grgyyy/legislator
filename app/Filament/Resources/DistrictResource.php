@@ -4,29 +4,30 @@ namespace App\Filament\Resources;
 
 use App\Models\District;
 use App\Models\Province;
-use App\Filament\Resources\DistrictResource\Pages;
-use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
 use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
+use Filament\Resources\Resource;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use App\Filament\Resources\DistrictResource\Pages;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class DistrictResource extends Resource
 {
@@ -42,6 +43,12 @@ class DistrictResource extends Resource
     {
         return $form
             ->schema([
+
+                TextInput::make('code')
+                    ->label('Code')
+                    ->placeholder('Enter district code')
+                    ->autocomplete(false),
+
                 TextInput::make('name')
                     ->label('District')
                     ->placeholder(placeholder: 'Enter district name')
@@ -50,16 +57,9 @@ class DistrictResource extends Resource
                     ->autocomplete(false)
                     ->validationAttribute('District'),
 
-                TextInput::make('code')
-                    ->label('Code')
-                    ->placeholder('Enter district code')
-                    ->autocomplete(false)
-                    ->integer(),
-
                 Select::make('province_id')
                     ->label('Province')
                     ->required()
-                    ->markAsRequired(false)
                     ->searchable()
                     ->preload()
                     ->native(false)
@@ -68,7 +68,68 @@ class DistrictResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_province' => 'No province Available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if ($state) {
+                            $province = Province::with('region')->find($state);
+
+
+                            $set('is_municipality_disabled', $province && $province->region->name !== 'NCR');
+                            if ($province && $province->region->name !== 'NCR') {
+                                $set('municipality_id', null);
+                            }
+                        } else {
+
+                            $set('is_municipality_disabled', false);
+                        }
+                    }),
+
+                Select::make('municipality_id')
+                    ->label('Municipality')
+                    ->markAsRequired(false)
+                    ->options(function ($get) {
+                        $provinceId = $get('province_id');
+                        if (!$provinceId) {
+                            return [];
+                        }
+
+                        $province = Province::with('region')->find($provinceId);
+                        return ($province && $province->region->name !== 'NCR')
+                            ? []
+                            : \App\Models\Municipality::where('province_id', $provinceId)
+                                ->pluck('name', 'id')
+                                ->toArray();
+                    })
+                    ->reactive()
+                    ->disabled(function ($get) {
+                        $provinceId = $get('province_id');
+                        if (!$provinceId) {
+                            return false;
+                        }
+
+                        $province = Province::with('region')->find($provinceId);
+                        return ($province && $province->region->name !== 'NCR');
+                    })
+                    ->required(function ($get) {
+                        $provinceId = $get('province_id');
+                        $province = Province::with('region')->find($provinceId);
+                        return $province && $province->region->name !== 'NCR';
+                    })
+                    ->afterStateHydrated(function ($state, callable $set) {
+                        $provinceId = request()->input('province_id') ?? null;
+                        if ($provinceId) {
+                            $province = Province::with('region')->find($provinceId);
+                            if ($province && $province->region->name !== 'NCR') {
+                                $set('municipality_id', 'NA');  // Set to 'NA' if NCR
+                            }
+                        }
+                    })
+
+
+
+
+
+
             ]);
     }
 
@@ -90,6 +151,10 @@ class DistrictResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('province.name')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('province.municipality.name')
                     ->searchable()
                     ->toggleable(),
 

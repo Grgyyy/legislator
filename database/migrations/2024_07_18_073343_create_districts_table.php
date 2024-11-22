@@ -19,6 +19,10 @@ return new class extends Migration {
             $table->foreignId('province_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('municipality_id')
+                ->constrained()
+                ->cascadeOnDelete()
+                ->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

@@ -3,10 +3,11 @@
 namespace App\Filament\Resources\DistrictResource\Pages;
 
 use App\Models\District;
-use App\Filament\Resources\DistrictResource;
+use App\Models\Province;
+use Illuminate\Support\Facades\DB;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Facades\DB;
+use App\Filament\Resources\DistrictResource;
 
 class CreateDistrict extends CreateRecord
 {
@@ -14,11 +15,11 @@ class CreateDistrict extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        $municipalityId = $this->record->municipality_id;
+        // $municipalityId = $this->record->municipality_id;
 
-        if ($municipalityId) {
-            return route('filament.admin.resources.municipalities.showDistricts', ['record' => $municipalityId]);
-        }
+        // if ($municipalityId) {
+        //     return route('filament.admin.resources.municipalities.showDistricts', ['record' => $municipalityId]);
+        // }
 
         return $this->getResource()::getUrl('index');
     }
@@ -26,29 +27,38 @@ class CreateDistrict extends CreateRecord
     protected function handleRecordCreation(array $data): District
     {
 
+        if (empty($data['municipality_id']) && isset($data['province_id'])) {
+            $province = Province::with('region')->find($data['province_id']);
 
-        $this->validateUniqueDistrict($data['name'], $data['code'], $data['province_id']);
+            if ($province && $province->region->name !== 'NCR') {
+                $data['municipality_id'] = null;
+            }
+        }
+
+        $this->validateUniqueDistrict($data['name'], $data['code'], $data['province_id'], $data['municipality_id']);
 
         $district = DB::transaction(fn() => District::create([
             'name' => $data['name'],
             'code' => $data['code'],
+            'municipality_id' => $data['municipality_id'],
             'province_id' => $data['province_id'],
         ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'District has been created successfully.');
 
         return $district;
-        // dd($data);
     }
 
 
 
 
-    protected function validateUniqueDistrict($name, $provinceId, $code)
+
+    protected function validateUniqueDistrict($name, $provinceId, $code, $municipalityId)
     {
         $district = District::withTrashed()
             ->where('name', $name)
             ->where('code', $code)
+            ->where('municipality_id', $municipalityId)
             ->where('province_id', $provinceId)
             ->first();
 
