@@ -15,18 +15,18 @@ class EditMunicipality extends EditRecord
 
     protected function getRedirectUrl(): string
     {
-        $provinceId = $this->record->province_id;
+        // $provinceId = $this->record->province_id;
 
-        if ($provinceId) {
-            return route('filament.admin.resources.provinces.showMunicipalities', ['record' => $provinceId]);
-        }
+        // if ($provinceId) {
+        //     return route('filament.admin.resources.provinces.showMunicipalities', ['record' => $provinceId]);
+        // }
 
         return $this->getResource()::getUrl('index');
     }
 
     protected function handleRecordUpdate($record, array $data): Municipality
     {
-        $this->validateUniqueMunicipality($data['name'], $data['province_id'], $record->id);
+        $this->validateUniqueMunicipality($data['name'], $data['class'], $data['code'], $data['province_id'], $record->id);
 
         try {
             $record->update($data);
@@ -43,19 +43,21 @@ class EditMunicipality extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueMunicipality($name, $provinceId, $currentId)
+    protected function validateUniqueMunicipality($name, $provinceId, $class, $code, $currentId)
     {
         $municipality = Municipality::withTrashed()
             ->where('name', $name)
+            ->where('class', $class)
+            ->where('code', $code)
             ->where('province_id', $provinceId)
             ->whereNot('id', $currentId)
             ->first();
 
         if ($municipality) {
-            $message = $municipality->deleted_at 
-                ? 'This municipality exists in the region but has been deleted; it must be restored before reuse.' 
+            $message = $municipality->deleted_at
+                ? 'This municipality exists in the region but has been deleted; it must be restored before reuse.'
                 : 'A municipality with this name already exists in the specified region.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

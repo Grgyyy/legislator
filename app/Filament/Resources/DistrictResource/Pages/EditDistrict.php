@@ -26,13 +26,13 @@ class EditDistrict extends EditRecord
 
     protected function getRedirectUrl(): string
     {
-        $municipalities = $this->record->municipalities;
+        // $municipalities = $this->record->municipalities;
 
-        if ($municipalities->isNotEmpty()) {
-            return route('filament.admin.resources.municipalities.showDistricts', [
-                'record' => $municipalities->first()->id,
-            ]);
-        }
+        // if ($municipalities->isNotEmpty()) {
+        //     return route('filament.admin.resources.municipalities.showDistricts', [
+        //         'record' => $municipalities->first()->id,
+        //     ]);
+        // }
 
         return $this->getResource()::getUrl('index');
     }
@@ -40,7 +40,7 @@ class EditDistrict extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): District
     {
-        $this->validateUniqueDistrict($data['name'], $record->id);
+        $this->validateUniqueDistrict($data['name'], $data['code'], $data['province_id'], $record->id);
 
         try {
             $record->update($data);
@@ -57,10 +57,12 @@ class EditDistrict extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueDistrict($name, $currentId)
+    protected function validateUniqueDistrict($name, $currentId, $code, $provinceId)
     {
         $district = District::withTrashed()
             ->where('name', $name)
+            ->where('code', $code)
+            ->where('province_id', $provinceId)
             ->whereNot('id', $currentId)
             ->first();
 
