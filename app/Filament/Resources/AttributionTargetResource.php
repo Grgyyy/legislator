@@ -20,13 +20,18 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -792,57 +797,83 @@ class AttributionTargetResource extends Resource
                         ->toggleable(),
             ])
             ->filters([
-                
+                TrashedFilter::make()
+                    ->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    
                     Action::make('viewHistory')
                         ->label('View History')
-                        ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
-                        ->icon('heroicon-o-magnifying-glass'),
+                        ->icon('heroicon-o-magnifying-glass')
+                        ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id])),
+                    
                     Action::make('viewComment')
                         ->label('View Comments')
-                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
-                        ->icon('heroicon-o-chat-bubble-left-ellipsis'),
+                        ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id])),
+                    
                     Action::make('setAsCompliant')
                         ->label('Set as Compliant')
-                        ->url(fn($record) => route('filament.admin.resources.compliant-targets.create', ['record' => $record->id]))
-                        ->icon('heroicon-o-check-circle'),
+                        ->icon('heroicon-o-check-circle')
+                        ->url(fn($record) => route('filament.admin.resources.compliant-targets.create', ['record' => $record->id])),
+                    
                     Action::make('setAsNonCompliant')
                         ->label('Set as Non-Compliant')
-                        ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id]))
-                        ->icon('heroicon-o-x-circle'),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                        ->icon('heroicon-o-x-circle')
+                        ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id])),
+                    
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
+                        }),
+
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $record->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
+                        }),
+                    
+                    ForceDeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Target has been deleted permanently.');
+                        }),
                 ]),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected targets have been deleted successfully.');
+                        }),
+
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected targets have been restored successfully.');
+                        }),
+
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected targets have been deleted permanently.');
+                        }),
                 ]),
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id])
             );
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            //
-        ];
-    }
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListAttributionTargets::route('/'),
-            'create' => Pages\CreateAttributionTarget::route('/create'),
-            'edit' => Pages\EditAttributionTarget::route('/{record}/edit'),
-        ];
     }
 
     protected static function getScholarshipProgramsOptions($legislatorId, $particularId)
@@ -853,6 +884,18 @@ class AttributionTargetResource extends Resource
         })
             ->pluck('name', 'id')
             ->toArray() ?: ['no_scholarship_program' => 'No scholarship program available'];
+    }
+
+    protected static function getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
+    {
+        $yearNow = date('Y');
+
+        return Allocation::where('legislator_id', $legislatorId)
+            ->where('particular_id', $particularId)
+            ->where('scholarship_program_id', $scholarshipProgramId)
+            ->whereIn('year', [$yearNow, $yearNow - 1])
+            ->pluck('year', 'year')
+            ->toArray() ?: ['no_allocation' => 'No allocation available'];
     }
 
     protected static function getAppropriationTypeOptions($year)
@@ -867,18 +910,7 @@ class AttributionTargetResource extends Resource
             return ["Unknown" => "Unknown"];
         }
     }
-
-    protected static function getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
-    {
-        $yearNow = date('Y');
-
-        return Allocation::where('legislator_id', $legislatorId)
-            ->where('particular_id', $particularId)
-            ->where('scholarship_program_id', $scholarshipProgramId)
-            ->whereIn('year', [$yearNow, $yearNow - 1])
-            ->pluck('year', 'year')
-            ->toArray() ?: ['no_allocation' => 'No allocation available'];
-    }
+    
     protected static function getQualificationTitles($scholarshipProgramId)
     {
         return QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
@@ -887,7 +919,7 @@ class AttributionTargetResource extends Resource
             ->with('trainingProgram')
             ->get()
             ->pluck('trainingProgram.title', 'id')
-            ->toArray();
+            ->toArray() ?: ['no_qualification_title' => 'No qualification title available'];
     }
 
     protected static function getAbddSectors($tviId)
@@ -895,25 +927,28 @@ class AttributionTargetResource extends Resource
         $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
 
         if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
-            return ['' => 'No ABDD sector available'];
+            return ['no_sector' => 'No ABDD sector available'];
         }
 
-        $abddSectors = $tvi->district->municipality->province->abdds()
+        return $tvi->district->municipality->province->abdds()
             ->select('abdds.id', 'abdds.name')
             ->pluck('name', 'id')
-            ->toArray();
-
-        return empty($abddSectors) ? ['' => 'No ABDD sector available'] : $abddSectors;
+            ->toArray() ?: ['no_sector' => 'No ABDD sector available'];
     }
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
-
-        $query->withoutGlobalScopes([SoftDeletingScope::class])
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class])
             ->whereNot('attribution_allocation_id', null);
+    }
 
-
-        return $query;
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ListAttributionTargets::route('/'),
+            'create' => Pages\CreateAttributionTarget::route('/create'),
+            'edit' => Pages\EditAttributionTarget::route('/{record}/edit'),
+        ];
     }
 }
