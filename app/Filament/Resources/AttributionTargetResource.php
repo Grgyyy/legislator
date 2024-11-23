@@ -615,6 +615,7 @@ class AttributionTargetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No attribution targets available')
             ->columns([
                 TextColumn::make('fund_source')
                     ->label('Fund Source')
@@ -791,7 +792,7 @@ class AttributionTargetResource extends Resource
                         ->toggleable(),
             ])
             ->filters([
-                //
+                
             ])
             ->actions([
                 ActionGroup::make([
