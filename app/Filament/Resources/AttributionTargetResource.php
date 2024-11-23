@@ -641,13 +641,14 @@ class AttributionTargetResource extends Resource
                     }),
                 
                 TextColumn::make('attributionAllocation.legislator.name')
-                    ->label('Legislator I')
+                    ->label('Attributor')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
+                    // ->formatStateUsing(fn ($state) => $state ? $state : '-'),
 
                 TextColumn::make('allocation.legislator.name')
-                    ->label('Legislator II')
+                    ->label('Legislator')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
@@ -663,6 +664,7 @@ class AttributionTargetResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('allocation.year')
+                    ->label('Appropriation Year')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -703,8 +705,8 @@ class AttributionTargetResource extends Resource
                     }),
 
                     TextColumn::make('tvi.district.name')
-                    ->searchable()
-                    ->toggleable(),
+                        ->searchable()
+                        ->toggleable(),
 
                     TextColumn::make('tvi.district.municipality.name')
                         ->searchable()
@@ -753,14 +755,14 @@ class AttributionTargetResource extends Resource
                         ->label('ABDD Sector')
                         ->searchable()
                         ->toggleable(),
-    
-                    TextColumn::make('qualification_title.trainingProgram.tvet.name')
-                        ->label('TVET Sector')
+
+                    TextColumn::make('qualification_title.trainingProgram.priority.name')
+                        ->label('Priority Sector')
                         ->searchable()
                         ->toggleable(),
     
-                    TextColumn::make('qualification_title.trainingProgram.priority.name')
-                        ->label('Priority Sector')
+                    TextColumn::make('qualification_title.trainingProgram.tvet.name')
+                        ->label('TVET Sector')
                         ->searchable()
                         ->toggleable(),
     
@@ -777,6 +779,7 @@ class AttributionTargetResource extends Resource
     
                     TextColumn::make('total_amount')
                         ->label('Total Amount')
+                        ->sortable()
                         ->searchable()
                         ->toggleable()
                         ->prefix('₱')
