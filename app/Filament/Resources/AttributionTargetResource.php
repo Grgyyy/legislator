@@ -225,9 +225,9 @@ class AttributionTargetResource extends Resource
 
                                         return $tviId
                                             ? self::getAbddSectors($tviId)
-                                            : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
+                                            : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
                                     })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
+                                    ->disableOptionWhen(fn($value) => $value === 'no_abdd'),
                                     
                                 TextInput::make('number_of_slots')
                                     ->label('Number of Slots')
@@ -587,9 +587,9 @@ class AttributionTargetResource extends Resource
         
                                                 return $tviId
                                                     ? self::getAbddSectors($tviId)
-                                                    : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
+                                                    : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
                                             })
-                                            ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
+                                            ->disableOptionWhen(fn($value) => $value === 'no_abdd'),
                                             
                                         TextInput::make('number_of_slots')
                                             ->label('Number of Slots')
@@ -927,13 +927,13 @@ class AttributionTargetResource extends Resource
         $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
 
         if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
-            return ['no_sector' => 'No ABDD sector available'];
+            return ['no_abdd' => 'No ABDD sector available'];
         }
 
         return $tvi->district->municipality->province->abdds()
             ->select('abdds.id', 'abdds.name')
             ->pluck('name', 'id')
-            ->toArray() ?: ['no_sector' => 'No ABDD sector available'];
+            ->toArray() ?: ['no_abdd' => 'No ABDD sector available'];
     }
 
     public static function getEloquentQuery(): Builder
