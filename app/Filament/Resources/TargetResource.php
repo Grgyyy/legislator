@@ -412,7 +412,7 @@ class TargetResource extends Resource
 
                                         return $legislatorId
                                             ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
-                                            : ['no_allocation' => 'No appropriation year available. Select a scholarship program first'];
+                                            : ['no_allocation' => 'No appropriation year available. Select a scholarship program first.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_allocation')
                                     ->afterStateUpdated(function ($state, callable $set) {
@@ -432,12 +432,15 @@ class TargetResource extends Resource
                                 Select::make('appropriation_type')
                                     ->label('Allocation Type')
                                     ->required()
+                                    ->markAsRequired(false)
+                                    ->native(false)
                                     ->options(function ($get) {
-                                        return ([
-                                            "Current" => "Current",
-                                            "Continuing" => "Continuing"
-                                        ]);
+                                        $year = $get('allocation_year');
+                                        return $year
+                                            ? self::getAppropriationTypeOptions($year)
+                                            : ['no_allocation' => 'No appropriation type available. Select an appropriation year first.'];
                                     })
+                                    ->disableOptionWhen(fn($value) => $value === 'no_allocation')
                                     ->reactive()
                                     ->live(),
 
@@ -478,6 +481,7 @@ class TargetResource extends Resource
                                     ->markAsRequired(false)
                                     ->searchable()
                                     ->preload()
+                                    ->native(false)
                                     ->options(function ($get) {
                                         $tviId = $get('tvi_id');
 
