@@ -17,13 +17,12 @@ class DatabaseSeeder extends Seeder
         $this->call(RoleSeeder::class);
         $this->call(PartylistSeeder::class);
         $this->call(RegionTableSeeder::class);
-        // $this->call(ProvinceSeeder::class);
         $this->call(TviTypeSeeder::class);
         $this->call(TviClassSeeder::class);
         $this->call(InstitutionClassSeeder::class);
         $this->call(ScholarshipProgramSeeder::class);
         $this->call(ProvinceSeeder::class);
-        // $this->call(MunicipalitySeeder::class);
+        $this->call(MunicipalitySeeder::class);
         // $this->call(DistrictSeeder::class);
         $this->call(FundSourceSeeder::class);
         $this->call(SubParticularSeeder::class);

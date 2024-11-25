@@ -16,13 +16,13 @@ return new class extends Migration {
             $table->string("code")
                 ->unique()
                 ->nullable();
-            $table->foreignId('province_id')
-                ->constrained()
-                ->cascadeOnDelete();
             $table->foreignId('municipality_id')
                 ->constrained()
                 ->cascadeOnDelete()
                 ->nullable();
+            $table->foreignId('province_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

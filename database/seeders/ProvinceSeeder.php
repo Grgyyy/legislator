@@ -97,7 +97,7 @@ class ProvinceSeeder extends Seeder
             ['1300', 'MuntiParLasTaPat'],
             ['1300', 'PasMak'],
             ['1300', 'PaMaMariSan'],
-            ['1300', 'Manila City'],
+            ['1300', 'City of Manila'],
             ['1300', 'Quezon City'],
 
             ['1401', 'Abra'],

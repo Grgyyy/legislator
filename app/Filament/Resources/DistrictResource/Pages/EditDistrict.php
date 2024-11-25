@@ -14,33 +14,13 @@ class EditDistrict extends EditRecord
 {
     protected static string $resource = DistrictResource::class;
 
-    // protected function getRedirectUrl(): string
-    // {
-    //     $municipalityId = $this->record->municipality_id;
-
-    //     if ($municipalityId) {
-    //         return route('filament.admin.resources.municipalities.showDistricts', ['record' => $municipalityId]);
-    //     }
-
-    //     return $this->getResource()::getUrl('index');
-    // }
-
     protected function getRedirectUrl(): string
     {
-        // $municipalities = $this->record->municipalities;
-
-        // if ($municipalities->isNotEmpty()) {
-        //     return route('filament.admin.resources.municipalities.showDistricts', [
-        //         'record' => $municipalities->first()->id,
-        //     ]);
-        // }
-
         return $this->getResource()::getUrl('index');
     }
 
     protected function handleRecordUpdate($record, array $data): District
     {
-
         if (empty($data['municipality_id']) && isset($data['province_id'])) {
             $province = Province::with('region')->find($data['province_id']);
 
@@ -48,12 +28,18 @@ class EditDistrict extends EditRecord
                 $data['municipality_id'] = null;
             }
         }
-        $this->validateUniqueDistrict($data['name'], $data['code'], $data['municipality_id'], $data['province_id'], $record->id);
 
-        $province = Province::with('region')->find($data['province_id']);
+        $this->validateUniqueDistrict($data['name'], $record->id, $data['code'], $data['municipality_id'], $data['province_id']);
 
         try {
+            // Update the record
             $record->update($data);
+
+            // Update pivot table relationships if municipality_ids are provided
+            if (!empty($data['municipality_ids'])) {
+                $this->updateDistrictMunicipalities($record, $data['municipality_ids']);
+            }
+
             NotificationHandler::sendSuccessNotification('Saved', 'District has been updated successfully.');
             return $record;
         } catch (QueryException $e) {
@@ -64,7 +50,23 @@ class EditDistrict extends EditRecord
         return $record;
     }
 
-
+    /**
+     * Update the district-municipality relationship in the pivot table.
+     *
+     * @param District $record
+     * @param array $municipalityIds
+     * @return void
+     */
+    protected function updateDistrictMunicipalities(District $record, array $municipalityIds): void
+    {
+        try {
+            $record->municipality()->sync($municipalityIds);
+            NotificationHandler::sendSuccessNotification('Updated', 'Municipalities have been updated for the district.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to update municipalities for district: ' . $e->getMessage());
+            throw $e;
+        }
+    }
 
     protected function validateUniqueDistrict($name, $currentId, $code, $municipalityId, $provinceId)
     {

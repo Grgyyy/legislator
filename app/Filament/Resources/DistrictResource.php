@@ -74,8 +74,8 @@ class DistrictResource extends Resource
                             $province = Province::with('region')->find($state);
 
 
-                            $set('is_municipality_disabled', $province && $province->region->name !== 'NCR');
-                            if ($province && $province->region->name !== 'NCR') {
+                            $set('is_municipality_disabled', $province && $province->region->name === 'NCR');
+                            if ($province && $province->region->name === 'NCR') {
                                 $set('municipality_id', null);
                             }
                         } else {
@@ -125,11 +125,6 @@ class DistrictResource extends Resource
                         }
                     })
 
-
-
-
-
-
             ]);
     }
 
@@ -154,7 +149,9 @@ class DistrictResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('province.municipality.name')
+                TextColumn::make('municipality')
+                    ->label('Municipalities')
+                    ->getStateUsing(fn($record) => $record->municipality->pluck('name')->join(', '))
                     ->searchable()
                     ->toggleable(),
 

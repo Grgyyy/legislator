@@ -29,6 +29,11 @@ class District extends Model
         return $this->belongsToMany(Municipality::class, 'district_municipalities')->withTimestamps();
     }
 
+    public function underMunicipality()
+    {
+        return $this->belongsTo(Municipality::class, 'municipality_id');
+    }
+
     public function particular()
     {
         return $this->belongsTo(Particular::class);
