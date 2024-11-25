@@ -17,9 +17,9 @@ return new class extends Migration {
                 ->unique()
                 ->nullable();
             $table->foreignId('municipality_id')
+                ->nullable()
                 ->constrained()
-                ->cascadeOnDelete()
-                ->nullable();
+                ->cascadeOnDelete();
             $table->foreignId('province_id')
                 ->constrained()
                 ->cascadeOnDelete();

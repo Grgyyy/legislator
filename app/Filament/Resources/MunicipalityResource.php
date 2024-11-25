@@ -62,7 +62,7 @@ class MunicipalityResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false),
-
+                
                 Select::make('province_id')
                     ->label('Province')
                     ->required()
@@ -73,9 +73,57 @@ class MunicipalityResource extends Resource
                     ->options(function () {
                         return Province::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_province' => 'No province Available'];
+                            ->toArray() ?: ['no_province' => 'No province available'];
+                    })
+                    ->reactive() // Make the field reactive to trigger updates in dependent fields
+                    ->afterStateUpdated(function (callable $set) {
+                        $set('district_id', null); // Clear the district_id field when province_id is cleared or updated
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_province'),
+                
+                Select::make('district_id')
+                    ->label('District')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function (callable $get) {
+                        $selectedProvince = $get('province_id'); // Get the selected province ID
+                        if (!$selectedProvince) {
+                            return ['no_district' => 'No district available']; // Return a default option if no province is selected
+                        }
+                
+                        return District::where('province_id', $selectedProvince)
+                            ->whereNot('name', 'Not Applicable')
+                            ->with('province.region', 'municipality') // Eager-load both province and municipality relationships
+                            ->get()
+                            ->mapWithKeys(function ($district) {
+                                // Check if the province's region name is "NCR"
+                                $isNCR = optional($district->province->region)->name === 'NCR';
+                
+                                // If NCR, show municipality name, else show province name
+                                if ($isNCR) {
+                                    // If NCR, show district and municipality
+                                    $label = $district->name . ' - ' . ($district->municipality->pluck('name')->implode(', ') ?? 'No Municipality');
+                                } else {
+                                    // If not NCR, show district and province
+                                    $label = $district->name;
+                                }
+                
+                                return [
+                                    $district->id => $label,
+                                ];
+                            })
+                            ->toArray() ?: ['no_district' => 'No district available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_district')
+                
+                
+                
+                                
+
+
             ]);
     }
 
@@ -98,9 +146,12 @@ class MunicipalityResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                // TextColumn::make("district.name")
-                //     ->searchable()
-                //     ->toggleable(),
+
+                TextColumn::make('district')
+                    ->label('District/s')
+                    ->getStateUsing(fn($record) => $record->district->pluck('name')->join(', '))
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make("province.name")
                     ->searchable()

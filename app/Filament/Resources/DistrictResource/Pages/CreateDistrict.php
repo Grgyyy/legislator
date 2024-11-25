@@ -24,21 +24,23 @@ class CreateDistrict extends CreateRecord
             // Validate uniqueness
             $this->validateUniqueDistrict($data['name'], $data['province_id'], $data['code']);
 
-            $municipality = Municipality::find($data['municipality_id']);
-
             // Create the district
             $district = District::create([
                 'name' => $data['name'],
                 'code' => $data['code'],
                 'province_id' => $data['province_id'],
-                'municipality_id' => $municipality->id
+                'municipality_id' => $data['municipality_id'] ?? null, // Allow null for municipality_id
             ]);
 
-            $district->municipality()->attach($municipality->id);
+            // Attach municipality only if it exists
+            if (!empty($data['municipality_id'])) {
+                $municipality = Municipality::find($data['municipality_id']);
+                $district->municipality()->attach($municipality->id);
+            }
 
             Notification::make()
                 ->title('Success')
-                ->body('District and associated municipalities have been created successfully.')
+                ->body('District has been created successfully.')
                 ->success()
                 ->send();
 
@@ -59,7 +61,7 @@ class CreateDistrict extends CreateRecord
                 ? 'This district exists but has been deleted; it must be restored before reuse.'
                 : 'A district with this name already exists in the specified province.';
 
-                NotificationHandler::handleValidationException('Something went wrong', $message);
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
 }

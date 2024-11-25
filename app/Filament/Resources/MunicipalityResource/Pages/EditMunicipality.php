@@ -1,13 +1,14 @@
 <?php
-
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
+use App\Models\District;
 use App\Models\Municipality;
 use App\Filament\Resources\MunicipalityResource;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
 use Exception;
+use Illuminate\Support\Facades\DB;
 
 class EditMunicipality extends EditRecord
 {
@@ -15,12 +16,6 @@ class EditMunicipality extends EditRecord
 
     protected function getRedirectUrl(): string
     {
-        // $provinceId = $this->record->province_id;
-
-        // if ($provinceId) {
-        //     return route('filament.admin.resources.provinces.showMunicipalities', ['record' => $provinceId]);
-        // }
-
         return $this->getResource()::getUrl('index');
     }
 
@@ -29,7 +24,24 @@ class EditMunicipality extends EditRecord
         $this->validateUniqueMunicipality($data['name'], $data['class'], $data['code'], $data['province_id'], $record->id);
 
         try {
-            $record->update($data);
+            DB::transaction(function () use ($record, $data) {
+                // Update the municipality record
+                $record->update([
+                    'name' => $data['name'],
+                    'class' => $data['class'],
+                    'code' => $data['code'],
+                    'province_id' => $data['province_id'],
+                    'district_id' => $data['district_id']
+                ]);
+
+                // If a district ID is provided, update the relationship
+                if (!empty($data['district_id'])) {
+                    $district = District::find($data['district_id']);
+                    if ($district) {
+                        $district->municipality()->syncWithoutDetaching([$record->id]);
+                    }
+                }
+            });
 
             NotificationHandler::sendSuccessNotification('Saved', 'Municipality has been updated successfully.');
 
@@ -43,7 +55,7 @@ class EditMunicipality extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueMunicipality($name, $provinceId, $class, $code, $currentId)
+    protected function validateUniqueMunicipality($name, $class, $code, $provinceId, $currentId)
     {
         $municipality = Municipality::withTrashed()
             ->where('name', $name)

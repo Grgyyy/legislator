@@ -1,7 +1,7 @@
 <?php
-
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
+use App\Models\District;
 use App\Models\Municipality;
 use App\Filament\Resources\MunicipalityResource;
 use App\Services\NotificationHandler;
@@ -14,12 +14,6 @@ class CreateMunicipality extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        // $provinceId = $this->record->province_id;
-
-        // if ($provinceId) {
-        //     return route('filament.admin.resources.provinces.showMunicipalities', ['record' => $provinceId]);
-        // }
-
         return $this->getResource()::getUrl('index');
     }
 
@@ -27,19 +21,29 @@ class CreateMunicipality extends CreateRecord
     {
         $this->validateUniqueMunicipality($data['name'], $data['class'], $data['code'], $data['province_id']);
 
-        $municipality = DB::transaction(fn() => Municipality::create([
-            'name' => $data['name'],
-            'class' => $data['class'],
-            'code' => $data['code'],
-            'province_id' => $data['province_id'],
-        ]));
+        $municipality = DB::transaction(function () use ($data) {
+            return Municipality::create([
+                'name' => $data['name'],
+                'class' => $data['class'],
+                'code' => $data['code'],
+                'province_id' => $data['province_id'],
+                'district_id' => $data['district_id']
+            ]);
+        });
+
+        if (!empty($data['district_id'])) {
+            $district = District::find($data['district_id']);
+            if ($district) {
+                $district->municipality()->attach($municipality->id);
+            }
+        }
 
         NotificationHandler::sendSuccessNotification('Created', 'Municipality has been created successfully.');
 
         return $municipality;
     }
 
-    protected function validateUniqueMunicipality($name, $provinceId, $class, $code)
+    protected function validateUniqueMunicipality($name, $class, $code, $provinceId)
     {
         $municipality = Municipality::withTrashed()
             ->where('name', $name)
@@ -57,3 +61,4 @@ class CreateMunicipality extends CreateRecord
         }
     }
 }
+

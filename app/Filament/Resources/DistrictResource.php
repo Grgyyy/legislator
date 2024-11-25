@@ -86,7 +86,6 @@ class DistrictResource extends Resource
 
                 Select::make('municipality_id')
                     ->label('Municipality')
-                    ->markAsRequired(false)
                     ->options(function ($get) {
                         $provinceId = $get('province_id');
                         if (!$provinceId) {
@@ -113,7 +112,7 @@ class DistrictResource extends Resource
                     ->required(function ($get) {
                         $provinceId = $get('province_id');
                         $province = Province::with('region')->find($provinceId);
-                        return $province && $province->region->name !== 'NCR';
+                        return $province && $province->region->name === 'NCR';
                     })
                     ->afterStateHydrated(function ($state, callable $set) {
                         $provinceId = request()->input('province_id') ?? null;
@@ -149,11 +148,11 @@ class DistrictResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('municipality')
-                    ->label('Municipalities')
-                    ->getStateUsing(fn($record) => $record->municipality->pluck('name')->join(', '))
-                    ->searchable()
-                    ->toggleable(),
+                // TextColumn::make('municipality')
+                //     ->label('Municipalities')
+                //     ->getStateUsing(fn($record) => $record->municipality->pluck('name')->join(', '))
+                //     ->searchable()
+                //     ->toggleable(),
 
                 TextColumn::make('province.region.name')
                     ->searchable()
