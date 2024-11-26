@@ -150,7 +150,7 @@ class DistrictResource extends Resource
 
                 // TextColumn::make('municipality')
                 //     ->label('Municipalities')
-                //     ->getStateUsing(fn($record) => $record->municipality->pluck('name')->join(', '))
+                //     ->getStateUsing(fn($record) => $record->municipalit`y->pluck('name')->join(', '))
                 //     ->searchable()
                 //     ->toggleable(),
 
@@ -159,7 +159,7 @@ class DistrictResource extends Resource
                     ->toggleable(),
             ])
             ->recordUrl(
-                fn($record) => route('filament.admin.resources.municipalities.showMunicipality', ['record' => $record->id]),
+                fn($record) => route('filament.admin.resources.municipalities.show', ['record' => $record->id]),
             )
             ->filters([
                 TrashedFilter::make()
