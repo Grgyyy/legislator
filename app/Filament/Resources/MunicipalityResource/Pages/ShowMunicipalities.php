@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
 use App\Models\Municipality;
@@ -14,21 +13,39 @@ class ShowMunicipalities extends ListRecords
     public function getBreadcrumbs(): array
     {
         $municipalityId = $this->getMunicipalityId();
-        $municipality = Municipality::find($municipalityId);
+        $municipality = Municipality::with('district.province.region')->find($municipalityId);
 
-        $district = $municipality->district;
-        $province = $municipality->district->province;
-        $region = $municipality->district->province->region;
+        // Handle case where municipality or district is not found
+        if (!$municipality || $municipality->district->isEmpty()) {
+            return [
+                'Regions',
+                'Provinces',
+                'Districts',
+                'Municipalities',
+                'List',
+            ];
+        }
 
+        $breadcrumbs = [];
 
-        return[
-            route('filament.admin.resources.regions.index', ['record' => $region->id]) => $district ? $region->name : 'Regions',
-            route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $district ? $province->name : 'Provinces',
-            route('filament.admin.resources.provinces.showProvince', ['record' => $district->id]) => $district ? $district->name : 'District',
-            'Municipalities',
-            'List',
-        ];
+        // Loop through districts, assuming the municipality has multiple districts
+        $district = $municipality->district->first(); // Get the first district from the collection
+        if ($district) {
+            $province = $district->province;
+            $region = $province->region;
+
+            // Breadcrumbs structure
+            $breadcrumbs[route('filament.admin.resources.regions.index', ['record' => $region->id])] = $region->name;
+            $breadcrumbs[route('filament.admin.resources.provinces.showProvince', ['record' => $province->id])] = $province->name;
+            $breadcrumbs[route('filament.admin.resources.districts.show', ['record' => $district->id])] = $district->name;
+        }
+
+        $breadcrumbs['Municipalities'] = 'Municipalities';
+        $breadcrumbs['List'] = 'List';
+
+        return $breadcrumbs;
     }
+
 
     protected function getHeaderActions(): array
     {

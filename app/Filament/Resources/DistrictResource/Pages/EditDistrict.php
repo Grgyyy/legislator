@@ -1,52 +1,46 @@
 <?php
-
 namespace App\Filament\Resources\DistrictResource\Pages;
 
-use App\Models\District;
-use App\Filament\Resources\DistrictResource;
-use App\Services\NotificationHandler;
-use Filament\Resources\Pages\EditRecord;
-use Illuminate\Database\QueryException;
 use Exception;
+use App\Models\District;
+use App\Models\Province;
+use App\Models\Municipality;
+use App\Services\NotificationHandler;
+use Illuminate\Database\QueryException;
+use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\DistrictResource;
 
 class EditDistrict extends EditRecord
 {
     protected static string $resource = DistrictResource::class;
 
-    // protected function getRedirectUrl(): string
-    // {
-    //     $municipalityId = $this->record->municipality_id;
-
-    //     if ($municipalityId) {
-    //         return route('filament.admin.resources.municipalities.showDistricts', ['record' => $municipalityId]);
-    //     }
-
-    //     return $this->getResource()::getUrl('index');
-    // }
-
     protected function getRedirectUrl(): string
     {
-        $municipalities = $this->record->municipalities;
-
-        if ($municipalities->isNotEmpty()) {
-            return route('filament.admin.resources.municipalities.showDistricts', [
-                'record' => $municipalities->first()->id,
-            ]);
-        }
-
         return $this->getResource()::getUrl('index');
     }
 
-
     protected function handleRecordUpdate($record, array $data): District
     {
-        $this->validateUniqueDistrict($data['name'], $record->id);
+        if (empty($data['municipality_id']) && isset($data['province_id'])) {
+            $province = Province::with('region')->find($data['province_id']);
+
+            if ($province && $province->region->name !== 'NCR') {
+                $data['municipality_id'] = null;
+            }
+        }
+
+        $this->validateUniqueDistrict($data['name'], $record->id, $data['code'], $data['municipality_id'], $data['province_id']);
 
         try {
             $record->update($data);
 
-            NotificationHandler::sendSuccessNotification('Saved', 'District has been updated successfully.');
+            if (!empty($data['municipality_ids'])) {
+                $this->updateDistrictMunicipalities($record, $data['municipality_ids']);
+            } elseif (!empty($data['municipality_id'])) {
+                $record->municipality()->sync([$data['municipality_id']]);
+            }
 
+            NotificationHandler::sendSuccessNotification('Saved', 'District has been updated successfully.');
             return $record;
         } catch (QueryException $e) {
             NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the district: ' . $e->getMessage() . ' Please review the details and try again.');
@@ -57,10 +51,24 @@ class EditDistrict extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueDistrict($name, $currentId)
+    protected function updateDistrictMunicipalities(District $record, array $municipalityIds): void
+    {
+        try {
+            $record->municipality()->sync($municipalityIds);
+            NotificationHandler::sendSuccessNotification('Updated', 'Municipalities have been updated for the district.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to update municipalities for district: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    protected function validateUniqueDistrict($name, $currentId, $code, $municipalityId, $provinceId)
     {
         $district = District::withTrashed()
             ->where('name', $name)
+            ->where('code', $code)
+            ->where('province_id', $provinceId)
+            ->where('municipality_id', $municipalityId)
             ->whereNot('id', $currentId)
             ->first();
 
