@@ -43,19 +43,21 @@ class DistrictResource extends Resource
     {
         return $form
             ->schema([
-
-                TextInput::make('code')
-                    ->label('Code')
-                    ->placeholder('Enter district code')
-                    ->autocomplete(false),
-
                 TextInput::make('name')
                     ->label('District')
-                    ->placeholder(placeholder: 'Enter district name')
+                    ->placeholder('Enter district name')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('District'),
+
+                TextInput::make("code")
+                    ->label('UACS Code')
+                    ->placeholder('Enter UACS code')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('UACS Code'),
 
                 Select::make('province_id')
                     ->label('Province')
@@ -66,7 +68,7 @@ class DistrictResource extends Resource
                     ->options(function () {
                         return Province::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_province' => 'No province Available'];
+                            ->toArray() ?: ['no_province' => 'No provinces available'];
                     })
                     ->reactive()
                     ->afterStateUpdated(function ($state, callable $set) {
@@ -130,10 +132,10 @@ class DistrictResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no districts available')
+            ->emptyStateHeading('No districts available')
             ->columns([
                 TextColumn::make('code')
-                    ->label('Code')
+                    ->label('UACS Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -169,18 +171,21 @@ class DistrictResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'District has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'District has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -197,18 +202,21 @@ class DistrictResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected districts have been deleted successfully.');
                         }),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected districts have been restored successfully.');
                         }),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected districts have been deleted permanently.');
                         }),
+
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

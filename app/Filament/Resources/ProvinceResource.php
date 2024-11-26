@@ -93,7 +93,6 @@ class ProvinceResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('region.name')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])
