@@ -21,10 +21,8 @@ class CreateDistrict extends CreateRecord
     protected function handleRecordCreation(array $data): District
     {
         return DB::transaction(function () use ($data) {
-            // Validate uniqueness
             $this->validateUniqueDistrict($data['name'], $data['province_id'], $data['code']);
 
-            // Create the district
             $district = District::create([
                 'name' => $data['name'],
                 'code' => $data['code'],
@@ -32,7 +30,6 @@ class CreateDistrict extends CreateRecord
                 'municipality_id' => $data['municipality_id'] ?? null, // Allow null for municipality_id
             ]);
 
-            // Attach municipality only if it exists
             if (!empty($data['municipality_id'])) {
                 $municipality = Municipality::find($data['municipality_id']);
                 $district->municipality()->attach($municipality->id);

@@ -19,7 +19,7 @@ class CreateMunicipality extends CreateRecord
 
     protected function handleRecordCreation(array $data): Municipality
     {
-        $this->validateUniqueMunicipality($data['name'], $data['class'], $data['code'], $data['province_id']);
+        $this->validateUniqueMunicipality($data['name'], $data['code'], $data['province_id']);
 
         $municipality = DB::transaction(function () use ($data) {
             return Municipality::create([
@@ -27,7 +27,6 @@ class CreateMunicipality extends CreateRecord
                 'class' => $data['class'],
                 'code' => $data['code'],
                 'province_id' => $data['province_id'],
-                'district_id' => $data['district_id']
             ]);
         });
 
@@ -43,11 +42,10 @@ class CreateMunicipality extends CreateRecord
         return $municipality;
     }
 
-    protected function validateUniqueMunicipality($name, $class, $code, $provinceId)
+    protected function validateUniqueMunicipality($name, $code, $provinceId)
     {
         $municipality = Municipality::withTrashed()
             ->where('name', $name)
-            ->where('class', $class)
             ->where('code', $code)
             ->where('province_id', $provinceId)
             ->first();
