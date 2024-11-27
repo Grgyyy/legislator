@@ -27,7 +27,7 @@ class CreateDistrict extends CreateRecord
                 'name' => $data['name'],
                 'code' => $data['code'],
                 'province_id' => $data['province_id'],
-                'municipality_id' => $data['municipality_id'] ?? null, // Allow null for municipality_id
+                'municipality_id' => $data['municipality_id'] ?? null,
             ]);
 
             if (!empty($data['municipality_id'])) {

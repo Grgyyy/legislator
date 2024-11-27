@@ -14,21 +14,22 @@ class CreateProvince extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        $regionId = $this->record->region_id;
+        // $regionId = $this->record->region_id;
 
-        if ($regionId) {
-            return route('filament.admin.resources.regions.show_provinces', ['record' => $regionId]);
-        }
+        // if ($regionId) {
+        //     return route('filament.admin.resources.regions.show_provinces', ['record' => $regionId]);
+        // }
 
         return $this->getResource()::getUrl('index');
     }
 
     protected function handleRecordCreation(array $data): Province
     {
-        $this->validateUniqueProvince($data['name'], $data['region_id']);
+        $this->validateUniqueProvince($data['name'], $data['code'], $data['region_id']);
 
         $province = DB::transaction(fn() => Province::create([
             'name' => $data['name'],
+            'code' => $data['code'],
             'region_id' => $data['region_id']
         ]));
 
@@ -37,18 +38,19 @@ class CreateProvince extends CreateRecord
         return $province;
     }
 
-    protected function validateUniqueProvince($name, $regionId)
+    protected function validateUniqueProvince($name, $code, $regionId)
     {
         $province = Province::withTrashed()
             ->where('name', $name)
+            ->where('code', $code)
             ->where('region_id', $regionId)
             ->first();
 
         if ($province) {
-            $message = $province->deleted_at 
-                ? 'This province exists in the region but has been deleted; it must be restored before reuse.' 
+            $message = $province->deleted_at
+                ? 'This province exists in the region but has been deleted; it must be restored before reuse.'
                 : 'A province with this name already exists in the specified region.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
