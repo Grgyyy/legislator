@@ -89,44 +89,45 @@ class DistrictResource extends Resource
 
                 Select::make('municipality_id')
                     ->label('Municipality')
-                    ->options(function ($get) {
-                        $provinceId = $get('province_id');
-                        if (!$provinceId) {
-                            return [];
-                        }
-
-                        $province = Province::with('region')->find($provinceId);
-                        return ($province && $province->region->name !== 'NCR')
-                            ? []
-                            : \App\Models\Municipality::where('province_id', $provinceId)
-                                ->pluck('name', 'id')
-                                ->toArray();
-                    })
-                    ->reactive()
-                    ->disabled(function ($get) {
-                        $provinceId = $get('province_id');
-                        if (!$provinceId) {
-                            return false;
-                        }
-
-                        $province = Province::with('region')->find($provinceId);
-                        return ($province && $province->region->name !== 'NCR');
-                    })
                     ->required(function ($get) {
                         $provinceId = $get('province_id');
                         $province = Province::with('region')->find($provinceId);
+
                         return $province && $province->region->name === 'NCR';
                     })
-                    ->afterStateHydrated(function ($state, callable $set) {
-                        $provinceId = request()->input('province_id') ?? null;
-                        if ($provinceId) {
-                            $province = Province::with('region')->find($provinceId);
-                            if ($province && $province->region->name !== 'NCR') {
-                                $set('municipality_id', 'NA');  // Set to 'NA' if NCR
-                            }
-                        }
-                    })
+                    ->markAsRequired(false)
+                    ->hidden(function ($get) {
+                        $provinceId = $get('province_id');
 
+                        if (!$provinceId) {
+                            return true;
+                        }
+
+                        $province = Province::with('region')->find($provinceId);
+
+                        return !$province || $province->region->name !== 'NCR';
+                    })
+                    ->native(false)
+                    ->options(function ($get) {
+                        $provinceId = $get('province_id');
+
+                        if (!$provinceId) {
+                            return ['no_municipality' => 'No municipalities available. Select a province first.'];
+                        }
+
+                        $province = Province::with('region')->find($provinceId);
+
+                        if ($province && $province->region->name === 'NCR') {
+                            return Municipality::where('province_id', $provinceId)
+                                ->pluck('name', 'id')
+                                ->toArray() ?: ['no_municipality' => 'No municipalities available. Select a province first.'];
+                        }
+
+                        return ['no_municipality' => 'No municipalities available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_municipality')
+                    ->reactive()
+                    ->live(),
             ]);
     }
 
