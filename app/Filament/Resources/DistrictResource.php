@@ -149,6 +149,10 @@ class DistrictResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
+                TextColumn::make('municipality.name')
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('province.name')
                     ->searchable()
                     ->toggleable(),
@@ -224,10 +228,11 @@ class DistrictResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
+                                    Column::make('code')->heading('Code'),
                                     Column::make('name')->heading('District'),
                                     Column::make('municipality.name')->heading('Municipality'),
-                                    Column::make('municipality.province.name')->heading('Province'),
-                                    Column::make('municipality.province.region.name')->heading('Region'),
+                                    Column::make('province.name')->heading('Province'),
+                                    Column::make('province.region.name')->heading('Region'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - District')
                         ]),

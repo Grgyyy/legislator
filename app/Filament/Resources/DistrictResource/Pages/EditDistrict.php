@@ -5,6 +5,7 @@ use Exception;
 use App\Models\District;
 use App\Models\Province;
 use App\Models\Municipality;
+use Illuminate\Support\Facades\Log;
 use App\Services\NotificationHandler;
 use Illuminate\Database\QueryException;
 use Filament\Resources\Pages\EditRecord;
@@ -56,8 +57,8 @@ class EditDistrict extends EditRecord
         try {
             $record->municipality()->sync($municipalityIds);
             NotificationHandler::sendSuccessNotification('Updated', 'Municipalities have been updated for the district.');
-        } catch (\Exception $e) {
-            \Log::error('Failed to update municipalities for district: ' . $e->getMessage());
+        } catch (Exception $e) {
+            Log::error('Failed to update municipalities for district: ' . $e->getMessage());
             throw $e;
         }
     }

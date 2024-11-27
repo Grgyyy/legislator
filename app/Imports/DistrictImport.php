@@ -30,14 +30,16 @@ class DistrictImport implements ToModel, WithHeadingRow
             try {
                 $region_id = $this->getRegionId($row['region']);
                 $province_id = $this->getProvinceId($region_id, $row['province']);
-                $municipality_id = $this->getMunicipalityId($province_id, $row['municipality']);
+                $municipality_id = $this->getMunicipalityId($province_id, $row['municipality'], $$row['code']);
 
                 $districtIsExist = District::where('name', $row['district'])
+                    ->where('code', $row['code'])
                     ->where('municipality_id', $municipality_id)
                     ->exists();
 
                 if (!$districtIsExist) {
                     return new District([
+                        'code' => $row['code'],
                         'name' => $row['district'],
                         'municipality_id' => $municipality_id,
                     ]);
@@ -52,7 +54,7 @@ class DistrictImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['district', 'municipality', 'province', 'region'];
+        $requiredFields = ['code', 'district', 'municipality', 'province', 'region'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
@@ -88,9 +90,10 @@ class DistrictImport implements ToModel, WithHeadingRow
         return $province->id;
     }
 
-    public function getMunicipalityId(int $provinceId, string $municipalityName)
+    public function getMunicipalityId(int $provinceId, string $municipalityName, string $code)
     {
         $municipality = Municipality::where('name', $municipalityName)
+            ->where('code', $code)
             ->where('province_id', $provinceId)
             ->whereNull('deleted_at')
             ->first();

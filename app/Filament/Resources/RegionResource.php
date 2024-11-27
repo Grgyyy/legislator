@@ -136,6 +136,7 @@ class RegionResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
+                                    Column::make('code')->heading('Code'),
                                     Column::make('name')->heading('Region'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Region'),

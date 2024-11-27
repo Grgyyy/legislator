@@ -28,12 +28,15 @@ class ProvinceImport implements ToModel, WithHeadingRow
             try {
 
                 $region_id = $this->getRegionId($row['region']);
+
                 $provinceIsExist = Province::where('name', $row['province'])
                     ->where('region_id', $region_id)
+                    ->where('code', $row['code'])
                     ->exists();
 
-                if(!$provinceIsExist) {
+                if (!$provinceIsExist) {
                     return new Province([
+                        'code' => $row['code'],
                         'name' => $row['province'],
                         'region_id' => $region_id,
                     ]);
@@ -50,7 +53,7 @@ class ProvinceImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['province', 'region'];
+        $requiredFields = ['code', 'province', 'region'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
@@ -62,8 +65,8 @@ class ProvinceImport implements ToModel, WithHeadingRow
     protected function getRegionId(string $regionName)
     {
         $region = Region::where('name', $regionName)
-                ->whereNull('deleted_at')
-                ->first();
+            ->whereNull('deleted_at')
+            ->first();
 
         if (!$region) {
             throw new \Exception("Region with name '{$regionName}' not found. No changes were saved.");

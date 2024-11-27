@@ -157,10 +157,13 @@ class ProvinceResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
+                                    Column::make('region.code')
+                                        ->heading('Code'),
                                     Column::make('name')
                                         ->heading('Province'),
                                     Column::make('region.name')
                                         ->heading('Region'),
+
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Province')
                         ]),
