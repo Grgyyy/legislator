@@ -52,21 +52,21 @@ class AbddResource extends Resource
                     ->autocomplete(false)
                     ->validationAttribute('Sector'),
 
-                Select::make('province')
-                    ->label('Province')
-                    ->relationship('provinces', 'name')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->preload()
-                    ->multiple()
-                    ->native(false)
-                    ->options(function () {
-                        return Province::whereNot('name', 'Not Applicable')
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_province' => 'No Province Available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
+                // Select::make('province')
+                //     ->label('Province')
+                //     ->relationship('provinces', 'name')
+                //     ->required()
+                //     ->markAsRequired(false)
+                //     ->searchable()
+                //     ->preload()
+                //     ->multiple()
+                //     ->native(false)
+                //     ->options(function () {
+                //         return Province::whereNot('name', 'Not Applicable')
+                //             ->pluck('name', 'id')
+                //             ->toArray() ?: ['no_province' => 'No Province Available'];
+                //     })
+                //     ->disableOptionWhen(fn($value) => $value === 'no_province'),
             ]);
     }
 
@@ -81,27 +81,27 @@ class AbddResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('provinces.name')
-                    ->label('Provinces')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(function ($record) {
-                        $provinces = $record->provinces->pluck('name')->toArray();
+                // TextColumn::make('provinces.name')
+                //     ->label('Provinces')
+                //     ->sortable()
+                //     ->searchable()
+                //     ->toggleable()
+                //     ->formatStateUsing(function ($record) {
+                //         $provinces = $record->provinces->pluck('name')->toArray();
 
-                        $provincesHtml = array_map(function ($name, $index) use ($provinces) {
-                            $comma = ($index < count($provinces) - 1) ? ', ' : '';
+                //         $provincesHtml = array_map(function ($name, $index) use ($provinces) {
+                //             $comma = ($index < count($provinces) - 1) ? ', ' : '';
 
-                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+                //             $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
 
-                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+                //             $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
 
-                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
-                        }, $provinces, array_keys($provinces));
+                //             return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
+                //         }, $provinces, array_keys($provinces));
 
-                        return implode('', $provincesHtml);
-                    })
-                    ->html(),
+                //         return implode('', $provincesHtml);
+                //     })
+                //     ->html(),
             ])
             ->filters([
                 TrashedFilter::make()
