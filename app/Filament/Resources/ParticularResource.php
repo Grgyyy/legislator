@@ -266,18 +266,10 @@ class ParticularResource extends Resource
 
         if ($subParticular->name === 'Senator' || $subParticular->name === 'House Speaker' || $subParticular->name === 'House Speaker (LAKAS)') {
             return District::where('name', 'Not Applicable')
-                ->whereHas('municipality', function ($query) {
-                    $query->where('name', 'Not Applicable');
-                })
-                ->whereHas('municipality.province', function ($query) {
-                    $query->where('name', 'Not Applicable');
-                })
-                ->whereHas('municipality.province.region', function ($query) {
-                    $query->where('name', 'Not Applicable');
-                })
+                ->where('name', 'Not Applicable')
                 ->get()
                 ->mapWithKeys(function (District $district) {
-                    return [$district->id => $district->municipality->province->region->name];
+                    return [$district->id => $district->name];
                 })
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
         }

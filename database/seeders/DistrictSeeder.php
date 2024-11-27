@@ -8,12 +8,27 @@ use Illuminate\Support\Facades\DB;
 
 class DistrictSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Define NCR municipalities and their district counts
+
+        $provinces = DB::table('provinces')
+        ->where('name', 'Not Applicable')
+        ->pluck('id');
+
+        foreach ($provinces as $provinceId) {
+            $districtExists = DB::table('districts')
+                ->where('name', 'Not Applicable')
+                ->where('province_id', $provinceId)
+                ->exists();
+
+            if (!$districtExists) {
+                DB::table('districts')->insert([
+                    'name' => 'Not Applicable',
+                    'province_id' => $provinceId,
+                ]);
+            }
+        }
+
         $ncrMunicipalities = [
             ['name' => 'Caloocan City', 'districts' => 3],
             ['name' => 'Malabon City', 'districts' => 1],
@@ -23,7 +38,7 @@ class DistrictSeeder extends Seeder
             ['name' => 'Parañaque City', 'districts' => 2],
             ['name' => 'Las Piñas City', 'districts' => 1],
             ['name' => 'Taguig City', 'districts' => 2],
-            ['name' => 'Pateros City', 'districts' => 1], // Treated as having 1 district for seeding
+            ['name' => 'Pateros City', 'districts' => 1],
             ['name' => 'Pasay City', 'districts' => 2],
             ['name' => 'Makati City', 'districts' => 2],
             ['name' => 'Pasig City', 'districts' => 1],
@@ -34,19 +49,15 @@ class DistrictSeeder extends Seeder
             ['name' => 'Quezon City', 'districts' => 6],
         ];
 
-        // Insert districts for each municipality
         foreach ($ncrMunicipalities as $ncrMunicipality) {
-            // Find the municipality in the database
             $municipality = DB::table('municipalities')
                 ->where('name', $ncrMunicipality['name'])
                 ->first();
 
             if ($municipality) {
-                // Seed the districts for the municipality
                 for ($i = 1; $i <= $ncrMunicipality['districts']; $i++) {
                     $districtName = "District {$i}";
 
-                    // Check if the district already exists
                     $districtExists = DB::table('districts')
                         ->where('name', $districtName)
                         ->where('municipality_id', $municipality->id)

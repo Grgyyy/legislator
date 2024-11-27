@@ -11,21 +11,21 @@ class ShowDistrict extends ListRecords
 {
     protected static string $resource = DistrictResource::class;
 
-    public function getBreadcrumbs(): array
-    {
-        $districtId = $this->getDistrictId();
-        $district = District::find($districtId);
+    // public function getBreadcrumbs(): array
+    // {
+    //     $districtId = $this->getDistrictId();
+    //     $district = District::find($districtId);
 
-        $province = $district->province;
-        $region = $district->province->region;
+    //     $province = $district->province;
+    //     $region = $district->province->region;
 
-        return [
-            route('filament.admin.resources.regions.index', ['record' => $region->id]) => $district ? $region->name : 'Regions',
-            route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $district ? $province->name : 'Provinces',
-            'Districts',
-            'List'
-        ];
-    }
+    //     return [
+    //         route('filament.admin.resources.regions.index', ['record' => $region->id]) => $district ? $region->name : 'Regions',
+    //         route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $district ? $province->name : 'Provinces',
+    //         'Districts',
+    //         'List'
+    //     ];
+    // }
 
     protected function getHeaderActions(): array
     {
