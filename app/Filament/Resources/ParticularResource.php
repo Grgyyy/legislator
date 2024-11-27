@@ -93,6 +93,8 @@ class ParticularResource extends Resource
                     ->disableOptionWhen(fn($value) => $value === 'no_administrative_area')
                     ->reactive()
                     ->live(),
+
+
             ]);
     }
 
@@ -284,16 +286,25 @@ class ParticularResource extends Resource
             return District::whereNot('name', 'Not Applicable')
                 ->get()
                 ->mapWithKeys(function (District $district) {
-                    $municipalityName = optional($district->municipality)->name ?? '-';
-                    $provinceName = optional(optional($district->municipality)->province)->name ?? '-';
-                    $regionName = optional(optional(optional($district->municipality)->province)->region)->name ?? '-';
+                    $municipalityName = optional($district->underMunicipality)->name ?? '-';
+                    $provinceName = optional($district->province)->name ?? '-';
+                    $regionName = optional(optional($district->province)->region)->name ?? '-';
 
-                    return [
-                        $district->id => $district->name
-                            . ", " . $municipalityName
-                            . ", " . $provinceName
-                            . ", " . $regionName
-                    ];
+                    if (($regionName === 'NCR')) {
+                        return [
+                            $district->id => $district->name
+                                . " - " . $municipalityName
+                                . ", " . $provinceName
+                                . ", " . $regionName
+                        ];
+                    }
+                    else {
+                        return [
+                            $district->id => $district->name
+                                . " - " . $provinceName
+                                . ", " . $regionName
+                        ];
+                    }
                 })
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
         }
