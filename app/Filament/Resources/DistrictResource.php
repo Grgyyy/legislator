@@ -3,31 +3,31 @@
 namespace App\Filament\Resources;
 
 use App\Models\District;
+use App\Models\Municipality;
 use App\Models\Province;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
+use App\Filament\Resources\DistrictResource\Pages;
 use App\Services\NotificationHandler;
-use Filament\Forms\Components\Hidden;
+use Filament\Resources\Resource;
+use Filament\Forms\Form;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use App\Filament\Resources\DistrictResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions\RestoreBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DistrictResource extends Resource
 {
@@ -62,6 +62,7 @@ class DistrictResource extends Resource
                 Select::make('province_id')
                     ->label('Province')
                     ->required()
+                    ->markAsRequired(false)
                     ->searchable()
                     ->preload()
                     ->native(false)
@@ -70,21 +71,21 @@ class DistrictResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_province' => 'No provinces available'];
                     })
-                    ->reactive()
                     ->afterStateUpdated(function ($state, callable $set) {
                         if ($state) {
                             $province = Province::with('region')->find($state);
 
+                            $set('is_municipality_hidden', !$province || $province->region->name !== 'NCR');
 
-                            $set('is_municipality_disabled', $province && $province->region->name === 'NCR');
                             if ($province && $province->region->name === 'NCR') {
                                 $set('municipality_id', null);
                             }
                         } else {
-
-                            $set('is_municipality_disabled', false);
+                            $set('is_municipality_hidden', true);
                         }
-                    }),
+                    })
+                    ->reactive()
+                    ->live(),
 
                 Select::make('municipality_id')
                     ->label('Municipality')
