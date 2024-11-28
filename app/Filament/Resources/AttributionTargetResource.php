@@ -694,7 +694,7 @@ class AttributionTargetResource extends Resource
 
                         $particular = $particulars->first();
                         $district = $particular->district;
-                        $municipality = $district ? $district->municipality : null;
+                        $municipality = $district ? $district->underMunicipality : null;
 
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
@@ -926,11 +926,11 @@ class AttributionTargetResource extends Resource
     {
         $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
 
-        if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
+        if (!$tvi || !$tvi->district || !$tvi->district || !$tvi->district->province) {
             return ['no_abdd' => 'No ABDD sector available'];
         }
 
-        return $tvi->district->municipality->province->abdds()
+        return $tvi->district->province->abdds()
             ->select('abdds.id', 'abdds.name')
             ->pluck('name', 'id')
             ->toArray() ?: ['no_abdd' => 'No ABDD sector available'];
