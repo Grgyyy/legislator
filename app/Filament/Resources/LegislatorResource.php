@@ -249,36 +249,26 @@ class LegislatorResource extends Resource
             $provinceName = $particular->district->province->name ?? 'Unknown Province';
             $regionName = $particular->district->province->region->name ?? 'Unknown Region';
             
-            // Check if municipality exists and format accordingly
             $municipalityName = $particular->district->underMunicipality->name ?? null;
 
-            // Padding and comma logic
             $paddingTop = ($index > 0) ? 'padding-top: 15px;' : '';
             $comma = ($index < $record->particular->count() - 1) ? ',' : '';
 
-            // Handle different subParticular cases
             if ($particular->subParticular->name === 'Party-list') {
-                // Handle Party-list case
                 $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $partylistName . $comma . '</div>';
             } elseif (in_array($particular->subParticular->name, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                // Handle specific titles (Senator, House Speaker, etc.)
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . $comma . '</div>';
             } elseif ($particular->subParticular->name === 'District') {
-                // Handle District formatting based on whether municipality exists or not
                 if ($municipalityName) {
-                    // If municipality exists, include it in the format
                     $municipalityFormatted = "{$districtName}, {$municipalityName}, {$provinceName}";
                 } else {
-                    // If municipality does not exist, only show region
                     $municipalityFormatted = "{$districtName}, {$provinceName}, {$regionName}";
                 }
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $municipalityFormatted . $comma . '</div>';
             } elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                // Handle Regular cases with region information
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $regionName . $comma . '</div>';
             } else {
-                // Handle other cases (subParticular names that are not listed above)
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $regionName . $comma . '</div>';
             }
         })->implode('');

@@ -127,16 +127,56 @@ class TviResource extends Resource
                         return District::whereNot('name', 'Not Applicable')
                             ->get()
                             ->mapWithKeys(function (District $district) {
-                                $label = $district->name . ' - ' .
-                                    $district->municipality->name . ', ' .
-                                    $district->municipality->province->name;
-
+                                if ($district->province->region->name === 'NCR') {
+                                    $label = $district->name . ' - ' . $district->underMunicipality->name . ', ' . $district->province->name;
+                                } else {
+                                    $label = $district->name . ' - ' . $district->province->name;
+                                }
                                 return [$district->id => $label];
                             })
                             ->toArray() ?: ['no_district' => 'No District Available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_district'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_district')
+                    ->reactive()  
+                    ->afterStateUpdated(function ($state, $get, $set) {
+                        $set('municipality_id', null);  
+                    }),
+
+                Select::make('municipality_id')
+                    ->label('Municipality')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function ($get) {
+                        $districtId = $get('district_id');
+                        
+                        if ($districtId) {
+                            return Municipality::whereHas('district', function ($query) use ($districtId) {
+                                $query->where('district_id', $districtId);
+                            })
+                            ->get()
+                            ->mapWithKeys(function (Municipality $municipality) {
+                                $label = $municipality->name . ' - ' . $municipality->province->name;
+                                return [$municipality->id => $label];
+                            })
+                            ->toArray() ?: ['no_municipality' => 'No Municipality Available'];
+                        }
+                        
+                        return ['no_municipality' => 'No Municipality Available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_municipality')
+                    ->reactive()  // Make this field reactive
+                    ->afterStateUpdated(function ($state, $get) {
+                        if ($get('district_id') === null) {
+                            $get('municipality_id')->reset(); 
+                        }
+                    }),
+
                 
+
+                    
                 TextInput::make("address")
                     ->label("Full Address")
                     ->placeholder(placeholder: 'Enter institution address')
@@ -179,20 +219,19 @@ class TviResource extends Resource
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $district = $record->district;
-
+                
                         if (!$district) {
                             return 'No District Information';
                         }
-
-                        $municipality = $district->municipality;
-                        $province = $district->municipality->province;
-
+                        $province = $district->province;
+                
+                        $municipalityName = $record->municipality ? $record->municipality->name : '-';
                         $districtName = $district->name;
-                        $municipalityName = $municipality ? $municipality->name : '-';
                         $provinceName = $province ? $province->name : '-';
-
-                        return "{$districtName} - {$municipalityName}, {$provinceName}";
+                
+                        return "{$municipalityName} - {$districtName}, {$provinceName}";
                     }),
+                
 
                 TextColumn::make("address")
                     ->searchable()
