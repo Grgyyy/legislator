@@ -18,6 +18,7 @@ class Tvi extends Model
         'institution_class_id',
         'tvi_class_id',
         'district_id',
+        'municipality_id',
         'address',
     ];
 
@@ -33,6 +34,11 @@ class Tvi extends Model
     public function district()
     {
         return $this->belongsTo(District::class);
+    }
+
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class);
     }
 
     public function status()

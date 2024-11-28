@@ -10,6 +10,7 @@ use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SubParticular;
 use App\Models\Target;
+use App\Models\TargetStatus;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Filament\Actions\Action;
@@ -694,7 +695,7 @@ class AttributionTargetResource extends Resource
 
                         $particular = $particulars->first();
                         $district = $particular->district;
-                        $municipality = $district ? $district->municipality : null;
+                        $municipality = $district ? $district->underMunicipality : null;
 
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
@@ -926,11 +927,11 @@ class AttributionTargetResource extends Resource
     {
         $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
 
-        if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
+        if (!$tvi || !$tvi->district || !$tvi->district || !$tvi->district->province) {
             return ['no_abdd' => 'No ABDD sector available'];
         }
 
-        return $tvi->district->municipality->province->abdds()
+        return $tvi->district->province->abdds()
             ->select('abdds.id', 'abdds.name')
             ->pluck('name', 'id')
             ->toArray() ?: ['no_abdd' => 'No ABDD sector available'];
@@ -938,9 +939,12 @@ class AttributionTargetResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
+        $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
+
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('attribution_allocation_id', null);
+            ->whereNot('attribution_allocation_id', null)
+            ->where('target_status_id', $pendingStatus->id);
     }
 
     public static function getPages(): array

@@ -19,6 +19,7 @@ return new class extends Migration
             $table->foreignId('abdd_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->integer('slots');
             $table->timestamps();
         });
     }

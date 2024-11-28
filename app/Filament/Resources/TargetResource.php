@@ -280,9 +280,9 @@ class TargetResource extends Resource
                                                     $subParticularName = $particular->subParticular ? $particular->subParticular->name : 'No Sub Particular';
                                                     $fundSourceName = $particular->subParticular && $particular->subParticular->fundSource ? $particular->subParticular->fundSource->name : 'No Fund Source';
                                                     $districtName = $particular->district ? $particular->district->name : 'No District';
-                                                    $municipalityName = $particular->district && $particular->district->municipality ? $particular->district->municipality->name : 'No Municipality';
-                                                    $provinceName = $particular->district && $particular->district->municipality && $particular->district->municipality->province ? $particular->district->municipality->province->name : 'No Province';
-                                                    $regionName = $particular->district && $particular->district->municipality && $particular->district->municipality->province && $particular->district->municipality->province->region ? $particular->district->municipality->province->region->name : 'No Region';
+                                                    $municipalityName = $particular->district && $particular->district->underMunicipality ? $particular->district->underMunicipality->name : 'No Municipality';
+                                                    $provinceName = $particular->district && $particular->district && $particular->district->province ? $particular->district->province->name : 'No Province';
+                                                    $regionName = $particular->district && $particular->district && $particular->district->province && $particular->district->province->region ? $particular->district->province->region->name : 'No Region';
                                                     $partylistName = $particular->partylist ? $particular->partylist->name : 'No Partylist';
 
 
@@ -610,7 +610,7 @@ class TargetResource extends Resource
 
                         $particular = $particulars->first();
                         $district = $particular->district;
-                        $municipality = $district ? $district->municipality : null;
+                        $municipality = $district ? $district->underMunicipality : null;
 
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
@@ -1001,7 +1001,7 @@ class TargetResource extends Resource
                         return [$particular->id => $particular->subParticular->name];
                     }
                 } else {
-                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->municipality->name];
+                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
                 }
 
             })
@@ -1056,13 +1056,13 @@ class TargetResource extends Resource
 
     protected static function getAbddSectors($tviId)
     {
-        $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
+        $tvi = Tvi::with(['district.province'])->find($tviId);
 
-        if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
+        if (!$tvi || !$tvi->district || !$tvi->district->province) {
             return ['' => 'No ABDD sector available'];
         }
 
-        $abddSectors = $tvi->district->municipality->province->abdds()
+        $abddSectors = $tvi->district->province->abdds()
             ->select('abdds.id', 'abdds.name')
             ->pluck('name', 'id')
             ->toArray();

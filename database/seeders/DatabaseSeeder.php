@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
         $this->call(ScholarshipProgramSeeder::class);
         $this->call(ProvinceSeeder::class);
         $this->call(MunicipalitySeeder::class);
-        // $this->call(DistrictSeeder::class);
+        $this->call(DistrictSeeder::class);
         $this->call(FundSourceSeeder::class);
         $this->call(SubParticularSeeder::class);
         // $this->call(CentralParticularSeeder::class);

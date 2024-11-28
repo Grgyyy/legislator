@@ -11,6 +11,7 @@ class ProvinceAbdd extends Model
 
     protected $fillable = [
         'province_id',
-        'abdd_id'
+        'abdd_id',
+        'slots'
     ];
 }

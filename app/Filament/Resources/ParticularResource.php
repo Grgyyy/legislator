@@ -93,6 +93,8 @@ class ParticularResource extends Resource
                     ->disableOptionWhen(fn($value) => $value === 'no_administrative_area')
                     ->reactive()
                     ->live(),
+
+
             ]);
     }
 
@@ -126,19 +128,20 @@ class ParticularResource extends Resource
                     ->toggleable()
                     ->formatStateUsing(fn($state) => $state === 'Not Applicable' ? '-' : $state),
 
-                TextColumn::make("district.municipality.name")
+                TextColumn::make("district.underMunicipality.name")
+                    ->label('Municipality')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(fn($state) => $state === 'Not Applicable' || $state === null ? '-' : $state),
+
+                TextColumn::make("district.province.name")
                     ->sortable()
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(fn($state) => $state === 'Not Applicable' ? '-' : $state),
 
-                TextColumn::make("district.municipality.province.name")
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(fn($state) => $state === 'Not Applicable' ? '-' : $state),
-
-                TextColumn::make("district.municipality.province.region.name")
+                TextColumn::make("district.province.region.name")
                     ->sortable()
                     ->searchable()
                     ->toggleable()
@@ -228,54 +231,55 @@ class ParticularResource extends Resource
 
         if ($subParticular->fundSource->name === 'RO Regular') {
             return District::where('name', 'Not Applicable')
-                ->whereHas('municipality', function ($query) {
+                ->whereHas('province', function ($query) {
                     $query->where('name', 'Not Applicable');
                 })
-                ->whereHas('municipality.province', function ($query) {
-                    $query->where('name', 'Not Applicable');
-                })
-                ->whereHas('municipality.province.region', function ($query) {
+                ->whereHas('province.region', function ($query) {
                     $query->whereNotIn('name', ['Not Applicable', 'NCR']);
                 })
                 ->get()
                 ->mapWithKeys(function (District $district) {
-                    return [$district->id => $district->municipality->province->region->name];
+                    return [$district->id => $district->province->region->name];
                 })
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
         }
 
         if ($subParticular->fundSource->name === 'CO Regular') {
             return District::where('name', 'Not Applicable')
-                ->whereHas('municipality', function ($query) {
+                ->whereHas('province', function ($query) {
                     $query->where('name', 'Not Applicable');
                 })
-                ->whereHas('municipality.province', function ($query) {
-                    $query->where('name', 'Not Applicable');
-                })
-                ->whereHas('municipality.province.region', function ($query) {
+                ->whereHas('province.region', function ($query) {
                     $query->where('name', 'NCR');
                 })
                 ->get()
                 ->mapWithKeys(function (District $district) {
-                    return [$district->id => $district->municipality->province->region->name];
+                    return [$district->id => $district->province->region->name];
                 })
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
         }
 
-        if ($subParticular->name === 'Senator' || $subParticular->name === 'House Speaker' || $subParticular->name === 'House Speaker (LAKAS)') {
+        if ($subParticular->name === 'Senator') {
             return District::where('name', 'Not Applicable')
-                ->whereHas('municipality', function ($query) {
+                ->where('name', 'Not Applicable')
+                ->get()
+                ->mapWithKeys(function (District $district) {
+                    return [$district->id => $district->name];
+                })
+                ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
+        }
+
+        if ($subParticular->name === 'House Speaker' || $subParticular->name === 'House Speaker (LAKAS)') {
+            return District::where('name', 'Not Applicable')
+                ->whereHas('province', function ($query) {
                     $query->where('name', 'Not Applicable');
                 })
-                ->whereHas('municipality.province', function ($query) {
-                    $query->where('name', 'Not Applicable');
-                })
-                ->whereHas('municipality.province.region', function ($query) {
+                ->whereHas('province.region', function ($query) {
                     $query->where('name', 'Not Applicable');
                 })
                 ->get()
                 ->mapWithKeys(function (District $district) {
-                    return [$district->id => $district->municipality->province->region->name];
+                    return [$district->id => $district->province->region->name];
                 })
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
         }
@@ -284,16 +288,25 @@ class ParticularResource extends Resource
             return District::whereNot('name', 'Not Applicable')
                 ->get()
                 ->mapWithKeys(function (District $district) {
-                    $municipalityName = optional($district->municipality)->name ?? '-';
-                    $provinceName = optional(optional($district->municipality)->province)->name ?? '-';
-                    $regionName = optional(optional(optional($district->municipality)->province)->region)->name ?? '-';
+                    $municipalityName = optional($district->underMunicipality)->name ?? '-';
+                    $provinceName = optional($district->province)->name ?? '-';
+                    $regionName = optional(optional($district->province)->region)->name ?? '-';
 
-                    return [
-                        $district->id => $district->name
-                            . ", " . $municipalityName
-                            . ", " . $provinceName
-                            . ", " . $regionName
-                    ];
+                    if (($regionName === 'NCR')) {
+                        return [
+                            $district->id => $district->name
+                                . " - " . $municipalityName
+                                . ", " . $provinceName
+                                . ", " . $regionName
+                        ];
+                    }
+                    else {
+                        return [
+                            $district->id => $district->name
+                                . " - " . $provinceName
+                                . ", " . $regionName
+                        ];
+                    }
                 })
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
         }

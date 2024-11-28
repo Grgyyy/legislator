@@ -33,8 +33,8 @@ class EditAttributionTarget extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $record = $this->record;
-        $senderAllocation = $record->allocation;
-        $receiverAllocation = $record->attributionAllocation;
+        $senderAllocation = $record->attributionAllocation;
+        $receiverAllocation = $record->allocation;
 
         $data['attribution_sender'] = $senderAllocation->legislator_id ?? null;
         $data['attribution_sender_particular'] = $senderAllocation->particular_id ?? null;

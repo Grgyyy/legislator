@@ -317,7 +317,7 @@ class CompliantTargetsResource extends Resource
                         return [$particular->id => $particular->subParticular->name];
                     }
                 } else {
-                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->municipality->name];
+                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
                 }
 
             })
@@ -376,11 +376,11 @@ class CompliantTargetsResource extends Resource
     {
         $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
 
-        if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
+        if (!$tvi || !$tvi->district || !$tvi->district || !$tvi->district->province) {
             return ['' => 'No ABDD Sectors Available.'];
         }
 
-        $abddSectors = $tvi->district->municipality->province->abdds()
+        $abddSectors = $tvi->district->province->abdds()
             ->select('abdds.id', 'abdds.name')
             ->pluck('name', 'id')
             ->toArray();
