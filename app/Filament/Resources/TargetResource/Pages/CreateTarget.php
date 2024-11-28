@@ -47,7 +47,7 @@ class CreateTarget extends CreateRecord
             $lastCreatedTarget = null;
 
             foreach ($data['targets'] as $targetData) {
-                $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'tvi_id', 'lappropriation_type'];
+                $requiredFields = ['legislator_id', 'particular_id', 'scholarship_program_id', 'qualification_title_id', 'number_of_slots', 'tvi_id', 'appropriation_type'];
 
                 foreach ($requiredFields as $field) {
                     if (!array_key_exists($field, $targetData) || empty($targetData[$field])) {
