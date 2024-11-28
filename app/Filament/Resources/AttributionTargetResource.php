@@ -10,6 +10,7 @@ use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SubParticular;
 use App\Models\Target;
+use App\Models\TargetStatus;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Filament\Actions\Action;
@@ -938,9 +939,12 @@ class AttributionTargetResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
+        $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
+
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('attribution_allocation_id', null);
+            ->whereNot('attribution_allocation_id', null)
+            ->where('target_status_id', $pendingStatus->id);
     }
 
     public static function getPages(): array
