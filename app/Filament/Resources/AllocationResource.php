@@ -202,33 +202,45 @@ class AllocationResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make("particular.name")
+                    TextColumn::make("particular.name")
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $particular = $record->particular;
-
+                
                         if (!$particular) {
-                            return ['no_particular' => 'No Particular Available'];
+                            return 'No Particular Available';
                         }
-
+                
                         $district = $particular->district;
-                        $municipality = $district ? $district->municipality : null;
+                        $municipality = $district ? $district->underMunicipality : null;
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-
-                        $subParticular = $particular->subParticular->name;
-
+                        $provinceName = $district ? $district->province->name : 'Unknown Province';
+                        $regionName = $district ? $district->province->region->name : 'Unknown Region';
+                
+                        $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+                
+                        $formattedName = '';
+                
                         if ($subParticular === 'Party-list') {
-                            $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}";
-                        } elseif ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
-                            $formattedName = "{$particular->subParticular->name}";
+                            $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                            $formattedName = "{$subParticular} - {$partylistName}";
+                        } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                            $formattedName = "{$subParticular}";
+                        } elseif ($subParticular === 'District') {
+                            if ($municipalityName) {
+                                $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                            } else {
+                                $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
+                            }
+                        } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                            $formattedName = "{$subParticular} - {$regionName}";
                         } else {
-                            $formattedName = "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
-
+                            $formattedName = "{$subParticular} - {$regionName}";
                         }
-
+                
                         return $formattedName;
-                    }),
+                    }),                
 
                 TextColumn::make("scholarship_program.name")
                     ->label('Scholarship Program')
@@ -434,22 +446,38 @@ class AllocationResource extends Resource
         }
 
         return $legislator->particular->mapWithKeys(function ($particular) {
-            $districtName = $particular->district->name ?? 'Unknown District';
-            $municipalityName = $particular->district->municipality->name ?? 'Unknown Municipality';
+            $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+            $formattedName = '';
 
-            $subParticular = $particular->subParticular->name;
-
-            if ($subParticular === 'Senator' || $subParticular === 'House Speaker' || $subParticular === 'House Speaker (LAKAS)') {
-                $formattedName = "{$particular->subParticular->name}";
+            if (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                $formattedName = $subParticular;
             } elseif ($subParticular === 'Party-list') {
-                $formattedName = "{$particular->subParticular->name} - {$particular->partylist->name}";
+                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                $formattedName = "{$subParticular} - {$partylistName}";
+            } elseif ($subParticular === 'District') {
+                $districtName = $particular->district->name ?? 'Unknown District';
+                $municipalityName = $particular->district->underMunicipality->name ?? 'Unknown Municipality';
+                $provinceName = $particular->district->province->name ?? 'Unknown Province';
+
+                if ($municipalityName) {
+                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                } else {
+                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}";
+                }
+            } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                $districtName = $particular->district->name ?? 'Unknown District';
+                $provinceName = $particular->district->province->name ?? 'Unknown Province';
+                $regionName = $particular->district->province->region->name ?? 'Unknown Region';
+                $formattedName = "{$subParticular} - {$regionName}";
             } else {
-                $formattedName = "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                $regionName = $particular->district->province->region->name ?? 'Unknown Region';
+                $formattedName = "{$subParticular} - {$regionName}";
             }
 
             return [$particular->id => $formattedName];
         })->toArray();
     }
+
 
     public static function getEloquentQuery(): Builder
     {
