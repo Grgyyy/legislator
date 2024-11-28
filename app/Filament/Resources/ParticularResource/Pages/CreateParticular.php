@@ -52,15 +52,15 @@ class CreateParticular extends CreateRecord
                     NotificationHandler::handleValidationException('Unexpected Error', 'Province does not exist.');
                 }
 
-                $municipality = Municipality::where('name', 'Not Applicable')
-                    ->where('province_id', $province->id)
-                    ->first();
-                if (!$municipality) {
-                    NotificationHandler::handleValidationException('Unexpected Error', 'Municipality does not exist.');
-                }
+                // $municipality = Municipality::where('name', 'Not Applicable')
+                //     ->where('province_id', $province->id)
+                //     ->first();
+                // if (!$municipality) {
+                //     NotificationHandler::handleValidationException('Unexpected Error', 'Municipality does not exist.');
+                // }
 
                 $district = District::where('name', 'Not Applicable')
-                    ->where('municipality_id', $municipality->id)
+                    ->where('province_id', $province->id)
                     ->first();
                 if (!$district) {
                     NotificationHandler::handleValidationException('Unexpected Error', 'District does not exist.');
