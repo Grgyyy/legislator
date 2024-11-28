@@ -71,6 +71,7 @@ class DistrictResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_province' => 'No provinces available'];
                     })
+                    ->disableOptionWhen(fn($value) => $value === 'no_province')
                     ->afterStateUpdated(function ($state, callable $set) {
                         if ($state) {
                             $province = Province::with('region')->find($state);
@@ -120,7 +121,7 @@ class DistrictResource extends Resource
                         if ($province && $province->region->name === 'NCR') {
                             return Municipality::where('province_id', $provinceId)
                                 ->pluck('name', 'id')
-                                ->toArray() ?: ['no_municipality' => 'No municipalities available. Select a province first.'];
+                                ->toArray() ?: ['no_municipality' => 'No municipalities available'];
                         }
 
                         return ['no_municipality' => 'No municipalities available'];
