@@ -3,10 +3,16 @@
 namespace App\Filament\Resources\ParticularResource\Pages;
 
 use App\Models\Particular;
+use App\Models\SubParticular;
+use App\Models\Partylist;
+use App\Models\District;
+use App\Models\Province;
+use App\Models\Region;
 use App\Filament\Resources\ParticularResource;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Exception;
 
 class EditParticular extends EditRecord
@@ -18,38 +24,101 @@ class EditParticular extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function handleRecordUpdate($record, array $data): Particular
+    protected function mutateFormDataBeforeFill(array $data): array
     {
-        $this->validateUniqueParticular($data['sub_particular_id'], $record->id);
+        $record = $this->record;
 
-        try {
-            $record->update($data);
+        $notApplicablePartylist = Partylist::where('name', 'Not Applicable')->first();
+        $notApplicableDistrict = District::where('name', 'Not Applicable')->first();
 
-            NotificationHandler::sendSuccessNotification('Success', 'Particular has been updated successfully.');
-
-            return $record;
-        } catch (QueryException $e) {
-            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the particular: ' . $e->getMessage() . ' Please review the details and try again.');
-        } catch (Exception $e) {
-            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the particular update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
+        if ($record->partylist_id === $notApplicablePartylist?->id) {
+            $data['administrative_area'] = $record->district_id;
+        } else {
+            $data['administrative_area'] = $record->partylist_id;
         }
 
-        return $record;
+        return $data;
     }
 
-    protected function validateUniqueParticular($sub_particular_id, $currentId)
+    protected function handleRecordUpdate($record, array $data): Particular
     {
-        $particular = Particular::withTrashed()
+        return DB::transaction(function () use ($record, $data) {
+            try {
+                $subParticular = SubParticular::find($data['sub_particular_id']);
+                if (!$subParticular) {
+                    NotificationHandler::handleValidationException('Unexpected Error', 'Particular type does not exist.');
+                }
+
+                $partylist = Partylist::where('name', 'Not Applicable')->first();
+                if (!$partylist) {
+                    NotificationHandler::handleValidationException('Unexpected Error', 'Party-list does not exist.');
+                }
+
+                $region = Region::where('name', 'Not Applicable')->first();
+                if (!$region) {
+                    NotificationHandler::handleValidationException('Unexpected Error', 'Region does not exist.');
+                }
+
+                $province = Province::where('name', 'Not Applicable')
+                    ->where('region_id', $region->id)
+                    ->first();
+                if (!$province) {
+                    NotificationHandler::handleValidationException('Unexpected Error', 'Province does not exist.');
+                }
+
+                $district = District::where('name', 'Not Applicable')
+                    ->where('province_id', $province->id)
+                    ->first();
+                if (!$district) {
+                    NotificationHandler::handleValidationException('Unexpected Error', 'District does not exist.');
+                }
+
+                $partylistId = ($subParticular->name === 'Party-list' || $subParticular->fundSource->name === 'Party-list')
+                    ? $data['administrative_area']
+                    : $partylist->id;
+
+                $districtId = ($subParticular->name === 'Party-list' || $subParticular->fundSource->name === 'Party-list')
+                    ? $district->id
+                    : $data['administrative_area'];
+
+                $this->validateUniqueParticular($data['sub_particular_id'], $partylistId, $districtId, $record->id);
+
+                $particularData = [
+                    'sub_particular_id' => $data['sub_particular_id'],
+                    'partylist_id' => $partylistId,
+                    'district_id' => $districtId,
+                ];
+
+                $record->update($particularData);
+
+                NotificationHandler::sendSuccessNotification('Success', 'Particular has been updated successfully.');
+
+                return $record;
+            } catch (Exception $e) {
+                NotificationHandler::sendErrorNotification('Error', $e->getMessage());
+
+                throw ValidationException::withMessages([
+                    'general' => $e->getMessage(),
+                ]);
+            }
+        });
+    }
+
+    protected function validateUniqueParticular($sub_particular_id, $partylist_id, $district_id, $currentId = null)
+    {
+        $existingParticular = Particular::withTrashed()
             ->where('sub_particular_id', $sub_particular_id)
+            ->where('partylist_id', $partylist_id)
+            ->where('district_id', $district_id)
             ->whereNot('id', $currentId)
             ->first();
 
-        if ($particular) {
-            $message = $particular->deleted_at 
-                ? 'This particular has been deleted. Restoration is required before it can be reused.' 
-                : 'A particular with the specified type and administrative area already exists.';
-            
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+        if ($existingParticular) {
+            $message = $existingParticular->deleted_at 
+                ? 'This particular has been deleted and must be restored before reuse.' 
+                : 'A particular with the specified type, party list, and district already exists.';
+
+            NotificationHandler::handleValidationException('Validation Error', $message);
         }
     }
 }
