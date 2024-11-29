@@ -22,6 +22,7 @@ class DistrictImport implements ToModel, WithHeadingRow
      *
      * @return \Illuminate\Database\Eloquent\Model|null
      */
+
     public function model(array $row)
     {
         $this->validateRow($row);
@@ -30,19 +31,37 @@ class DistrictImport implements ToModel, WithHeadingRow
             try {
                 $region_id = $this->getRegionId($row['region']);
                 $province_id = $this->getProvinceId($region_id, $row['province']);
-                $municipality_id = $this->getMunicipalityId($province_id, $row['municipality'], $$row['code']);
 
+                $isNCR = Region::find($region_id)->name === 'NCR';
+                $municipality_id = null;
+
+                if ($isNCR) {
+                    $municipality_id = $this->getMunicipalityId($province_id, $row['municipality']);
+                }
+
+                // Check if the district already exists
                 $districtIsExist = District::where('name', $row['district'])
                     ->where('code', $row['code'])
                     ->where('municipality_id', $municipality_id)
                     ->exists();
 
                 if (!$districtIsExist) {
-                    return new District([
+                    // Create new District
+                    $district = District::create([
                         'code' => $row['code'],
                         'name' => $row['district'],
                         'municipality_id' => $municipality_id,
+                        'province_id' => $province_id,
+                        'region_id' => $region_id,
                     ]);
+
+                    // Now attach the municipality to the district if it's NCR (many-to-many relationship)
+                    if ($municipality_id) {
+                        $municipality = Municipality::find($municipality_id);
+                        $district->municipality()->attach($municipality);
+                    }
+
+                    return $district;
                 }
 
             } catch (Throwable $e) {
@@ -51,6 +70,8 @@ class DistrictImport implements ToModel, WithHeadingRow
             }
         });
     }
+
+
 
     protected function validateRow(array $row)
     {
@@ -65,16 +86,21 @@ class DistrictImport implements ToModel, WithHeadingRow
 
     public function getRegionId(string $regionName)
     {
+        Log::info("Searching for region: Name = {$regionName}");
+
         $region = Region::where('name', $regionName)
             ->whereNull('deleted_at')
             ->first();
 
         if (!$region) {
-            throw new \Exception("Region with name '{$regionName}' not found. No changes were saved.");
+            Log::error("Region not found: Name = '{$regionName}'");
+            throw new \Exception("Region not found: Name = '{$regionName}'. No changes were saved.");
         }
 
         return $region->id;
     }
+
+
 
     public function getProvinceId(int $regionId, string $provinceName)
     {
@@ -83,6 +109,8 @@ class DistrictImport implements ToModel, WithHeadingRow
             ->whereNull('deleted_at')
             ->first();
 
+
+
         if (!$province) {
             throw new \Exception("Province with name '{$provinceName}' in region ID '{$regionId}' not found. No changes were saved.");
         }
@@ -90,18 +118,48 @@ class DistrictImport implements ToModel, WithHeadingRow
         return $province->id;
     }
 
-    public function getMunicipalityId(int $provinceId, string $municipalityName, string $code)
+    // public function getMunicipalityId(int $provinceId, string $municipalityName = null)
+    // {
+    //     $province = Province::find($provinceId);
+    //     if ($province && $province->region->name !== 'NCR') {
+    //         return null;
+    //     }
+
+    //     if (!$municipalityName) {
+    //         throw new \Exception("Municipality name is required for NCR province.");
+    //     }
+
+    //     $municipality = Municipality::where('name', $municipalityName)
+    //         ->where('province_id', $provinceId)
+    //         ->whereNull('deleted_at')
+    //         ->first();
+
+    //     if (!$municipality) {
+    //         throw new \Exception("Municipality with name '{$municipalityName}' in province ID '{$provinceId}' not found. No changes were saved.");
+    //     }
+
+    //     return $municipality->id;
+    // }
+    public function getMunicipalityId(int $provinceId, string $municipalityName)
     {
         $municipality = Municipality::where('name', $municipalityName)
-            ->where('code', $code)
             ->where('province_id', $provinceId)
             ->whereNull('deleted_at')
             ->first();
 
         if (!$municipality) {
-            throw new \Exception("Municipality with name '{$municipalityName}' in province ID '{$provinceId}' not found. No changes were saved.");
+            Log::info("Creating new municipality: '{$municipalityName}' in province ID '{$provinceId}'");
+
+            $municipality = Municipality::create([
+                'name' => $municipalityName,
+                'province_id' => $provinceId,
+            ]);
         }
 
         return $municipality->id;
     }
+
+
+
+
 }

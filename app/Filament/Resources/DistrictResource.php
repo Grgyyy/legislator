@@ -150,8 +150,13 @@ class DistrictResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('municipality.name')
+                    ->label('Municipality')
+                    ->getStateUsing(function ($record) {
+                        return $record->municipality->pluck('name')->join(', ');
+                    })
                     ->searchable()
                     ->toggleable(),
+
 
                 TextColumn::make('province.name')
                     ->searchable()
@@ -178,7 +183,7 @@ class DistrictResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
@@ -230,12 +235,16 @@ class DistrictResource extends Resource
                                 ->withColumns([
                                     Column::make('code')->heading('Code'),
                                     Column::make('name')->heading('District'),
-                                    Column::make('municipality.name')->heading('Municipality'),
+                                    // Adjusting municipality to handle many-to-many relationship
+                                    // Column::make('municipalities')->heading('Municipality')
+                                    //     ->getStateUsing(function ($record) {
+                                    //         return $record->municipality->pluck('name')->join(', ');
+                                    //     }),
                                     Column::make('province.name')->heading('Province'),
                                     Column::make('province.region.name')->heading('Region'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - District')
-                        ]),
+                        ])
                 ]),
             ]);
     }
