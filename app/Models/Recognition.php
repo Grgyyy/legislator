@@ -13,4 +13,10 @@ class Recognition extends Model
     protected $fillable = [
         'name',
     ];
+
+    public function tvis()
+    {
+        return $this->belongsToMany(Tvi::class, 'institution_recognitions')
+            ->withTimestamps();
+    }
 }
