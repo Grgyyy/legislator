@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Imports;
 
 use App\Models\District;
@@ -46,8 +45,8 @@ class ParticularImport implements ToModel, WithHeadingRow
                 if (!$particularExists) {
                     return new Particular([
                         'sub_particular_id' => $sub_particular_id,
-                        'district_id' => $district_id,
                         'partylist_id' => $partylist_id,
+                        'district_id' => $district_id,
                     ]);
                 }
 

@@ -127,9 +127,9 @@ class AbddResource extends Resource
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('ABDD Sector'),
-                                    Column::make('provinces.name')
-                                        ->heading('ABDD Sector')
-                                        ->getStateUsing(fn($record) => $record->provinces->pluck('name')->implode(', ')),
+                                    // Column::make('provinces.name')
+                                    //     ->heading('ABDD Sector')
+                                    //     ->getStateUsing(fn($record) => $record->provinces->pluck('name')->implode(', ')),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - ABDD Sector')
                         ]),

@@ -163,7 +163,7 @@ class LegislatorResource extends Resource
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Legislator'),
-                                    Column::make('particular.name')
+                                    Column::make('particular_name')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
                                             if (!$record->particular) {
@@ -172,8 +172,8 @@ class LegislatorResource extends Resource
 
                                             return $record->particular->map(function ($particular) {
                                                 $district = $particular->district;
-                                                $municipality = $district ? $district->municipality : null;
-
+                                                $municipality = $district ? $district->municipality()->first() : null; // Ensure it gets a single model
+                                
                                                 $subParticular = $particular->subParticular ? $particular->subParticular->name : null;
                                                 $formattedName = '';
 
@@ -195,7 +195,8 @@ class LegislatorResource extends Resource
                                         })
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Legislator'),
-                        ]),
+                        ])
+
                 ]),
             ]);
     }
@@ -223,12 +224,11 @@ class LegislatorResource extends Resource
             $municipality = $item->district->underMunicipality->name;
             $provinceName = $item->district->province->name ?? 'Unknown Province';
 
-                if ($municipality) {
-                    $formattedName = "{$subParticular} - {$districtName}, {$municipality}, {$provinceName}";
-                }
-                else {
-                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}";
-                }
+            if ($municipality) {
+                $formattedName = "{$subParticular} - {$districtName}, {$municipality}, {$provinceName}";
+            } else {
+                $formattedName = "{$subParticular} - {$districtName}, {$provinceName}";
+            }
         } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
             $districtName = $item->district->name ?? 'Unknown District';
             $provinceName = $item->district->province->name ?? 'Unknown Province';
@@ -248,7 +248,7 @@ class LegislatorResource extends Resource
             $districtName = $particular->district->name ?? 'Unknown District';
             $provinceName = $particular->district->province->name ?? 'Unknown Province';
             $regionName = $particular->district->province->region->name ?? 'Unknown Region';
-            
+
             $municipalityName = $particular->district->underMunicipality->name ?? null;
 
             $paddingTop = ($index > 0) ? 'padding-top: 15px;' : '';

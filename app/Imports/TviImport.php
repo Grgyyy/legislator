@@ -51,10 +51,10 @@ class TviImport implements ToModel, WithHeadingRow
                         'institution_class_id' => $institutionClassId,
                         'tvi_class_id' => $tviClassId,
                         'district_id' => $districtId,
+                        'municipality_id' => $municipalityId,
                         'address' => $row['full_address'],
                     ]);
-                }
-                else {
+                } else {
                     $tviRecord->update([
                         'institution_class_id' => $institutionClassId,
                         'tvi_class_id' => $tviClassId,
@@ -64,8 +64,8 @@ class TviImport implements ToModel, WithHeadingRow
                     return $tviRecord;
 
                 }
-                
-                
+
+
             } catch (Throwable $e) {
                 DB::rollBack(); // Rollback the transaction in case of error
                 Log::error("An error occurred while importing row: " . json_encode($row) . " Error: " . $e->getMessage());
@@ -85,7 +85,8 @@ class TviImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function getInstitutionClassA(string $institutionClassA) {
+    protected function getInstitutionClassA(string $institutionClassA)
+    {
         $class = TviClass::where('name', $institutionClassA)
             ->whereNull('deleted_at')
             ->first();
@@ -97,7 +98,8 @@ class TviImport implements ToModel, WithHeadingRow
         return $class->id;
     }
 
-    protected function getInstitutionClassB(string $institutionClassB) {
+    protected function getInstitutionClassB(string $institutionClassB)
+    {
         $class = InstitutionClass::where('name', $institutionClassB)
             ->whereNull('deleted_at')
             ->first();
@@ -136,6 +138,7 @@ class TviImport implements ToModel, WithHeadingRow
         return $province->id;
     }
 
+
     protected function getMunicipalityId(int $provinceId, string $municipalityName)
     {
         $municipality = Municipality::where('name', $municipalityName)
@@ -144,26 +147,66 @@ class TviImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$municipality) {
-            throw new \Exception("Municipality with name '{$municipalityName}' in province ID '{$provinceId}' not found. No changes were saved.");
+            Log::warning("Municipality not found. Using default ID.", [
+                'municipality_name' => $municipalityName,
+                'province_id' => $provinceId,
+            ]);
+
+            return null;
         }
 
         return $municipality->id;
     }
 
+
+    // protected function getMunicipalityId(int $provinceId, string $municipalityName)
+    // {
+    //     $municipality = Municipality::where('name', $municipalityName)
+    //         ->where('province_id', $provinceId)
+    //         ->whereNull('deleted_at')
+    //         ->first();
+
+    //     if (!$municipality) {
+    //         throw new \Exception("Municipality with name '{$municipalityName}' in province ID '{$provinceId}' not found. No changes were saved.");
+    //     }
+
+    //     return $municipality->id;
+    // }
+
+    // protected function getDistrictId(int $municipalityId, string $districtName)
+    // {
+    //     $fullDistrictName = $districtName . ' ' . 'District'; // Concatenate the district name with 'District'
+
+    //     $district = District::where('name', $fullDistrictName)
+    //         ->where('municipality_id', $municipalityId)
+    //         ->whereNull('deleted_at')
+    //         ->first();
+
+    //     if (!$district) {
+    //         throw new \Exception("District with name '{$fullDistrictName}' in municipality ID '{$municipalityId}' not found. No changes were saved.");
+    //     }
+
+    //     return $district->id;
+    // }
+
     protected function getDistrictId(int $municipalityId, string $districtName)
     {
-        $fullDistrictName = $districtName . ' ' . 'District'; // Concatenate the district name with 'District'
-
-        $district = District::where('name', $fullDistrictName)
+        $district = District::where('name', $districtName)
             ->where('municipality_id', $municipalityId)
             ->whereNull('deleted_at')
             ->first();
 
         if (!$district) {
-            throw new \Exception("District with name '{$fullDistrictName}' in municipality ID '{$municipalityId}' not found. No changes were saved.");
+            Log::error("District not found.", [
+                'district_name' => $districtName,
+                'municipality_id' => $municipalityId
+            ]);
+
+            throw new \Exception("District with name '{$districtName}' in municipality ID '{$municipalityId}' not found. No changes were saved.");
         }
 
         return $district->id;
     }
+
 
 }

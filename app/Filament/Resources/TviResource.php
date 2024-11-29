@@ -59,7 +59,7 @@ class TviResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('School ID'),
-                
+
                 TextInput::make("name")
                     ->label('Institution')
                     ->placeholder(placeholder: 'Enter institution name')
@@ -78,29 +78,29 @@ class TviResource extends Resource
                     ->native(false)
                     ->options(function () {
                         $tviClasses = TviClass::all();
-                    
+
                         $institutionTypes = [
                             'Private' => 1,
-                            'Public'  => 2,
+                            'Public' => 2,
                         ];
-                    
+
                         $getClassOptions = function ($typeId) use ($tviClasses) {
                             return $tviClasses
                                 ->where('tvi_type_id', $typeId)
                                 ->pluck('name', 'id')
                                 ->toArray();
                         };
-                    
+
                         $privateClasses = $getClassOptions($institutionTypes['Private']);
                         $publicClasses = $getClassOptions($institutionTypes['Public']);
-                    
+
                         return [
                             'Private' => $privateClasses ?: ['no_private_class' => 'No Private Institution Class Available'],
-                            'Public'  => $publicClasses  ?: ['no_public_class' => 'No Public Institution Class Available'],
+                            'Public' => $publicClasses ?: ['no_public_class' => 'No Public Institution Class Available'],
                         ];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_private_class' || $value === 'no_public_class'),
-                
+
                 Select::make('institution_class_id')
                     ->label("Institution Class (B)")
                     ->relationship('InstitutionClass', 'name')
@@ -115,7 +115,7 @@ class TviResource extends Resource
                             ->toArray() ?: ['no_institution_class' => 'No Institution Class (B) Available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_institution_class'),
-                
+
                 Select::make('district_id')
                     ->label('District')
                     ->required()
@@ -137,9 +137,9 @@ class TviResource extends Resource
                             ->toArray() ?: ['no_district' => 'No District Available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_district')
-                    ->reactive()  
+                    ->reactive()
                     ->afterStateUpdated(function ($state, $get, $set) {
-                        $set('municipality_id', null);  
+                        $set('municipality_id', null);
                     }),
 
                 Select::make('municipality_id')
@@ -151,32 +151,32 @@ class TviResource extends Resource
                     ->native(false)
                     ->options(function ($get) {
                         $districtId = $get('district_id');
-                        
+
                         if ($districtId) {
                             return Municipality::whereHas('district', function ($query) use ($districtId) {
                                 $query->where('district_id', $districtId);
                             })
-                            ->get()
-                            ->mapWithKeys(function (Municipality $municipality) {
-                                $label = $municipality->name . ' - ' . $municipality->province->name;
-                                return [$municipality->id => $label];
-                            })
-                            ->toArray() ?: ['no_municipality' => 'No Municipality Available'];
+                                ->get()
+                                ->mapWithKeys(function (Municipality $municipality) {
+                                    $label = $municipality->name . ' - ' . $municipality->province->name;
+                                    return [$municipality->id => $label];
+                                })
+                                ->toArray() ?: ['no_municipality' => 'No Municipality Available'];
                         }
-                        
+
                         return ['no_municipality' => 'No Municipality Available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_municipality')
                     ->reactive()  // Make this field reactive
                     ->afterStateUpdated(function ($state, $get) {
                         if ($get('district_id') === null) {
-                            $get('municipality_id')->reset(); 
+                            $get('municipality_id')->reset();
                         }
                     }),
 
-                
 
-                    
+
+
                 TextInput::make("address")
                     ->label("Full Address")
                     ->placeholder(placeholder: 'Enter institution address')
@@ -202,7 +202,7 @@ class TviResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                    
+
                 TextColumn::make("tviClass.name")
                     ->label('Institution Class(A)')
                     ->sortable()
@@ -219,19 +219,19 @@ class TviResource extends Resource
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $district = $record->district;
-                
+
                         if (!$district) {
                             return 'No District Information';
                         }
                         $province = $district->province;
-                
+
                         $municipalityName = $record->municipality ? $record->municipality->name : '-';
                         $districtName = $district->name;
                         $provinceName = $province ? $province->name : '-';
-                
+
                         return "{$municipalityName} - {$districtName}, {$provinceName}";
                     }),
-                
+
 
                 TextColumn::make("address")
                     ->searchable()
@@ -253,7 +253,7 @@ class TviResource extends Resource
                                                 ->placeholder('All')
                                                 ->relationship('tviClass', 'name')
                                                 ->reactive(),
-                                            
+
                                             Select::make('institution_class_id')
                                                 ->label("Class (B)")
                                                 ->placeholder('All')
@@ -272,13 +272,13 @@ class TviResource extends Resource
                                                     $set('district_id', null);
                                                 })
                                                 ->reactive(),
-                                    
+
                                             Select::make('municipality_id')
                                                 ->label('Municipality')
                                                 ->placeholder('All')
                                                 ->options(function ($get) {
                                                     $provinceId = $get('province_id');
-                                                    
+
                                                     return Municipality::where('province_id', $provinceId)
                                                         ->pluck('name', 'id');
                                                 })
@@ -294,15 +294,15 @@ class TviResource extends Resource
                         return $query
                             ->when(
                                 $data['tvi_class_id'] ?? null,
-                                fn (Builder $query, $tviClassId) => $query->where('tvi_class_id', $tviClassId)
+                                fn(Builder $query, $tviClassId) => $query->where('tvi_class_id', $tviClassId)
                             )
                             ->when(
                                 $data['institution_class_id'] ?? null,
-                                fn (Builder $query, $institutionClassId) => $query->where('institution_class_id', $institutionClassId)
+                                fn(Builder $query, $institutionClassId) => $query->where('institution_class_id', $institutionClassId)
                             )
                             ->when(
                                 $data['province_id'] ?? null,
-                                fn (Builder $query, $provinceId) => $query->whereHas('district', function (Builder $query) use ($provinceId) {
+                                fn(Builder $query, $provinceId) => $query->whereHas('district', function (Builder $query) use ($provinceId) {
                                     $query->whereHas('municipality', function (Builder $query) use ($provinceId) {
                                         $query->where('province_id', $provinceId);
                                     });
@@ -310,13 +310,13 @@ class TviResource extends Resource
                             )
                             ->when(
                                 $data['municipality_id'] ?? null,
-                                fn (Builder $query, $municipalityId) => $query->whereHas('district', function (Builder $query) use ($municipalityId) {
+                                fn(Builder $query, $municipalityId) => $query->whereHas('district', function (Builder $query) use ($municipalityId) {
                                     $query->where('municipality_id', $municipalityId);
                                 })
                             )
                             ->when(
                                 $data['district_id'] ?? null,
-                                fn (Builder $query, $districtId) => $query->where('district_id', $districtId)
+                                fn(Builder $query, $districtId) => $query->where('district_id', $districtId)
                             );
                     })
                     ->indicateUsing(function (array $data): array {
@@ -325,23 +325,23 @@ class TviResource extends Resource
                         if (!empty($data['tvi_class_id'])) {
                             $indicators[] = 'Institution Class (A): ' . Optional(TviClass::find($data['tvi_class_id']))->name;
                         }
-                
+
                         if (!empty($data['institution_class_id'])) {
                             $indicators[] = 'Institution Class (B): ' . Optional(InstitutionClass::find($data['institution_class_id']))->name;
                         }
-                
+
                         if (!empty($data['province_id'])) {
                             $indicators[] = 'Province: ' . Province::find($data['province_id'])->name;
                         }
-                
+
                         if (!empty($data['municipality_id'])) {
                             $indicators[] = 'Municipality: ' . Municipality::find($data['municipality_id'])->name;
                         }
-                
+
                         if (!empty($data['district_id'])) {
                             $indicators[] = 'District: ' . District::find($data['district_id'])->name;
                         }
-                
+
                         return $indicators;
                     })
             ])
@@ -406,14 +406,16 @@ class TviResource extends Resource
                                         ->getStateUsing(function ($record) {
                                             $district = $record->district;
 
-                                            $municipality = $district->municipality;
-                                            $province = $district->municipality->province;
+                                            if (!$district) {
+                                                return 'No District Information';
+                                            }
+                                            $province = $district->province;
 
+                                            $municipalityName = $record->municipality ? $record->municipality->name : '-';
                                             $districtName = $district->name;
-                                            $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-                                            $provinceName = $province ? $province->name : 'Unknown Province';
+                                            $provinceName = $province ? $province->name : '-';
 
-                                            return "{$districtName} - {$municipalityName}, {$provinceName}";
+                                            return "{$municipalityName} - {$districtName}, {$provinceName}";
                                         }),
                                     Column::make('address')
                                         ->heading('Address'),

@@ -198,16 +198,26 @@ class ParticularResource extends Resource
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
-                                Column::make('name')
+                                Column::make('subParticular.name')
                                     ->heading('Legislator'),
-                                Column::make('district.municipality.name')
-                                    ->heading('District'),
+                                Column::make('subParticular.fundSource.name')
+                                    ->heading('Fund Source'),
+                                Column::make('partylist.name')
+                                    ->heading('Party-list'),
                                 Column::make('district.name')
+                                    ->heading('District'),
+                                Column::make('district.underMunicipality.name')
                                     ->heading('Municipality'),
-                                Column::make('district.municipality.province.name')
+                                // ->getStateUsing(function ($record) {
+                                //     return $record->municipality->pluck('name')->join(', ');
+                                // }),
+                                Column::make('district.province.name')
                                     ->heading('Province'),
-                                Column::make('district.municipality.province.region.name')
+                                Column::make('district.province.region.name')
                                     ->heading('Region'),
+
+
+
                             ])
                             ->withFilename(date('m-d-Y') . ' - Particular')
                     ]),
@@ -299,8 +309,7 @@ class ParticularResource extends Resource
                                 . ", " . $provinceName
                                 . ", " . $regionName
                         ];
-                    }
-                    else {
+                    } else {
                         return [
                             $district->id => $district->name
                                 . " - " . $provinceName

@@ -26,10 +26,14 @@ class RegionImport implements ToModel, WithHeadingRow
         return DB::transaction(function () use ($row) {
             try {
 
-                $regionIsExist = Region::where('name', $row['region'])->exists();
+                $regionIsExist = Region::where('code', $row['code'])
+                    ->where('name', $row['region'])
+                    ->exists();
+
 
                 if (!$regionIsExist) {
                     return new Region([
+                        'code' => $row['code'],
                         'name' => $row['region'],
                     ]);
                 }
@@ -45,7 +49,7 @@ class RegionImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        if (empty($row['region'])) {
+        if (empty($row['code']) && ($row['region'])) {
             throw new \Exception("Validation error: The field 'region' is required and cannot be null or empty. No changes were saved.");
         }
     }
