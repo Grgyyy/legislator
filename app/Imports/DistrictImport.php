@@ -75,7 +75,7 @@ class DistrictImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['code', 'district', 'municipality', 'province', 'region'];
+        $requiredFields = ['district', 'municipality', 'province', 'region'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {

@@ -97,25 +97,24 @@ class MunicipalityResource extends Resource
                     ->multiple()
                     ->native(false)
                     ->options(function (callable $get) {
-                        $selectedProvince = $get('province_id'); // Get the selected province
-            
+                        $selectedProvince = $get('province_id');
+
                         if (!$selectedProvince) {
                             return ['no_district' => 'No districts available. Select a province first.'];
                         }
 
-                        // Retrieve districts with their first associated municipality name
                         return District::with('municipality')
                             ->where('province_id', $selectedProvince)
                             ->whereNot('name', 'Not Applicable')
                             ->get()
                             ->mapWithKeys(function ($district) {
-                            $municipalityName = $district->underMunicipality->name ?? null;
-                            return [
-                                $district->id => $municipalityName
-                                    ? "{$district->name} - {$municipalityName}"
-                                    : "{$district->name}"
-                            ];
-                        })
+                                $municipalityName = $district->underMunicipality->name ?? null;
+                                return [
+                                    $district->id => $municipalityName
+                                        ? "{$district->name} - {$municipalityName}"
+                                        : "{$district->name}"
+                                ];
+                            })
                             ->toArray();
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_district')

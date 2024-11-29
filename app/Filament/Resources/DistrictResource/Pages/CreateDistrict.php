@@ -26,8 +26,8 @@ class CreateDistrict extends CreateRecord
             $district = District::create([
                 'name' => $data['name'],
                 'code' => $data['code'],
-                'province_id' => $data['province_id'],
                 'municipality_id' => $data['municipality_id'] ?? null,
+                'province_id' => $data['province_id'],
             ]);
 
             if (!empty($data['municipality_id'])) {
