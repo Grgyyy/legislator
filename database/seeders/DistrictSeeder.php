@@ -12,8 +12,8 @@ class DistrictSeeder extends Seeder
     {
 
         $provinces = DB::table('provinces')
-        ->where('name', 'Not Applicable')
-        ->pluck('id');
+            ->where('name', 'Not Applicable')
+            ->pluck('id');
 
         foreach ($provinces as $provinceId) {
             $districtExists = DB::table('districts')
