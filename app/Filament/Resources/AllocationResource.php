@@ -205,26 +205,26 @@ class AllocationResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                    TextColumn::make("particular.name")
+                TextColumn::make("particular.name")
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $particular = $record->particular;
-                
+
                         if (!$particular) {
                             return ['no_particular' => 'No particular available'];
                         }
-                
+
                         $district = $particular->district;
                         $municipality = $district ? $district->underMunicipality : null;
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
                         $provinceName = $district ? $district->province->name : 'Unknown Province';
                         $regionName = $district ? $district->province->region->name : 'Unknown Region';
-                
+
                         $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
-                
+
                         $formattedName = '';
-                
+
                         if ($subParticular === 'Party-list') {
                             $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
                             $formattedName = "{$subParticular} - {$partylistName}";
@@ -241,9 +241,9 @@ class AllocationResource extends Resource
                         } else {
                             $formattedName = "{$subParticular} - {$regionName}";
                         }
-                
+
                         return $formattedName;
-                    }),                
+                    }),
 
                 TextColumn::make("scholarship_program.name")
                     ->label('Scholarship Program')
@@ -275,15 +275,15 @@ class AllocationResource extends Resource
                     ->sortable()
                     ->toggleable()
                     ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),    
-                
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+
                 TextColumn::make("attribution_received")
                     ->label('Attribution Received')
                     ->sortable()
                     ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-                    
+
                 TextColumn::make("year")
                     ->sortable()
                     ->searchable()
@@ -324,7 +324,7 @@ class AllocationResource extends Resource
                             )
                             ->when(
                                 $data['scholarship_program_id'] ?? null,
-                                fn (Builder $query, $scholarship_program_id) => $query->where('scholarship_program_id', $scholarship_program_id)
+                                fn(Builder $query, $scholarship_program_id) => $query->where('scholarship_program_id', $scholarship_program_id)
                             )
                             ->when(
                                 $data['year'] ?? null,
@@ -393,6 +393,57 @@ class AllocationResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected allocations have been deleted permanently.');
                         }),
+                    // ExportBulkAction::make()
+                    //     ->exports([
+                    //         ExcelExport::make()
+                    //             ->withColumns([
+                    //                 Column::make('soft_or_commitment')
+                    //                     ->heading('Soft of Commitment'),
+                    //                 Column::make('legislator.name')
+                    //                     ->heading('Legislator'),
+                    //                 Column::make('particular.name')
+                    //                     ->heading('Particular')
+                    //                     ->getStateUsing(function ($record) {
+                    //                         $particular = $record->particular;
+
+                    //                         if (!$particular) {
+                    //                             return ['no_particular' => 'No particular available'];
+                    //                         }
+
+                    //                         $district = $particular->district;
+                    //                         $municipality = $district ? $district->municipality : null;
+                    //                         $province = $municipality ? $municipality->province : null;
+
+                    //                         $districtName = $district ? $district->name : '-';
+                    //                         $municipalityName = $municipality ? $municipality->name : '-';
+                    //                         $provinceName = $province ? $province->name : '-';
+
+                    //                         $subParticular = $particular->subParticular->name ?? '-';
+
+                    //                         if ($subParticular === 'Party-list') {
+                    //                             return "{$subParticular} - {$particular->partylist->name}";
+                    //                         } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                    //                             return "{$subParticular}";
+                    //                         } else {
+                    //                             return "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                    //                         }
+                    //                     }),
+                    //                 Column::make('scholarship_program.name')
+                    //                     ->heading('Scholarship Program'),
+                    //                 Column::make('allocation')
+                    //                     ->heading('Allocation')
+                    //                     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                    //                 Column::make('admin_cost')
+                    //                     ->heading('Admin Cost')
+                    //                     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                    //                 Column::make('balance')
+                    //                     ->heading('Balance')
+                    //                     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                    //                 Column::make('year')
+                    //                     ->heading('Year'),
+                    //             ])
+                    //             ->withFilename(date('m-d-Y') . ' - Allocations')
+                    //     ]),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -411,22 +462,34 @@ class AllocationResource extends Resource
                                             }
 
                                             $district = $particular->district;
-                                            $municipality = $district ? $district->municipality : null;
-                                            $province = $municipality ? $municipality->province : null;
+                                            $municipality = $district ? $district->underMunicipality : null;
+                                            $districtName = $district ? $district->name : 'Unknown District';
+                                            $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                                            $provinceName = $district ? $district->province->name : 'Unknown Province';
+                                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
 
-                                            $districtName = $district ? $district->name : '-';
-                                            $municipalityName = $municipality ? $municipality->name : '-';
-                                            $provinceName = $province ? $province->name : '-';
+                                            $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
 
-                                            $subParticular = $particular->subParticular->name ?? '-';
+                                            $formattedName = '';
 
                                             if ($subParticular === 'Party-list') {
-                                                return "{$subParticular} - {$particular->partylist->name}";
+                                                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                                                $formattedName = "{$subParticular} - {$partylistName}";
                                             } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                                                return "{$subParticular}";
+                                                $formattedName = "{$subParticular}";
+                                            } elseif ($subParticular === 'District') {
+                                                if ($municipalityName) {
+                                                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                                } else {
+                                                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
+                                                }
+                                            } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                                                $formattedName = "{$subParticular} - {$regionName}";
                                             } else {
-                                                return "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                                $formattedName = "{$subParticular} - {$regionName}";
                                             }
+
+                                            return $formattedName;
                                         }),
                                     Column::make('scholarship_program.name')
                                         ->heading('Scholarship Program'),
@@ -439,11 +502,18 @@ class AllocationResource extends Resource
                                     Column::make('balance')
                                         ->heading('Balance')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('attribution_sent')
+                                        ->heading('Attribution Sent')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('attribution_received')
+                                        ->heading('Attribution Received')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Allocations')
                         ]),
+
                 ]),
             ]);
     }
