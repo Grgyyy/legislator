@@ -24,6 +24,7 @@ use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
 use Filament\Navigation\MenuItem;
 use Illuminate\Support\Facades\Storage;
 use Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage;
+use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -84,7 +85,8 @@ class AdminPanelProvider extends PanelProvider
                         value: true,
                         directory: 'public/images/avatars',
                         rules: 'mimes:jpeg,png|max:1024',
-                    )
+                    ),
+                FilamentApexChartsPlugin::make()
             ])
             ->userMenuItems([
                 'profile' => MenuItem::make()
