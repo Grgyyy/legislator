@@ -66,7 +66,7 @@ class AllocationResource extends Resource
                     ->options(function () {
                         return Legislator::all()
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_legislator' => 'No Legislator Available'];
+                            ->toArray() ?: ['no_legislator' => 'No legislator available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                     ->afterStateUpdated(function (callable $set, $state) {
@@ -80,6 +80,7 @@ class AllocationResource extends Resource
                             $set('particular_id', key($particulars));
                         }
                     })
+                    ->reactive()
                     ->live(),
 
                 Select::make('particular_id')
@@ -94,7 +95,7 @@ class AllocationResource extends Resource
 
                         return $legislatorId
                             ? self::getParticularOptions($legislatorId)
-                            : ['no_particular' => 'No Particular available. Select a legislator first.'];
+                            : ['no_particular' => 'No particular available. Select a legislator first.'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_particular')
                     ->reactive()
@@ -111,7 +112,7 @@ class AllocationResource extends Resource
                     ->options(function () {
                         return ScholarshipProgram::all()
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_scholarship_program' => 'No Scholarship Program Available'];
+                            ->toArray() ?: ['no_scholarship_program' => 'No scholarship program available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
 
@@ -134,6 +135,7 @@ class AllocationResource extends Resource
                         $set('balance', $state - $adminCost);
                     })
                     ->debounce(600)
+                    ->reactive()
                     ->live()
                     ->validationAttribute('Allocation')
                     ->validationMessages([
@@ -191,10 +193,11 @@ class AllocationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no allocations available')
+            ->emptyStateHeading('No allocations available')
             ->columns([
                 TextColumn::make('soft_or_commitment')
                     ->label('Source of Fund')
+                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make("legislator.name")
@@ -208,7 +211,7 @@ class AllocationResource extends Resource
                         $particular = $record->particular;
                 
                         if (!$particular) {
-                            return 'No Particular Available';
+                            return ['no_particular' => 'No particular available'];
                         }
                 
                         $district = $particular->district;
@@ -245,6 +248,7 @@ class AllocationResource extends Resource
                 TextColumn::make("scholarship_program.name")
                     ->label('Scholarship Program')
                     ->sortable()
+                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make("allocation")
@@ -267,30 +271,27 @@ class AllocationResource extends Resource
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
                 TextColumn::make("attribution_sent")
+                    ->label('Attribution Sent')
                     ->sortable()
-                    // ->toggleable()
+                    ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),    
                 
                 TextColumn::make("attribution_received")
+                    ->label('Attribution Received')
                     ->sortable()
-                    // ->toggleable()
+                    ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                     
-                    
                 TextColumn::make("year")
                     ->sortable()
+                    ->searchable()
                     ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
-
-                SelectFilter::make('scholarship_program')
-                    ->label('Scholarship Program')
-                    ->relationship('scholarship_program', 'name'),
-
 
                 Filter::make('allocation')
                     ->form([
@@ -301,6 +302,12 @@ class AllocationResource extends Resource
                                 'Soft' => 'Soft',
                                 'Commitment' => 'Commitment'
                             ])
+                            ->reactive(),
+
+                        Select::make('scholarship_program')
+                            ->label('Scholarship Program')
+                            ->placeholder('All')
+                            ->relationship('scholarship_program', 'name')
                             ->reactive(),
 
                         TextInput::make('year')
@@ -316,6 +323,10 @@ class AllocationResource extends Resource
                                 fn(Builder $query, $source_of_fund) => $query->where('soft_or_commitment', $source_of_fund)
                             )
                             ->when(
+                                $data['scholarship_program_id'] ?? null,
+                                fn (Builder $query, $scholarship_program_id) => $query->where('scholarship_program_id', $scholarship_program_id)
+                            )
+                            ->when(
                                 $data['year'] ?? null,
                                 fn(Builder $query, $year) => $query->where('year', $year)
                             );
@@ -325,6 +336,10 @@ class AllocationResource extends Resource
 
                         if (!empty($data['year'])) {
                             $indicators[] = 'Allocation Year: ' . $data['year'];
+                        }
+
+                        if (!empty($data['scholarship_program'])) {
+                            $indicators[] = 'Scholarship Program: ' . Optional(ScholarshipProgram::find($data['scholarship_program']))->name;
                         }
 
                         if (!empty($data['source_of_fund'])) {
@@ -392,18 +407,18 @@ class AllocationResource extends Resource
                                             $particular = $record->particular;
 
                                             if (!$particular) {
-                                                return ['no_particular' => 'No Particular Available'];
+                                                return ['no_particular' => 'No particular available'];
                                             }
 
                                             $district = $particular->district;
                                             $municipality = $district ? $district->municipality : null;
                                             $province = $municipality ? $municipality->province : null;
 
-                                            $districtName = $district ? $district->name : 'Unknown District';
-                                            $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-                                            $provinceName = $province ? $province->name : 'Unknown Province';
+                                            $districtName = $district ? $district->name : '-';
+                                            $municipalityName = $municipality ? $municipality->name : '-';
+                                            $provinceName = $province ? $province->name : '-';
 
-                                            $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
+                                            $subParticular = $particular->subParticular->name ?? '-';
 
                                             if ($subParticular === 'Party-list') {
                                                 return "{$subParticular} - {$particular->partylist->name}";
@@ -436,13 +451,13 @@ class AllocationResource extends Resource
     private static function getParticularOptions($legislatorId)
     {
         if (!$legislatorId) {
-            return ['no_legislator' => 'No Legislator Available'];
+            return ['no_legislator' => 'No legislator available'];
         }
 
         $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
 
         if (!$legislator) {
-            return ['no_legislator' => 'No Legislator Available'];
+            return ['no_legislator' => 'No legislator available'];
         }
 
         return $legislator->particular->mapWithKeys(function ($particular) {
@@ -475,7 +490,7 @@ class AllocationResource extends Resource
             }
 
             return [$particular->id => $formattedName];
-        })->toArray();
+        })->toArray() ?: ['no_particular' => 'No particular available'];
     }
 
 

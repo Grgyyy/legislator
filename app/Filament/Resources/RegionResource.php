@@ -47,29 +47,33 @@ class RegionResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Region'),
+
                 TextInput::make("code")
                     ->label('UACS Code')
-                    ->placeholder('Enter UACS Code')
+                    ->placeholder('Enter UACS code')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Region'),
+                    ->validationAttribute('UACS Code'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no regions available')
+            ->emptyStateHeading('No regions available')
             ->columns([
                 TextColumn::make("code")
-                    ->label("Code")
+                    ->label("UACS Code")
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make("name")
                     ->label("Region")
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.provinces.showProvince', ['record' => $record->id]),
@@ -82,18 +86,21 @@ class RegionResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                        
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Region has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Region has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -110,18 +117,21 @@ class RegionResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected regions have been deleted successfully.');
                         }),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected regions have been restored successfully.');
                         }),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected regions have been deleted permanently.');
                         }),
+
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

@@ -2,32 +2,32 @@
 
 namespace App\Filament\Resources\AttributionTargetResource\Pages;
 
-use App\Filament\Resources\AttributionTargetResource;
-use App\Models\Allocation;
-use App\Models\QualificationTitle;
 use App\Models\Target;
 use App\Models\TargetHistory;
-use DB;
-use Filament\Actions;
+use App\Models\Allocation;
+use App\Models\QualificationTitle;
+use App\Filament\Resources\AttributionTargetResource;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
 
 class CreateAttributionTarget extends CreateRecord
 {
     protected static string $resource = AttributionTargetResource::class;
 
-    public function getBreadcrumbs(): array
-    {
-        return [
-            route('filament.admin.resources.attribution-targets.create') => 'Create Attribution Target',
-            'Create'
-        ];
-    }
-
-    protected static ?string $title = 'Create Attribution Targets';
+    protected static ?string $title = 'Create Attribution Target';
 
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/attribution-targets' => 'Attribution Targets',
+            'Create'
+        ];
     }
 
     protected function handleRecordCreation(array $data): Target
@@ -158,5 +158,4 @@ class CreateAttributionTarget extends CreateRecord
             }
         });
     }
-
 }

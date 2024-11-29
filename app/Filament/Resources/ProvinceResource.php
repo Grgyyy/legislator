@@ -42,12 +42,6 @@ class ProvinceResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('code')
-                    ->label('Province Code')
-                    ->placeholder('Enter province Code')
-                    ->autocomplete(false)
-                    ->validationAttribute('Province'),
-
                 TextInput::make('name')
                     ->label('Province')
                     ->placeholder(placeholder: 'Enter province name')
@@ -55,6 +49,14 @@ class ProvinceResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Province'),
+                
+                TextInput::make('code')
+                    ->label('UACS Code')
+                    ->placeholder('Enter UACS code')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('UACS Code'),
 
                 Select::make('region_id')
                     ->relationship('region', 'name')
@@ -67,7 +69,7 @@ class ProvinceResource extends Resource
                     ->options(function () {
                         return Region::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_region' => 'No Region Available'];
+                            ->toArray() ?: ['no_region' => 'No regions available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_region'),
             ]);
@@ -76,10 +78,10 @@ class ProvinceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no provinces available')
+            ->emptyStateHeading('No provinces available')
             ->columns([
                 TextColumn::make('code')
-                    ->label('Code')
+                    ->label('UACS Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -105,18 +107,21 @@ class ProvinceResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Province has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Province has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -133,18 +138,21 @@ class ProvinceResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected provinces have been deleted successfully.');
                         }),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected provinces have been restored successfully.');
                         }),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected provinces have been deleted permanently.');
                         }),
+
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

@@ -7,7 +7,6 @@ use App\Models\District;
 use App\Models\Province;
 use App\Filament\Resources\MunicipalityResource\Pages;
 use App\Services\NotificationHandler;
-use Filament\Forms\Components\MultiSelect;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -44,64 +43,83 @@ class MunicipalityResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('code')
-                    ->label('Code')
-                    ->placeholder('Enter code name')
-                    ->autocomplete(false),
-
                 TextInput::make('name')
                     ->label('Municipality')
                     ->placeholder('Enter municipality name')
                     ->required()
+                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Municipality'),
+
+                TextInput::make("code")
+                    ->label('UACS Code')
+                    ->placeholder('Enter UACS code')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('UACS Code'),                
 
                 TextInput::make('class')
                     ->label('Municipality Class')
                     ->placeholder('Enter municipality class')
                     ->required()
-                    ->autocomplete(false),
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('Municipality Class'),  
 
                 Select::make('province_id')
                     ->label('Province')
                     ->required()
+                    ->markAsRequired(false)
                     ->searchable()
                     ->preload()
                     ->native(false)
-                    ->options(fn() => Province::whereNot('name', 'Not Applicable')->pluck('name', 'id')->toArray())
+                    ->options(function () {
+                        return Province::whereNot('name', 'Not Applicable')
+                        ->pluck('name', 'id')
+                        ->toArray() ?: ['no_province' => 'No provinces available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_province')
+                    ->afterStateUpdated(function (callable $set) {
+                        $set('district_id', []);
+                    })
                     ->reactive()
-                    ->afterStateUpdated(fn(callable $set) => $set('district_id', [])),
+                    ->live(),
 
-                    MultiSelect::make('district_id')
+                Select::make('district_id')
                     ->label('District')
-                    ->relationship('district', 'name') // Use the `district()` relationship
-                    ->preload()
+                    ->relationship('district', 'name')
+                    ->required()
+                    ->markAsRequired(false)
                     ->searchable()
-                    ->required(false)
+                    ->preload()
+                    ->multiple()
+                    ->native(false)
                     ->options(function (callable $get) {
-                        $selectedProvince = $get('province_id'); // Get the selected province
+                        $selectedProvince = $get('province_id');
                         
                         if (!$selectedProvince) {
-                            return ['no_district' => 'No district available']; // Default if no province is selected
+                            return ['no_district' => 'No districts available. Select a province first.'];
                         }
                 
-                        // Retrieve districts with their first associated municipality name
                         return District::with('municipality')
                             ->where('province_id', $selectedProvince)
-                            ->where('name', '!=', 'Not Applicable')
+                            ->whereNot('name', 'Not Applicable')
                             ->get()
                             ->mapWithKeys(function ($district) {
                                 $municipalityName = $district->underMunicipality->name ?? null; 
+
                                 return [
                                     $district->id => $municipalityName 
                                         ? "{$district->name} - {$municipalityName}" 
                                         : "{$district->name}"
                                 ];
                             })                            
-                            ->toArray();
+                            ->toArray() ?: ['no_district' => 'No districts available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_district')
-                            
+                    ->reactive()
+                    ->live(),
             ]);
     }
 
@@ -109,37 +127,86 @@ class MunicipalityResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('code')->searchable()->toggleable(),
-                TextColumn::make('name')->label('Municipality')->sortable()->searchable()->toggleable(),
-                TextColumn::make('class')->searchable()->toggleable(),
-                TextColumn::make('district')
-                    ->label('District/s')
-                    ->getStateUsing(function ($record) {
-                        return $record->district->map(function ($district) {
-                            $municipalityName = $district->underMunicipality->name ?? null;
-                    
-                            return $municipalityName 
-                                ? "{$district->name} - {$municipalityName}" 
-                                : "{$district->name}";
-                        })->join(', ');
-                    })                    
+                TextColumn::make('code')
+                    ->label('UACS Code')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('province.name')->searchable()->toggleable(),
-                TextColumn::make('province.region.name')->searchable()->toggleable(),
+
+                TextColumn::make('name')
+                    ->label('Municipality')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('class')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('district')
+                    ->label('District')
+                    ->getStateUsing(function ($record) {
+                        $hasMunicipality = $record->district->contains(function ($district) {
+                            return !is_null($district->underMunicipality->name ?? null);
+                        });
+                    
+                        if ($hasMunicipality) {
+                            return $record->district->map(function ($district, $index) use ($record) {
+                                $municipalityName = $district->underMunicipality->name ?? null;
+                                $paddingTop = ($index > 0) ? 'padding-top: 15px;' : '';
+                                $comma = ($index < $record->district->count() - 1) ? ',' : '';
+                                $formattedDistrict = $municipalityName
+                                    ? "{$district->name} - {$municipalityName}"
+                                    : "{$district->name}";
+                    
+                                return '<div style="' . $paddingTop . '">' . $formattedDistrict . $comma . '</div>';
+                            })->implode('');
+                        } else {
+                            $districts = $record->district->pluck('name')->toArray();
+                    
+                            $districtsHtml = array_map(function ($name, $index) use ($districts) {
+                                $comma = ($index < count($districts) - 1) ? ', ' : '';
+                                $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : ''; // Break after every 3 items
+                                $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+                    
+                                return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
+                            }, $districts, array_keys($districts));
+                    
+                            return implode('', $districtsHtml);
+                        }
+                    })
+                    ->html()                    
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('province.name')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('province.region.name')
+                    ->searchable()
+                    ->toggleable(),
             ])
-            ->filters([TrashedFilter::make()->label('Records')])
+            ->filters([
+                TrashedFilter::make()
+                    ->label('Records')
+            ])
             ->actions([
                 ActionGroup::make([
-                    EditAction::make()->hidden(fn($record) => $record->trashed()),
+                    EditAction::make()
+                        ->hidden(fn($record) => $record->trashed()),
+
                     DeleteAction::make()->action(function ($record) {
                         $record->delete();
                         NotificationHandler::sendSuccessNotification('Deleted', 'Municipality has been deleted successfully.');
                     }),
+
                     RestoreAction::make()->action(function ($record) {
                         $record->restore();
                         NotificationHandler::sendSuccessNotification('Restored', 'Municipality has been restored successfully.');
                     }),
+
                     ForceDeleteAction::make()->action(function ($record) {
                         $record->forceDelete();
                         NotificationHandler::sendSuccessNotification('Force Deleted', 'Municipality has been permanently deleted.');
@@ -148,9 +215,27 @@ class MunicipalityResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()->action(fn($records) => $records->each->delete()),
-                    RestoreBulkAction::make()->action(fn($records) => $records->each->restore()),
-                    ForceDeleteBulkAction::make()->action(fn($records) => $records->each->forceDelete()),
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected municipalities have been deleted successfully.');
+                        }),
+
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected municipalities have been restored successfully.');
+                        }),
+
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected municipalities have been deleted permanently.');
+                        }),
+
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
