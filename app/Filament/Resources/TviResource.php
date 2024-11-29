@@ -15,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
@@ -173,9 +174,6 @@ class TviResource extends Resource
                             $get('municipality_id')->reset();
                         }
                     }),
-
-
-
 
                 TextInput::make("address")
                     ->label("Full Address")
@@ -349,6 +347,10 @@ class TviResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    Action::make('viewRecognition')
+                        ->label('View Recognition')
+                        ->url(fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id]))
+                        ->icon('heroicon-o-magnifying-glass'),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();

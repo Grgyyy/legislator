@@ -44,6 +44,7 @@ class InstitutionRecognitionResource extends Resource
                 ->searchable()
                 ->preload()
                 ->native(false)
+                ->default(fn($get) => request()->get('tvi_id'))
                 ->options(function () {
                     return Tvi::whereNot('name', 'Not Applicable')
                         ->pluck('name', 'id')
@@ -120,6 +121,20 @@ class InstitutionRecognitionResource extends Resource
             'index' => Pages\ListInstitutionRecognitions::route('/'),
             'create' => Pages\CreateInstitutionRecognition::route('/create'),
             'edit' => Pages\EditInstitutionRecognition::route('/{record}/edit'),
+            'showRecognition' => Pages\ShowInstitutionRecognition::route('/{record}/recognitions')
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
+
+
+        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            $query->where('tvi_id', (int) $routeParameter);
+        }
+
+        return $query;
     }
 }

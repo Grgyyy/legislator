@@ -9,4 +9,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateInstitutionRecognition extends CreateRecord
 {
     protected static string $resource = InstitutionRecognitionResource::class;
+    
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
