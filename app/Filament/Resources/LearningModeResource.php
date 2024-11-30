@@ -47,6 +47,9 @@ class LearningModeResource extends Resource
                 TextColumn::make('acronym'),
                 TextColumn::make('name')
             ])
+            ->recordUrl(
+                fn($record) => route('filament.admin.resources.delivery-modes.showDeliveryMode', ['record' => $record->id]),
+            )
             ->filters([
                 //
             ])

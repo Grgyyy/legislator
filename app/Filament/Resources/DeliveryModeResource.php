@@ -120,6 +120,21 @@ class DeliveryModeResource extends Resource
             'index' => Pages\ListDeliveryModes::route('/'),
             'create' => Pages\CreateDeliveryMode::route('/create'),
             'edit' => Pages\EditDeliveryMode::route('/{record}/edit'),
+            'showDeliveryMode' => Pages\ShowDeliveryMode::route('/{record}/deliveryModes'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
+
+        $query->withoutGlobalScopes([SoftDeletingScope::class]);
+
+        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            $query->where('learning_mode_id', (int) $routeParameter);
+        }
+
+        return $query;
     }
 }
