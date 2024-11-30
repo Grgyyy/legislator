@@ -12,6 +12,18 @@ class ProvinceAbdd extends Model
     protected $fillable = [
         'province_id',
         'abdd_id',
-        'slots'
+        'available_slots',
+        'total_slots',
+        'year',
     ];
+
+    public function provinces()
+    {
+        return $this->belongsTo(Province::class, 'province_id');
+    }
+
+    public function abdds()
+    {
+        return $this->belongsTo(Abdd::class, 'abdd_id');
+    }
 }

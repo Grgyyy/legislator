@@ -62,7 +62,7 @@ class InstitutionRecognitionResource extends Resource
                     ->options(function () {
                         return Recognition::all()
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_tvi' => 'No recognition available'];
+                            ->toArray() ?: ['no_recognition' => 'No recognition available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_recognition'),
 
