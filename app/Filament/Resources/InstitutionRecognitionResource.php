@@ -134,7 +134,6 @@ class InstitutionRecognitionResource extends Resource
             $query->where('tvi_id', (int) $routeParameter);
         }
 
-        // Sort the query results by year in descending order
         $query->orderBy('year', 'desc');
 
         return $query;
