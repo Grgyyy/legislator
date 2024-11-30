@@ -91,7 +91,7 @@ class InstitutionRecognitionResource extends Resource
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('year')
-                    ->label('Recognition Title')
+                    ->label('Year')
                     ->searchable()
                     ->toggleable(),
             ])
@@ -130,10 +130,12 @@ class InstitutionRecognitionResource extends Resource
         $query = parent::getEloquentQuery();
         $routeParameter = request()->route('record');
 
-
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('tvi_id', (int) $routeParameter);
         }
+
+        // Sort the query results by year in descending order
+        $query->orderBy('year', 'desc');
 
         return $query;
     }
