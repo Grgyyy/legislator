@@ -12,6 +12,7 @@ class DeliveryMode extends Model
 
     protected $fillable = [
         'name',
+        'learning_mode_id'
     ];
 
     public function learningMode()
