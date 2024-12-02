@@ -6,7 +6,7 @@ use App\Models\Target;
 use App\Models\Region;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class CompliantTargetPerRegionChart extends ApexChartWidget
+class TargetsPerRegionChart extends ApexChartWidget
 {
     /**
      * Chart Id
@@ -20,7 +20,7 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Compliant Targets Per Region';
+    protected static ?string $heading = 'Pending, Non- Compliant, and Compliant Targets Per Region';
 
     /**
      * Chart options (series, labels, types, size, animations...)
@@ -28,108 +28,30 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
      *
      * @return array
      */
-    // protected function getOptions(): array
-    // {
-    //     // Fetch compliant targets per region
-    //     $data = Target::query()
-    //         ->whereHas('targetStatus', function ($query) {
-    //             $query->where('desc', 'Compliant');
-    //         })
-    //         ->join('allocations', 'targets.allocation_id', '=', 'allocations.id')
-    //         ->join('particulars', 'allocations.particular_id', '=', 'particulars.id')
-    //         ->join('districts', 'particulars.district_id', '=', 'districts.id')
-    //         ->join('provinces', 'districts.province_id', '=', 'provinces.id')
-    //         ->join('regions', 'provinces.region_id', '=', 'regions.id')
-    //         ->selectRaw('regions.name as region, COUNT(targets.id) as count')
-    //         ->groupBy('regions.name')
-    //         ->get();
-
-    //     $categories = $data->pluck('region')->toArray();
-    //     $seriesData = $data->pluck('count')->toArray();
-
-    //     // return [
-    //     //     'chart' => [
-    //     //         'type' => 'bar',
-    //     //         'height' => 300,
-    //     //     ],
-    //     //     'series' => [
-    //     //         [
-    //     //             'name' => 'Compliant Targets',
-    //     //             'data' => $seriesData,
-    //     //         ],
-    //     //     ],
-    //     //     'xaxis' => [
-    //     //         'categories' => $categories,
-    //     //         'labels' => [
-    //     //             'style' => [
-    //     //                 'fontFamily' => 'inherit',
-    //     //             ],
-    //     //         ],
-    //     //     ],
-    //     //     'yaxis' => [
-    //     //         'labels' => [
-    //     //             'style' => [
-    //     //                 'fontFamily' => 'inherit',
-    //     //             ],
-    //     //         ],
-    //     //     ],
-    //     //     'colors' => ['#4CAF50'], // Green color for compliant
-    //     //     'plotOptions' => [
-    //     //         'bar' => [
-    //     //             'borderRadius' => 3,
-    //     //             'horizontal' => false,
-    //     //         ],
-    //     //     ],
-    //     // ];
-
-    //     return [
-    //         'chart' => [
-    //             'type' => 'bar',
-    //             'height' => 300,
-    //         ],
-    //         'series' => [
-    //             [
-    //                 'name' => 'Compliant Targets',
-    //                 'data' => $seriesData,
-    //             ],
-    //         ],
-    //         'xaxis' => [
-    //             'categories' => $categories,
-    //             'title' => [
-    //                 'text' => 'Name of Region',
-    //                 'style' => [
-    //                     'fontFamily' => 'inherit',
-    //                     'fontWeight' => 'bold',
-    //                     'fontSize' => '14px',
-    //                 ],
-    //             ],
-    //             'labels' => [
-    //                 'style' => [
-    //                     'fontFamily' => 'inherit',
-    //                     'fontSize' => '12px',
-    //                 ],
-    //             ],
-    //         ],
-    //         'yaxis' => [
-    //             'labels' => [
-    //                 'style' => [
-    //                     'fontFamily' => 'inherit',
-    //                 ],
-    //             ],
-    //         ],
-    //         'colors' => ['#4CAF50'],
-    //         'plotOptions' => [
-    //             'bar' => [
-    //                 'borderRadius' => 3,
-    //                 'horizontal' => false,
-    //             ],
-    //         ],
-    //     ];
-
-    // }
-
     protected function getOptions(): array
     {
+        // Fetch compliant, non-compliant, and pending targets per region
+        // $data = Target::query()
+        //     // Join necessary tables to access region data
+        //     ->join('allocations', 'targets.allocation_id', '=', 'allocations.id')
+        //     ->join('particulars', 'allocations.particular_id', '=', 'particulars.id')
+        //     ->join('districts', 'particulars.district_id', '=', 'districts.id')
+        //     ->join('provinces', 'districts.province_id', '=', 'provinces.id')
+        //     ->join('regions', 'provinces.region_id', '=', 'regions.id')
+        //     // Join targetStatus to get the status of the target
+        //     ->join('target_statuses', 'targets.target_status_id', '=', 'target_statuses.id')
+        //     // Group by region and target status to count targets by their status
+        //     ->selectRaw('regions.name as region, target_statuses.desc as status, COUNT(targets.id) as count')
+        //     ->whereIn('target_statuses.desc', ['Compliant', 'Non-Compliant', 'Pending'])
+        //     ->groupBy('regions.name', 'target_statuses.desc')
+        //     ->get();
+
+        // $categories = $data->groupBy('region')->keys()->toArray();
+        // $pendingData = $data->where('status', 'Pending')->pluck('count')->toArray();
+        // $compliantData = $data->where('status', 'Compliant')->pluck('count')->toArray();
+        // $nonCompliantData = $data->where('status', 'Non-Compliant')->pluck('count')->toArray();
+
+
         $categories = [
             'NCR',
             'Region 1',
@@ -147,8 +69,6 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
             'BARMM'
         ];
 
-
-
         $pendingData = [
             10,
             15,
@@ -165,6 +85,7 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
             8,
             3
         ];
+
         $compliantData = [
             45,
             30,
@@ -214,7 +135,7 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
                     ],
                 ],
                 'type' => 'bar',
-                'height' => 300,
+                'height' => 500,
                 'width' => '100%',
                 'toolbar' => [
                     'show' => true,
@@ -222,6 +143,7 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
                     'offsetY' => 0,
                     'tools' => [
                         'download' => true,
+                        // 'download' => '<img src="/static/icons/download.png" class="ico-download" width="20">'
                         'selection' => true,
                         'zoom' => true,
                         'zoomin' => true,
@@ -265,6 +187,12 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
                         ],
                     ],
                 ],
+                'panning' => [
+                    'enabled' => true,
+                    'type' => 'x',
+                    'panBarWidth' => 8,
+                    'flicker' => 50,
+                ],
             ],
             'series' => [
                 [
@@ -275,7 +203,6 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
                     'name' => 'Compliant Targets',
                     'data' => $compliantData,
                 ],
-
                 [
                     'name' => 'Non-Compliant Targets',
                     'data' => $nonCompliantData,
@@ -287,13 +214,13 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
                     'style' => [
                         'fontFamily' => 'inherit',
                         'fontWeight' => 'bold',
-                        'fontSize' => '12px',
+                        'fontSize' => '10px',
                     ],
                 ],
                 'labels' => [
                     'style' => [
                         'fontFamily' => 'inherit',
-                        'fontSize' => '12px',
+                        'fontSize' => '10px',
                     ],
                 ],
             ],
@@ -301,6 +228,7 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
                 'labels' => [
                     'style' => [
                         'fontFamily' => 'inherit',
+                        'fontSize' => '10px',
                     ],
                 ],
             ],
@@ -321,5 +249,4 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
             ],
         ];
     }
-
 }
