@@ -287,7 +287,7 @@ class CompliantTargetPerRegionChart extends ApexChartWidget
                     'style' => [
                         'fontFamily' => 'inherit',
                         'fontWeight' => 'bold',
-                        'fontSize' => '14px',
+                        'fontSize' => '12px',
                     ],
                 ],
                 'labels' => [
