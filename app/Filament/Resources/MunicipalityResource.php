@@ -55,8 +55,6 @@ class MunicipalityResource extends Resource
                 TextInput::make("code")
                     ->label('UACS Code')
                     ->placeholder('Enter UACS code')
-                    ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('UACS Code'),
 

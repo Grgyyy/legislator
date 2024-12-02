@@ -14,12 +14,14 @@ return new class extends Migration
         Schema::create('province_abdds', function (Blueprint $table) {
             $table->id();
             $table->foreignId('province_id')
-                ->constrained()
-                ->cascadeOnDelete();
+                ->constrained('provinces')
+                ->cascadeOnDelete(); 
             $table->foreignId('abdd_id')
-                ->constrained()
-                ->cascadeOnDelete();
-            $table->integer('slots');
+                ->constrained('abdds')
+                ->cascadeOnDelete(); 
+            $table->integer('available_slots');
+            $table->integer('total_slots');
+            $table->year('year');
             $table->timestamps();
         });
     }

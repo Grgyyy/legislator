@@ -56,6 +56,10 @@ class Tvi extends Model
         return $this->hasMany(targetHistory::class);
     }
 
-
+    public function recognitions()
+    {
+        return $this->belongsToMany(Recognition::class, 'institution_recognitions')
+            ->withTimestamps();
+    }
 
 }
