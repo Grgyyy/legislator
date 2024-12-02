@@ -11,7 +11,7 @@ use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 class Dashboard extends BaseDashboard
 {
     use HasFiltersForm;
- 
+
     public function filtersForm(Form $form): Form
     {
         return $form
