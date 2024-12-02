@@ -85,7 +85,7 @@ class MunicipalityResource extends Resource
                     ->reactive()
                     ->live(),
 
-                MultiSelect::make('district_id')
+                Select::make('district_id')
                     ->label('District')
                     ->relationship('district', 'name')
                     ->required()
@@ -113,10 +113,11 @@ class MunicipalityResource extends Resource
                                         : "{$district->name}"
                                 ];
                             })
-                            ->toArray();
+                            ->toArray() ?: ['no_district' => 'No districts available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_district')
-
+                    ->reactive()
+                    ->live(),
             ]);
     }
 
@@ -128,7 +129,8 @@ class MunicipalityResource extends Resource
                     ->label('UACS Code')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => $record->code ?? '-'),
 
                 TextColumn::make('name')
                     ->label('Municipality')
@@ -144,14 +146,44 @@ class MunicipalityResource extends Resource
                 TextColumn::make('district')
                     ->label('District')
                     ->getStateUsing(function ($record) {
-                        return $record->district->map(function ($district) {
-                            $municipalityName = $district->underMunicipality->name ?? null;
+                        $hasMunicipality = $record->district->contains(function ($district) {
+                            return !is_null($district->underMunicipality->name ?? null);
+                        });
+                    
+                        if ($hasMunicipality) {
+                            return $record->district->map(function ($district, $index) use ($record) {
+                                $municipalityName = $district->underMunicipality->name ?? null;
+                                $paddingTop = ($index > 0) ? 'padding-top: 15px;' : '';
+                                $comma = ($index < $record->district->count() - 1) ? ',' : '';
+                                $formattedDistrict = $municipalityName
+                                    ? "{$district->name} - {$municipalityName}"
+                                    : "{$district->name}";
+                    
+                                return '<div style="' . $paddingTop . '">' . $formattedDistrict . $comma . '</div>';
+                            })->implode('');
+                        } else {
+                            $districts = $record->district->pluck('name')->toArray();
 
-                            return $municipalityName
-                                ? "{$district->name} - {$municipalityName}"
-                                : "{$district->name}";
-                        })->join(', ');
+                            $districtsHtml = array_map(function ($name, $index) use ($districts) {
+                                $comma = ($index < count($districts) - 1) ? ', ' : '';
+                                $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+                                $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+                    
+                                return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
+                            }, $districts, array_keys($districts));
+                    
+                            return implode('', $districtsHtml);
+                        }
                     })
+                    ->html()                    
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('province.name')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('province.region.name')
                     ->searchable()
                     ->toggleable(),
             ])
@@ -166,16 +198,19 @@ class MunicipalityResource extends Resource
 
                     DeleteAction::make()->action(function ($record) {
                         $record->delete();
+
                         NotificationHandler::sendSuccessNotification('Deleted', 'Municipality has been deleted successfully.');
                     }),
 
                     RestoreAction::make()->action(function ($record) {
                         $record->restore();
+
                         NotificationHandler::sendSuccessNotification('Restored', 'Municipality has been restored successfully.');
                     }),
 
                     ForceDeleteAction::make()->action(function ($record) {
                         $record->forceDelete();
+
                         NotificationHandler::sendSuccessNotification('Force Deleted', 'Municipality has been permanently deleted.');
                     }),
                 ]),

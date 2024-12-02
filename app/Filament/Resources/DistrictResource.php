@@ -54,8 +54,6 @@ class DistrictResource extends Resource
                 TextInput::make("code")
                     ->label('UACS Code')
                     ->placeholder('Enter UACS code')
-                    ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('UACS Code'),
 
@@ -141,7 +139,8 @@ class DistrictResource extends Resource
                     ->label('UACS Code')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => $record->code ?? '-'),
 
                 TextColumn::make('name')
                     ->label('District')
@@ -161,12 +160,6 @@ class DistrictResource extends Resource
                 TextColumn::make('province.name')
                     ->searchable()
                     ->toggleable(),
-
-                // TextColumn::make('municipality')
-                //     ->label('Municipalities')
-                //     ->getStateUsing(fn($record) => $record->municipalit`y->pluck('name')->join(', '))
-                //     ->searchable()
-                //     ->toggleable(),
 
                 TextColumn::make('province.region.name')
                     ->searchable()
@@ -235,11 +228,6 @@ class DistrictResource extends Resource
                                 ->withColumns([
                                     Column::make('code')->heading('Code'),
                                     Column::make('name')->heading('District'),
-                                    // Adjusting municipality to handle many-to-many relationship
-                                    // Column::make('municipalities')->heading('Municipality')
-                                    //     ->getStateUsing(function ($record) {
-                                    //         return $record->municipality->pluck('name')->join(', ');
-                                    //     }),
                                     Column::make('province.name')->heading('Province'),
                                     Column::make('province.region.name')->heading('Region'),
                                 ])
