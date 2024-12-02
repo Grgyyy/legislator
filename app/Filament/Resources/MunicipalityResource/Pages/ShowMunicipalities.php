@@ -37,7 +37,7 @@ class ShowMunicipalities extends ListRecords
             // Breadcrumbs structure
             $breadcrumbs[route('filament.admin.resources.regions.index', ['record' => $region->id])] = $region->name;
             $breadcrumbs[route('filament.admin.resources.provinces.showProvince', ['record' => $province->id])] = $province->name;
-            $breadcrumbs[route('filament.admin.resources.districts.show', ['record' => $district->id])] = $district->name;
+            $breadcrumbs[route('filament.admin.resources.districts.showDistricts', ['record' => $district->id])] = $district->name;
         }
 
         $breadcrumbs['Municipalities'] = 'Municipalities';
