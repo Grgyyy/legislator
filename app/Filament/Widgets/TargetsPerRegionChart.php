@@ -13,7 +13,9 @@ class TargetsPerRegionChart extends ApexChartWidget
      *
      * @var string
      */
-    protected static ?string $chartId = 'compliantTargetPerRegionChart';
+    protected static ?string $chartId = 'TargetPerRegionChart';
+
+    protected int|string|array $columnSpan = 'full';
 
     /**
      * Widget Title
@@ -22,15 +24,18 @@ class TargetsPerRegionChart extends ApexChartWidget
      */
     protected static ?string $heading = 'Pending, Non- Compliant, and Compliant Targets Per Region';
 
+
     /**
      * Chart options (series, labels, types, size, animations...)
      * https://apexcharts.com/docs/options
      *
      * @return array
      */
+
+
     protected function getOptions(): array
     {
-        // Fetch compliant, non-compliant, and pending targets per region
+
         // $data = Target::query()
         //     // Join necessary tables to access region data
         //     ->join('allocations', 'targets.allocation_id', '=', 'allocations.id')
@@ -135,7 +140,7 @@ class TargetsPerRegionChart extends ApexChartWidget
                     ],
                 ],
                 'type' => 'bar',
-                'height' => 500,
+                'height' => 400,
                 'width' => '100%',
                 'toolbar' => [
                     'show' => true,
@@ -247,6 +252,7 @@ class TargetsPerRegionChart extends ApexChartWidget
                     'useSeriesColors' => true,
                 ],
             ],
+
         ];
     }
 }
