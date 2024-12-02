@@ -51,8 +51,6 @@ class RegionResource extends Resource
                 TextInput::make("code")
                     ->label('UACS Code')
                     ->placeholder('Enter UACS code')
-                    ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('UACS Code'),
             ]);
@@ -67,7 +65,8 @@ class RegionResource extends Resource
                     ->label("UACS Code")
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => $record->code ?? '-'),
 
                 TextColumn::make("name")
                     ->label("Region")

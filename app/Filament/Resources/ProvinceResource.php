@@ -53,8 +53,6 @@ class ProvinceResource extends Resource
                 TextInput::make('code')
                     ->label('UACS Code')
                     ->placeholder('Enter UACS code')
-                    ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('UACS Code'),
 
@@ -84,7 +82,8 @@ class ProvinceResource extends Resource
                     ->label('UACS Code')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => $record->code ?? '-'),
 
                 TextColumn::make('name')
                     ->label('Province')
