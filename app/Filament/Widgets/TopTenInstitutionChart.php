@@ -21,7 +21,7 @@ class TopTenInstitutionChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Top Ten Institutions by by the Sum of Compliant';
+    protected static ?string $heading = 'Top Ten Institutions based on the Sum of Compliant';
 
     /**
      * Chart options (series, labels, types, size, animations...)

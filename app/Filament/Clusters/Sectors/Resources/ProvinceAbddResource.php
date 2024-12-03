@@ -2,22 +2,25 @@
 
 namespace App\Filament\Clusters\Sectors\Resources;
 
+use Filament\Forms;
+use App\Models\Abdd;
+use Filament\Tables;
+use App\Models\Province;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use App\Models\ProvinceAbdd;
+use Filament\Resources\Resource;
 use App\Filament\Clusters\Sectors;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Illuminate\Database\Eloquent\Builder;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Clusters\Sectors\Resources\ProvinceAbddResource\Pages;
 use App\Filament\Clusters\Sectors\Resources\ProvinceAbddResource\RelationManagers;
-use App\Models\Abdd;
-use App\Models\Province;
-use App\Models\ProvinceAbdd;
-use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ProvinceAbddResource extends Resource
 {
@@ -82,23 +85,23 @@ class ProvinceAbddResource extends Resource
             ]);
     }
 
-    
+
 
 
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('provinces.name') 
+                TextColumn::make('provinces.name')
                     ->label('Province Name'),
-                TextColumn::make('abdds.name') 
+                TextColumn::make('abdds.name')
                     ->label('ABDD Name'),
-                TextColumn::make('available_slots') 
+                TextColumn::make('available_slots')
                     ->label('Available Slots'),
-                TextColumn::make('total_slots') 
+                TextColumn::make('total_slots')
                     ->label('Total Slots'),
-                TextColumn::make('year') 
-                    ->label('Total Slots'),
+                TextColumn::make('year')
+                    ->label('Year'),
             ])
             ->filters([
                 //
@@ -109,6 +112,23 @@ class ProvinceAbddResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('provinces.name')
+                                        ->heading('Province Name'),
+                                    Column::make('abdds.name')
+                                        ->heading('ABDD Name'),
+                                    Column::make('available_slots')
+                                        ->heading('total_slots'),
+                                    Column::make('total_slots')
+                                        ->heading('Total Slots'),
+                                    Column::make('year')
+                                        ->heading('Year'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Province ABDDs')
+                        ]),
                 ]),
             ]);
     }

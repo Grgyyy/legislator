@@ -20,7 +20,7 @@ class TopTenQualificationChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Top Ten Qualifications by the Sum of Compliant';
+    protected static ?string $heading = 'Top Ten Qualifications based on the Sum of Compliant';
 
     /**
      * Chart options (series, labels, types, size, animations...)

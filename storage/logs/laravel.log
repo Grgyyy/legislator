@@ -13608,3 +13608,11 @@
 #74 C:\\laragon\\www\\legislator\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
 #75 {main}
 "} 
+[2024-12-03 08:50:13] local.ERROR: Cannot use Filament\Resources\Pages\ListRecords as ListRecords because the name is already in use {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot use Filament\\Resources\\Pages\\ListRecords as ListRecords because the name is already in use at C:\\laragon\\www\\legislator\\app\\Filament\\Clusters\\Sectors\\Resources\\ProvinceAbddResource\\Pages\\ListProvinceAbdds.php:10)
+[stacktrace]
+#0 {main}
+"} 
+[2024-12-03 08:50:18] local.ERROR: Cannot use Filament\Resources\Pages\ListRecords as ListRecords because the name is already in use {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot use Filament\\Resources\\Pages\\ListRecords as ListRecords because the name is already in use at C:\\laragon\\www\\legislator\\app\\Filament\\Clusters\\Sectors\\Resources\\ProvinceAbddResource\\Pages\\ListProvinceAbdds.php:10)
+[stacktrace]
+#0 {main}
+"} 
