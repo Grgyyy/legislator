@@ -22,8 +22,7 @@ class TargetsPerRegionChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Pending, Non- Compliant, and Compliant Targets Per Region';
-
+    protected static ?string $heading = 'Targets';
 
     /**
      * Chart options (series, labels, types, size, animations...)
@@ -51,79 +50,79 @@ class TargetsPerRegionChart extends ApexChartWidget
         //     ->groupBy('regions.name', 'target_statuses.desc')
         //     ->get();
 
-        // $categories = $data->groupBy('region')->keys()->toArray();
-        // $pendingData = $data->where('status', 'Pending')->pluck('count')->toArray();
-        // $compliantData = $data->where('status', 'Compliant')->pluck('count')->toArray();
-        // $nonCompliantData = $data->where('status', 'Non-Compliant')->pluck('count')->toArray();
+        $categories = $data->groupBy('region')->keys()->toArray();
+        $pendingData = $data->where('status', 'Pending')->pluck('count')->toArray();
+        $compliantData = $data->where('status', 'Compliant')->pluck('count')->toArray();
+        $nonCompliantData = $data->where('status', 'Non-Compliant')->pluck('count')->toArray();
 
 
-        $categories = [
-            'NCR',
-            'Region 1',
-            'Region 2',
-            'Region 3',
-            'Region 4',
-            'Region 5',
-            'Region 6',
-            'Region 7',
-            'Region 8',
-            'Region 9',
-            'Region 10',
-            'Region 11',
-            'CARAGA',
-            'BARMM'
-        ];
+        // $categories = [
+        //     'NCR',
+        //     'Region 1',
+        //     'Region 2',
+        //     'Region 3',
+        //     'Region 4',
+        //     'Region 5',
+        //     'Region 6',
+        //     'Region 7',
+        //     'Region 8',
+        //     'Region 9',
+        //     'Region 10',
+        //     'Region 11',
+        //     'CARAGA',
+        //     'BARMM'
+        // ];
 
-        $pendingData = [
-            10,
-            15,
-            12,
-            8,
-            5,
-            6,
-            9,
-            7,
-            11,
-            6,
-            13,
-            5,
-            8,
-            3
-        ];
+        // $pendingData = [
+        //     10,
+        //     15,
+        //     12,
+        //     8,
+        //     5,
+        //     6,
+        //     9,
+        //     7,
+        //     11,
+        //     6,
+        //     13,
+        //     5,
+        //     8,
+        //     3
+        // ];
 
-        $compliantData = [
-            45,
-            30,
-            50,
-            25,
-            35,
-            25,
-            40,
-            55,
-            18,
-            22,
-            38,
-            47,
-            29,
-            15
-        ];
+        // $compliantData = [
+        //     45,
+        //     30,
+        //     50,
+        //     25,
+        //     35,
+        //     25,
+        //     40,
+        //     55,
+        //     18,
+        //     22,
+        //     38,
+        //     47,
+        //     29,
+        //     15
+        // ];
 
-        $nonCompliantData = [
-            5,
-            5,
-            2,
-            12,
-            10,
-            10,
-            6,
-            5,
-            7,
-            12,
-            6,
-            8,
-            3,
-            2
-        ];
+        // $nonCompliantData = [
+        //     5,
+        //     5,
+        //     2,
+        //     12,
+        //     10,
+        //     10,
+        //     6,
+        //     5,
+        //     7,
+        //     12,
+        //     6,
+        //     8,
+        //     3,
+        //     2
+        // ];
 
         return [
             'chart' => [
@@ -237,7 +236,7 @@ class TargetsPerRegionChart extends ApexChartWidget
                     ],
                 ],
             ],
-            'colors' => ['#2196F3', '#4CAF50', '#F44336'],
+            'colors' => ['#feb144', '#9ee09e', '#ff6663'],
             'plotOptions' => [
                 'bar' => [
                     'borderRadius' => 3,
@@ -248,6 +247,7 @@ class TargetsPerRegionChart extends ApexChartWidget
                 'show' => true,
                 'position' => 'bottom',
                 'horizontalAlign' => 'center',
+                'fontFamily' => 'inherit',
                 'labels' => [
                     'useSeriesColors' => true,
                 ],
