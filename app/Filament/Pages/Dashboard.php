@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\TargetsPerRegionChart;  // Import the TargetsPerRegionChart widget
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Form;
@@ -16,6 +17,14 @@ class Dashboard extends BaseDashboard
     {
         return $form
             ->schema([
+
             ]);
+    }
+
+    public function getWidgets(): array
+    {
+        return [
+            TargetsPerRegionChart::class,
+        ];
     }
 }
