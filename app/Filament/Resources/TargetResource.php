@@ -58,6 +58,10 @@ class TargetResource extends Resource
             ->schema(function ($record) {
                 if ($record) {
                     return [
+                        TextInput::make('abscap_id')
+                                    ->label('Absorbative Capacity ID')
+                                    ->placeholder('Enter an Absorbative capacity ID'),
+                                    
                         Select::make('legislator_id')
                             ->label('Legislator')
                             ->required()
@@ -189,6 +193,14 @@ class TargetResource extends Resource
                         })
                         ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
 
+                        TextInput::make('admin_cost')
+                                    ->label('Admin Cost')
+                                    ->placeholder('Enter amount of Admin Cost')
+                                    ->required()
+                                    ->markAsRequired(false)
+                                    ->autocomplete(false)
+                                    ->numeric(),
+
                         TextInput::make('number_of_slots')
                             ->label('Number of Slots')
                             ->placeholder('Enter number of slots')
@@ -316,6 +328,8 @@ class TargetResource extends Resource
                                                             }
                                                         } elseif ($subParticularName === 'Party-list') {
                                                             return [$particular->id => "{$partylistName}"];
+                                                        } elseif ($subParticularName === 'House Speaker' || $subParticularName === 'House Speaker (LAKAS)') {
+                                                            return [$particular->id => "{$subParticularName}"];
                                                         }
                                                     } elseif ($fundSourceName === 'RO Regular') {
                                                         $regionName = $particular->district && $particular->district->municipality && $particular->district->municipality->province && $particular->district->municipality->province->region ? $particular->district->municipality->province->region->name : 'No Region';
@@ -589,6 +603,11 @@ class TargetResource extends Resource
         return $table
             ->emptyStateHeading('No targets available')
             ->columns([
+                TextColumn::make('abscap_id')
+                ->sortable()
+                ->searchable()
+                ->toggleable(),
+
                 TextColumn::make('fund_source')
                     ->label('Fund Source')
                     ->searchable()
@@ -1047,7 +1066,12 @@ class TargetResource extends Resource
                 if ($particular->district->name === 'Not Applicable') {
                     if ($particular->subParticular->name === 'Partylist') {
                         return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
-                    } else {
+                    } 
+                    
+                    else if ($particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)' ) {
+                        return [$particular->id => $particular->subParticular->name];
+                    }
+                    else {
                         return [$particular->id => $particular->subParticular->name];
                     }
                 } else {

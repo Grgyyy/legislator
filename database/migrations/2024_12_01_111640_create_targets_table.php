@@ -13,6 +13,7 @@ return new class extends Migration {
         Schema::create('targets', function (Blueprint $table) {
             $table->id();
             $table->integer('abscap_id')
+                ->unique()
                 ->nullable();
             $table->foreignId('allocation_id')
                 ->constrained()

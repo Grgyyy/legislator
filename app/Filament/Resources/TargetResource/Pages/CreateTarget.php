@@ -201,6 +201,7 @@ class CreateTarget extends CreateRecord
     private function createTarget(array $targetData, Allocation $allocation, Tvi $institution, QualificationTitle $qualificationTitle, array $totals): Target
     {
         return Target::create(array_merge($targetData, [
+            'abscap_id' => $targetData['abscap_id'],
             'allocation_id' => $allocation->id,
             'district_id' => $institution->district_id,
             'municipality_id' => $institution->municipality_id,
