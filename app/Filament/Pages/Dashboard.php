@@ -21,10 +21,10 @@ class Dashboard extends BaseDashboard
             ]);
     }
 
-    public function getWidgets(): array
-    {
-        return [
-            TargetsPerRegionChart::class,
-        ];
-    }
+    // public function getWidgets(): array
+    // {
+    //     return [
+    //         TargetsPerRegionChart::class,
+    //     ];
+    // }
 }
