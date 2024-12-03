@@ -17,6 +17,11 @@ class EditProvinceAbdd extends EditRecord
         ];
     }
 
+    public function isEdit(): bool
+    {
+        return true; // Edit mode
+    }
+    
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

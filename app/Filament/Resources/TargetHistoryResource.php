@@ -39,72 +39,68 @@ class TargetHistoryResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('fund_source')
+                    ->label('Fund Source')
+                    ->searchable()
+                    ->toggleable()
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
 
                         if (!$legislator) {
-                            return 'No Legislator Available';
+                            return 'No legislator available';
                         }
 
                         $particulars = $legislator->particular;
 
                         if ($particulars->isEmpty()) {
-                            return 'No Particular Available';
+                            return 'No particular available';
                         }
 
                         $particular = $record->allocation->particular;
                         $subParticular = $particular->subParticular;
                         $fundSource = $subParticular ? $subParticular->fundSource : null;
 
-                        return $fundSource->name;
-                    })
-                    ->searchable()
-                    ->toggleable()
-                    ->label('Fund Source'),
-                    
-                TextColumn::make('attributionAllocation.legislator.name')
-                    ->label('Legislator I')
+                        return $fundSource ? $fundSource->name : 'No fund source available';
+                    }),
+
+                TextColumn::make('allocation.legislator.name')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('allocation.legislator.name')
-                    ->label('Legislator II')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                    
-                    
                 TextColumn::make('allocation.soft_or_commitment')
-                    ->label('Soft/Commitment')
-                    ->sortable()
+                    ->label('Source of Fund')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('appropriation_type')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('allocation.year')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('allocation.legislator.particular.subParticular')
+                    ->label('Particular')
+                    ->searchable()
+                    ->toggleable()
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
 
                         if (!$legislator) {
-                            return 'No Legislator Available';
+                            return 'No legislator available';
                         }
 
                         $particulars = $legislator->particular;
 
                         if ($particulars->isEmpty()) {
-                            return 'No Particular Available';
+                            return 'No particular available';
                         }
 
                         $particular = $particulars->first();
                         $district = $particular->district;
-                        $municipality = $district ? $district->municipality : null;
+                        $municipality = $district ? $district->underMunicipality : null;
 
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
@@ -118,45 +114,49 @@ class TargetHistoryResource extends Resource
                         } else {
                             return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
                         }
-                    })
-                    ->searchable()
-                    ->toggleable()
-                    ->label('Particular'),
-                TextColumn::make('tvi.district.name')
+                    }),
+
+                TextColumn::make('municipality.name')
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('tvi.district.municipality.name')
+
+                TextColumn::make('district.name')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('tvi.district.municipality.province.name')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('tvi.district.municipality.province.region.name')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('tvi.name')
+                    ->label('Institution')
                     ->searchable()
-                    ->toggleable()
-                    ->label('Institution'),
+                    ->toggleable(),
+
                 TextColumn::make('tvi.tviClass.tviType.name')
+                    ->label('Institution Type')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('tvi.tviClass.name')
+                    ->label('Institution Class')
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('qualification_title.training_program.title')
+
+                TextColumn::make('qualification_title_code')
+                    ->label('Qualification Code')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title_name')
                     ->label('Qualification Title')
-                    ->getStateUsing(function ($record) {
-                        $qualificationTitle = $record->qualification_title;
+                    ->searchable()
+                    ->toggleable(),
 
-                        if (!$qualificationTitle) {
-                            return 'No Qualification Title Available';
-                        }
-
-                        $trainingProgram = $qualificationTitle->trainingProgram;
-
-                        return $trainingProgram ? $trainingProgram->title : 'No Training Program Available';
-                    }),
                 TextColumn::make('abdd.name')
                     ->label('ABDD Sector')
                     ->searchable()
@@ -171,31 +171,44 @@ class TargetHistoryResource extends Resource
                     ->label('Priority Sector')
                     ->searchable()
                     ->toggleable(),
+
+                TextColumn::make('deliveryMode.learningMode.name')
+                    ->label('Learning Mode')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('deliveryMode.name')
+                    ->label('Delivery Mode')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.priority.name')
+                    ->label('Priority Sector')
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('allocation.scholarship_program.name')
-                    ->label('Scholarship Program'),
+                    ->label('Scholarship Program')
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('number_of_slots')
+                    ->label('Number of Slots')
+                    ->sortable()
                     ->searchable()
-                    ->toggleable()
-                    ->label('No. of Slots'),
-                TextColumn::make('qualification_title.pcc')
-                    ->searchable()
-                    ->toggleable()
-                    ->label('Per Capita Cost')
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                    ->toggleable(),
+
                 TextColumn::make('total_amount')
+                    ->label('Total Amount')
                     ->searchable()
                     ->toggleable()
-                    ->label('Total Amount')
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-                TextColumn::make('created_at')
-                    ->searchable()
-                    ->toggleable()
-                    ->label('Date Modified')
-                    ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->format('F j, Y')),
+
                 TextColumn::make('description')
                     ->label('Description')
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 //

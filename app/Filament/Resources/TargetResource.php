@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\DeliveryMode;
 use Throwable;
 use App\Models\Tvi;
 use App\Models\Target;
@@ -173,6 +174,21 @@ class TargetResource extends Resource
                             })
                             ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
+                        Select::make('delivery_mode_id')
+                        ->label('Delivery Mode')
+                        ->required()
+                        ->markAsRequired(false)
+                        ->searchable()
+                        ->preload()
+                        ->options(function ($get) {
+                            $deliveryModes = DeliveryMode::all();
+                    
+                            return $deliveryModes->isNotEmpty()
+                                ? $deliveryModes->pluck('name', 'id')->toArray() 
+                                : ['no_delivery_mode' => 'No delivery modes available.'];
+                        })
+                        ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
+
                         TextInput::make('number_of_slots')
                             ->label('Number of Slots')
                             ->placeholder('Enter number of slots')
@@ -191,6 +207,9 @@ class TargetResource extends Resource
                     return [
                         Repeater::make('targets')
                             ->schema([
+                                TextInput::make('abscap_id')
+                                    ->label('Absorbative Capacity ID')
+                                    ->placeholder('Enter an Absorbative capacity ID'),
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -398,7 +417,7 @@ class TargetResource extends Resource
                                     ->reactive()
                                     ->live(),
 
-                                    Select::make('allocation_year')
+                                Select::make('allocation_year')
                                     ->label('Appropriation Year')
                                     ->required()
                                     ->markAsRequired(false)
@@ -491,6 +510,28 @@ class TargetResource extends Resource
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
+                                Select::make('delivery_mode_id')
+                                    ->label('Delivery Mode')
+                                    ->required()
+                                    ->markAsRequired(false)
+                                    ->searchable()
+                                    ->preload()
+                                    ->options(function ($get) {
+                                        $deliveryModes = DeliveryMode::all();
+                                
+                                        return $deliveryModes->isNotEmpty()
+                                            ? $deliveryModes->pluck('name', 'id')->toArray() 
+                                            : ['no_delivery_mode' => 'No delivery modes available.'];
+                                    })
+                                    ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
+
+                                TextInput::make('admin_cost')
+                                    ->label('Admin Cost')
+                                    ->placeholder('Enter amount of Admin Cost')
+                                    ->required()
+                                    ->markAsRequired(false)
+                                    ->autocomplete(false)
+                                    ->numeric(),
 
                                 TextInput::make('number_of_slots')
                                     ->label('Number of Slots')
@@ -626,11 +667,11 @@ class TargetResource extends Resource
                         }
                     }),
 
-                TextColumn::make('tvi.district.name')
+                TextColumn::make('municipality.name')
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('tvi.district.municipality.name')
+                TextColumn::make('district.name')
                     ->searchable()
                     ->toggleable(),
 
@@ -657,21 +698,15 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('qualification_title.training_program.title')
+                TextColumn::make('qualification_title_code')
+                    ->label('Qualification Code')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title_name')
                     ->label('Qualification Title')
                     ->searchable()
-                    ->toggleable()
-                    ->getStateUsing(function ($record) {
-                        $qualificationTitle = $record->qualification_title;
-
-                        if (!$qualificationTitle) {
-                            return 'No qualification title available';
-                        }
-
-                        $trainingProgram = $qualificationTitle->trainingProgram;
-
-                        return $trainingProgram ? $trainingProgram->title : 'No training program available';
-                    }),
+                    ->toggleable(),
 
                 TextColumn::make('abdd.name')
                     ->label('ABDD Sector')
@@ -680,6 +715,21 @@ class TargetResource extends Resource
 
                 TextColumn::make('qualification_title.trainingProgram.tvet.name')
                     ->label('TVET Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.priority.name')
+                    ->label('Priority Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('deliveryMode.learningMode.name')
+                    ->label('Learning Mode')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('deliveryMode.name')
+                    ->label('Delivery Mode')
                     ->searchable()
                     ->toggleable(),
 

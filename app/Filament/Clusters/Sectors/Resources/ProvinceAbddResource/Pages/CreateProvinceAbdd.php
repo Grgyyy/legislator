@@ -12,6 +12,12 @@ class CreateProvinceAbdd extends CreateRecord
 {
     protected static string $resource = ProvinceAbddResource::class;
 
+    // CreateProvinceAbdd.php
+    public function isEdit(): bool
+    {
+        return false; // Create mode
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

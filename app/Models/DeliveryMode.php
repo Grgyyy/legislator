@@ -19,4 +19,9 @@ class DeliveryMode extends Model
     {
         return $this->belongsTo(LearningMode::class);
     }
+
+    public function target()
+    {
+        return $this->hasMany(Target::class);
+    }
 }

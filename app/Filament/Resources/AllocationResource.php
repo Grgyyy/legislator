@@ -134,7 +134,7 @@ class AllocationResource extends Resource
 
                         $set('balance', $state - $adminCost);
                     })
-                    ->debounce(600)
+                    ->debounce(1000)
                     ->reactive()
                     ->live()
                     ->validationAttribute('Allocation')

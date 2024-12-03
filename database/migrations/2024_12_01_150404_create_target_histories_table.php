@@ -19,13 +19,25 @@ return new class extends Migration
             $table->foreignId('allocation_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('district_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('municipality_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->foreignId('tvi_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->string('tvi_name');
             $table->foreignId('qualification_title_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->string('qualification_title_code');
+            $table->string('qualification_title_name');
             $table->foreignId('abdd_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('delivery_mode_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->integer('number_of_slots');
@@ -53,6 +65,8 @@ return new class extends Migration
                 ->default(0);
             $table->integer('total_misc_fee')
                 ->default(0);
+            $table->integer('admin_cost')
+                ->default(0);
             $table->integer('total_amount')
                 ->default(1);
             $table->string('appropriation_type');
@@ -63,7 +77,7 @@ return new class extends Migration
     }
 
     /**
-     * Reverse the migrations.
+     * Reverse the migrations.php
      */
     public function down(): void
     {
