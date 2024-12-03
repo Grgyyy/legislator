@@ -2,24 +2,27 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\LearningModeResource\Pages;
-use App\Filament\Resources\LearningModeResource\RelationManagers;
-use App\Models\LearningMode;
-use App\Services\NotificationHandler;
 use Filament\Forms;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use App\Models\LearningMode;
+use Filament\Resources\Resource;
+use App\Services\NotificationHandler;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\LearningModeResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\LearningModeResource\RelationManagers;
 
 class LearningModeResource extends Resource
 {
@@ -57,7 +60,7 @@ class LearningModeResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
@@ -83,6 +86,17 @@ class LearningModeResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('acronym')
+                                        ->heading('Acronym'),
+                                    Column::make('name')
+                                        ->heading('Learning Modes'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Learning Modes')
+                        ]),
                 ]),
             ]);
     }

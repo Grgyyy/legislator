@@ -4,7 +4,7 @@ namespace App\Filament\Resources\InstitutionRecognitionResource\Pages;
 
 use Exception;
 use Filament\Actions\Action;
-use App\Imports\RecognitionImport;
+use App\Imports\InstitutionRecognitionImport;
 use Filament\Actions\CreateAction;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
@@ -23,7 +23,7 @@ class ListInstitutionRecognitions extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('RecognitionImport')
+            Action::make('InstitutionRecognitionImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
@@ -34,10 +34,10 @@ class ListInstitutionRecognitions extends ListRecords
                     $file = public_path('storage/' . $data['attachment']);
 
                     try {
-                        Excel::import(new RecognitionImport, $file);
-                        NotificationHandler::sendSuccessNotification('Import Successful', 'The Recognition Title have been successfully imported from the file.');
+                        Excel::import(new InstitutionRecognitionImport, $file);
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The Institution Recognition Title have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Recognition Title: ' . $e->getMessage());
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Institution Recognition Title: ' . $e->getMessage());
                     }
                 }),
         ];
