@@ -35,20 +35,20 @@ class TargetsPerRegionChart extends ApexChartWidget
     protected function getOptions(): array
     {
 
-        // $data = Target::query()
-        //     // Join necessary tables to access region data
-        //     ->join('allocations', 'targets.allocation_id', '=', 'allocations.id')
-        //     ->join('particulars', 'allocations.particular_id', '=', 'particulars.id')
-        //     ->join('districts', 'particulars.district_id', '=', 'districts.id')
-        //     ->join('provinces', 'districts.province_id', '=', 'provinces.id')
-        //     ->join('regions', 'provinces.region_id', '=', 'regions.id')
-        //     // Join targetStatus to get the status of the target
-        //     ->join('target_statuses', 'targets.target_status_id', '=', 'target_statuses.id')
-        //     // Group by region and target status to count targets by their status
-        //     ->selectRaw('regions.name as region, target_statuses.desc as status, COUNT(targets.id) as count')
-        //     ->whereIn('target_statuses.desc', ['Compliant', 'Non-Compliant', 'Pending'])
-        //     ->groupBy('regions.name', 'target_statuses.desc')
-        //     ->get();
+        $data = Target::query()
+            // Join necessary tables to access region data
+            ->join('allocations', 'targets.allocation_id', '=', 'allocations.id')
+            ->join('particulars', 'allocations.particular_id', '=', 'particulars.id')
+            ->join('districts', 'particulars.district_id', '=', 'districts.id')
+            ->join('provinces', 'districts.province_id', '=', 'provinces.id')
+            ->join('regions', 'provinces.region_id', '=', 'regions.id')
+            // Join targetStatus to get the status of the target
+            ->join('target_statuses', 'targets.target_status_id', '=', 'target_statuses.id')
+            // Group by region and target status to count targets by their status
+            ->selectRaw('regions.name as region, target_statuses.desc as status, COUNT(targets.id) as count')
+            ->whereIn('target_statuses.desc', ['Compliant', 'Non-Compliant', 'Pending'])
+            ->groupBy('regions.name', 'target_statuses.desc')
+            ->get();
 
         $categories = $data->groupBy('region')->keys()->toArray();
         $pendingData = $data->where('status', 'Pending')->pluck('count')->toArray();
