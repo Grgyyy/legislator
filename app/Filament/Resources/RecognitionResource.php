@@ -2,24 +2,29 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\RecognitionResource\Pages;
-use App\Filament\Resources\RecognitionResource\RelationManagers;
-use App\Models\Recognition;
-use App\Services\NotificationHandler;
 use Filament\Forms;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use App\Models\Recognition;
+use Filament\Resources\Resource;
+use App\Services\NotificationHandler;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\RecognitionResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\RecognitionResource\RelationManagers;
 
 class RecognitionResource extends Resource
 {
@@ -78,8 +83,17 @@ class RecognitionResource extends Resource
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Recognition Title'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Recognition Title')
+                        ]),
                 ]),
             ]);
     }

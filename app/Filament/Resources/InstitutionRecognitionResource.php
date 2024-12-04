@@ -2,21 +2,24 @@
 
 namespace App\Filament\Resources;
 
+use Carbon\Carbon;
+use App\Models\Tvi;
+use Filament\Forms;
+use Filament\Tables;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use App\Models\Recognition;
+use Filament\Resources\Resource;
+use Filament\Forms\Components\Select;
+use App\Models\InstitutionRecognition;
+use Filament\Tables\Columns\TextColumn;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Illuminate\Database\Eloquent\Builder;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\InstitutionRecognitionResource\Pages;
 use App\Filament\Resources\InstitutionRecognitionResource\RelationManagers;
-use App\Models\InstitutionRecognition;
-use App\Models\Recognition;
-use App\Models\Tvi;
-use Carbon\Carbon;
-use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class InstitutionRecognitionResource extends Resource
 {
@@ -38,19 +41,19 @@ class InstitutionRecognitionResource extends Resource
         return $form
             ->schema([
                 Select::make('tvi_id')
-                ->label('Institution')
-                ->required()
-                ->markAsRequired(false)
-                ->searchable()
-                ->preload()
-                ->native(false)
-                ->default(fn($get) => request()->get('tvi_id'))
-                ->options(function () {
-                    return Tvi::whereNot('name', 'Not Applicable')
-                        ->pluck('name', 'id')
-                        ->toArray() ?: ['no_tvi' => 'No institution available'];
-                })
-                ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
+                    ->label('Institution')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->default(fn($get) => request()->get('tvi_id'))
+                    ->options(function () {
+                        return Tvi::whereNot('name', 'Not Applicable')
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_tvi' => 'No institution available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
                 Select::make('recognition_id')
                     ->label('Recognition Title')
@@ -104,6 +107,19 @@ class InstitutionRecognitionResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('tvi.name')
+                                        ->heading('Institution'),
+                                    Column::make('recognition.name')
+                                        ->heading('Recognition Title'),
+                                    Column::make('year')
+                                        ->heading('Year'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Institution Recognitions')
+                        ])
                 ]),
             ]);
     }

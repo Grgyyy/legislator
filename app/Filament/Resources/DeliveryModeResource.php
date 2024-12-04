@@ -2,26 +2,29 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\DeliveryModeResource\Pages;
-use App\Filament\Resources\DeliveryModeResource\RelationManagers;
+use Filament\Forms;
+use Filament\Tables;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
 use App\Models\DeliveryMode;
 use App\Models\LearningMode;
-use App\Services\NotificationHandler;
-use Filament\Forms;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\DeliveryModeResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\DeliveryModeResource\RelationManagers;
 
 class DeliveryModeResource extends Resource
 {
@@ -77,7 +80,7 @@ class DeliveryModeResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
@@ -103,6 +106,19 @@ class DeliveryModeResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('name')
+                                        ->heading('Delivery Mode Name'),
+                                    Column::make('learningMode.acronym')
+                                        ->heading('Learning Mode Acronym'),
+                                    Column::make('learningMode.name')
+                                        ->heading('Learning Mode'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Institution Recognitions')
+                        ])
                 ]),
             ]);
     }

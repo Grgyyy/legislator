@@ -22,8 +22,7 @@ class TargetsPerRegionChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Pending, Non- Compliant, and Compliant Targets Per Region';
-
+    protected static ?string $heading = 'Targets';
 
     /**
      * Chart options (series, labels, types, size, animations...)
@@ -237,7 +236,7 @@ class TargetsPerRegionChart extends ApexChartWidget
                     ],
                 ],
             ],
-            'colors' => ['#2196F3', '#4CAF50', '#F44336'],
+            'colors' => ['#feb144', '#9ee09e', '#ff6663'],
             'plotOptions' => [
                 'bar' => [
                     'borderRadius' => 3,
@@ -248,6 +247,7 @@ class TargetsPerRegionChart extends ApexChartWidget
                 'show' => true,
                 'position' => 'bottom',
                 'horizontalAlign' => 'center',
+                'fontFamily' => 'inherit',
                 'labels' => [
                     'useSeriesColors' => true,
                 ],
