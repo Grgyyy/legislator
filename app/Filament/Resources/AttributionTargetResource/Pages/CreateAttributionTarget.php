@@ -7,6 +7,8 @@ use App\Models\TargetHistory;
 use App\Models\Allocation;
 use App\Models\QualificationTitle;
 use App\Filament\Resources\AttributionTargetResource;
+use App\Models\Tvi;
+use App\Models\ProvinceAbdd; // Ensure ProvinceAbdd is imported
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -40,9 +42,9 @@ class CreateAttributionTarget extends CreateRecord
             }
 
             $requiredFields = [
-                'attribution_sender', 'attribution_sender_particular', 'attribution_scholarship_program', 
+                'attribution_sender', 'attribution_sender_particular', 'attribution_scholarship_program',
                 'allocation_year', 'attribution_appropriation_type', 'attribution_receiver', 'attribution_receiver_particular',
-                'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots'
+                'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots', 'delivery_mode_id',
             ];
 
             foreach ($requiredFields as $field) {
@@ -51,6 +53,7 @@ class CreateAttributionTarget extends CreateRecord
                 }
             }
 
+            // Validate and retrieve sender allocation
             $senderAllocation = Allocation::where('legislator_id', $targetData['attribution_sender'])
                 ->where('particular_id', $targetData['attribution_sender_particular'])
                 ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
@@ -61,7 +64,8 @@ class CreateAttributionTarget extends CreateRecord
                 throw new \Exception('Attribution Sender Allocation not found');
             }
 
-            $receiverAllocation = Allocation::where('legislator_id', $targetData['attribution_receiver']) 
+            // Validate or create receiver allocation
+            $receiverAllocation = Allocation::where('legislator_id', $targetData['attribution_receiver'])
                 ->where('particular_id', $targetData['attribution_receiver_particular'])
                 ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
                 ->where('year', $targetData['allocation_year'])
@@ -79,14 +83,15 @@ class CreateAttributionTarget extends CreateRecord
                 ]);
             }
 
+            // Fetch qualification title
             $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
-
             if (!$qualificationTitle) {
                 throw new \Exception('Qualification Title not found');
             }
 
             $numberOfSlots = $targetData['number_of_slots'] ?? 0;
 
+            // Calculate total amounts for various expenses
             $total_training_cost_pcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
             $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots;
             $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
@@ -97,14 +102,31 @@ class CreateAttributionTarget extends CreateRecord
             $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
             $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
             $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
-            $total_amount = $qualificationTitle->pcc * $numberOfSlots;
+            $admin_cost = $targetData['admin_cost'] ?? 0; // Default to 0 if not provided
 
-            if($senderAllocation->balance >= $total_amount) {
+            // Calculate total amount
+            $total_amount = ($qualificationTitle->pcc * $numberOfSlots) + $admin_cost;
+
+            // Fetch institution details
+            $institution = Tvi::find($targetData['tvi_id']);
+            if (!$institution) {
+                throw new \Exception('Institution not found');
+            }
+
+            if ($senderAllocation->balance >= $total_amount) {
+                // Create Target record
                 $target = Target::create([
+                    'abscap_id' => $targetData['abscap_id'],
                     'allocation_id' => $receiverAllocation->id,
                     'attribution_allocation_id' => $senderAllocation->id,
-                    'tvi_id' => $targetData['tvi_id'],
+                    'tvi_id' => $institution->id,
+                    'tvi_name' => $institution->name,
+                    'municipality_id' => $institution->municipality_id,
+                    'district_id' => $institution->district_id,
                     'qualification_title_id' => $qualificationTitle->id,
+                    'qualification_title_code' => $qualificationTitle->trainingProgram->code ?? null,
+                    'qualification_title_name' => $qualificationTitle->trainingProgram->title,
+                    'delivery_mode_id' => $targetData['delivery_mode_id'],
                     'abdd_id' => $targetData['abdd_id'],
                     'number_of_slots' => $numberOfSlots,
                     'total_training_cost_pcc' => $total_training_cost_pcc,
@@ -117,11 +139,13 @@ class CreateAttributionTarget extends CreateRecord
                     'total_book_allowance' => $total_book_allowance,
                     'total_uniform_allowance' => $total_uniform_allowance,
                     'total_misc_fee' => $total_misc_fee,
+                    'admin_cost' => $admin_cost,
                     'total_amount' => $total_amount,
                     'appropriation_type' => $targetData['attribution_appropriation_type'],
                     'target_status_id' => 1,
                 ]);
 
+                // Update allocations
                 $senderAllocation->balance -= $total_amount;
                 $senderAllocation->attribution_sent += $total_amount;
                 $senderAllocation->save();
@@ -129,12 +153,32 @@ class CreateAttributionTarget extends CreateRecord
                 $receiverAllocation->attribution_received += $total_amount;
                 $receiverAllocation->save();
 
+                // Decrease slots in ProvinceAbdd table
+                $provinceAbdd = ProvinceAbdd::find($targetData['abdd_id']);
+                if ($provinceAbdd) {
+                    // Ensure the decrement action is handled properly and check for remaining slots
+                    if ($provinceAbdd->available_slots >= $numberOfSlots) {
+                        $provinceAbdd->decrement('available_slots', $numberOfSlots); // Decrement the slots
+                    } else {
+                        throw new \Exception('Not enough available slots in ProvinceAbdd');
+                    }
+                } else {
+                    throw new \Exception('ProvinceAbdd entry not found');
+                }
+
+                // Log target history
                 TargetHistory::create([
                     'target_id' => $target->id,
                     'allocation_id' => $receiverAllocation->id,
                     'attribution_allocation_id' => $senderAllocation->id,
                     'tvi_id' => $targetData['tvi_id'],
+                    'tvi_name' => $institution->name,
+                    'municipality_id' => $institution->municipality_id,
+                    'district_id' => $institution->district_id,
                     'qualification_title_id' => $qualificationTitle->id,
+                    'qualification_title_code' => $qualificationTitle->trainingProgram->code ?? null,
+                    'qualification_title_name' => $qualificationTitle->trainingProgram->title,
+                    'delivery_mode_id' => $targetData['delivery_mode_id'],
                     'abdd_id' => $targetData['abdd_id'],
                     'number_of_slots' => $numberOfSlots,
                     'total_training_cost_pcc' => $total_training_cost_pcc,
@@ -147,6 +191,7 @@ class CreateAttributionTarget extends CreateRecord
                     'total_book_allowance' => $total_book_allowance,
                     'total_uniform_allowance' => $total_uniform_allowance,
                     'total_misc_fee' => $total_misc_fee,
+                    'admin_cost' => $admin_cost,
                     'total_amount' => $total_amount,
                     'appropriation_type' => $targetData['attribution_appropriation_type'],
                     'description' => 'Target Created',
@@ -154,7 +199,7 @@ class CreateAttributionTarget extends CreateRecord
 
                 return $target;
             } else {
-                throw new \Exception('Insufficient balance for allocation.');
+                throw new \Exception('Insufficient funds in sender allocation');
             }
         });
     }

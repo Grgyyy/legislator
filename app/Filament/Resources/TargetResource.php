@@ -179,19 +179,19 @@ class TargetResource extends Resource
                             ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
                         Select::make('delivery_mode_id')
-                        ->label('Delivery Mode')
-                        ->required()
-                        ->markAsRequired(false)
-                        ->searchable()
-                        ->preload()
-                        ->options(function ($get) {
-                            $deliveryModes = DeliveryMode::all();
-                    
-                            return $deliveryModes->isNotEmpty()
-                                ? $deliveryModes->pluck('name', 'id')->toArray() 
-                                : ['no_delivery_mode' => 'No delivery modes available.'];
-                        })
-                        ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
+                            ->label('Delivery Mode')
+                            ->required()
+                            ->markAsRequired(false)
+                            ->searchable()
+                            ->preload()
+                            ->options(function ($get) {
+                                $deliveryModes = DeliveryMode::all();
+                        
+                                return $deliveryModes->isNotEmpty()
+                                    ? $deliveryModes->pluck('name', 'id')->toArray() 
+                                    : ['no_delivery_mode' => 'No delivery modes available.'];
+                            })
+                            ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
 
                         TextInput::make('admin_cost')
                                     ->label('Admin Cost')
