@@ -13,8 +13,11 @@ return new class extends Migration
     {
         Schema::create('learning_modes', function (Blueprint $table) {
             $table->id();
-            $table->string('acronym');
-            $table->string('name');
+            $table->string('name')
+                ->unique();
+            $table->foreignId('delivery_mode_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });
