@@ -21,7 +21,10 @@ class Target extends Model
         'qualification_title_id',
         'qualification_title_code',
         'qualification_title_name',
-        'delivery_mode_id',
+
+        // 'delivery_mode_id',
+        'learning_mode_id',
+
         'number_of_slots',
         'total_training_cost_pcc',
         'total_cost_of_toolkit_pcc',
@@ -81,9 +84,9 @@ class Target extends Model
         return $this->belongsTo(Abdd::class);
     }
 
-    public function deliveryMode()
+    public function learningMode()
     {
-        return $this->belongsTo(DeliveryMode::class);
+        return $this->belongsTo(LearningMode::class);
     }
 
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\DeliveryMode;
+use App\Models\LearningMode;
 use Throwable;
 use App\Models\Tvi;
 use App\Models\Target;
@@ -178,20 +179,20 @@ class TargetResource extends Resource
                             })
                             ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
-                        Select::make('delivery_mode_id')
-                            ->label('Delivery Mode')
+                        Select::make('learning_mode_id')
+                            ->label('Learning Mode')
                             ->required()
                             ->markAsRequired(false)
                             ->searchable()
                             ->preload()
                             ->options(function ($get) {
-                                $deliveryModes = DeliveryMode::all();
+                                $learningModes = LearningMode::all();
                         
-                                return $deliveryModes->isNotEmpty()
-                                    ? $deliveryModes->pluck('name', 'id')->toArray() 
-                                    : ['no_delivery_mode' => 'No delivery modes available.'];
+                                return $learningModes->isNotEmpty()
+                                    ? $learningModes->pluck('name', 'id')->toArray() 
+                                    : ['no_learning_mode' => 'No learning modes available.'];
                             })
-                            ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
+                            ->disableOptionWhen(fn($value) => $value === 'no_learning_mode'),
 
                         TextInput::make('admin_cost')
                                     ->label('Admin Cost')
@@ -524,20 +525,20 @@ class TargetResource extends Resource
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
-                                Select::make('delivery_mode_id')
-                                    ->label('Delivery Mode')
+                                Select::make('learning_mode_id')
+                                    ->label('Learning Mode')
                                     ->required()
                                     ->markAsRequired(false)
                                     ->searchable()
                                     ->preload()
                                     ->options(function ($get) {
-                                        $deliveryModes = DeliveryMode::all();
+                                        $learningModes = LearningMode::all();
                                 
-                                        return $deliveryModes->isNotEmpty()
-                                            ? $deliveryModes->pluck('name', 'id')->toArray() 
-                                            : ['no_delivery_mode' => 'No delivery modes available.'];
+                                        return $learningModes->isNotEmpty()
+                                            ? $learningModes->pluck('name', 'id')->toArray() 
+                                            : ['no_learning_mode' => 'No learning modes available.'];
                                     })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
+                                    ->disableOptionWhen(fn($value) => $value === 'no_learning_mode'),
 
                                 TextInput::make('admin_cost')
                                     ->label('Admin Cost')
@@ -742,12 +743,12 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('deliveryMode.learningMode.name')
+                TextColumn::make('learningMode.deliveryMode.name')
                     ->label('Learning Mode')
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('deliveryMode.name')
+                TextColumn::make('learningMode.name')
                     ->label('Delivery Mode')
                     ->searchable()
                     ->toggleable(),

@@ -110,8 +110,7 @@ class EditTarget extends EditRecord
         $requiredFields = [
             'legislator_id', 'particular_id', 'scholarship_program_id',
             'qualification_title_id', 'number_of_slots', 'tvi_id',
-            'appropriation_type', 'abdd_id', 'delivery_mode_id',
-            'abscap_id',
+            'appropriation_type', 'abdd_id', 'learning_mode_id',
         ];
 
         foreach ($requiredFields as $field) {
@@ -215,7 +214,7 @@ class EditTarget extends EditRecord
             'qualification_title_name' => $target->qualification_title_name,
             'abdd_id' => $targetData['abdd_id'],
             'abscap_id' => $targetData['abscap_id'],
-            'delivery_mode_id' => $targetData['delivery_mode_id'],
+            'learning_mode_id' => $targetData['learning_mode_id'],
             'number_of_slots' => $targetData['number_of_slots'],
             'attribution_allocation_id' => $targetData['attribution_allocation_id'] ?? null,
             'total_training_cost_pcc' => $totals['total_training_cost_pcc'],

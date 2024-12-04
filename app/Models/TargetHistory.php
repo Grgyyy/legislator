@@ -20,7 +20,7 @@ class TargetHistory extends Model
         'qualification_title_code',
         'qualification_title_name',
         'abdd_id',
-        'delivery_mode_id',
+        'learning_mode_id',
         'number_of_slots',
         'attribution_allocation_id',
         'total_training_cost_pcc',
@@ -70,9 +70,9 @@ class TargetHistory extends Model
         return $this->belongsTo(District::class);
     }
 
-    public function deliveryMode()
+    public function learningMode()
     {
-        return $this->belongsTo(DeliveryMode::class);
+        return $this->belongsTo(LearningMode::class);
     }
 
     public function qualification_title()
