@@ -2,17 +2,15 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Actions\EditAction;
 use Filament\Forms;
-use Filament\Forms\Components\Select;
 use Filament\Tables;
 use Filament\Forms\Form;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use App\Models\DeliveryMode;
 use App\Models\LearningMode;
 use Filament\Resources\Resource;
 use App\Services\NotificationHandler;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -43,25 +41,8 @@ class LearningModeResource extends Resource
     {
         return $form
             ->schema([
+                TextInput::make('acronym'),
                 TextInput::make('name')
-                    ->unique()
-                    ->label('Learning Mode')
-                    ->required()
-                    ->maxLength(255),
-                Select::make('delivery_mode_id')
-                    ->label('Delivery Mode')
-                    ->unique()
-                    ->relationship('deliveryMode', 'name')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->placeholder('Select a Delivery Mode')
-                    ->options(function () {
-                        return DeliveryMode::all()
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_delivery_mode' => 'No learning mode available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
             ]);
     }
 
@@ -69,9 +50,10 @@ class LearningModeResource extends Resource
     {
         return $table
             ->columns([
+               
                 TextColumn::make('name'),
                 TextColumn::make('deliveryMode.acronym'),
-                TextColumn::make('deliveryMode.name')
+                TextColumn::make('deliveryMode.name'),
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.delivery-modes.showDeliveryMode', ['record' => $record->id]),
