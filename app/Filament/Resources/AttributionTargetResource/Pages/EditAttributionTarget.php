@@ -179,6 +179,37 @@ class EditAttributionTarget extends EditRecord
 
             $provinceAbdd->decrement('available_slots', $numberOfSlots);
 
+            TargetHistory::create([
+                'target_id' => $record->id,
+                'allocation_id' => $receiverAllocation->id,
+                'attribution_allocation_id' => $senderAllocation->id,
+                'tvi_id' => $data['tvi_id'],
+                'tvi_name' => $institution->name,
+                'municipality_id' => $institution->municipality_id,
+                'district_id' => $institution->district_id,
+                'qualification_title_id' => $qualificationTitle->id,
+                'qualification_title_code' => $qualificationTitle->trainingProgram->code ?? null,
+                'qualification_title_name' => $qualificationTitle->trainingProgram->title,
+                'learning_mode_id' => $data['learning_mode_id'],
+                'abdd_id' => $data['abdd_id'],
+                'number_of_slots' => $numberOfSlots,
+                'total_training_cost_pcc' => $total_training_cost_pcc,
+                'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
+                'total_training_support_fund' => $total_training_support_fund,
+                'total_assessment_fee' => $total_assessment_fee,
+                'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
+                'total_new_normal_assisstance' => $total_new_normal_assisstance,
+                'total_accident_insurance' => $total_accident_insurance,
+                'total_book_allowance' => $total_book_allowance,
+                'total_uniform_allowance' => $total_uniform_allowance,
+                'total_misc_fee' => $total_misc_fee,
+                'admin_cost' => $admin_cost,
+                'total_amount' => $total_amount,
+                'appropriation_type' => $data['attribution_appropriation_type'],
+                'description' => 'Target Modified',
+            ]);
+
+
             return $record;
         });
     }
