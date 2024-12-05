@@ -34,31 +34,20 @@ class DeliveryModeResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationParentItem = "Learning Modes";
-
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 7;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                TextInput::make('acronym')
+                    ->label('Acronym')
+                    ->required()
+                ->maxLength(255),
                 TextInput::make('name')
-                    ->label('Delivery Mode Name')
+                    ->label('Learning Mode')
                     ->required()
                     ->maxLength(255),
-                Select::make('learning_mode_id')
-                    ->label('Learning Mode')
-                    ->relationship('learningMode', 'name')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->placeholder('Select a Learning Mode')
-                    ->options(function () {
-                        return LearningMode::all()
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_learning_mode' => 'No learning mode available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_learning_mode'),
             ]);
     }
 
@@ -67,11 +56,8 @@ class DeliveryModeResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('acronym'),
                 TextColumn::make('name'),
-                TextColumn::make('learningMode.acronym')
-                    ->label('Learning Mode Acronym'),
-                TextColumn::make('learningMode.name')
-                    ->label('Learning Mode Name'),
             ])
             ->filters([
                 //

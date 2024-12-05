@@ -12,11 +12,17 @@ class TargetHistory extends Model
     protected $fillable = [
         'target_id',
         'allocation_id',
-        'attribution_allocation_id',
+        'district_id',
+        'municipality_id',
         'tvi_id',
-        'abdd_id',
+        'tvi_name',
         'qualification_title_id',
+        'qualification_title_code',
+        'qualification_title_name',
+        'abdd_id',
+        'learning_mode_id',
         'number_of_slots',
+        'attribution_allocation_id',
         'total_training_cost_pcc',
         'total_cost_of_toolkit_pcc',
         'total_training_support_fund',
@@ -27,9 +33,11 @@ class TargetHistory extends Model
         'total_book_allowance',
         'total_uniform_allowance',
         'total_misc_fee',
+        'admin_cost',
         'total_amount',
         'appropriation_type',
-        'description'
+        'description',
+        'attribution_allocation_id',
     ];
 
     public function target()
@@ -50,6 +58,21 @@ class TargetHistory extends Model
     public function tvi()
     {
         return $this->belongsTo(Tvi::class);
+    }
+
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class);
+    }
+
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function learningMode()
+    {
+        return $this->belongsTo(LearningMode::class);
     }
 
     public function qualification_title()

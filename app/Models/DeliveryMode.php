@@ -11,12 +11,14 @@ class DeliveryMode extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'acronym',
         'name',
-        'learning_mode_id'
     ];
 
     public function learningMode()
     {
-        return $this->belongsTo(LearningMode::class);
+        return $this->hasMany(LearningMode::class);
     }
+
+    
 }

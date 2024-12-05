@@ -63,7 +63,7 @@ class ProvinceAbddResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->numeric()
-                    ->hidden(fn($get) => $get('record') !== null), // Hide if editing an existing record
+                    ->hidden(fn($livewire) => !$livewire->isEdit()), // Use the public method
 
                 TextInput::make('total_slots')
                     ->required()
@@ -84,6 +84,8 @@ class ProvinceAbddResource extends Resource
                     ]),
             ]);
     }
+
+
 
 
 

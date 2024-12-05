@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\DeliveryMode;
+use App\Models\LearningMode;
 use Throwable;
 use App\Models\Tvi;
 use App\Models\Target;
@@ -57,6 +59,10 @@ class TargetResource extends Resource
             ->schema(function ($record) {
                 if ($record) {
                     return [
+                        TextInput::make('abscap_id')
+                                    ->label('Absorbative Capacity ID')
+                                    ->placeholder('Enter an Absorbative capacity ID'),
+                                    
                         Select::make('legislator_id')
                             ->label('Legislator')
                             ->required()
@@ -173,6 +179,29 @@ class TargetResource extends Resource
                             })
                             ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
+                        Select::make('learning_mode_id')
+                            ->label('Learning Mode')
+                            ->required()
+                            ->markAsRequired(false)
+                            ->searchable()
+                            ->preload()
+                            ->options(function ($get) {
+                                $learningModes = LearningMode::all();
+                        
+                                return $learningModes->isNotEmpty()
+                                    ? $learningModes->pluck('name', 'id')->toArray() 
+                                    : ['no_learning_mode' => 'No learning modes available.'];
+                            })
+                            ->disableOptionWhen(fn($value) => $value === 'no_learning_mode'),
+
+                        TextInput::make('admin_cost')
+                                    ->label('Admin Cost')
+                                    ->placeholder('Enter amount of Admin Cost')
+                                    ->required()
+                                    ->markAsRequired(false)
+                                    ->autocomplete(false)
+                                    ->numeric(),
+
                         TextInput::make('number_of_slots')
                             ->label('Number of Slots')
                             ->placeholder('Enter number of slots')
@@ -191,6 +220,9 @@ class TargetResource extends Resource
                     return [
                         Repeater::make('targets')
                             ->schema([
+                                TextInput::make('abscap_id')
+                                    ->label('Absorbative Capacity ID')
+                                    ->placeholder('Enter an Absorbative capacity ID'),
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -297,6 +329,8 @@ class TargetResource extends Resource
                                                             }
                                                         } elseif ($subParticularName === 'Party-list') {
                                                             return [$particular->id => "{$partylistName}"];
+                                                        } elseif ($subParticularName === 'House Speaker' || $subParticularName === 'House Speaker (LAKAS)') {
+                                                            return [$particular->id => "{$subParticularName}"];
                                                         }
                                                     } elseif ($fundSourceName === 'RO Regular') {
                                                         $regionName = $particular->district && $particular->district->municipality && $particular->district->municipality->province && $particular->district->municipality->province->region ? $particular->district->municipality->province->region->name : 'No Region';
@@ -398,7 +432,7 @@ class TargetResource extends Resource
                                     ->reactive()
                                     ->live(),
 
-                                    Select::make('allocation_year')
+                                Select::make('allocation_year')
                                     ->label('Appropriation Year')
                                     ->required()
                                     ->markAsRequired(false)
@@ -491,6 +525,28 @@ class TargetResource extends Resource
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
+                                Select::make('learning_mode_id')
+                                    ->label('Learning Mode')
+                                    ->required()
+                                    ->markAsRequired(false)
+                                    ->searchable()
+                                    ->preload()
+                                    ->options(function ($get) {
+                                        $learningModes = LearningMode::all();
+                                
+                                        return $learningModes->isNotEmpty()
+                                            ? $learningModes->pluck('name', 'id')->toArray() 
+                                            : ['no_learning_mode' => 'No learning modes available.'];
+                                    })
+                                    ->disableOptionWhen(fn($value) => $value === 'no_learning_mode'),
+
+                                TextInput::make('admin_cost')
+                                    ->label('Admin Cost')
+                                    ->placeholder('Enter amount of Admin Cost')
+                                    ->required()
+                                    ->markAsRequired(false)
+                                    ->autocomplete(false)
+                                    ->numeric(),
 
                                 TextInput::make('number_of_slots')
                                     ->label('Number of Slots')
@@ -548,6 +604,11 @@ class TargetResource extends Resource
         return $table
             ->emptyStateHeading('No targets available')
             ->columns([
+                TextColumn::make('abscap_id')
+                ->sortable()
+                ->searchable()
+                ->toggleable(),
+
                 TextColumn::make('fund_source')
                     ->label('Fund Source')
                     ->searchable()
@@ -626,11 +687,11 @@ class TargetResource extends Resource
                         }
                     }),
 
-                TextColumn::make('tvi.district.name')
+                TextColumn::make('municipality.name')
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('tvi.district.municipality.name')
+                TextColumn::make('district.name')
                     ->searchable()
                     ->toggleable(),
 
@@ -657,21 +718,15 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('qualification_title.training_program.title')
+                TextColumn::make('qualification_title_code')
+                    ->label('Qualification Code')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title_name')
                     ->label('Qualification Title')
                     ->searchable()
-                    ->toggleable()
-                    ->getStateUsing(function ($record) {
-                        $qualificationTitle = $record->qualification_title;
-
-                        if (!$qualificationTitle) {
-                            return 'No qualification title available';
-                        }
-
-                        $trainingProgram = $qualificationTitle->trainingProgram;
-
-                        return $trainingProgram ? $trainingProgram->title : 'No training program available';
-                    }),
+                    ->toggleable(),
 
                 TextColumn::make('abdd.name')
                     ->label('ABDD Sector')
@@ -680,6 +735,21 @@ class TargetResource extends Resource
 
                 TextColumn::make('qualification_title.trainingProgram.tvet.name')
                     ->label('TVET Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.priority.name')
+                    ->label('Priority Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('learningMode.deliveryMode.name')
+                    ->label('Learning Mode')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('learningMode.name')
+                    ->label('Delivery Mode')
                     ->searchable()
                     ->toggleable(),
 
@@ -997,7 +1067,12 @@ class TargetResource extends Resource
                 if ($particular->district->name === 'Not Applicable') {
                     if ($particular->subParticular->name === 'Partylist') {
                         return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
-                    } else {
+                    } 
+                    
+                    else if ($particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)' ) {
+                        return [$particular->id => $particular->subParticular->name];
+                    }
+                    else {
                         return [$particular->id => $particular->subParticular->name];
                     }
                 } else {

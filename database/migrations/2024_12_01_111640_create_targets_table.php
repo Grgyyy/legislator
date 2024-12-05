@@ -4,28 +4,39 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('target_histories', function (Blueprint $table) {
+        Schema::create('targets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('target_id')
+            $table->integer('abscap_id')
+                ->unique()
+                ->nullable();
+            $table->foreignId('allocation_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->foreignId('allocation_id')
+            $table->foreignId('district_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('municipality_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('tvi_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->string('tvi_name');
             $table->foreignId('qualification_title_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->string('qualification_title_code');
+            $table->string('qualification_title_name');
             $table->foreignId('abdd_id')
+                ->constrained()
+                ->cascadeOnDelete();
+            $table->foreignId('learning_mode_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->integer('number_of_slots');
@@ -53,10 +64,14 @@ return new class extends Migration
                 ->default(0);
             $table->integer('total_misc_fee')
                 ->default(0);
+            $table->integer('admin_cost')
+                ->default(0);
             $table->integer('total_amount')
                 ->default(1);
             $table->string('appropriation_type');
-            $table->string('description');
+            $table->foreignId('target_status_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -67,6 +82,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('target_histories');
+        Schema::dropIfExists('targets');
     }
 };

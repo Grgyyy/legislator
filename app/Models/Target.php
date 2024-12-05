@@ -11,10 +11,20 @@ class Target extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'abscap_id',
         'allocation_id',
+        'district_id',
+        'municipality_id',
         'tvi_id',
+        'tvi_name',
         'abdd_id',
         'qualification_title_id',
+        'qualification_title_code',
+        'qualification_title_name',
+
+        // 'delivery_mode_id',
+        'learning_mode_id',
+
         'number_of_slots',
         'total_training_cost_pcc',
         'total_cost_of_toolkit_pcc',
@@ -29,6 +39,7 @@ class Target extends Model
         'total_amount',
         'appropriation_type',
         'target_status_id',
+        'admin_cost',
         'attribution_allocation_id',
     ];
 
@@ -47,6 +58,17 @@ class Target extends Model
         return $this->belongsTo(Tvi::class);
     }
 
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
+
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class);
+    }
+
+
     public function qualification_title()
     {
         return $this->belongsTo(QualificationTitle::class);
@@ -61,6 +83,12 @@ class Target extends Model
     {
         return $this->belongsTo(Abdd::class);
     }
+
+    public function learningMode()
+    {
+        return $this->belongsTo(LearningMode::class);
+    }
+
 
     public function targetHistory()
     {

@@ -32,7 +32,10 @@ class LearningModeResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?int $navigationSort = 7;
+    protected static ?string $navigationParentItem = "Delivery Modes";
+
+    protected static ?int $navigationSort = 1;
+
 
     public static function form(Form $form): Form
     {
@@ -47,8 +50,10 @@ class LearningModeResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('acronym'),
-                TextColumn::make('name')
+               
+                TextColumn::make('name'),
+                TextColumn::make('deliveryMode.acronym'),
+                TextColumn::make('deliveryMode.name'),
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.delivery-modes.showDeliveryMode', ['record' => $record->id]),

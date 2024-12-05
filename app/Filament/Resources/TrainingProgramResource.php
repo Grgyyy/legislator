@@ -45,14 +45,6 @@ class TrainingProgramResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('title')
-                    ->label(label: "Training Program")
-                    ->placeholder('Enter training program')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->autocomplete(false)
-                    ->validationAttribute('Training Program'),
-
                 TextInput::make('code')
                     ->label(label: 'Training Program Code')
                     ->placeholder('Enter training program code')
@@ -60,6 +52,14 @@ class TrainingProgramResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Training Program Code'),
+                    
+                TextInput::make('title')
+                    ->label(label: "Training Program")
+                    ->placeholder('Enter training program')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('Training Program'),
 
                 Select::make('tvet_id')
                     ->label('TVET Sector')

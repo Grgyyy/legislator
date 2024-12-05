@@ -12,12 +12,17 @@ class LearningMode extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'acronym',
         'name',
+        'delivery_mode_id'
     ];
 
     public function deliveryMode()
     {
-        return $this->hasMany(DeliveryMode::class);
+        return $this->belongsTo(DeliveryMode::class);
+    }
+
+    public function target()
+    {
+        return $this->hasMany(Target::class);
     }
 }
