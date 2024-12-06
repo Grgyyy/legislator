@@ -15,9 +15,6 @@ return new class extends Migration
             $table->id();
             $table->string('name')
                 ->unique();
-            $table->foreignId('delivery_mode_id')
-                ->constrained()
-                ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

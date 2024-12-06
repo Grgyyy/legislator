@@ -17,7 +17,7 @@ class DeliveryMode extends Model
 
     public function learningMode()
     {
-        return $this->hasMany(LearningMode::class);
+        return $this->belongsToMany(LearningMode::class, 'delivery_learnings')->withTimestamps();
     }
 
     
