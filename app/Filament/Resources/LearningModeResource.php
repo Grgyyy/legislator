@@ -45,7 +45,7 @@ class LearningModeResource extends Resource
             ->schema([
                 TextInput::make('name'),
                 Select::make('delivery_mode_id')
-                    ->relationship('deliveryMode', 'name') // Updated to match the `deliveryModes` relationship
+                    ->relationship('deliveryMode', 'name') 
                     ->multiple()
                     ->options(function () {
                         return DeliveryMode::all()

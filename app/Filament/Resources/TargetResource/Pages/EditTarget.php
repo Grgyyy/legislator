@@ -214,6 +214,7 @@ class EditTarget extends EditRecord
             'qualification_title_code' => $target->qualification_title_code,
             'qualification_title_name' => $target->qualification_title_name,
             'abdd_id' => $targetData['abdd_id'],
+            'delivery_mode_id' => $targetData['delivery_mode_id'],
             'learning_mode_id' => $targetData['learning_mode_id'],
             'number_of_slots' => $targetData['number_of_slots'],
             'attribution_allocation_id' => $targetData['attribution_allocation_id'] ?? null,

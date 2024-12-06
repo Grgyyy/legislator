@@ -36,6 +36,9 @@ return new class extends Migration {
             $table->foreignId('abdd_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('delivery_mode_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->foreignId('learning_mode_id')
                 ->constrained()
                 ->cascadeOnDelete();

@@ -108,7 +108,7 @@ class CreateTarget extends CreateRecord
         $requiredFields = [
             'legislator_id', 'particular_id', 'scholarship_program_id',
             'qualification_title_id', 'number_of_slots', 'tvi_id',
-            'appropriation_type', 'abdd_id', 'learning_mode_id',
+            'appropriation_type', 'abdd_id', 'learning_mode_id', 'delivery_mode_id'
         ];
 
         foreach ($requiredFields as $field) {
@@ -210,9 +210,12 @@ class CreateTarget extends CreateRecord
             'qualification_title_code' => $qualificationTitle->trainingProgram->code,
             'qualification_title_name' => $qualificationTitle->trainingProgram->title,
             'number_of_slots' => $targetData['number_of_slots'],
+            'learning_mode_id' => $targetData['learning_mode_id'],
+            'delivery_mode_id' => $targetData['delivery_mode_id'],
             'target_status_id' => 1,
         ], $totals));
     }
+
 
     private function logTargetHistory(array $targetData, Target $target, Allocation $allocation, array $totals): void
     {
@@ -228,6 +231,7 @@ class CreateTarget extends CreateRecord
             'qualification_title_code' => $target->qualification_title_code,
             'qualification_title_name' => $target->qualification_title_name,
             'abdd_id' => $targetData['abdd_id'],
+            'delivery_mode_id' => $targetData['delivery_mode_id'],
             'learning_mode_id' => $targetData['learning_mode_id'],
             'number_of_slots' => $targetData['number_of_slots'],
             'attribution_allocation_id' => $targetData['attribution_allocation_id'] ?? null,
