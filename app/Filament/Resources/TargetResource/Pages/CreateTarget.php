@@ -217,6 +217,7 @@ class CreateTarget extends CreateRecord
     private function logTargetHistory(array $targetData, Target $target, Allocation $allocation, array $totals): void
     {
         TargetHistory::create([
+            'abscap_id' => $targetData['abscap_id'],
             'target_id' => $target->id,
             'allocation_id' => $allocation->id,
             'district_id' => $target->district_id,

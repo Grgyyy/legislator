@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\DeliveryMode;
 use Filament\Forms;
+use Filament\Forms\Components\Select;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
@@ -41,8 +43,13 @@ class LearningModeResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('acronym'),
-                TextInput::make('name')
+                TextInput::make('name'),
+                Select::make('delivery_mode_id')
+                    ->options(function () {
+                        return DeliveryMode::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_delivery_mode' => 'No delivery mode available'];
+                    })
             ]);
     }
 

@@ -180,6 +180,7 @@ class EditAttributionTarget extends EditRecord
             $provinceAbdd->decrement('available_slots', $numberOfSlots);
 
             TargetHistory::create([
+                'abscap_id' => $data['abscap_id'],
                 'target_id' => $record->id,
                 'allocation_id' => $receiverAllocation->id,
                 'attribution_allocation_id' => $senderAllocation->id,

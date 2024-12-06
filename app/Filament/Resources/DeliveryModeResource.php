@@ -41,11 +41,11 @@ class DeliveryModeResource extends Resource
         return $form
             ->schema([
                 TextInput::make('acronym')
-                    ->label('Acronym')
+                    ->label('Delivery Mode Acronym')
                     ->required()
                 ->maxLength(255),
                 TextInput::make('name')
-                    ->label('Learning Mode')
+                    ->label('Delivery Mode Name')
                     ->required()
                     ->maxLength(255),
             ]);
@@ -56,8 +56,10 @@ class DeliveryModeResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('acronym'),
-                TextColumn::make('name'),
+                TextColumn::make('acronym')
+                    ->label('Delivery Mode Acronym'),
+                TextColumn::make('name')
+                ->label('Delivery Mode Name'),
             ])
             ->filters([
                 //
