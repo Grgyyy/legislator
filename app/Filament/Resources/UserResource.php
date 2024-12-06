@@ -2,29 +2,32 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\User;
-use App\Filament\Resources\UserResource\Pages;
-use App\Services\NotificationHandler;
 use Closure;
-use Filament\Resources\Resource;
+use App\Models\User;
+use App\Models\Region;
 use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Resources\Resource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use App\Filament\Resources\UserResource\Pages;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Models\Province;
 
 class UserResource extends Resource
 {
@@ -68,7 +71,23 @@ class UserResource extends Resource
                     ->validationMessages([
                         'regex' => 'The password must not contain special characters.',
                         'min' => 'Password must be at least 8 characters long.'
-                    ])
+                    ]),
+                Select::make('roles')
+                    ->multiple()
+                    ->relationship('roles', 'name')
+                    ->preload(),
+
+                Select::make('region_id')
+                    ->label('Region')
+                    ->options(Region::all()->pluck('name', 'id'))
+                    ->searchable(),
+
+                Select::make('province_id')
+                    ->label('Province')
+                    ->options(Province::all()->pluck('name', 'id'))
+                    ->searchable(),
+
+
             ]);
     }
 
@@ -85,6 +104,22 @@ class UserResource extends Resource
                 TextColumn::make("email")
                     ->searchable()
                     ->toggleable(),
+
+                TextColumn::make("roles.name")
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make("region.name")
+                    ->label('Region')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make("province.name")
+                    ->label('Province')
+                    ->searchable()
+                    ->toggleable(),
+
+
             ])
             ->filters([
                 TrashedFilter::make()
@@ -93,7 +128,7 @@ class UserResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn ($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
@@ -144,8 +179,10 @@ class UserResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
+            // ->where('roles.name', '!=', 'Admin')
             ->whereNot('id', Auth::id());
-    } 
+    }
+
 
     public static function getPages(): array
     {
@@ -155,4 +192,6 @@ class UserResource extends Resource
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
+
+
 }

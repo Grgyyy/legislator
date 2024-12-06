@@ -12,11 +12,18 @@ class Region extends Model
 
     protected $fillable = [
         'name',
-        'code'
+        'code',
     ];
 
+    // A Region can have many Provinces
     public function provinces()
     {
         return $this->hasMany(Province::class);
+    }
+
+    // A Region can have many Users
+    public function users()
+    {
+        return $this->hasMany(User::class);
     }
 }
