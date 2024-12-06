@@ -16,11 +16,12 @@ class LearningMode extends Model
         'delivery_mode_id'
     ];
 
+    
     public function deliveryMode()
     {
-        return $this->belongsTo(DeliveryMode::class);
+        return $this->belongsToMany(DeliveryMode::class, 'delivery_learnings')->withTimestamps();
     }
-
+    
     public function target()
     {
         return $this->hasMany(Target::class);
