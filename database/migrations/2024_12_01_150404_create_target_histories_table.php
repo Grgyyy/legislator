@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('target_histories', function (Blueprint $table) {
             $table->id();
+            $table->integer('abscap_id')
+                ->unique()
+                ->nullable();
             $table->foreignId('target_id')
                 ->constrained()
                 ->cascadeOnDelete();

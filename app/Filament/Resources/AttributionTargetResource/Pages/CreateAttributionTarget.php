@@ -168,6 +168,7 @@ class CreateAttributionTarget extends CreateRecord
 
             // Log the creation in TargetHistory
             TargetHistory::create([
+                'abscap_id' => $targetData['abscap_id'],
                 'target_id' => $target->id,
                 'allocation_id' => $receiverAllocation->id,
                 'attribution_allocation_id' => $senderAllocation->id,
