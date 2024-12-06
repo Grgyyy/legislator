@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('delivery_learnings', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('delivery_mode_id')
+                ->constrained()
+                ->onDelete('cascade');
+            $table->foreignId('learning_mode_id')
+                ->constrained()
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }

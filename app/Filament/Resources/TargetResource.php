@@ -333,9 +333,11 @@ class TargetResource extends Resource
                                                             return [$particular->id => "{$subParticularName}"];
                                                         }
                                                     } elseif ($fundSourceName === 'RO Regular') {
-                                                        $regionName = $particular->district && $particular->district->municipality && $particular->district->municipality->province && $particular->district->municipality->province->region ? $particular->district->municipality->province->region->name : 'No Region';
+                                                        $regionName = $particular->district?->province?->region ?? 'No Region';
+                                                        return [$particular->id => "{$subParticularName} - {$regionName->name}"];
                                                     } elseif ($fundSourceName === 'CO Regular') {
-                                                        return [$particular->id => "{$subParticularName}"];
+                                                        $regionName = $particular->district?->province?->region ?? 'No Region';
+                                                        return [$particular->id => "{$subParticularName} - {$regionName->name}"];
                                                     }
 
                                                     return [];
