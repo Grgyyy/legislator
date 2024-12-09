@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class DeliveryLearning extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'delivery_mode_id',
+        'learning_mode_id'
+    ];
 }

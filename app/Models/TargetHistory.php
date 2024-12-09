@@ -20,6 +20,7 @@ class TargetHistory extends Model
         'qualification_title_code',
         'qualification_title_name',
         'abdd_id',
+        'delivery_mode_id',
         'learning_mode_id',
         'number_of_slots',
         'attribution_allocation_id',
@@ -68,6 +69,11 @@ class TargetHistory extends Model
     public function district()
     {
         return $this->belongsTo(District::class);
+    }
+
+    public function deliveryMode()
+    {
+        return $this->belongsTo(DeliveryMode::class);
     }
 
     public function learningMode()

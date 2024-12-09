@@ -22,7 +22,7 @@ class Target extends Model
         'qualification_title_code',
         'qualification_title_name',
 
-        // 'delivery_mode_id',
+        'delivery_mode_id',
         'learning_mode_id',
 
         'number_of_slots',
@@ -84,11 +84,15 @@ class Target extends Model
         return $this->belongsTo(Abdd::class);
     }
 
+    public function deliveryMode()
+    {
+        return $this->belongsTo(DeliveryMode::class);
+    }
+
     public function learningMode()
     {
         return $this->belongsTo(LearningMode::class);
     }
-
 
     public function targetHistory()
     {

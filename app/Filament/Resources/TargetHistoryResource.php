@@ -172,7 +172,7 @@ class TargetHistoryResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('learningMode.deliveryMode.name')
+                TextColumn::make('deliveryMode.name')
                     ->label('Delivery Mode')
                     ->searchable()
                     ->toggleable(),
