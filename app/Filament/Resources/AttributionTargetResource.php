@@ -130,6 +130,8 @@ class AttributionTargetResource extends Resource
                                                     $set('attribution_appropriation_type', null);
                                                 }
                                             })
+                                            ->disabled()
+                                            ->dehydrated()
                                             ->reactive()
                                             ->live(),
 
@@ -188,6 +190,8 @@ class AttributionTargetResource extends Resource
                                                     $set('attribution_appropriation_type', null);
                                                 }
                                             })
+                                            ->disabled()
+                                            ->dehydrated()
                                             ->reactive()
                                             ->live(),
                                         
@@ -237,6 +241,8 @@ class AttributionTargetResource extends Resource
                                                     $set('attribution_appropriation_type', null);
                                                 }
                                             })
+                                            ->disabled()
+                                            ->dehydrated()
                                             ->reactive()
                                             ->live(),
                                         
@@ -268,6 +274,8 @@ class AttributionTargetResource extends Resource
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
                                             })
+                                            ->disabled()
+                                            ->dehydrated()
                                             ->reactive()
                                             ->live(),
                                         
@@ -284,6 +292,8 @@ class AttributionTargetResource extends Resource
                                                     : ['no_allocation' => 'No appropriation type available. Select an appropriation year first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_allocation')
+                                            ->disabled()
+                                            ->dehydrated()
                                             ->reactive()
                                             ->live(),
                                     ])
@@ -329,8 +339,8 @@ class AttributionTargetResource extends Resource
                                                     $set('attribution_receiver_particular', null); 
                                                 }
                                             })
-                                            
-                                            
+                                            ->disabled()
+                                            ->dehydrated()
                                             ->reactive()
                                             ->live(),
 
@@ -389,6 +399,8 @@ class AttributionTargetResource extends Resource
                                                 return ['no_particular' => 'No particular available. Select a legislator first.'];
                                             })                                            
                                             ->disableOptionWhen(fn($value) => $value === 'no_particular')
+                                            ->disabled()
+                                            ->dehydrated()
                                             ->reactive()
                                             ->live(),                                        
                                                                                 
@@ -783,7 +795,7 @@ class AttributionTargetResource extends Resource
                                             ->reactive()
                                             ->live(),
 
-                                            Select::make('attribution_receiver_particular')
+                                        Select::make('attribution_receiver_particular')
                                             ->label('Particular')
                                             ->required()
                                             ->markAsRequired(false)
@@ -988,6 +1000,49 @@ class AttributionTargetResource extends Resource
 
                         return $fundSource ? $fundSource->name : 'No fund source available';
                     }),
+
+                
+                TextColumn::make('attributionAllocation.legislator.name')
+                    ->label('Attribution Sender')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('attributionAllocation.legislator.particular.subParticular')
+                    ->label('Attribution Particular')
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $legislator = $record->attributionAllocation->legislator;
+
+                        if (!$legislator) {
+                            return 'No legislator available';
+                        }
+
+                        $particulars = $legislator->particular;
+
+                        if ($particulars->isEmpty()) {
+                            return 'No particular available';
+                        }
+
+                        $particular = $particulars->first();
+                        $district = $particular->district;
+                        $municipality = $district ? $district->underMunicipality : null;
+
+                        $districtName = $district ? $district->name : 'Unknown District';
+                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+
+                        if ($districtName === 'Not Applicable') {
+                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                            } else {
+                                return $particular->subParticular->name ?? 'Unknown SubParticular';
+                            }
+                        } else {
+                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                        }
+                    }),
+
 
                 TextColumn::make('allocation.legislator.name')
                     ->sortable()

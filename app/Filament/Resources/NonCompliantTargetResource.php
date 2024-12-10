@@ -128,30 +128,55 @@ class NonCompliantTargetResource extends Resource
                 Select::make('receiver_particular_id')
                     ->label('Particular')
                     ->required()
+                    ->markAsRequired(false)
                     ->searchable()
-                    ->default($record->allocation->particular_id ?? null)
-                    ->options(function ($get) {
-                        $legislatorId = $get('receiver_legislator_id'); 
-
+                    ->preload()
+                    ->native(false)
+                    ->options(function ($get, $set) {
+                        $legislatorId = $get('receiver_legislator_id');
+                    
                         if ($legislatorId) {
-                            return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
+                            $particulars = Particular::whereHas('legislator', function ($query) use ($legislatorId) {
                                 $query->where('legislator_particular.legislator_id', $legislatorId);
                             })
-                            ->with('subParticular')
-                            ->get()
-                            ->pluck('subParticular.name', 'id')
-                            ->toArray();
-                        }
+                            ->with('subParticular') 
+                            ->get();
+                    
+                            $particularOptions = $particulars->mapWithKeys(function ($particular) {
+                                if ($particular->subParticular) {
+                                    if ($particular->subParticular->name === 'Party-list') {
+                                        $name = $particular->partylist->name;
+                                    }
+                                    elseif ($particular->subParticular->name === 'District') {
+                                        $name = $particular->district->name . ' - ' . $particular->district->province->name . ', ' .  $particular->district->province->region->name;
+                                    }
 
-                        return [];
-                    })
+                                    elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
+                                        $name = $particular->subParticular->name. ' - ' .  $particular->district->province->region->name;
+                                    }
+                                    else {
+                                        $name = $particular->subParticular->name;
+                                    }
+                                } else {
+                                    $name = $particular->name;
+                                }
+                    
+                                return [$particular->id => $name];
+                            })->toArray();
+                    
+                            if (count($particularOptions) === 1) {
+                                $defaultParticularId = key($particularOptions);
+                                $set('attribution_receiver_particular', $defaultParticularId);
+                            }
+                    
+                            return $particularOptions ?: ['no_particular' => 'No particular available'];
+                        }
+                    
+                        return ['no_particular' => 'No particular available. Select a legislator first.'];
+                    })                                            
+                    ->disableOptionWhen(fn($value) => $value === 'no_particular')
                     ->reactive()
-                    ->disabled()
-                    ->dehydrated()
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        $set('scholarship_program_id', null);
-                        $set('qualification_title_id', null);
-                    }),
+                    ->live(),
 
                 Select::make('scholarship_program_id')
                     ->label('Scholarship Program')
@@ -462,11 +487,11 @@ class NonCompliantTargetResource extends Resource
     {
         $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
 
-        if (!$tvi || !$tvi->district || !$tvi->district->municipality || !$tvi->district->municipality->province) {
+        if (!$tvi || !$tvi->district || !$tvi->municipality || !$tvi->district->province) {
             return ['' => 'No ABDD Sectors Available.'];
         }
 
-        $abddSectors = $tvi->district->municipality->province->abdds()
+        $abddSectors = $tvi->district->province->abdds()
             ->select('abdds.id', 'abdds.name')
             ->pluck('name', 'id')
             ->toArray();

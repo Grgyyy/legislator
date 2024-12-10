@@ -103,7 +103,7 @@ class CreateNonCompliantTarget extends CreateRecord
                         'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
                         'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
                         'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-                        'total_amount' => $total_amount,
+                        'total_amount' => $targetRecord->total_amount,
                         'appropriation_type' => $targetRecord['appropriation_type'],
                         'target_status_id' => 1,
                         'description' => 'Marked as Non-Compliant'

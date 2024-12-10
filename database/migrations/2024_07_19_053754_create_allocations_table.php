@@ -25,6 +25,8 @@ return new class extends Migration {
             $table->decimal('allocation', 15, 2);
             $table->decimal('admin_cost', 15, 2)->default(0);
             $table->decimal('balance', 15, 2)->default(0);
+            $table->decimal('accumulated_balance', 15, 2)
+                ->default(0);
             $table->decimal('attribution_sent', 15, 2)->default(0);
             $table->decimal('attribution_received', 15, 2)->default(0);
             $table->year('year');
