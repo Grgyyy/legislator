@@ -345,7 +345,7 @@ class AttributionTargetResource extends Resource
                                             ->reactive()
                                             ->live(),
 
-                                            Select::make('attribution_receiver_particular')
+                                        Select::make('attribution_receiver_particular')
                                             ->label('Particular')
                                             ->required()
                                             ->markAsRequired(false)
@@ -489,7 +489,9 @@ class AttributionTargetResource extends Resource
                                                     ? self::getAbddSectors($tviId)
                                                     : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
                                             })
-                                            ->disableOptionWhen(fn($value) => $value === 'no_abdd'),
+                                            ->disableOptionWhen(fn($value) => $value === 'no_abdd')
+                                            ->disabled()
+                                            ->dehydrated(),
 
                                          TextInput::make('admin_cost')
                                             ->label('Admin Cost')

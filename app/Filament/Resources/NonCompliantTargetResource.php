@@ -234,7 +234,8 @@ class NonCompliantTargetResource extends Resource
                     ->preload()
                     ->default($record ? $record->tvi_id : null)
                     ->relationship('tvi', 'name')
-                    ->disabled(),
+                    ->disabled($isDisabled)
+                    ->dehydrated(),
 
                 Select::make('qualification_title_id')
                     ->label('Qualification Title')
@@ -245,7 +246,7 @@ class NonCompliantTargetResource extends Resource
                         $scholarshipProgramId = $get('scholarship_program_id');
                         return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId) : ['' => 'No Qualification Title Available.'];
                     })
-                    ->disabled()
+                    ->disabled($isDisabled)
                     ->dehydrated(),
 
                 Select::make('delivery_mode_id')
@@ -263,7 +264,7 @@ class NonCompliantTargetResource extends Resource
                             : ['no_delivery_mode' => 'No delivery modes available.'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode')
-                    ->disabled()
+                    ->disabled($isDisabled)
                     ->dehydrated(),
                 
                 Select::make('learning_mode_id')
@@ -288,7 +289,8 @@ class NonCompliantTargetResource extends Resource
                     })
                     ->default($record ? $record->learning_mode_id : null)
                     ->disableOptionWhen(fn($value) => $value === 'no_learning_modes')
-                    ->disabled(),
+                    ->disabled($isDisabled)
+                    ->dehydrated(),
 
                 Select::make('abdd_id')
                     ->label('ABDD Sector')
@@ -300,7 +302,8 @@ class NonCompliantTargetResource extends Resource
                         $tviId = $get('tvi_id');
                         return $tviId ? self::getAbddSectors($tviId) : ['' => 'No ABDD Sector Available.'];
                     })
-                    ->disabled(),
+                    ->disabled($isDisabled)
+                    ->dehydrated(),
 
                 TextInput::make('admin_cost')
                     ->label('Admin Cost')
@@ -310,14 +313,16 @@ class NonCompliantTargetResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->disabled(),
+                    ->disabled($isDisabled)
+                    ->dehydrated(),
 
                 TextInput::make('number_of_slots')
                     ->label('Number of Slots')
                     ->default($record ? $record->number_of_slots : null)
                     ->required()
                     ->numeric()
-                    ->disabled(),
+                    ->disabled($isDisabled)
+                    ->dehydrated(),
 
                 TextInput::make('target_id')
                     ->label('')

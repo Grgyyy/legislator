@@ -178,7 +178,9 @@ class TargetResource extends Resource
                                     ? self::getAbddSectors($tviId)
                                     : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
                             })
-                            ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
+                            ->disableOptionWhen(fn($value) => $value === 'no_abddd')
+                            ->disabled()
+                            ->dehydrated(),
 
                             Select::make('delivery_mode_id')
                             ->label('Delivery Mode')
