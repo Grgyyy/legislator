@@ -52,6 +52,12 @@ class NonCompliantTargetResource extends Resource
     return $form->schema(function ($record) {
         $createCommonFields = function ($record, $isDisabled = true) {
             return [
+                TextInput::make('abscap_id')
+                    ->label('Absorbative Capacity ID')
+                    ->placeholder('Enter an Absorbative capacity ID')
+                    ->default($record ? $record->abscap_id : null)
+                    ->numeric(),
+                    
                 Select::make('sender_legislator_id')
                     ->label('Attribution Sender')
                     ->searchable()
