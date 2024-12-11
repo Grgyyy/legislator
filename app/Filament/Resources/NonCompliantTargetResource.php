@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\NonCompliantTargetResource\Pages;
 use App\Filament\Resources\NonCompliantTargetResource\RelationManagers;
 use App\Models\Allocation;
+use App\Models\DeliveryMode;
 use App\Models\Legislator;
 use App\Models\NonCompliantTarget;
 use App\Models\Particular;
@@ -103,6 +104,51 @@ class NonCompliantTargetResource extends Resource
                         $set('scholarship_program_id', null);
                         $set('qualification_title_id', null);
                     }),
+                
+                Select::make('scholarship_program_id')
+                    ->label('Scholarship Program')
+                    ->required()
+                    ->searchable()
+                    ->default($record ? $record->allocation->scholarship_program_id : null)
+                    ->options(function ($get) {
+                        $legislatorId = $get('receiver_legislator_id');
+                        $particularId = $get('receiver_particular_id');
+                        return $legislatorId && $particularId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
+                    })
+                    ->reactive()
+                    ->disabled()
+                    ->dehydrated()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $set('allocation_year', null);
+                        $set('qualification_title_id', null);
+                    }),
+
+                Select::make('allocation_year')
+                    ->label('Appropriation Year')
+                    ->required()
+                    ->searchable()
+                    ->disabled()
+                    ->dehydrated()
+                    ->default($record ? $record->allocation->year : null)
+                    ->options(function ($get) {
+                        $legislatorId = $get('legislator_id');
+                        $particularId = $get('particular_id');
+                        $scholarshipProgramId = $get('scholarship_program_id');
+                        return $legislatorId && $particularId && $scholarshipProgramId
+                            ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
+                            : ['' => 'No Allocation Available.'];
+                    }),
+
+                Select::make('appropriation_type')
+                    ->label('Allocation Type')
+                    ->required()
+                    ->default($record ? $record->appropriation_type : null)
+                    ->disabled()
+                    ->dehydrated()
+                    ->options([
+                        'Current' => 'Current',
+                        'Continuing' => 'Continuing',
+                    ]),
 
                 Select::make('receiver_legislator_id')
                     ->label('Attribution Receiver')
@@ -129,6 +175,7 @@ class NonCompliantTargetResource extends Resource
                     ->label('Particular')
                     ->required()
                     ->markAsRequired(false)
+                    ->default($record ? $record->allocation->particular_id : null)
                     ->searchable()
                     ->preload()
                     ->native(false)
@@ -175,53 +222,10 @@ class NonCompliantTargetResource extends Resource
                         return ['no_particular' => 'No particular available. Select a legislator first.'];
                     })                                            
                     ->disableOptionWhen(fn($value) => $value === 'no_particular')
+                    ->dehydrated()
+                    ->disabled()
                     ->reactive()
                     ->live(),
-
-                Select::make('scholarship_program_id')
-                    ->label('Scholarship Program')
-                    ->required()
-                    ->searchable()
-                    ->default($record ? $record->allocation->scholarship_program_id : null)
-                    ->options(function ($get) {
-                        $legislatorId = $get('receiver_legislator_id');
-                        $particularId = $get('receiver_particular_id');
-                        return $legislatorId ? self::getScholarshipProgramsOptions($legislatorId, $particularId) : ['' => 'No Scholarship Program Available.'];
-                    })
-                    ->reactive()
-                    ->disabled()
-                    ->dehydrated()
-                    ->afterStateUpdated(function ($state, callable $set) {
-                        $set('allocation_year', null);
-                        $set('qualification_title_id', null);
-                    }),
-
-                Select::make('allocation_year')
-                    ->label('Appropriation Year')
-                    ->required()
-                    ->searchable()
-                    ->disabled()
-                    ->dehydrated()
-                    ->default($record ? $record->allocation->year : null)
-                    ->options(function ($get) {
-                        $legislatorId = $get('legislator_id');
-                        $particularId = $get('particular_id');
-                        $scholarshipProgramId = $get('scholarship_program_id');
-                        return $legislatorId && $particularId && $scholarshipProgramId
-                            ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
-                            : ['' => 'No Allocation Available.'];
-                    }),
-
-                Select::make('appropriation_type')
-                    ->label('Allocation Type')
-                    ->required()
-                    ->default($record ? $record->appropriation_type : null)
-                    ->disabled()
-                    ->dehydrated()
-                    ->options([
-                        'Current' => 'Current',
-                        'Continuing' => 'Continuing',
-                    ]),
 
                 Select::make('tvi_id')
                     ->label('Institution')
@@ -230,7 +234,7 @@ class NonCompliantTargetResource extends Resource
                     ->preload()
                     ->default($record ? $record->tvi_id : null)
                     ->relationship('tvi', 'name')
-                    ->disabled($isDisabled),
+                    ->disabled(),
 
                 Select::make('qualification_title_id')
                     ->label('Qualification Title')
@@ -241,8 +245,50 @@ class NonCompliantTargetResource extends Resource
                         $scholarshipProgramId = $get('scholarship_program_id');
                         return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId) : ['' => 'No Qualification Title Available.'];
                     })
-                    ->disabled($isDisabled)
+                    ->disabled()
                     ->dehydrated(),
+
+                Select::make('delivery_mode_id')
+                    ->label('Delivery Mode')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->default($record ? $record->delivery_mode_id : null)
+                    ->options(function () {
+                        $deliveryModes = DeliveryMode::all();
+                
+                        return $deliveryModes->isNotEmpty()
+                            ? $deliveryModes->pluck('name', 'id')->toArray()
+                            : ['no_delivery_mode' => 'No delivery modes available.'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode')
+                    ->disabled()
+                    ->dehydrated(),
+                
+                Select::make('learning_mode_id')
+                    ->label('Learning Mode')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->options(function ($get) {
+                        $deliveryModeId = $get('delivery_mode_id'); 
+                        $learningModes = [];
+                
+                        if ($deliveryModeId) {
+                            $learningModes = DeliveryMode::find($deliveryModeId)
+                                ->learningMode
+                                ->pluck('name', 'id')
+                                ->toArray();
+                        }
+                        return !empty($learningModes)
+                            ? $learningModes
+                            : ['no_learning_modes' => 'No learning modes available for the selected delivery mode.'];
+                    })
+                    ->default($record ? $record->learning_mode_id : null)
+                    ->disableOptionWhen(fn($value) => $value === 'no_learning_modes')
+                    ->disabled(),
 
                 Select::make('abdd_id')
                     ->label('ABDD Sector')
@@ -254,15 +300,24 @@ class NonCompliantTargetResource extends Resource
                         $tviId = $get('tvi_id');
                         return $tviId ? self::getAbddSectors($tviId) : ['' => 'No ABDD Sector Available.'];
                     })
-                    ->disabled($isDisabled)
-                    ->dehydrated(),
+                    ->disabled(),
+
+                TextInput::make('admin_cost')
+                    ->label('Admin Cost')
+                    ->placeholder('Enter amount of Admin Cost')
+                    ->default($record ? $record->admin_cost : null)
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->disabled(),
 
                 TextInput::make('number_of_slots')
                     ->label('Number of Slots')
                     ->default($record ? $record->number_of_slots : null)
                     ->required()
                     ->numeric()
-                    ->disabled($isDisabled),
+                    ->disabled(),
 
                 TextInput::make('target_id')
                     ->label('')
@@ -301,58 +356,217 @@ class NonCompliantTargetResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('allocation.particular.subParticular.fundSource.name')
-                    ->label('Allocation Type'),
+                TextColumn::make('abscap_id')
+                ->sortable()
+                ->searchable()
+                ->toggleable(),
+
+                TextColumn::make('fund_source')
+                    ->label('Fund Source')
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $legislator = $record->allocation->legislator;
+
+                        if (!$legislator) {
+                            return 'No legislator available';
+                        }
+
+                        $particulars = $legislator->particular;
+
+                        if ($particulars->isEmpty()) {
+                            return 'No particular available';
+                        }
+
+                        $particular = $record->allocation->particular;
+                        $subParticular = $particular->subParticular;
+                        $fundSource = $subParticular ? $subParticular->fundSource : null;
+
+                        return $fundSource ? $fundSource->name : 'No fund source available';
+                    }),
+
+                
                 TextColumn::make('attributionAllocation.legislator.name')
-                    ->label('Legislator I'),
+                    ->label('Attribution Sender')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+                    TextColumn::make('attributionAllocation.legislator.particular.subParticular')
+                    ->label('Attribution Particular')
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        // Check if attributionAllocation exists
+                        if (!$record->attributionAllocation) {
+                            return '';
+                        }
+                
+                        $legislator = $record->attributionAllocation->legislator;
+                
+                        $particulars = $legislator->particular;
+                
+                        $particular = $particulars->first();
+                        $district = $particular->district;
+                        $municipality = $district ? $district->underMunicipality : null;
+                
+                        $districtName = $district ? $district->name : 'Unknown District';
+                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                
+                        if ($districtName === 'Not Applicable') {
+                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                            } else {
+                                return $particular->subParticular->name ?? 'Unknown SubParticular';
+                            }
+                        } else {
+                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                        }
+                    }),                
+
                 TextColumn::make('allocation.legislator.name')
-                    ->label('Legislator II'),
-                TextColumn::make('allocation.particular.subParticular.name')
-                    ->label('Particular'),
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('allocation.soft_or_commitment')
-                    ->label('Soft/Commitment'),
+                    ->label('Source of Fund')
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('appropriation_type')
-                    ->label('Appropriation Type')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('allocation.year')
-                    ->label('Allocation Year')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('tvi.district.name')
+
+                TextColumn::make('allocation.legislator.particular.subParticular')
+                    ->label('Particular')
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $legislator = $record->allocation->legislator;
+
+                        if (!$legislator) {
+                            return 'No legislator available';
+                        }
+
+                        $particulars = $legislator->particular;
+
+                        if ($particulars->isEmpty()) {
+                            return 'No particular available';
+                        }
+
+                        $particular = $particulars->first();
+                        $district = $particular->district;
+                        $municipality = $district ? $district->underMunicipality : null;
+
+                        $districtName = $district ? $district->name : 'Unknown District';
+                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+
+                        if ($districtName === 'Not Applicable') {
+                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                            } else {
+                                return $particular->subParticular->name ?? 'Unknown SubParticular';
+                            }
+                        } else {
+                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                        }
+                    }),
+
+                TextColumn::make('municipality.name')
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('tvi.district.municipality.name')
+
+                TextColumn::make('district.name')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('tvi.district.municipality.province.name')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('tvi.district.municipality.province.region.name')
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('tvi.name')
-                    ->label('Institution'),
-                TextColumn::make('allocation.scholarship_program.name')
-                    ->label('Scholarship Program'),
-                TextColumn::make('qualification_title.trainingProgram.title')
-                    ->label('Qualification Title'),
-                TextColumn::make('qualification_title.trainingProgram.priority.name')
-                    ->label('Priority Sector'),
-                TextColumn::make('qualification_title.trainingProgram.tvet.name')
-                    ->label('TVET Sector'),
+                    ->label('Institution')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('tvi.tviClass.tviType.name')
+                    ->label('Institution Type')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('tvi.tviClass.name')
+                    ->label('Institution Class')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title_code')
+                    ->label('Qualification Code')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title_name')
+                    ->label('Qualification Title')
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('abdd.name')
-                    ->label('ABDD Sector'),
+                    ->label('ABDD Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.tvet.name')
+                    ->label('TVET Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.priority.name')
+                    ->label('Priority Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('deliveryMode.name')
+                    ->label('Learning Mode')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('learningMode.name')
+                    ->label('Learning Mode')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.priority.name')
+                    ->label('Priority Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('allocation.scholarship_program.name')
+                    ->label('Scholarship Program')
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('number_of_slots')
+                    ->label('Number of Slots')
+                    ->sortable()
                     ->searchable()
-                    ->toggleable()
-                    ->label('No. of Slots'),
+                    ->toggleable(),
+
                 TextColumn::make('total_amount')
+                    ->label('Total Amount')
                     ->searchable()
                     ->toggleable()
-                    ->label('Total Amount')
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+
                 TextColumn::make('nonCompliantRemark.target_remarks.remarks')
                     ->label('Remarks')
                     ->formatStateUsing(function ($record) {
@@ -365,7 +579,8 @@ class NonCompliantTargetResource extends Resource
                         }
                         
                         return 'N/A';
-                    }),                
+                    }),     
+                               
                 TextColumn::make('nonCompliantRemark.others_remarks')
                     ->label('Other')
                     ->formatStateUsing(function ($record) {
@@ -374,6 +589,11 @@ class NonCompliantTargetResource extends Resource
                         }
                         return 'N/A';
                         }),
+
+                TextColumn::make('targetStatus.desc')
+                        ->label('Status')
+                        ->searchable()
+                        ->toggleable(),
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]),

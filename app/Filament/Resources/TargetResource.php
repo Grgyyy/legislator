@@ -61,7 +61,8 @@ class TargetResource extends Resource
                     return [
                         TextInput::make('abscap_id')
                                     ->label('Absorbative Capacity ID')
-                                    ->placeholder('Enter an Absorbative capacity ID'),
+                                    ->placeholder('Enter an Absorbative capacity ID')
+                                    ->numeric(),
                                     
                         Select::make('legislator_id')
                             ->label('Legislator')
@@ -244,7 +245,8 @@ class TargetResource extends Resource
                             ->schema([
                                 TextInput::make('abscap_id')
                                     ->label('Absorbative Capacity ID')
-                                    ->placeholder('Enter an Absorbative capacity ID'),
+                                    ->placeholder('Enter an Absorbative capacity ID')
+                                    ->numeric(),
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -828,7 +830,7 @@ class TargetResource extends Resource
                 TextColumn::make('targetStatus.desc')
                     ->label('Status')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]),

@@ -303,7 +303,8 @@ class AttributionTargetResource extends Resource
                                     ->schema([
                                         TextInput::make('abscap_id')
                                             ->label('Absorbative Capacity ID')
-                                            ->placeholder('Enter an Absorbative capacity ID'),
+                                            ->placeholder('Enter an Absorbative capacity ID')
+                                            ->numeric(),
                                     
                                         Select::make('attribution_receiver')
                                             ->label('Legislator')
@@ -754,7 +755,8 @@ class AttributionTargetResource extends Resource
                                     ->schema([
                                         TextInput::make('abscap_id')
                                             ->label('Absorbative Capacity ID')
-                                            ->placeholder('Enter an Absorbative capacity ID'),
+                                            ->placeholder('Enter an Absorbative capacity ID')
+                                            ->numeric(),
                                     
                                             Select::make('attribution_receiver')
                                             ->label('Legislator')
