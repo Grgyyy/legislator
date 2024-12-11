@@ -19,7 +19,7 @@ class TotalAllocationsPerSchoProChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'TotalAllocationsPerSchoProChart';
+    protected static ?string $heading = 'Total Allocations';
 
     /**
      * Chart options (series, labels, types, size, animations...)
