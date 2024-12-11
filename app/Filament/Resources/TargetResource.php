@@ -1151,7 +1151,7 @@ class TargetResource extends Resource
         return Allocation::where('legislator_id', $legislatorId)
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
-            ->whereIn('year', [$yearNow, $yearNow - 1])
+            ->where('year', '>=', $yearNow - 1) 
             ->pluck('year', 'year')
             ->toArray() ?: ['no_allocation' => 'No allocation available'];
     }
