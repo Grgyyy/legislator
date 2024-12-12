@@ -10,6 +10,7 @@ use App\Filament\Resources\AttributionTargetResource;
 use App\Models\Tvi;
 use App\Models\ProvinceAbdd;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -38,7 +39,7 @@ class CreateAttributionTarget extends CreateRecord
             $targetData = $data['targets'][0] ?? null;
 
             if (!$targetData) {
-                throw new \Exception('No Attribution Target found.');
+                throw new Exception('No Attribution Target found.');
             }
 
             $requiredFields = [
@@ -61,7 +62,7 @@ class CreateAttributionTarget extends CreateRecord
                 ->first();
 
             if (!$senderAllocation) {
-                throw new \Exception('Attribution Sender Allocation not found');
+                throw new Exception('Attribution Sender Allocation not found');
             }
 
             $receiverAllocation = Allocation::where('legislator_id', $targetData['attribution_receiver'])
@@ -84,7 +85,7 @@ class CreateAttributionTarget extends CreateRecord
 
             $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
             if (!$qualificationTitle) {
-                throw new \Exception('Qualification Title not found');
+                throw new Exception('Qualification Title not found');
             }
 
             $numberOfSlots = $targetData['number_of_slots'] ?? 0;
@@ -105,26 +106,27 @@ class CreateAttributionTarget extends CreateRecord
 
             $institution = Tvi::find($targetData['tvi_id']);
             if (!$institution) {
-                throw new \Exception('Institution not found');
+                throw new Exception('Institution not found');
             }
 
             // Check for sufficient balance in the sender's allocation
             if ($senderAllocation->balance < $total_amount) {
-                throw new \Exception('Insufficient funds in sender allocation');
+                throw new Exception('Insufficient funds in sender allocation');
             }
 
             // Check for available slots in ProvinceAbdd
             $provinceAbdd = $this->getProvinceAbdd(
                 $targetData['abdd_id'],
-                $targetData->district->province_id,
-                $targetData->allocation->year
+                $institution->district->province_id,
+                $targetData['allocation_year']
             );
+
             if (!$provinceAbdd) {
-                throw new \Exception('ProvinceAbdd entry not found');
+                throw new Exception('ProvinceAbdd entry not found');
             }
 
             if ($provinceAbdd->available_slots < $numberOfSlots) {
-                throw new \Exception('Not enough available slots in ProvinceAbdd');
+                throw new Exception('Not enough available slots in ProvinceAbdd');
             }
 
             // If both conditions are met, proceed with creation
@@ -206,6 +208,27 @@ class CreateAttributionTarget extends CreateRecord
 
             return $target;
         });
+    }
+
+    private function getProvinceAbdd(int $abddId, int $provinceId, int $appropriationYear): ProvinceAbdd
+    {
+        $provinceAbdd = ProvinceAbdd::where([
+            'abdd_id' => $abddId,
+            'province_id' => $provinceId,
+            'year' => $appropriationYear,
+        ])->first();
+
+        if (!$provinceAbdd) {
+            $this->sendErrorNotification('Province Abdd Slots not found.');
+            throw new Exception('Province Abdd Slots not found.');
+        }
+
+        if ($provinceAbdd->available_slots <= 0) {
+            $this->sendErrorNotification('No available slots in Province Abdd.');
+            throw new Exception('No available slots in Province Abdd.');
+        }
+
+        return $provinceAbdd;
     }
 
 }
