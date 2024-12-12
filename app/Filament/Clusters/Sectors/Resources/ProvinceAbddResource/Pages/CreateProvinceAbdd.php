@@ -12,10 +12,9 @@ class CreateProvinceAbdd extends CreateRecord
 {
     protected static string $resource = ProvinceAbddResource::class;
 
-    // CreateProvinceAbdd.php
     public function isEdit(): bool
     {
-        return false; // Create mode
+        return false;
     }
 
     protected function getRedirectUrl(): string
@@ -25,16 +24,28 @@ class CreateProvinceAbdd extends CreateRecord
 
     protected function handleRecordCreation(array $data): ProvinceAbdd
     {
-        $abddSlots = DB::transaction(fn() => ProvinceAbdd::create([
-            'province_id' => $data['province_id'],
-            'abdd_id' => $data['abdd_id'],
-            'available_slots' => $data['total_slots'],
-            'total_slots' => $data['total_slots'],
-            'year' => $data['year'],
-        ]));
+        return DB::transaction(function () use ($data) {
+            $existingRecord = ProvinceAbdd::where('province_id', $data['province_id'])
+                ->where('abdd_id', $data['abdd_id'])
+                ->where('year', $data['year'])
+                ->first();
 
-        NotificationHandler::sendSuccessNotification('Created', 'Legislator has been created successfully.');
+            if ($existingRecord) {
+                NotificationHandler::sendErrorNotification('Record Exists', 'A record for this Province, ABDD, and Year already exists.');
+                return $existingRecord;
+            }
 
-        return $abddSlots;
+            $provinceAbdd = ProvinceAbdd::create([
+                'province_id' => $data['province_id'],
+                'abdd_id' => $data['abdd_id'],
+                'available_slots' => $data['total_slots'],
+                'total_slots' => $data['total_slots'],
+                'year' => $data['year'],
+            ]);
+
+            NotificationHandler::sendSuccessNotification('Created', 'Province ABDD has been created successfully.');
+
+            return $provinceAbdd;
+        });
     }
 }

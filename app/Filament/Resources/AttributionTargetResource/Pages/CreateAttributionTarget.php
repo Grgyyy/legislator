@@ -114,7 +114,11 @@ class CreateAttributionTarget extends CreateRecord
             }
 
             // Check for available slots in ProvinceAbdd
-            $provinceAbdd = ProvinceAbdd::find($targetData['abdd_id']);
+            $provinceAbdd = $this->getProvinceAbdd(
+                $targetData['abdd_id'],
+                $targetData->district->province_id,
+                $targetData->allocation->year
+            );
             if (!$provinceAbdd) {
                 throw new \Exception('ProvinceAbdd entry not found');
             }
@@ -135,6 +139,7 @@ class CreateAttributionTarget extends CreateRecord
                 'qualification_title_id' => $qualificationTitle->id,
                 'qualification_title_code' => $qualificationTitle->trainingProgram->code ?? null,
                 'qualification_title_name' => $qualificationTitle->trainingProgram->title,
+                'delivery_mode_id' => $targetData['delivery_mode_id'],
                 'learning_mode_id' => $targetData['learning_mode_id'],
                 'abdd_id' => $targetData['abdd_id'],
                 'number_of_slots' => $numberOfSlots,
@@ -179,6 +184,7 @@ class CreateAttributionTarget extends CreateRecord
                 'qualification_title_id' => $qualificationTitle->id,
                 'qualification_title_code' => $qualificationTitle->trainingProgram->code ?? null,
                 'qualification_title_name' => $qualificationTitle->trainingProgram->title,
+                'delivery_mode_id' => $targetData['delivery_mode_id'],
                 'learning_mode_id' => $targetData['learning_mode_id'],
                 'abdd_id' => $targetData['abdd_id'],
                 'number_of_slots' => $numberOfSlots,

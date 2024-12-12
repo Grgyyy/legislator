@@ -66,12 +66,10 @@ class EditTarget extends EditRecord
             $numberOfSlots = $data['number_of_slots'] ?? 0;
             $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $data);
 
-            // Add back the past count before checking allocation and province Abdd
             $previousSlots = $record->number_of_slots;
             $allocation->increment('balance', $record->total_amount);
             $provinceAbdd->increment('available_slots', $previousSlots);
 
-            // Check if allocation and province Abdd are sufficient
             if ($allocation->balance < round($totals['total_amount'], 2)) {
                 $this->sendErrorNotification('Insufficient allocation balance.');
                 throw new Exception('Insufficient allocation balance.');
@@ -82,12 +80,10 @@ class EditTarget extends EditRecord
                 throw new Exception('Insufficient slots available in Province Abdd.');
             }
 
-            // Update the record and apply the new calculations
             $record->update(array_merge($data, $totals));
             $allocation->decrement('balance', $totals['total_amount']);
             $provinceAbdd->decrement('available_slots', $numberOfSlots);
 
-            // Log the history
             $this->logTargetHistory($data, $record, $allocation, $totals);
 
             $this->sendSuccessNotification('Target updated successfully.');

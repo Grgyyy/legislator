@@ -61,7 +61,8 @@ class TargetResource extends Resource
                     return [
                         TextInput::make('abscap_id')
                                     ->label('Absorbative Capacity ID')
-                                    ->placeholder('Enter an Absorbative capacity ID'),
+                                    ->placeholder('Enter an Absorbative capacity ID')
+                                    ->numeric(),
                                     
                         Select::make('legislator_id')
                             ->label('Legislator')
@@ -177,9 +178,11 @@ class TargetResource extends Resource
                                     ? self::getAbddSectors($tviId)
                                     : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
                             })
-                            ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
+                            ->disableOptionWhen(fn($value) => $value === 'no_abddd')
+                            ->disabled()
+                            ->dehydrated(),
 
-                        Select::make('delivery_mode_id')
+                            Select::make('delivery_mode_id')
                             ->label('Delivery Mode')
                             ->required()
                             ->markAsRequired(false)
@@ -201,19 +204,20 @@ class TargetResource extends Resource
                             ->searchable()
                             ->preload()
                             ->options(function ($get) {
-                                $deliveryModeId = $get('delivery_mode_id');
+                                $deliveryModeId = $get('delivery_mode_id'); 
+                                $learningModes = [];
                         
-                                if (!$deliveryModeId) {
-                                    return ['no_learning_mode' => 'No learning modes available.']; 
+                                if ($deliveryModeId) {
+                                    $learningModes = DeliveryMode::find($deliveryModeId)
+                                        ->learningMode
+                                        ->pluck('name', 'id')
+                                        ->toArray();
                                 }
-                        
-                                $learningModes = DeliveryMode::find($deliveryModeId)?->learningMode; 
-                        
-                                return $learningModes && $learningModes->isNotEmpty()
-                                    ? $learningModes->pluck('name', 'id')->toArray()
-                                    : ['no_learning_mode' => 'No learning modes available.'];
+                                return !empty($learningModes)
+                                    ? $learningModes
+                                    : ['no_learning_modes' => 'No learning modes available for the selected delivery mode.'];
                             })
-                            ->disableOptionWhen(fn($value) => $value === 'no_learning_mode'),
+                            ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
 
                         TextInput::make('admin_cost')
                                     ->label('Admin Cost')
@@ -243,7 +247,8 @@ class TargetResource extends Resource
                             ->schema([
                                 TextInput::make('abscap_id')
                                     ->label('Absorbative Capacity ID')
-                                    ->placeholder('Enter an Absorbative capacity ID'),
+                                    ->placeholder('Enter an Absorbative capacity ID')
+                                    ->numeric(),
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -254,7 +259,9 @@ class TargetResource extends Resource
                                     ->options(function () {
                                         return Legislator::where('status_id', 1)
                                             ->whereNull('deleted_at')
-                                            ->has('allocation')
+                                            ->whereHas('allocation', function ($query) {
+                                                $query->where('balance', '>', 0);
+                                            })
                                             ->pluck('name', 'id')
                                             ->toArray() ?: ['no_legislator' => 'No legislator available'];
                                     })
@@ -325,7 +332,7 @@ class TargetResource extends Resource
 
                                         if ($legislatorRecords) {
                                             // Get particulars with subParticular names
-                                            $particulars = $legislatorRecords->particular()->with(['subParticular', 'district.municipality.province.region'])->get();
+                                            $particulars = $legislatorRecords->particular()->with(['subParticular', 'district.province.region'])->get();
 
                                             if ($particulars->isNotEmpty()) {
                                                 // Prepare options array
@@ -548,7 +555,7 @@ class TargetResource extends Resource
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
-                                Select::make('delivery_mode_id')
+                                    Select::make('delivery_mode_id')
                                     ->label('Delivery Mode')
                                     ->required()
                                     ->markAsRequired(false)
@@ -570,19 +577,20 @@ class TargetResource extends Resource
                                     ->searchable()
                                     ->preload()
                                     ->options(function ($get) {
-                                        $deliveryModeId = $get('delivery_mode_id');
+                                        $deliveryModeId = $get('delivery_mode_id'); 
+                                        $learningModes = [];
                                 
-                                        if (!$deliveryModeId) {
-                                            return ['no_learning_mode' => 'No learning modes available.']; 
+                                        if ($deliveryModeId) {
+                                            $learningModes = DeliveryMode::find($deliveryModeId)
+                                                ->learningMode
+                                                ->pluck('name', 'id')
+                                                ->toArray();
                                         }
-                                
-                                        $learningModes = DeliveryMode::find($deliveryModeId)?->learningMode; 
-                                
-                                        return $learningModes && $learningModes->isNotEmpty()
-                                            ? $learningModes->pluck('name', 'id')->toArray()
-                                            : ['no_learning_mode' => 'No learning modes available.'];
+                                        return !empty($learningModes)
+                                            ? $learningModes
+                                            : ['no_learning_modes' => 'No learning modes available for the selected delivery mode.'];
                                     })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_learning_mode'),
+                                    ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
                                 
 
                                 TextInput::make('admin_cost')
@@ -824,7 +832,7 @@ class TargetResource extends Resource
                 TextColumn::make('targetStatus.desc')
                     ->label('Status')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]),
@@ -1145,7 +1153,7 @@ class TargetResource extends Resource
         return Allocation::where('legislator_id', $legislatorId)
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
-            ->whereIn('year', [$yearNow, $yearNow - 1])
+            ->where('year', '>=', $yearNow - 1) 
             ->pluck('year', 'year')
             ->toArray() ?: ['no_allocation' => 'No allocation available'];
     }

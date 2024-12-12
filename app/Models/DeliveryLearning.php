@@ -13,4 +13,17 @@ class DeliveryLearning extends Model
         'delivery_mode_id',
         'learning_mode_id'
     ];
+
+
+    public function learningMode()
+    {
+        return $this->belongsToMany(LearningMode::class, 'institution_recognitions')
+            ->withTimestamps();
+    }
+
+    public function deliveryMode()
+    {
+        return $this->belongsToMany(DeliveryMode::class, 'institution_recognitions')
+            ->withTimestamps();
+    }
 }
