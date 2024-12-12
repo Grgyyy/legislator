@@ -62,7 +62,8 @@ class CreateNonCompliantTarget extends CreateRecord
                 $this->adjustResources($targetRecord, $data);
 
                 // Update target status to Non-Compliant
-                $targetRecord->target_status_id = $nonCompliantRecord->id;
+                // $targetRecord->target_status_id = $nonCompliantRecord->id;
+                $targetRecord->abscap_id = null;
                 $targetRecord->save();
 
                 // Log target history
@@ -104,7 +105,7 @@ class CreateNonCompliantTarget extends CreateRecord
             throw new \Exception('Qualification Title not found');
         }
 
-        if (!$provinceAbdd) { 
+        if (!$provinceAbdd) {
             throw new \Exception('Prrovince ABDD Slots not found');
         }
 

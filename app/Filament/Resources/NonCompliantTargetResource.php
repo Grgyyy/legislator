@@ -56,8 +56,10 @@ class NonCompliantTargetResource extends Resource
                     ->label('Absorbative Capacity ID')
                     ->placeholder('Enter an Absorbative capacity ID')
                     ->default($record ? $record->abscap_id : null)
-                    ->numeric(),
-                    
+                    ->numeric()
+                    ->disabled($isDisabled)
+                    ->dehydrated(),
+
                 Select::make('sender_legislator_id')
                     ->label('Attribution Sender')
                     ->searchable()
@@ -81,15 +83,15 @@ class NonCompliantTargetResource extends Resource
                     ->disabled()  // Verify that this should be disabled
                     ->dehydrated() // Verify that this should be dehydrated
                     ->afterStateUpdated(function ($state, callable $set) {
-                        $set('sender_particular_id', null); 
+                        $set('sender_particular_id', null);
                     }),
 
                 Select::make('sender_particular_id')
                     ->label('Particular')
                     ->searchable()
-                    ->default($record->attributionAllocation->particular_id ?? null) 
+                    ->default($record->attributionAllocation->particular_id ?? null)
                     ->options(function ($get) {
-                        $legislatorId = $get('sender_legislator_id'); 
+                        $legislatorId = $get('sender_legislator_id');
 
                         if ($legislatorId) {
                             return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
@@ -104,13 +106,13 @@ class NonCompliantTargetResource extends Resource
                         return [];
                     })
                     ->reactive()
-                    ->disabled()  
-                    ->dehydrated() 
+                    ->disabled()
+                    ->dehydrated()
                     ->afterStateUpdated(function ($state, callable $set) {
                         $set('scholarship_program_id', null);
                         $set('qualification_title_id', null);
                     }),
-                
+
                 Select::make('scholarship_program_id')
                     ->label('Scholarship Program')
                     ->required()
@@ -174,7 +176,7 @@ class NonCompliantTargetResource extends Resource
                     ->disabled()
                     ->dehydrated()
                     ->afterStateUpdated(function ($state, callable $set) {
-                        $set('particular_id', null); 
+                        $set('particular_id', null);
                     }),
 
                 Select::make('receiver_particular_id')
@@ -187,14 +189,14 @@ class NonCompliantTargetResource extends Resource
                     ->native(false)
                     ->options(function ($get, $set) {
                         $legislatorId = $get('receiver_legislator_id');
-                    
+
                         if ($legislatorId) {
                             $particulars = Particular::whereHas('legislator', function ($query) use ($legislatorId) {
                                 $query->where('legislator_particular.legislator_id', $legislatorId);
                             })
-                            ->with('subParticular') 
+                            ->with('subParticular')
                             ->get();
-                    
+
                             $particularOptions = $particulars->mapWithKeys(function ($particular) {
                                 if ($particular->subParticular) {
                                     if ($particular->subParticular->name === 'Party-list') {
@@ -213,20 +215,20 @@ class NonCompliantTargetResource extends Resource
                                 } else {
                                     $name = $particular->name;
                                 }
-                    
+
                                 return [$particular->id => $name];
                             })->toArray();
-                    
+
                             if (count($particularOptions) === 1) {
                                 $defaultParticularId = key($particularOptions);
                                 $set('attribution_receiver_particular', $defaultParticularId);
                             }
-                    
+
                             return $particularOptions ?: ['no_particular' => 'No particular available'];
                         }
-                    
+
                         return ['no_particular' => 'No particular available. Select a legislator first.'];
-                    })                                            
+                    })
                     ->disableOptionWhen(fn($value) => $value === 'no_particular')
                     ->dehydrated()
                     ->disabled()
@@ -264,7 +266,7 @@ class NonCompliantTargetResource extends Resource
                     ->default($record ? $record->delivery_mode_id : null)
                     ->options(function () {
                         $deliveryModes = DeliveryMode::all();
-                
+
                         return $deliveryModes->isNotEmpty()
                             ? $deliveryModes->pluck('name', 'id')->toArray()
                             : ['no_delivery_mode' => 'No delivery modes available.'];
@@ -272,7 +274,7 @@ class NonCompliantTargetResource extends Resource
                     ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode')
                     ->disabled($isDisabled)
                     ->dehydrated(),
-                
+
                 Select::make('learning_mode_id')
                     ->label('Learning Mode')
                     ->required()
@@ -280,9 +282,9 @@ class NonCompliantTargetResource extends Resource
                     ->searchable()
                     ->preload()
                     ->options(function ($get) {
-                        $deliveryModeId = $get('delivery_mode_id'); 
+                        $deliveryModeId = $get('delivery_mode_id');
                         $learningModes = [];
-                
+
                         if ($deliveryModeId) {
                             $learningModes = DeliveryMode::find($deliveryModeId)
                                 ->learningMode
@@ -396,7 +398,7 @@ class NonCompliantTargetResource extends Resource
                         return $fundSource ? $fundSource->name : 'No fund source available';
                     }),
 
-                
+
                 TextColumn::make('attributionAllocation.legislator.name')
                     ->label('Attribution Sender')
                     ->sortable()
@@ -412,18 +414,18 @@ class NonCompliantTargetResource extends Resource
                         if (!$record->attributionAllocation) {
                             return '';
                         }
-                
+
                         $legislator = $record->attributionAllocation->legislator;
-                
+
                         $particulars = $legislator->particular;
-                
+
                         $particular = $particulars->first();
                         $district = $particular->district;
                         $municipality = $district ? $district->underMunicipality : null;
-                
+
                         $districtName = $district ? $district->name : 'Unknown District';
                         $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-                
+
                         if ($districtName === 'Not Applicable') {
                             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
@@ -433,7 +435,7 @@ class NonCompliantTargetResource extends Resource
                         } else {
                             return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
                         }
-                    }),                
+                    }),
 
                 TextColumn::make('allocation.legislator.name')
                     ->sortable()
@@ -583,15 +585,15 @@ class NonCompliantTargetResource extends Resource
                     ->formatStateUsing(function ($record) {
                         if ($record->nonCompliantRemark) {
                             $targetRemarksId = $record->nonCompliantRemark->target_remarks_id;
-                            
+
                             $remark = TargetRemark::find($targetRemarksId);
-    
+
                             return $remark->remarks ?? 'N/A';
                         }
-                        
+
                         return 'N/A';
-                    }),     
-                               
+                    }),
+
                 TextColumn::make('nonCompliantRemark.others_remarks')
                     ->label('Other')
                     ->formatStateUsing(function ($record) {
