@@ -13,7 +13,7 @@ class TargetPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal', 'RO']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal', 'RO', 'TESDO']);
     }
 
     /**
@@ -21,7 +21,7 @@ class TargetPolicy
      */
     public function view(User $user, Target $target): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal', 'RO']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal', 'RO', 'TESDO']);
     }
 
     /**
@@ -29,7 +29,7 @@ class TargetPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal', 'TESDO']);
     }
 
     /**
@@ -37,7 +37,7 @@ class TargetPolicy
      */
     public function update(User $user, Target $target): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
     }
 
     /**
@@ -53,7 +53,7 @@ class TargetPolicy
      */
     public function restore(User $user, Target $target): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'TESDO']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**
@@ -61,6 +61,6 @@ class TargetPolicy
      */
     public function forceDelete(User $user, Target $target): bool
     {
-        return $user->hasRole(['Admin', 'TESDO']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 }

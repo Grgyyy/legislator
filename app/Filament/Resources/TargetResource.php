@@ -62,10 +62,10 @@ class TargetResource extends Resource
                 if ($record) {
                     return [
                         TextInput::make('abscap_id')
-                                    ->label('Absorbative Capacity ID')
-                                    ->placeholder('Enter an Absorbative capacity ID')
-                                    ->numeric(),
-                                    
+                            ->label('Absorbative Capacity ID')
+                            ->placeholder('Enter an Absorbative capacity ID')
+                            ->numeric(),
+
                         Select::make('legislator_id')
                             ->label('Legislator')
                             ->required()
@@ -184,7 +184,7 @@ class TargetResource extends Resource
                             ->disabled()
                             ->dehydrated(),
 
-                            Select::make('delivery_mode_id')
+                        Select::make('delivery_mode_id')
                             ->label('Delivery Mode')
                             ->required()
                             ->markAsRequired(false)
@@ -192,13 +192,13 @@ class TargetResource extends Resource
                             ->preload()
                             ->options(function () {
                                 $deliveryModes = DeliveryMode::all();
-                        
+
                                 return $deliveryModes->isNotEmpty()
                                     ? $deliveryModes->pluck('name', 'id')->toArray()
                                     : ['no_delivery_mode' => 'No delivery modes available.'];
                             })
                             ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
-                        
+
                         Select::make('learning_mode_id')
                             ->label('Learning Mode')
                             ->required()
@@ -206,9 +206,9 @@ class TargetResource extends Resource
                             ->searchable()
                             ->preload()
                             ->options(function ($get) {
-                                $deliveryModeId = $get('delivery_mode_id'); 
+                                $deliveryModeId = $get('delivery_mode_id');
                                 $learningModes = [];
-                        
+
                                 if ($deliveryModeId) {
                                     $learningModes = DeliveryMode::find($deliveryModeId)
                                         ->learningMode
@@ -222,12 +222,12 @@ class TargetResource extends Resource
                             ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
 
                         TextInput::make('admin_cost')
-                                    ->label('Admin Cost')
-                                    ->placeholder('Enter amount of Admin Cost')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->autocomplete(false)
-                                    ->numeric(),
+                            ->label('Admin Cost')
+                            ->placeholder('Enter amount of Admin Cost')
+                            ->required()
+                            ->markAsRequired(false)
+                            ->autocomplete(false)
+                            ->numeric(),
 
                         TextInput::make('number_of_slots')
                             ->label('Number of Slots')
@@ -557,7 +557,7 @@ class TargetResource extends Resource
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
-                                    Select::make('delivery_mode_id')
+                                Select::make('delivery_mode_id')
                                     ->label('Delivery Mode')
                                     ->required()
                                     ->markAsRequired(false)
@@ -565,13 +565,13 @@ class TargetResource extends Resource
                                     ->preload()
                                     ->options(function () {
                                         $deliveryModes = DeliveryMode::all();
-                                
+
                                         return $deliveryModes->isNotEmpty()
                                             ? $deliveryModes->pluck('name', 'id')->toArray()
                                             : ['no_delivery_mode' => 'No delivery modes available.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
-                                
+
                                 Select::make('learning_mode_id')
                                     ->label('Learning Mode')
                                     ->required()
@@ -579,9 +579,9 @@ class TargetResource extends Resource
                                     ->searchable()
                                     ->preload()
                                     ->options(function ($get) {
-                                        $deliveryModeId = $get('delivery_mode_id'); 
+                                        $deliveryModeId = $get('delivery_mode_id');
                                         $learningModes = [];
-                                
+
                                         if ($deliveryModeId) {
                                             $learningModes = DeliveryMode::find($deliveryModeId)
                                                 ->learningMode
@@ -593,7 +593,7 @@ class TargetResource extends Resource
                                             : ['no_learning_modes' => 'No learning modes available for the selected delivery mode.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
-                                
+
 
                                 TextInput::make('admin_cost')
                                     ->label('Admin Cost')
@@ -631,17 +631,17 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-
+    
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-
+    
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-
+    
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-
+    
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
@@ -658,11 +658,24 @@ class TargetResource extends Resource
     {
         return $table
             ->emptyStateHeading('No targets available')
+            // ->query(function ($query) {
+            //     // Fetch the region name of the logged-in user
+            //     $userRegion = auth()->user()->region->name;
+
+            //     // Apply filter to ensure the user sees only targets related to their region
+            //     if ($userRegion) {
+            //         $query->whereHas('district.province.region', function ($q) use ($userRegion) {
+            //             // Filter by the user's region through the district's province relationship
+            //             $q->where('name', $userRegion);
+            //         });
+            //     }
+            // })
+
             ->columns([
                 TextColumn::make('abscap_id')
-                ->sortable()
-                ->searchable()
-                ->toggleable(),
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make('fund_source')
                     ->label('Fund Source')
@@ -1146,12 +1159,9 @@ class TargetResource extends Resource
                 if ($particular->district->name === 'Not Applicable') {
                     if ($particular->subParticular->name === 'Partylist') {
                         return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
-                    } 
-                    
-                    else if ($particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)' ) {
+                    } else if ($particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
                         return [$particular->id => $particular->subParticular->name];
-                    }
-                    else {
+                    } else {
                         return [$particular->id => $particular->subParticular->name];
                     }
                 } else {
@@ -1179,7 +1189,7 @@ class TargetResource extends Resource
         return Allocation::where('legislator_id', $legislatorId)
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
-            ->where('year', '>=', $yearNow - 1) 
+            ->where('year', '>=', $yearNow - 1)
             ->pluck('year', 'year')
             ->toArray() ?: ['no_allocation' => 'No allocation available'];
     }

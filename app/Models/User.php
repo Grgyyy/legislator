@@ -24,7 +24,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'avatar_url',
-        'region_id', // Add region_id and province_id for the relationships
+        'region_id',
         'province_id',
     ];
 
@@ -70,9 +70,58 @@ class User extends Authenticatable implements FilamentUser
      * @param Panel $panel
      * @return bool
      */
+    // public function canAccessPanel(Panel $panel): bool
+    // {
+    //     // Define roles that are explicitly allowed to access the panel
+    //     $allowedRoles = [
+    //         'Super Admin',
+    //         'Admin',
+    //         'SMD Head',
+    //         'SMD Focal',
+    //         'RO',
+    //         'PO/DO',
+    //         'TESDO',
+    //     ];
+
+    //     // Check if the user has any of the explicitly allowed roles
+    //     if ($this->hasAnyRole($allowedRoles)) {
+    //         return true;
+    //     }
+
+    //     // Additional check for dynamic region roles
+    //     $regionRoles = [
+    //         'Region I',
+    //         'Region II',
+    //         'Region III',
+    //         'Region IV-A',
+    //         'Region IV-B',
+    //         'Region V',
+    //         'Region VI',
+    //         'Region VII',
+    //         'Region VIII',
+    //         'Region IX',
+    //         'Region X',
+    //         'Region XI',
+    //         'Region XII',
+    //         'NCR',
+    //         'CAR',
+    //         'CARAGA',
+    //         'Negros Island Region',
+    //         'BARMM'
+    //     ];
+
+    //     // Check if the user has any of the region-specific roles
+    //     if ($this->hasAnyRole($regionRoles)) {
+    //         return true;
+    //     }
+
+    //     // Default to denying access if no roles match
+    //     return false;
+    // }
+
     public function canAccessPanel(Panel $panel): bool
     {
-        // Define roles that are explicitly allowed to access the panel
+        // Define fixed roles allowed to access the panel
         $allowedRoles = [
             'Super Admin',
             'Admin',
@@ -88,7 +137,8 @@ class User extends Authenticatable implements FilamentUser
             return true;
         }
 
-        // Additional check for dynamic region roles
+        // Dynamically check region-based roles
+        // List of regions (could be fetched dynamically from a regions table)
         $regionRoles = [
             'Region I',
             'Region II',
@@ -110,12 +160,19 @@ class User extends Authenticatable implements FilamentUser
             'BARMM'
         ];
 
-        // Check if the user has any of the region-specific roles
-        if ($this->hasAnyRole($regionRoles)) {
-            return true;
+        // Check if the user has any region-specific roles
+        foreach ($regionRoles as $regionRole) {
+            if ($this->hasRole($regionRole)) {
+                // Check if the user belongs to the same region
+                if ($this->region && $this->region->name === $regionRole) {
+                    return true;
+                }
+            }
         }
 
         // Default to denying access if no roles match
         return false;
     }
+
+
 }
