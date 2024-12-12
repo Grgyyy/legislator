@@ -21,6 +21,10 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Clusters\Sectors\Resources\ProvinceAbddResource\Pages;
 use App\Filament\Clusters\Sectors\Resources\ProvinceAbddResource\RelationManagers;
+use App\Services\NotificationHandler;
+use Filament\Support\Enums\MaxWidth;
+use Filament\Tables\Actions\Action;
+use Illuminate\Support\HtmlString;
 
 class ProvinceAbddResource extends Resource
 {
@@ -115,6 +119,55 @@ class ProvinceAbddResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Action::make('addSlots')
+                ->modalContent(function (ProvinceAbdd $record): HtmlString {
+                            return new HtmlString("
+                                <div style='margin-bottom: 1rem; margin-top: 1rem; font-size: .9rem; display: grid; grid-template-columns: 1fr 2fr; gap: 10px;'>
+                                    <div style='font-weight: bold;'>ABDD Sector:</div>
+                                    <div>{$record->abdds->name}</div>    
+                                
+                                    <div style='font-weight: bold;'>Province:</div>
+                                    <div>{$record->provinces->name}</div>
+
+                                    <div style='font-weight: bold;'>Available Slots:</div>
+                                    <div>{$record->available_slots}</div>
+
+                                    <div style='font-weight: bold;'>Total Slots:</div>
+                                    <div>{$record->total_slots}</div>
+
+                                    <div style='font-weight: bold;'>Year:</div>
+                                    <div>{$record->year}</div>
+                                </div>
+                                
+                            ");
+                        })
+                        ->modalHeading('Add ABDD Slots')
+                        ->modalWidth(MaxWidth::TwoExtraLarge)
+                        ->icon('heroicon-o-plus')
+                        ->label('Add Slots')
+                        ->form([
+                            TextInput::make('available_slots')
+                                ->label('Add Slots')
+                                ->autocomplete(false)
+                                ->integer()
+                                ->default(0)
+                                // ->minValue(0)
+                                // ->maxValue(function (Allocation $record) {
+                                //     return 999999999999.99 - $record->allocation;
+                                // })
+                                // ->validationMessages([
+                                //     'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                                // ]),
+                        ])
+                        ->action(function (array $data, ProvinceAbdd $record): void {
+                            $record->available_slots += $data['available_slots'];
+
+                            $record->total_slots += $data['available_slots'];
+
+                            $record->save();
+
+                            NotificationHandler::sendSuccessNotification('Saved', 'ABDD slots have been added successfully.');
+                        })
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

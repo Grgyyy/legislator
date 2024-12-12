@@ -2,34 +2,40 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Allocation;
-use App\Models\ScholarshipProgram;
-use App\Models\Legislator;
 use App\Filament\Resources\AllocationResource\Pages;
+use App\Models\Allocation;
+use App\Models\Legislator;
+use App\Models\ScholarshipProgram;
 use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
-use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Support\Enums\Alignment;
+use Filament\Support\Enums\MaxWidth;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\ButtonAction;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\HtmlString;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class AllocationResource extends Resource
 {
@@ -352,6 +358,108 @@ class AllocationResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Allocation has been deleted permanently.');
                         }),
+                    Action::make('addAllocation')
+                        ->modalContent(function (Allocation $record): HtmlString {
+                            $particular = $record->particular;
+
+                            if (!$particular) {
+                                $formattedName = 'No particular available';
+                            } else {
+                                $district = $particular->district;
+                                $municipality = $district ? $district->underMunicipality : null;
+                                $districtName = $district ? $district->name : 'Unknown District';
+                                $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                                $provinceName = $district ? $district->province->name : 'Unknown Province';
+                                $regionName = $district ? $district->province->region->name : 'Unknown Region';
+
+                                $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+
+                                if ($subParticular === 'Party-list') {
+                                    $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                                    $formattedName = "{$subParticular} - {$partylistName}";
+                                } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                                    $formattedName = "{$subParticular}";
+                                } elseif ($subParticular === 'District') {
+                                    if ($municipalityName) {
+                                        $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                    } else {
+                                        $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
+                                    }
+                                } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                                    $formattedName = "{$subParticular} - {$regionName}";
+                                } else {
+                                    $formattedName = "{$subParticular} - {$regionName}";
+                                }
+                            }
+
+                            $allocationFormatted = '₱ ' . number_format($record->allocation, 2, '.', ',');
+                            $adminCostFormatted = '₱ ' . number_format($record->admin_cost, 2, '.', ',');
+                            $balanceFormatted = '₱' . number_format($record->balance, 2, '.', ',');
+
+                            return new HtmlString("
+                                <div style='margin-bottom: 1rem; margin-top: 1rem; font-size: .9rem; display: grid; grid-template-columns: 1fr 2fr; gap: 10px;'>
+                                    <div style='font-weight: bold;'>Legislator:</div>
+                                    <div>{$record->legislator->name} <em>({$formattedName})</em></div>
+
+                                    <div style='font-weight: bold;'>Allocation:</div>
+                                    <div>{$allocationFormatted}</div>
+
+                                    <div style='font-weight: bold;'>Admin Cost:</div>
+                                    <div>{$adminCostFormatted}</div>
+
+                                    <div style='font-weight: bold;'>Balance:</div>
+                                    <div>{$balanceFormatted}</div>
+
+                                    <div style='font-weight: bold;'>Allocation Year:</div>
+                                    <div>{$record->year}</div>
+
+                                    <div style='font-weight: bold;'>Scholarship Program:</div>
+                                    <div>{$record->scholarship_program->name}</div>
+
+                                    <div style='font-weight: bold;'>Source of Fund:</div>
+                                    <div>{$record->soft_or_commitment}</div>
+                                </div>
+                                
+                            ");
+                        })
+                        ->modalHeading('Add Allocation')
+                        ->modalWidth(MaxWidth::TwoExtraLarge)
+                        ->icon('heroicon-o-plus')
+                        ->label('Add Allocation')
+                        ->form([
+                            TextInput::make('allocation')
+                                ->label('Add Allocation')
+                                ->autocomplete(false)
+                                ->numeric()
+                                ->prefix('₱')
+                                ->default(0)
+                                ->minValue(0)
+                                ->maxValue(function (Allocation $record) {
+                                    return 999999999999.99 - $record->allocation;
+                                })
+                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                                ->validationMessages([
+                                    'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                                ]),
+                        ])
+                        ->action(function (array $data, Allocation $record): void {
+                            $record->allocation += $data['allocation'];
+
+                            $adminCost = $record->allocation * 0.02;
+
+                            $record->admin_cost = $adminCost;
+
+                            $record->balance = $record->allocation - $record->admin_cost;
+
+                            $record->save();
+
+                            NotificationHandler::sendSuccessNotification('Saved', 'Allocation has been added successfully.');
+                        })
+                        ->hidden(function (Allocation $record): bool {
+                            $currentYear = Carbon::now()->year;
+                            
+                            return $record->year < $currentYear;
+                        })
                 ])
             ])
             ->bulkActions([
@@ -374,57 +482,6 @@ class AllocationResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected allocations have been deleted permanently.');
                         }),
-                    // ExportBulkAction::make()
-                    //     ->exports([
-                    //         ExcelExport::make()
-                    //             ->withColumns([
-                    //                 Column::make('soft_or_commitment')
-                    //                     ->heading('Soft of Commitment'),
-                    //                 Column::make('legislator.name')
-                    //                     ->heading('Legislator'),
-                    //                 Column::make('particular.name')
-                    //                     ->heading('Particular')
-                    //                     ->getStateUsing(function ($record) {
-                    //                         $particular = $record->particular;
-
-                    //                         if (!$particular) {
-                    //                             return ['no_particular' => 'No particular available'];
-                    //                         }
-
-                    //                         $district = $particular->district;
-                    //                         $municipality = $district ? $district->municipality : null;
-                    //                         $province = $municipality ? $municipality->province : null;
-
-                    //                         $districtName = $district ? $district->name : '-';
-                    //                         $municipalityName = $municipality ? $municipality->name : '-';
-                    //                         $provinceName = $province ? $province->name : '-';
-
-                    //                         $subParticular = $particular->subParticular->name ?? '-';
-
-                    //                         if ($subParticular === 'Party-list') {
-                    //                             return "{$subParticular} - {$particular->partylist->name}";
-                    //                         } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                    //                             return "{$subParticular}";
-                    //                         } else {
-                    //                             return "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
-                    //                         }
-                    //                     }),
-                    //                 Column::make('scholarship_program.name')
-                    //                     ->heading('Scholarship Program'),
-                    //                 Column::make('allocation')
-                    //                     ->heading('Allocation')
-                    //                     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                    //                 Column::make('admin_cost')
-                    //                     ->heading('Admin Cost')
-                    //                     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                    //                 Column::make('balance')
-                    //                     ->heading('Balance')
-                    //                     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                    //                 Column::make('year')
-                    //                     ->heading('Year'),
-                    //             ])
-                    //             ->withFilename(date('m-d-Y') . ' - Allocations')
-                    //     ]),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
