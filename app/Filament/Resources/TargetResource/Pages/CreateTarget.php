@@ -28,16 +28,6 @@ class CreateTarget extends CreateRecord
         ];
     }
 
-    // Optional: Disable the "Create Another" action while keeping it visible
-    protected function getCreateAnotherFormAction(): Action
-    {
-        return Action::make('createAnother')
-            ->label(__('filament-panels::resources/pages/create-record.form.actions.create_another.label'))
-            ->action(null)
-            ->disabled(true)
-            ->color('gray');
-    }
-
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
