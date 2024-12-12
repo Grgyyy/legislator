@@ -13,11 +13,30 @@ use App\Models\QualificationTitle;
 use Illuminate\Support\Facades\DB;
 use Filament\Notifications\Notification;
 use App\Filament\Resources\TargetResource;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateTarget extends CreateRecord
 {
     protected static string $resource = TargetResource::class;
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
+    // Optional: Disable the "Create Another" action while keeping it visible
+    protected function getCreateAnotherFormAction(): Action
+    {
+        return Action::make('createAnother')
+            ->label(__('filament-panels::resources/pages/create-record.form.actions.create_another.label'))
+            ->action(null)
+            ->disabled(true)
+            ->color('gray');
+    }
 
     protected function getRedirectUrl(): string
     {

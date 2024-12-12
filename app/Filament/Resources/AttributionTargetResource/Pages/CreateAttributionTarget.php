@@ -11,12 +11,31 @@ use App\Filament\Resources\AttributionTargetResource;
 use App\Models\Tvi;
 use App\Models\ProvinceAbdd;
 use Exception;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
 class CreateAttributionTarget extends CreateRecord
 {
     protected static string $resource = AttributionTargetResource::class;
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
+    // Optional: Disable the "Create Another" action while keeping it visible
+    protected function getCreateAnotherFormAction(): Action
+    {
+        return Action::make('createAnother')
+            ->label(__('filament-panels::resources/pages/create-record.form.actions.create_another.label'))
+            ->action(null)
+            ->disabled(true)
+            ->color('gray');
+    }
 
     protected static ?string $title = 'Create Attribution Target';
 
