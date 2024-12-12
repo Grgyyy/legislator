@@ -18,7 +18,7 @@ class EditProvince extends EditRecord
         $regionId = $this->record->region_id;
 
         if ($regionId) {
-            return route('filament.admin.resources.regions.show_provinces', ['record' => $regionId]);
+            return route('filament.admin.resources.provinces.showProvince', ['record' => $regionId]);
         }
 
         return $this->getResource()::getUrl('index');

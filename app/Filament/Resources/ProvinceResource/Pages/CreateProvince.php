@@ -14,11 +14,11 @@ class CreateProvince extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        // $regionId = $this->record->region_id;
+        $regionId = $this->record->region_id;
 
-        // if ($regionId) {
-        //     return route('filament.admin.resources.regions.show_provinces', ['record' => $regionId]);
-        // }
+        if ($regionId) {
+            return route('filament.admin.resources.provinces.showProvince', ['record' => $regionId]);
+        }
 
         return $this->getResource()::getUrl('index');
     }
