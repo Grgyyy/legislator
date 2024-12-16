@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Filament\Resources\CompliantTargetsResource\Pages;
 
 use App\Filament\Resources\CompliantTargetsResource;
@@ -8,14 +7,19 @@ use App\Models\QualificationTitle;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\DB;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class CreateCompliantTargets extends CreateRecord
 {
     protected static ?string $title = 'Mark as Compliant Target';
+
+    protected static string $resource = CompliantTargetsResource::class;
+
+    protected static ?string $navigationGroup = 'MANAGE TARGET';
+
+    private const COMPLIANT_STATUS_DESC = 'Compliant';
 
     protected function getRedirectUrl(): string
     {
@@ -29,11 +33,6 @@ class CreateCompliantTargets extends CreateRecord
             'Mark as Compliant'
         ];
     }
-    protected static string $resource = CompliantTargetsResource::class;
-
-    protected static ?string $navigationGroup = 'MANAGE TARGET';
-
-    private const COMPLIANT_STATUS_DESC = 'Compliant';
 
     protected function handleRecordCreation(array $data): Model
     {
@@ -56,6 +55,22 @@ class CreateCompliantTargets extends CreateRecord
             return $targetRecord;
         });
     }
+
+    // New method to mutate data before filling it in the form
+    protected function mutateBeforeFill(array $data): array
+    {
+        // Retrieve the target record from the route query parameter
+        $targetId = request()->query('record');
+
+        // Check if the target record exists
+        $targetRecord = $this->findTarget($targetId);
+
+        // Set the attribution_sender (legislator_id) from the found target record
+        $data['attribution_sender'] = $targetRecord->attributionAllocation->legislator_id;
+
+        return $data;
+    }
+
 
     private function findTarget($targetId): Target
     {

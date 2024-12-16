@@ -4,10 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CompliantTargetsResource\Pages;
 use App\Models\Allocation;
+use App\Models\DeliveryMode;
 use App\Models\Legislator;
 use App\Models\Particular;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
+use App\Models\SubParticular;
 use App\Models\Target;
 use App\Models\TargetStatus;
 use App\Models\Tvi;
@@ -43,39 +45,62 @@ class CompliantTargetsResource extends Resource
         $record = Target::find($urlParams);
 
         return $form->schema([
-            Select::make('legislator_id')
-                ->label('Legislator Name')
-                ->required()
+            TextInput::make('abscap_id')
+                    ->label('Absorbative Capacity ID')
+                    ->placeholder('Enter an Absorbative capacity ID')
+                    ->default($record ? $record->abscap_id : null)
+                    ->disabled()
+                    ->dehydrated() 
+                    ->numeric(),
+
+            Select::make('sender_legislator_id')
+                ->label('Attribution Sender')
                 ->searchable()
-                ->default($record ? $record->allocation->legislator_id : null)
+                ->default($record->attributionAllocation->legislator_id ?? null) // Simplified with null coalescing
                 ->options(function () {
+                    $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
+                        ->pluck('id');
+
                     $legislators = Legislator::where('status_id', 1)
                         ->whereNull('deleted_at')
                         ->has('allocation')
+                        ->whereHas('particular', function ($query) use ($houseSpeakerIds) {
+                            $query->whereIn('sub_particular_id', $houseSpeakerIds);
+                        })
                         ->pluck('name', 'id')
                         ->toArray();
 
-                    return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
+                    return !empty($legislators) ? $legislators : ['no_legislators' => 'No legislator available'];
                 })
                 ->reactive()
-                ->disabled()
-                ->dehydrated()
+                ->disabled()  
+                ->dehydrated() 
                 ->afterStateUpdated(function ($state, callable $set) {
-                    $set('particular_id', null);
+                    $set('sender_particular_id', null); 
                 }),
 
-            Select::make('particular_id')
+            Select::make('sender_particular_id')
                 ->label('Particular')
-                ->required()
                 ->searchable()
-                ->default($record ? $record->allocation->particular_id : null)
+                ->default($record->attributionAllocation->particular_id ?? null) 
                 ->options(function ($get) {
-                    $legislatorId = $get('legislator_id');
-                    return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
+                    $legislatorId = $get('sender_legislator_id'); 
+
+                    if ($legislatorId) {
+                        return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
+                            $query->where('legislator_particular.legislator_id', $legislatorId);
+                        })
+                        ->with('subParticular')
+                        ->get()
+                        ->pluck('subParticular.name', 'id')
+                        ->toArray();
+                    }
+
+                    return [];
                 })
                 ->reactive()
-                ->disabled()
-                ->dehydrated()
+                ->disabled()  
+                ->dehydrated() 
                 ->afterStateUpdated(function ($state, callable $set) {
                     $set('scholarship_program_id', null);
                     $set('qualification_title_id', null);
@@ -126,6 +151,44 @@ class CompliantTargetsResource extends Resource
                     'Continuing' => 'Continuing',
                 ]),
 
+            Select::make('legislator_id')
+                ->label('Legislator Name')
+                ->required()
+                ->searchable()
+                ->default($record ? $record->allocation->legislator_id : null)
+                ->options(function () {
+                    $legislators = Legislator::where('status_id', 1)
+                        ->whereNull('deleted_at')
+                        ->has('allocation')
+                        ->pluck('name', 'id')
+                        ->toArray();
+
+                    return empty($legislators) ? ['' => 'No Legislator Available.'] : $legislators;
+                })
+                ->reactive()
+                ->disabled()
+                ->dehydrated()
+                ->afterStateUpdated(function ($state, callable $set) {
+                    $set('particular_id', null);
+                }),
+
+            Select::make('particular_id')
+                ->label('Particular')
+                ->required()
+                ->searchable()
+                ->default($record ? $record->allocation->particular_id : null)
+                ->options(function ($get) {
+                    $legislatorId = $get('legislator_id');
+                    return $legislatorId ? self::getParticularOptions($legislatorId) : ['' => 'No Particular Available.'];
+                })
+                ->reactive()
+                ->disabled()
+                ->dehydrated()
+                ->afterStateUpdated(function ($state, callable $set) {
+                    $set('scholarship_program_id', null);
+                    $set('qualification_title_id', null);
+                }),
+
             Select::make('tvi_id')
                 ->label('Institution')
                 ->required()
@@ -148,6 +211,49 @@ class CompliantTargetsResource extends Resource
                     return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId) : ['' => 'No Qualification Title Available.'];
                 }),
 
+            Select::make('delivery_mode_id')
+                ->label('Delivery Mode')
+                ->required()
+                ->markAsRequired(false)
+                ->searchable()
+                ->preload()
+                ->default($record ? $record->delivery_mode_id : null)
+                ->options(function () {
+                    $deliveryModes = DeliveryMode::all();
+            
+                    return $deliveryModes->isNotEmpty()
+                        ? $deliveryModes->pluck('name', 'id')->toArray()
+                        : ['no_delivery_mode' => 'No delivery modes available.'];
+                })
+                ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode')
+                ->disabled()
+                ->dehydrated(),
+            
+            Select::make('learning_mode_id')
+                ->label('Learning Mode')
+                ->required()
+                ->markAsRequired(false)
+                ->searchable()
+                ->preload()
+                ->options(function ($get) {
+                    $deliveryModeId = $get('delivery_mode_id'); 
+                    $learningModes = [];
+            
+                    if ($deliveryModeId) {
+                        $learningModes = DeliveryMode::find($deliveryModeId)
+                            ->learningMode
+                            ->pluck('name', 'id')
+                            ->toArray();
+                    }
+                    return !empty($learningModes)
+                        ? $learningModes
+                        : ['no_learning_modes' => 'No learning modes available for the selected delivery mode.'];
+                })
+                ->default($record ? $record->learning_mode_id : null)
+                ->disableOptionWhen(fn($value) => $value === 'no_learning_modes')
+                ->disabled()
+                ->dehydrated(),
+
             Select::make('abdd_id')
                 ->label('ABDD Sector')
                 ->required()
@@ -160,6 +266,17 @@ class CompliantTargetsResource extends Resource
                     $tviId = $get('tvi_id');
                     return $tviId ? self::getAbddSectors($tviId) : ['' => 'No ABDD Sector Available.'];
                 }),
+
+            TextInput::make('admin_cost')
+                ->label('Admin Cost')
+                ->placeholder('Enter amount of Admin Cost')
+                ->default($record ? $record->admin_cost : null)
+                ->required()
+                ->markAsRequired(false)
+                ->autocomplete(false)
+                ->numeric()
+                ->disabled()
+                ->dehydrated(),
 
             TextInput::make('number_of_slots')
                 ->label('Number of Slots')
