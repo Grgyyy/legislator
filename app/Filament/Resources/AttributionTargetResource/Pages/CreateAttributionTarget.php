@@ -54,7 +54,7 @@ class CreateAttributionTarget extends CreateRecord
                 }
             }
 
-            // Fetch sender and receiver allocations
+            // Fetch sender allocation
             $senderAllocation = Allocation::where('legislator_id', $targetData['attribution_sender'])
                 ->where('particular_id', $targetData['attribution_sender_particular'])
                 ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
@@ -65,8 +65,9 @@ class CreateAttributionTarget extends CreateRecord
                 throw new Exception('Attribution Sender Allocation not found');
             }
 
+            // Fetch or create receiver allocation
             $receiverAllocation = Allocation::where('legislator_id', $targetData['attribution_receiver'])
-                ->where('particular_id', $targetData['attribution_receiver_particular'])
+                ->where('particular_id', $targetData['attribution_receiver_particular']) // FIXED FIELD
                 ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
                 ->where('year', $targetData['allocation_year'])
                 ->first();
@@ -75,7 +76,7 @@ class CreateAttributionTarget extends CreateRecord
                 $receiverAllocation = Allocation::create([
                     'soft_or_commitment' => 'Soft',
                     'legislator_id' => $targetData['attribution_receiver'],
-                    'particular_id' => $targetData['attribution_sender_particular'],
+                    'particular_id' => $targetData['attribution_receiver_particular'], // FIXED FIELD
                     'scholarship_program_id' => $targetData['attribution_scholarship_program'],
                     'allocation' => 0,
                     'balance' => 0,
@@ -161,12 +162,11 @@ class CreateAttributionTarget extends CreateRecord
                 'target_status_id' => 1,
             ]);
 
-            // Decrement the sender's balance and increment the attribution sent
+            // Update sender and receiver balances
             $senderAllocation->balance -= $total_amount;
             $senderAllocation->attribution_sent += $total_amount;
             $senderAllocation->save();
 
-            // Increment the receiver's attribution received
             $receiverAllocation->attribution_received += $total_amount;
             $receiverAllocation->save();
 
@@ -218,17 +218,10 @@ class CreateAttributionTarget extends CreateRecord
             'year' => $appropriationYear,
         ])->first();
 
-        if (!$provinceAbdd) {
-            $this->sendErrorNotification('Province Abdd Slots not found.');
-            throw new Exception('Province Abdd Slots not found.');
-        }
-
-        if ($provinceAbdd->available_slots <= 0) {
-            $this->sendErrorNotification('No available slots in Province Abdd.');
-            throw new Exception('No available slots in Province Abdd.');
+        if (!$provinceAbdd || $provinceAbdd->available_slots <= 0) {
+            throw new Exception('ProvinceAbdd entry unavailable or no slots left.');
         }
 
         return $provinceAbdd;
     }
-
 }
