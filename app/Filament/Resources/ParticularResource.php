@@ -234,8 +234,17 @@ class ParticularResource extends Resource
         }
 
         if ($subParticular->name === 'Party-list') {
-            return Partylist::whereNot('name', 'Not Applicable')
-                ->pluck('name', 'id')
+            return District::where('name', 'Not Applicable')
+                ->whereHas('province', function ($query) {
+                    $query->where('name', 'Not Applicable');
+                })
+                ->whereHas('province.region', function ($query) {
+                    $query->where('name', 'Not Applicable');
+                })
+                ->get()
+                ->mapWithKeys(function (District $district) {
+                    return [$district->id => $district->province->region->name];
+                })
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
         }
 
@@ -271,10 +280,15 @@ class ParticularResource extends Resource
 
         if ($subParticular->name === 'Senator') {
             return District::where('name', 'Not Applicable')
-                ->where('name', 'Not Applicable')
+                ->whereHas('province', function ($query) {
+                    $query->where('name', 'Not Applicable');
+                })
+                ->whereHas('province.region', function ($query) {
+                    $query->where('name', 'Not Applicable');
+                })
                 ->get()
                 ->mapWithKeys(function (District $district) {
-                    return [$district->id => $district->name];
+                    return [$district->id => $district->province->region->name];
                 })
                 ->toArray() ?: ['no_administrative_area' => 'No Administrative Area Available'];
         }
