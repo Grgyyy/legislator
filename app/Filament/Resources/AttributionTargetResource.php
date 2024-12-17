@@ -9,6 +9,7 @@ use App\Models\DeliveryMode;
 use App\Models\LearningMode;
 use App\Models\Legislator;
 use App\Models\Particular;
+use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SubParticular;
@@ -1227,6 +1228,30 @@ class AttributionTargetResource extends Resource
                     
                     DeleteAction::make()
                         ->action(function ($record, $data) {
+                            $attributionAllocation = $record->attributionAllocation;
+                            $allocation = $record->allocation;
+                            $totalAmount = $record->total_amount;
+
+                            $institution = $record->tvi;
+                            $abdd = $record->abdd;
+
+                            $provinceAbdd = ProvinceAbdd::where('abdd_id', $abdd->id)
+                                ->where('province_id', $institution->district->province_id)
+                                ->where('year', $attributionAllocation->year)
+                                ->first();
+
+                            $totalSlots = $record->number_of_slots;
+
+                            $provinceAbdd->available_slots += $totalSlots;
+                            $provinceAbdd->save();
+
+                            $attributionAllocation->balance += $totalAmount;
+                            $attributionAllocation->attribution_sent -=  $totalAmount;
+                            $attributionAllocation->save();
+
+                            $allocation->attribution_received -= $totalAmount;
+                            $allocation->save();
+
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
