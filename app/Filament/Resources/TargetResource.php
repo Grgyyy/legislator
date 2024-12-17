@@ -4,6 +4,8 @@ namespace App\Filament\Resources;
 
 use App\Models\DeliveryMode;
 use App\Models\LearningMode;
+use App\Models\ProvinceAbdd;
+use App\Services\NotificationHandler;
 use Throwable;
 use App\Models\Tvi;
 use App\Models\Target;
@@ -861,7 +863,31 @@ class TargetResource extends Resource
                         ->label('Set as Non-Compliant')
                         ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id]))
                         ->icon('heroicon-o-x-circle'),
-                    DeleteAction::make(),
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $allocation = $record->allocation;
+                            $totalAmount = $record->total_amount;
+
+                            $institution = $record->tvi;
+                            $abdd = $record->abdd;
+
+                            $provinceAbdd = ProvinceAbdd::where('abdd_id', $abdd->id)
+                                ->where('province_id', $institution->district->province_id)
+                                ->where('year', $allocation->year)
+                                ->first();
+
+                            $totalSlots = $record->number_of_slots;
+
+                            $provinceAbdd->available_slots += $totalSlots;
+                            $provinceAbdd->save();
+
+                            $allocation->balance += $totalAmount;
+                            $allocation->save();
+
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
+                        }),
                     RestoreAction::make(),
                     ForceDeleteAction::make(),
                 ])

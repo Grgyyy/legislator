@@ -127,13 +127,13 @@ class AllocationResource extends Resource
                     ->minValue(0)
                     ->maxValue(999999999999.99)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                    ->afterStateUpdated(function (callable $set, $state, $get) {
-                        $adminCost = $state * 0.02;
+                    // ->afterStateUpdated(function (callable $set, $state, $get) {
+                    //     $adminCost = $state * 0.02;
 
-                        $set('admin_cost', $adminCost);
+                    //     $set('admin_cost', $adminCost);
 
-                        $set('balance', $state - $adminCost);
-                    })
+                    //     $set('balance', $state - $adminCost);
+                    // })
                     ->debounce(1000)
                     ->reactive()
                     ->live()
@@ -141,25 +141,6 @@ class AllocationResource extends Resource
                     ->validationMessages([
                         'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
                     ]),
-
-                TextInput::make('admin_cost')
-                    ->label('Admin Cost')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->autocomplete(false)
-                    ->readOnly()
-                    ->numeric()
-                    ->prefix('₱')
-                    ->default(0)
-                    ->minValue(0)
-                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                    ->afterStateUpdated(function (callable $set, $state, $get) {
-                        $allocation = floatval($get('allocation'));
-
-                        $set('balance', $allocation - $state);
-                    })
-                    ->reactive()
-                    ->live(),
 
                 TextInput::make('year')
                     ->label('Year')

@@ -6,8 +6,8 @@ use App\Models\Allocation;
 use App\Filament\Resources\AllocationResource;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Database\QueryException;
-use Exception;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class EditAllocation extends EditRecord
 {
@@ -22,19 +22,24 @@ class EditAllocation extends EditRecord
     {
         $this->validateUniqueAllocation($data, $record->id);
 
-        try {
-            $record->update($data);
-
-            NotificationHandler::sendSuccessNotification('Saved', 'Allocation has been updated successfully.');
+        $allocation = DB::transaction(function () use ($record, $data) {
+            $record->update([
+                'soft_or_commitment' => $data['soft_or_commitment'],
+                'legislator_id' => $data['legislator_id'],
+                'particular_id' => $data['particular_id'],
+                'scholarship_program_id' => $data['scholarship_program_id'],
+                'allocation' => $data['allocation'],
+                'admin_cost' => $data['allocation'] * 0.02,
+                'balance' => $data['allocation'] - ($data['allocation'] * 0.02),
+                'year' => $data['year'],
+            ]);
 
             return $record;
-        } catch (QueryException $e) {
-            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the allocation: ' . $e->getMessage() . ' Please review the details and try again.');
-        } catch (Exception $e) {
-            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the allocation update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
-        }
+        });
 
-        return $record;
+        NotificationHandler::sendSuccessNotification('Saved', 'Allocation has been updated successfully.');
+
+        return $allocation;
     }
 
     protected function validateUniqueAllocation(array $data, $currentId)
@@ -44,15 +49,17 @@ class EditAllocation extends EditRecord
             ->where('particular_id', $data['particular_id'])
             ->where('scholarship_program_id', $data['scholarship_program_id'])
             ->where('year', $data['year'])
-            ->where('id', '!=', $currentId)
+            ->where('id', '!=', $currentId) // Exclude current record ID
             ->first();
 
         if ($allocation) {
             $message = $allocation->deleted_at
-                ? 'This allocation with the provided details has been deleted. Restoration is required before it can be reused.'
+                ? 'This allocation with the provided details has been deleted and must be restored before reuse.'
                 : 'This Allocation with the provided details already exists.';
 
-            $this->handleValidationException($message);
+            throw ValidationException::withMessages([
+                'error' => $message,
+            ]);
         }
     }
 }
