@@ -27,8 +27,8 @@ class CreateAllocation extends CreateRecord
                 'particular_id' => $data['particular_id'],
                 'scholarship_program_id' => $data['scholarship_program_id'],
                 'allocation' => $data['allocation'],
-                'admin_cost' => $data['admin_cost'],
-                'balance' => $data['allocation'] - $data['admin_cost'],
+                'admin_cost' => $data['allocation'] * 0.02,
+                'balance' => $data['allocation'] - ($data['allocation'] * 0.02),
                 'year' => $data['year'],
         ]));
 
