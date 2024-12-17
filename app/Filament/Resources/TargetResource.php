@@ -2,26 +2,29 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\DeliveryMode;
-use App\Models\LearningMode;
 use App\Models\ProvinceAbdd;
 use App\Services\NotificationHandler;
 use Throwable;
 use App\Models\Tvi;
+use App\Models\Region;
 use App\Models\Target;
 use Filament\Forms\Form;
 use App\Models\Allocation;
 use App\Models\Legislator;
 use App\Models\Particular;
 use Filament\Tables\Table;
+use App\Models\DeliveryMode;
+use App\Models\LearningMode;
 use App\Models\TargetStatus;
 use Filament\Actions\Action;
 use App\Models\TargetHistory;
+use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Actions\EditAction;
@@ -30,6 +33,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
@@ -54,6 +58,7 @@ class TargetResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-ellipsis-horizontal-circle';
 
     protected static ?int $navigationSort = 1;
+
 
     public static function form(Form $form): Form
     {
@@ -658,19 +663,6 @@ class TargetResource extends Resource
     {
         return $table
             ->emptyStateHeading('No targets available')
-            // ->query(function ($query) {
-            //     // Fetch the region name of the logged-in user
-            //     $userRegion = auth()->user()->region->name;
-
-            //     // Apply filter to ensure the user sees only targets related to their region
-            //     if ($userRegion) {
-            //         $query->whereHas('district.province.region', function ($q) use ($userRegion) {
-            //             // Filter by the user's region through the district's province relationship
-            //             $q->where('name', $userRegion);
-            //         });
-            //     }
-            // })
-
             ->columns([
                 TextColumn::make('abscap_id')
                     ->sortable()
@@ -1128,7 +1120,6 @@ class TargetResource extends Resource
                         ]),
                 ]),
             ]);
-
     }
 
     protected static function calculateCostPerSlot($record, $costProperty)
@@ -1307,12 +1298,33 @@ class TargetResource extends Resource
         ];
     }
 
+    // public static function getEloquentQuery(): Builder
+    // {
+    //     $query = parent::getEloquentQuery();
+    //     $routeParameter = request()->route('record');
+    //     $pendingStatus = TargetStatus::where('desc', 'Pending')
+    //         ->first();
+
+    //     if ($pendingStatus) {
+    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
+    //             ->where('target_status_id', '=', $pendingStatus->id)
+    //             ->where('attribution_allocation_id', null);
+
+    //         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+    //             $query->where('region_id', (int) $routeParameter);
+    //         }
+    //     }
+
+    //     return $query;
+    // }
+
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
         $routeParameter = request()->route('record');
-        $pendingStatus = TargetStatus::where('desc', 'Pending')
-            ->first();
+        $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
+        $user = auth()->user();
 
         if ($pendingStatus) {
             $query->withoutGlobalScopes([SoftDeletingScope::class])
@@ -1324,8 +1336,23 @@ class TargetResource extends Resource
             }
         }
 
+        // Dynamic filtering for logged-in user's region and role
+        if ($user && $user->hasRole('RO') && $user->region_id) {
+            $query->whereHas('allocation.particular.district.municipality.province.region', function ($query) use ($user) {
+                $query->where('id', $user->region_id);
+            });
+        }
+
+        // Directly log the query object
+        Log::info('Query Object:', ['query' => $query]);
+
         return $query;
     }
+
+
+
+
+
 
 
 }

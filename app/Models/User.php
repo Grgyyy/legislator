@@ -64,61 +64,6 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsTo(Province::class);
     }
 
-    /**
-     * Determine if the user can access the Filament panel based on their roles.
-     *
-     * @param Panel $panel
-     * @return bool
-     */
-    // public function canAccessPanel(Panel $panel): bool
-    // {
-    //     // Define roles that are explicitly allowed to access the panel
-    //     $allowedRoles = [
-    //         'Super Admin',
-    //         'Admin',
-    //         'SMD Head',
-    //         'SMD Focal',
-    //         'RO',
-    //         'PO/DO',
-    //         'TESDO',
-    //     ];
-
-    //     // Check if the user has any of the explicitly allowed roles
-    //     if ($this->hasAnyRole($allowedRoles)) {
-    //         return true;
-    //     }
-
-    //     // Additional check for dynamic region roles
-    //     $regionRoles = [
-    //         'Region I',
-    //         'Region II',
-    //         'Region III',
-    //         'Region IV-A',
-    //         'Region IV-B',
-    //         'Region V',
-    //         'Region VI',
-    //         'Region VII',
-    //         'Region VIII',
-    //         'Region IX',
-    //         'Region X',
-    //         'Region XI',
-    //         'Region XII',
-    //         'NCR',
-    //         'CAR',
-    //         'CARAGA',
-    //         'Negros Island Region',
-    //         'BARMM'
-    //     ];
-
-    //     // Check if the user has any of the region-specific roles
-    //     if ($this->hasAnyRole($regionRoles)) {
-    //         return true;
-    //     }
-
-    //     // Default to denying access if no roles match
-    //     return false;
-    // }
-
     public function canAccessPanel(Panel $panel): bool
     {
         // Define fixed roles allowed to access the panel

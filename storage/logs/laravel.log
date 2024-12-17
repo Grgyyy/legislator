@@ -685,4 +685,8 @@
 #37 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(199): Illuminate\\Foundation\\Console\\Kernel->bootstrap()
 #38 Command line code(1): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
 #39 {main}
+"}
+[2024-12-17 09:21:26] local.ERROR: Cannot use App\Models\DeliveryMode as DeliveryMode because the name is already in use {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Cannot use App\\Models\\DeliveryMode as DeliveryMode because the name is already in use at C:\\laragon\\www\\legislator\\app\\Filament\\Resources\\TargetResource.php:18)
+[stacktrace]
+#0 {main}
 "} 
