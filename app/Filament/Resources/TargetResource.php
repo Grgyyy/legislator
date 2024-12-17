@@ -907,6 +907,9 @@ class TargetResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
+                                    Column::make('abscap_id')
+                                        ->heading('Absorptive Capacity'),
+
                                     Column::make('fund_source')
                                         ->heading('Fund Source')
                                         ->getStateUsing(function ($record) {
@@ -929,86 +932,99 @@ class TargetResource extends Resource
                                             return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
 
+
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
+
                                     Column::make('allocation.soft_or_commitment')
                                         ->heading('Soft or Commitment'),
+
                                     Column::make('appropriation_type')
                                         ->heading('Appropriation Type'),
+
                                     Column::make('allocation.year')
                                         ->heading('Appropriation Year'),
-                                    Column::make('allocation.particular')
+
+                                    Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
-                                            $particular = $record->allocation->particular;
+                                            $legislator = $record->allocation->legislator;
 
-                                            if (!$particular) {
-                                                return ['no_particular' => 'No Particular Available'];
+                                            if (!$legislator) {
+                                                return 'No legislator available';
                                             }
 
+                                            $particulars = $legislator->particular;
+
+                                            if ($particulars->isEmpty()) {
+                                                return 'No particular available';
+                                            }
+
+                                            $particular = $particulars->first();
                                             $district = $particular->district;
-                                            $municipality = $district ? $district->municipality : null;
-                                            $province = $municipality ? $municipality->province : null;
+                                            $municipality = $district ? $district->underMunicipality : null;
 
                                             $districtName = $district ? $district->name : 'Unknown District';
                                             $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-                                            $provinceName = $province ? $province->name : 'Unknown Province';
 
-                                            $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
-
-                                            if ($subParticular === 'Party-list') {
-                                                return "{$subParticular} - {$particular->partylist->name}";
-                                            } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                                                return "{$subParticular}";
+                                            if ($districtName === 'Not Applicable') {
+                                                if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                                    return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                                                } else {
+                                                    return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                                }
                                             } else {
-                                                return "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
                                             }
                                         }),
-
-                                    Column::make('tvi.name')
-                                        ->heading('Institution'),
-                                    Column::make('tvi.district.name')
-                                        ->heading('District'),
-                                    Column::make('tvi.district.municipality.name')
+                                    Column::make('municipality.name')
                                         ->heading('Municipality'),
+
+                                    Column::make('district.name')
+                                        ->heading('District'),
+
                                     Column::make('tvi.district.municipality.province.name')
                                         ->heading('Province'),
+
                                     Column::make('tvi.district.municipality.province.region.name')
                                         ->heading('Region'),
 
-                                    Column::make('tvi.address')
-                                        ->heading('Address'),
+                                    Column::make('tvi.name')
+                                        ->heading('Institution'),
 
                                     Column::make('tvi.tviClass.tviType.name')
-                                        ->heading('TVI Type'),
+                                        ->heading('Institution Type'),
+
 
                                     Column::make('tvi.tviClass.name')
                                         ->heading('Institution Class(A)'),
 
-                                    Column::make('tvi.InstitutionClass.name')
-                                        ->heading('Institution Class(B)'),
+                                    Column::make('qualification_title_code')
+                                        ->heading('Qualification Code'),
 
-                                    Column::make('qualification_title.training_program.title')
-                                        ->heading('Qualification Title')
-                                        ->getStateUsing(function ($record) {
-                                            $qualificationTitle = $record->qualification_title;
-
-                                            $trainingProgram = $qualificationTitle->trainingProgram;
-
-                                            return $trainingProgram ? $trainingProgram->title : 'No training program available';
-                                        }),
-                                    Column::make('allocation.scholarship_program.name')
-                                        ->heading('Scholarship Program'),
+                                    Column::make('qualification_title_name')
+                                        ->heading('Qualification Title'),
 
                                     Column::make('abdd.name')
                                         ->heading('ABDD Sector'),
 
-                                    Column::make('qualification_title.trainingProgram.priority.name')
-                                        ->heading('Ten Priority Sector'),
-
                                     Column::make('qualification_title.trainingProgram.tvet.name')
                                         ->heading('TVET Sector'),
 
+                                    Column::make('qualification_title.trainingProgram.priority.name')
+                                        ->heading('Priority Sector'),
+
+                                    Column::make('deliveryMode.name')
+                                        ->heading('Delivery Mode'),
+
+                                    Column::make('learningMode.name')
+                                        ->heading('Learning Mode'),
+
+                                    Column::make('qualification_title.trainingProgram.priority.name')
+                                        ->heading('Priority Sector'),
+
+                                    Column::make('allocation.scholarship_program.name')
+                                        ->heading('Scholarship Program'),
 
                                     Column::make('number_of_slots')
                                         ->heading('No. of slots'),
