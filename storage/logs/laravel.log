@@ -1001,3 +1001,4 @@
 [2024-12-18 00:52:38] local.ERROR: Failed to import particular: The district '22' does not exist in the specified province and municipality.  
 [2024-12-18 00:54:16] local.ERROR: Failed to import particular: The district '22' does not exist in the specified province and municipality.  
 [2024-12-18 00:55:04] local.ERROR: Failed to import particular: The district '22' does not exist in the specified province and municipality.  
+[2024-12-18 01:23:00] local.ERROR: An error occurred while importing row: {"school_id":"1301-0066","institution_name":"3R Manpower Training and Testing Centre, Inc.","institution_class_a":"TVI","institution_class_b":"B","district":"1st","municipality":"Caloocan City","province":"CaMaNaVa","region":"NCR","full_address":"B6 L8 Sunriser Vill. Subd., Llano Road, Caloocan City"} Error: The district '1st' does not exist in the specified province and municipality.  

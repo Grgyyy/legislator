@@ -35,7 +35,7 @@ class TviImport implements ToModel, WithHeadingRow
                 $regionId = $this->getRegionId($row['region']);
                 $provinceId = $this->getProvinceId($regionId, $row['province']);
                 $municipalityId = $this->getMunicipalityId($provinceId, $row['municipality']);
-                $districtId = $this->getDistrictId($municipalityId, $row['district']);
+                $districtId = $this->getDistrictId($regionId, $provinceId, $municipalityId, $row['district']);
                 $tviCode = $row['school_id'] ? $row['school_id'] : null;
 
 
@@ -189,23 +189,32 @@ class TviImport implements ToModel, WithHeadingRow
     //     return $district->id;
     // }
 
-    protected function getDistrictId(int $municipalityId, string $districtName)
+
+    protected function getDistrictId($regionId, $provinceId, $municipalityId, $districtName)
     {
-        $district = District::where('name', $districtName)
-            ->where('municipality_id', $municipalityId)
-            ->whereNull('deleted_at')
-            ->first();
+        $region = Region::find($regionId);
 
-        if (!$district) {
-            Log::error("District not found.", [
-                'district_name' => $districtName,
-                'municipality_id' => $municipalityId
-            ]);
-
-            throw new \Exception("District with name '{$districtName}' in municipality ID '{$municipalityId}' not found. No changes were saved.");
+        if (!$region) {
+            throw new \Exception("Region with ID {$regionId} does not exist.");
         }
 
-        return $district->id;
+        $query = District::where('name', $districtName)
+            ->where('province_id', $provinceId);
+
+        if ($region->name === "NCR") {
+            if (empty($municipalityId)) {
+                throw new \Exception("Municipality is required for districts in NCR.");
+            }
+            $query->where('municipality_id', $municipalityId);
+        }
+
+        $districtRecord = $query->first();
+
+        if (!$districtRecord) {
+            throw new \Exception("The district '{$districtName}' does not exist in the specified province and municipality.");
+        }
+
+        return $districtRecord->id;
     }
 
 
