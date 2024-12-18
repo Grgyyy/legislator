@@ -1,17 +1,18 @@
 <?php
-
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -22,10 +23,13 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'avatar_url'
+        'avatar_url',
+        'region_id',
+        'province_id',
     ];
 
-    public function comments() {
+    public function comments()
+    {
         return $this->hasMany(TargetComment::class);
     }
 
@@ -48,4 +52,72 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    // Correct relationship methods
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    public function province()
+    {
+        return $this->belongsTo(Province::class);
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Define fixed roles allowed to access the panel
+        $allowedRoles = [
+            'Super Admin',
+            'Admin',
+            'SMD Head',
+            'SMD Focal',
+            'RO',
+            'PO/DO',
+            'TESDO',
+        ];
+
+        // Check if the user has any of the explicitly allowed roles
+        if ($this->hasAnyRole($allowedRoles)) {
+            return true;
+        }
+
+        // Dynamically check region-based roles
+        // List of regions (could be fetched dynamically from a regions table)
+        $regionRoles = [
+            'Region I',
+            'Region II',
+            'Region III',
+            'Region IV-A',
+            'Region IV-B',
+            'Region V',
+            'Region VI',
+            'Region VII',
+            'Region VIII',
+            'Region IX',
+            'Region X',
+            'Region XI',
+            'Region XII',
+            'NCR',
+            'CAR',
+            'CARAGA',
+            'Negros Island Region',
+            'BARMM'
+        ];
+
+        // Check if the user has any region-specific roles
+        foreach ($regionRoles as $regionRole) {
+            if ($this->hasRole($regionRole)) {
+                // Check if the user belongs to the same region
+                if ($this->region && $this->region->name === $regionRole) {
+                    return true;
+                }
+            }
+        }
+
+        // Default to denying access if no roles match
+        return false;
+    }
+
+
 }

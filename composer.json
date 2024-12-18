@@ -9,6 +9,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "althinect/filament-spatie-roles-permissions": "^2.2",
         "ariaieboy/filament-currency": "^1.8",
         "filament/actions": "^3.2",
         "filament/filament": "3.2",
@@ -20,8 +21,8 @@
         "leandrocfe/filament-apex-charts": "^3.1",
         "psr/simple-cache": "^2.0",
         "pxlrbt/filament-excel": "^2.3",
-        "spatie/laravel-permission": "^6.9",
-        "livewire/livewire": "3.5.12"
+          "livewire/livewire": "3.5.12",
+        "spatie/laravel-permission": "^6.10"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.13",

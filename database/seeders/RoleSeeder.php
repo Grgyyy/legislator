@@ -3,28 +3,29 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
-    public function run()
+    public function run(): void
     {
+        // Define fixed roles
         $roles = [
-            ['desc' => 'Admin'],
-            ['desc' => 'SMD Head'],
-            ['desc' => 'SMD Focal'],
-            ['desc' => 'Regional Office'],
-            ['desc' => 'Provincial Office'],
+            'Super Admin',
+            'Admin',
+            'SMD Head',
+            'SMD Focal',
+            'TESDO',
+            'RO', // Consolidated role for all regions
+            'PO/DO',
         ];
 
-        foreach ($roles as $role) {
-            DB::table('roles')->updateOrInsert(
-                ['desc' => $role['desc']], 
-                $role                     
-            );
+        // Create roles if not already present
+        foreach ($roles as $roleName) {
+            Role::firstOrCreate(['name' => $roleName]);
         }
     }
 }

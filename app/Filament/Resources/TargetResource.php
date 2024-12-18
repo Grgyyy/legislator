@@ -2,26 +2,29 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\DeliveryMode;
-use App\Models\LearningMode;
 use App\Models\ProvinceAbdd;
 use App\Services\NotificationHandler;
 use Throwable;
 use App\Models\Tvi;
+use App\Models\Region;
 use App\Models\Target;
 use Filament\Forms\Form;
 use App\Models\Allocation;
 use App\Models\Legislator;
 use App\Models\Particular;
 use Filament\Tables\Table;
+use App\Models\DeliveryMode;
+use App\Models\LearningMode;
 use App\Models\TargetStatus;
 use Filament\Actions\Action;
 use App\Models\TargetHistory;
+use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Actions\EditAction;
@@ -30,6 +33,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
@@ -55,6 +59,7 @@ class TargetResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+
     public static function form(Form $form): Form
     {
         return $form
@@ -62,10 +67,10 @@ class TargetResource extends Resource
                 if ($record) {
                     return [
                         TextInput::make('abscap_id')
-                                    ->label('Absorbative Capacity ID')
-                                    ->placeholder('Enter an Absorbative capacity ID')
-                                    ->numeric(),
-                                    
+                            ->label('Absorbative Capacity ID')
+                            ->placeholder('Enter an Absorbative capacity ID')
+                            ->numeric(),
+
                         Select::make('legislator_id')
                             ->label('Legislator')
                             ->required()
@@ -184,7 +189,7 @@ class TargetResource extends Resource
                             ->disabled()
                             ->dehydrated(),
 
-                            Select::make('delivery_mode_id')
+                        Select::make('delivery_mode_id')
                             ->label('Delivery Mode')
                             ->required()
                             ->markAsRequired(false)
@@ -192,13 +197,13 @@ class TargetResource extends Resource
                             ->preload()
                             ->options(function () {
                                 $deliveryModes = DeliveryMode::all();
-                        
+
                                 return $deliveryModes->isNotEmpty()
                                     ? $deliveryModes->pluck('name', 'id')->toArray()
                                     : ['no_delivery_mode' => 'No delivery modes available.'];
                             })
                             ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
-                        
+
                         Select::make('learning_mode_id')
                             ->label('Learning Mode')
                             ->required()
@@ -206,9 +211,9 @@ class TargetResource extends Resource
                             ->searchable()
                             ->preload()
                             ->options(function ($get) {
-                                $deliveryModeId = $get('delivery_mode_id'); 
+                                $deliveryModeId = $get('delivery_mode_id');
                                 $learningModes = [];
-                        
+
                                 if ($deliveryModeId) {
                                     $learningModes = DeliveryMode::find($deliveryModeId)
                                         ->learningMode
@@ -222,12 +227,12 @@ class TargetResource extends Resource
                             ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
 
                         TextInput::make('admin_cost')
-                                    ->label('Admin Cost')
-                                    ->placeholder('Enter amount of Admin Cost')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->autocomplete(false)
-                                    ->numeric(),
+                            ->label('Admin Cost')
+                            ->placeholder('Enter amount of Admin Cost')
+                            ->required()
+                            ->markAsRequired(false)
+                            ->autocomplete(false)
+                            ->numeric(),
 
                         TextInput::make('number_of_slots')
                             ->label('Number of Slots')
@@ -557,7 +562,7 @@ class TargetResource extends Resource
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
-                                    Select::make('delivery_mode_id')
+                                Select::make('delivery_mode_id')
                                     ->label('Delivery Mode')
                                     ->required()
                                     ->markAsRequired(false)
@@ -565,13 +570,13 @@ class TargetResource extends Resource
                                     ->preload()
                                     ->options(function () {
                                         $deliveryModes = DeliveryMode::all();
-                                
+
                                         return $deliveryModes->isNotEmpty()
                                             ? $deliveryModes->pluck('name', 'id')->toArray()
                                             : ['no_delivery_mode' => 'No delivery modes available.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
-                                
+
                                 Select::make('learning_mode_id')
                                     ->label('Learning Mode')
                                     ->required()
@@ -579,9 +584,9 @@ class TargetResource extends Resource
                                     ->searchable()
                                     ->preload()
                                     ->options(function ($get) {
-                                        $deliveryModeId = $get('delivery_mode_id'); 
+                                        $deliveryModeId = $get('delivery_mode_id');
                                         $learningModes = [];
-                                
+
                                         if ($deliveryModeId) {
                                             $learningModes = DeliveryMode::find($deliveryModeId)
                                                 ->learningMode
@@ -593,7 +598,7 @@ class TargetResource extends Resource
                                             : ['no_learning_modes' => 'No learning modes available for the selected delivery mode.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
-                                
+
 
                                 TextInput::make('admin_cost')
                                     ->label('Admin Cost')
@@ -631,17 +636,17 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-
+    
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-
+    
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-
+    
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-
+    
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
@@ -660,9 +665,9 @@ class TargetResource extends Resource
             ->emptyStateHeading('No targets available')
             ->columns([
                 TextColumn::make('abscap_id')
-                ->sortable()
-                ->searchable()
-                ->toggleable(),
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make('fund_source')
                     ->label('Fund Source')
@@ -902,6 +907,9 @@ class TargetResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
+                                    Column::make('abscap_id')
+                                        ->heading('Absorptive Capacity'),
+
                                     Column::make('fund_source')
                                         ->heading('Fund Source')
                                         ->getStateUsing(function ($record) {
@@ -924,86 +932,99 @@ class TargetResource extends Resource
                                             return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
 
+
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
+
                                     Column::make('allocation.soft_or_commitment')
                                         ->heading('Soft or Commitment'),
+
                                     Column::make('appropriation_type')
                                         ->heading('Appropriation Type'),
+
                                     Column::make('allocation.year')
                                         ->heading('Appropriation Year'),
-                                    Column::make('allocation.particular')
+
+                                    Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
-                                            $particular = $record->allocation->particular;
+                                            $legislator = $record->allocation->legislator;
 
-                                            if (!$particular) {
-                                                return ['no_particular' => 'No Particular Available'];
+                                            if (!$legislator) {
+                                                return 'No legislator available';
                                             }
 
+                                            $particulars = $legislator->particular;
+
+                                            if ($particulars->isEmpty()) {
+                                                return 'No particular available';
+                                            }
+
+                                            $particular = $particulars->first();
                                             $district = $particular->district;
-                                            $municipality = $district ? $district->municipality : null;
-                                            $province = $municipality ? $municipality->province : null;
+                                            $municipality = $district ? $district->underMunicipality : null;
 
                                             $districtName = $district ? $district->name : 'Unknown District';
                                             $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-                                            $provinceName = $province ? $province->name : 'Unknown Province';
 
-                                            $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
-
-                                            if ($subParticular === 'Party-list') {
-                                                return "{$subParticular} - {$particular->partylist->name}";
-                                            } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                                                return "{$subParticular}";
+                                            if ($districtName === 'Not Applicable') {
+                                                if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                                    return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                                                } else {
+                                                    return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                                }
                                             } else {
-                                                return "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
                                             }
                                         }),
-
-                                    Column::make('tvi.name')
-                                        ->heading('Institution'),
-                                    Column::make('tvi.district.name')
-                                        ->heading('District'),
-                                    Column::make('tvi.district.municipality.name')
+                                    Column::make('municipality.name')
                                         ->heading('Municipality'),
+
+                                    Column::make('district.name')
+                                        ->heading('District'),
+
                                     Column::make('tvi.district.municipality.province.name')
                                         ->heading('Province'),
+
                                     Column::make('tvi.district.municipality.province.region.name')
                                         ->heading('Region'),
 
-                                    Column::make('tvi.address')
-                                        ->heading('Address'),
+                                    Column::make('tvi.name')
+                                        ->heading('Institution'),
 
                                     Column::make('tvi.tviClass.tviType.name')
-                                        ->heading('TVI Type'),
+                                        ->heading('Institution Type'),
+
 
                                     Column::make('tvi.tviClass.name')
                                         ->heading('Institution Class(A)'),
 
-                                    Column::make('tvi.InstitutionClass.name')
-                                        ->heading('Institution Class(B)'),
+                                    Column::make('qualification_title_code')
+                                        ->heading('Qualification Code'),
 
-                                    Column::make('qualification_title.training_program.title')
-                                        ->heading('Qualification Title')
-                                        ->getStateUsing(function ($record) {
-                                            $qualificationTitle = $record->qualification_title;
-
-                                            $trainingProgram = $qualificationTitle->trainingProgram;
-
-                                            return $trainingProgram ? $trainingProgram->title : 'No training program available';
-                                        }),
-                                    Column::make('allocation.scholarship_program.name')
-                                        ->heading('Scholarship Program'),
+                                    Column::make('qualification_title_name')
+                                        ->heading('Qualification Title'),
 
                                     Column::make('abdd.name')
                                         ->heading('ABDD Sector'),
 
-                                    Column::make('qualification_title.trainingProgram.priority.name')
-                                        ->heading('Ten Priority Sector'),
-
                                     Column::make('qualification_title.trainingProgram.tvet.name')
                                         ->heading('TVET Sector'),
 
+                                    Column::make('qualification_title.trainingProgram.priority.name')
+                                        ->heading('Priority Sector'),
+
+                                    Column::make('deliveryMode.name')
+                                        ->heading('Delivery Mode'),
+
+                                    Column::make('learningMode.name')
+                                        ->heading('Learning Mode'),
+
+                                    Column::make('qualification_title.trainingProgram.priority.name')
+                                        ->heading('Priority Sector'),
+
+                                    Column::make('allocation.scholarship_program.name')
+                                        ->heading('Scholarship Program'),
 
                                     Column::make('number_of_slots')
                                         ->heading('No. of slots'),
@@ -1115,7 +1136,6 @@ class TargetResource extends Resource
                         ]),
                 ]),
             ]);
-
     }
 
     protected static function calculateCostPerSlot($record, $costProperty)
@@ -1146,12 +1166,9 @@ class TargetResource extends Resource
                 if ($particular->district->name === 'Not Applicable') {
                     if ($particular->subParticular->name === 'Partylist') {
                         return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
-                    } 
-                    
-                    else if ($particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)' ) {
+                    } else if ($particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
                         return [$particular->id => $particular->subParticular->name];
-                    }
-                    else {
+                    } else {
                         return [$particular->id => $particular->subParticular->name];
                     }
                 } else {
@@ -1179,7 +1196,7 @@ class TargetResource extends Resource
         return Allocation::where('legislator_id', $legislatorId)
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
-            ->where('year', '>=', $yearNow - 1) 
+            ->where('year', '>=', $yearNow - 1)
             ->pluck('year', 'year')
             ->toArray() ?: ['no_allocation' => 'No allocation available'];
     }
@@ -1316,6 +1333,42 @@ class TargetResource extends Resource
 
         return $query;
     }
+
+
+    // public static function getEloquentQuery(): Builder
+    // {
+    //     $query = parent::getEloquentQuery();
+    //     $routeParameter = request()->route('record');
+    //     $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
+    //     $user = auth()->user();
+
+    //     if ($pendingStatus) {
+    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
+    //             ->where('target_status_id', '=', $pendingStatus->id)
+    //             ->where('attribution_allocation_id', null);
+
+    //         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+    //             $query->where('region_id', (int) $routeParameter);
+    //         }
+    //     }
+
+    //     // Dynamic filtering for logged-in user's region and role
+    //     if ($user && $user->hasRole('RO') && $user->region_id) {
+    //         $query->whereHas('allocation.particular.district.municipality.province.region', function ($query) use ($user) {
+    //             $query->where('id', $user->region_id);
+    //         });
+    //     }
+
+    //     // Directly log the query object
+    //     Log::info('Query Object:', ['query' => $query]);
+
+    //     return $query;
+    // }
+
+
+
+
+
 
 
 }

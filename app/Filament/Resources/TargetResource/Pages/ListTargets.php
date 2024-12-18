@@ -31,7 +31,8 @@ class ListTargets extends ListRecords
         return [
             CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+            ,
 
             Action::make('TargetImport')
                 ->label('Import')
