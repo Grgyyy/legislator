@@ -987,3 +987,17 @@
 #10 C:\\laragon\\www\\legislator\\artisan(35): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
 #11 {main}
 "} 
+[2024-12-18 00:27:35] local.ERROR: Failed to import particular: The Lone District district does not exist.  
+[2024-12-18 00:28:06] local.ERROR: Failed to import particular: The Not Applicable district does not exist.  
+[2024-12-18 00:32:10] local.ERROR: Failed to import particular: The 20 district does not exist in the specified province and municipality.  
+[2024-12-18 00:33:24] local.ERROR: Failed to import particular: Attempt to read property "id" on null  
+[2024-12-18 00:34:23] local.ERROR: Failed to import particular: The District 1 district does not exist in the specified province and municipality.  
+[2024-12-18 00:36:51] local.ERROR: Failed to import particular: The district 'Not Applicable' does not exist in the specified province and municipality.  
+[2024-12-18 00:37:35] local.ERROR: Failed to import particular: The district '13' does not exist in the specified province and municipality.  
+[2024-12-18 00:40:05] local.ERROR: Failed to import particular: The district '13' does not exist in the specified province and municipality.  
+[2024-12-18 00:42:55] local.ERROR: Failed to import particular: The district '13' does not exist in the specified province and municipality.  
+[2024-12-18 00:44:31] local.ERROR: Failed to import particular: The district 'District 1' does not exist in the specified province and municipality.  
+[2024-12-18 00:50:35] local.ERROR: Failed to import particular: The district 'Lone District' does not exist in the specified province and municipality.  
+[2024-12-18 00:52:38] local.ERROR: Failed to import particular: The district '22' does not exist in the specified province and municipality.  
+[2024-12-18 00:54:16] local.ERROR: Failed to import particular: The district '22' does not exist in the specified province and municipality.  
+[2024-12-18 00:55:04] local.ERROR: Failed to import particular: The district '22' does not exist in the specified province and municipality.  

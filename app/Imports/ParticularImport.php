@@ -33,7 +33,7 @@ class ParticularImport implements ToModel, WithHeadingRow
                 $region_id = $this->getRegionId($row['region']);
                 $province_id = $this->getProvinceId($region_id, $row['province']);
                 $municipality_id = $this->getMunicipalityId($province_id, $row['municipality']);
-                $district_id = $this->getDistrictId($municipality_id, $row['district']);
+                $district_id = $this->getDistrictId($region_id, $province_id, $municipality_id, $row['district']);
                 $partylist_id = $this->getPartylistId($row['particular'], $row['partylist']);
                 $sub_particular_id = $this->getSubparticularId($row['particular']);
 
@@ -95,6 +95,42 @@ class ParticularImport implements ToModel, WithHeadingRow
         return $provinceRecord->id;
     }
 
+    protected function getDistrictId($regionId, $provinceId, $municipalityId, $districtName)
+{
+    // Find the region record
+    $region = Region::find($regionId);
+
+    if (!$region) {
+        throw new \Exception("Region with ID {$regionId} does not exist.");
+    }
+
+    // Build the query for the district
+    $query = District::where('name', $districtName)
+        ->where('province_id', $provinceId);
+
+    // If the region is NCR, also filter by municipality_id
+    if ($region->name === "NCR") {
+        if (empty($municipalityId)) {
+            throw new \Exception("Municipality is required for districts in NCR.");
+        }
+        $query->where('municipality_id', $municipalityId);
+    }
+
+    // Fetch the district record
+    $districtRecord = $query->first();
+
+    // Handle cases where the district record is not found
+    if (!$districtRecord) {
+        throw new \Exception("The district '{$districtName}' does not exist in the specified province and municipality.");
+    }
+
+    // Return the ID of the district
+    return $districtRecord->id;
+}
+
+    
+
+
     protected function getMunicipalityId($provinceId, $municipalityName)
     {
         $municipalityRecord = Municipality::where('name', $municipalityName)
@@ -107,20 +143,6 @@ class ParticularImport implements ToModel, WithHeadingRow
         }
 
         return $municipalityRecord->id;
-    }
-
-    protected function getDistrictId($municipalityId, $districtName)
-    {
-        $districtRecord = District::where('name', $districtName)
-            ->where('municipality_id', $municipalityId)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if (!$districtRecord) {
-            throw new \Exception("The {$districtName} district does not exist.");
-        }
-
-        return $districtRecord->id;
     }
 
     protected function getSubparticularId($particularName)
@@ -167,3 +189,4 @@ class ParticularImport implements ToModel, WithHeadingRow
         return $partylistRecord->id;
     }
 }
+
