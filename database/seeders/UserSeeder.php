@@ -16,8 +16,13 @@ class UserSeeder extends Seeder
         // Define users with their respective roles
         $users = [
             ['name' => 'Super Admin', 'email' => 'superadmin@gmail.com', 'role' => 'Super Admin'],
+            ['name' => 'Cedric James Leala', 'email' => 'cjpleala@tesda.gov.ph', 'role' => 'Super Admin'],
+            ['name' => 'Mark Ian Amado', 'email' => 'mimado@tesda.gov.ph', 'role' => 'Super Admin'],
+            ['name' => 'Tj Dhaniella Maurea Ojerio', 'email' => 'tmdlojerio@tesda.gov.ph', 'role' => 'Super Admin'],
             ['name' => 'Admin', 'email' => 'admin@gmail.com', 'role' => 'Admin'],
             ['name' => 'SMD Head', 'email' => 'smdhead@gmail.com', 'role' => 'SMD Head'],
+            ['name' => 'Joemar Caballero', 'email' => 'jbcaballero@tesda.gov.ph', 'role' => 'SMD Head'],
+            ['name' => 'Glenford M. Prospero ', 'email' => 'gmprospero@tesda.gov.ph', 'role' => 'SMD Head'],
             ['name' => 'SMD Focal', 'email' => 'smdfocal@gmail.com', 'role' => 'SMD Focal'],
             ['name' => 'TESDO', 'email' => 'tesdo@gmail.com', 'role' => 'TESDO'],
             ['name' => 'Region I', 'email' => 'regionI@gmail.com', 'role' => 'RO'],
