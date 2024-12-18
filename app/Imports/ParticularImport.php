@@ -97,18 +97,15 @@ class ParticularImport implements ToModel, WithHeadingRow
 
     protected function getDistrictId($regionId, $provinceId, $municipalityId, $districtName)
 {
-    // Find the region record
     $region = Region::find($regionId);
 
     if (!$region) {
         throw new \Exception("Region with ID {$regionId} does not exist.");
     }
 
-    // Build the query for the district
     $query = District::where('name', $districtName)
         ->where('province_id', $provinceId);
 
-    // If the region is NCR, also filter by municipality_id
     if ($region->name === "NCR") {
         if (empty($municipalityId)) {
             throw new \Exception("Municipality is required for districts in NCR.");
@@ -116,21 +113,16 @@ class ParticularImport implements ToModel, WithHeadingRow
         $query->where('municipality_id', $municipalityId);
     }
 
-    // Fetch the district record
     $districtRecord = $query->first();
 
-    // Handle cases where the district record is not found
     if (!$districtRecord) {
         throw new \Exception("The district '{$districtName}' does not exist in the specified province and municipality.");
     }
 
-    // Return the ID of the district
     return $districtRecord->id;
 }
 
     
-
-
     protected function getMunicipalityId($provinceId, $municipalityName)
     {
         $municipalityRecord = Municipality::where('name', $municipalityName)
