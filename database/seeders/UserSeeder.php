@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
         $users = [
             ['name' => 'Super Admin', 'email' => 'superadmin@gmail.com', 'role' => 'Super Admin'],
             ['name' => 'Cedric James Leala', 'email' => 'cjpleala@tesda.gov.ph', 'role' => 'Super Admin'],
-            ['name' => 'Mark Ian Amado', 'email' => 'mimado@tesda.gov.ph', 'role' => 'Super Admin'],
+            ['name' => 'Mark Ian Amado', 'email' => 'mimamado@tesda.gov.ph', 'role' => 'Super Admin'],
             ['name' => 'Tj Dhaniella Maurea Ojerio', 'email' => 'tmdlojerio@tesda.gov.ph', 'role' => 'Super Admin'],
             ['name' => 'Admin', 'email' => 'admin@gmail.com', 'role' => 'Admin'],
             ['name' => 'SMD Head', 'email' => 'smdhead@gmail.com', 'role' => 'SMD Head'],
