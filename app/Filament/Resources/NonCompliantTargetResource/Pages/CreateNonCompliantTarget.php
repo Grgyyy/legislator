@@ -62,8 +62,8 @@ class CreateNonCompliantTarget extends CreateRecord
                 $this->adjustResources($targetRecord, $data);
 
                 // Update target status to Non-Compliant
-                // $targetRecord->target_status_id = $nonCompliantRecord->id;
-                $targetRecord->abscap_id = null;
+                $targetRecord->target_status_id = $nonCompliantRecord->id;
+                // $targetRecord->abscap_id = null;
                 $targetRecord->save();
 
                 // Log target history

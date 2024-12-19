@@ -623,7 +623,7 @@ class TargetResource extends Resource
                                     ]),
                             ])
                             ->maxItems(100)
-                            ->columns(5)
+                            ->columns(3)
                             ->columnSpanFull()
                             ->addActionLabel('+')
                             ->cloneable(),
