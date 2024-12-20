@@ -192,7 +192,7 @@ class EditTarget extends EditRecord
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => ($qualificationTitle->pcc * $numberOfSlots) + $data['admin_cost'],
+            'total_amount' => ($qualificationTitle->pcc * $numberOfSlots),
         ];
     }
 

@@ -226,14 +226,6 @@ class TargetResource extends Resource
                             })
                             ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
 
-                        TextInput::make('admin_cost')
-                            ->label('Admin Cost')
-                            ->placeholder('Enter amount of Admin Cost')
-                            ->required()
-                            ->markAsRequired(false)
-                            ->autocomplete(false)
-                            ->numeric(),
-
                         TextInput::make('number_of_slots')
                             ->label('Number of Slots')
                             ->placeholder('Enter number of slots')
@@ -598,15 +590,6 @@ class TargetResource extends Resource
                                             : ['no_learning_modes' => 'No learning modes available for the selected delivery mode.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
-
-
-                                TextInput::make('admin_cost')
-                                    ->label('Admin Cost')
-                                    ->placeholder('Enter amount of Admin Cost')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->autocomplete(false)
-                                    ->numeric(),
 
                                 TextInput::make('number_of_slots')
                                     ->label('Number of Slots')

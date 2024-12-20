@@ -56,7 +56,7 @@ class CreateTarget extends CreateRecord
                 );
 
                 $numberOfSlots = $targetData['number_of_slots'] ?? 0;
-                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $targetData);
+                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
 
                 if ($allocation->balance < round($totals['total_amount'], 2)) {
                     $this->sendErrorNotification('Insufficient allocation balance.');
@@ -91,7 +91,6 @@ class CreateTarget extends CreateRecord
         });
     }
 
-
     private function sendSuccessNotification(string $message): void
     {
         Notification::make()
@@ -100,8 +99,6 @@ class CreateTarget extends CreateRecord
             ->body($message)
             ->send();
     }
-
-
 
     private function validateTargetData(array $targetData): void
     {
@@ -181,7 +178,7 @@ class CreateTarget extends CreateRecord
         return $qualificationTitle;
     }
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, array $targetData): array
+    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots): array
     {
         return [
             'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
@@ -194,7 +191,7 @@ class CreateTarget extends CreateRecord
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => ($qualificationTitle->pcc * $numberOfSlots) + $targetData['admin_cost'],
+            'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
         ];
     }
 
@@ -215,7 +212,6 @@ class CreateTarget extends CreateRecord
             'target_status_id' => 1,
         ], $totals));
     }
-
 
     private function logTargetHistory(array $targetData, Target $target, Allocation $allocation, array $totals): void
     {
@@ -245,13 +241,11 @@ class CreateTarget extends CreateRecord
             'total_book_allowance' => $totals['total_book_allowance'],
             'total_uniform_allowance' => $totals['total_uniform_allowance'],
             'total_misc_fee' => $totals['total_misc_fee'],
-            'admin_cost' => $targetData['admin_cost'],
             'total_amount' => $totals['total_amount'],
             'appropriation_type' => $targetData['appropriation_type'],
             'description' => 'Target Created',
         ]);
     }
-
 
     private function sendErrorNotification(string $message): void
     {

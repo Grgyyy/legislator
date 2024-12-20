@@ -39,7 +39,6 @@ class Target extends Model
         'total_amount',
         'appropriation_type',
         'target_status_id',
-        'admin_cost',
         'attribution_allocation_id',
     ];
 

@@ -71,8 +71,6 @@ return new class extends Migration
                 ->default(0);
             $table->integer('total_misc_fee')
                 ->default(0);
-            $table->integer('admin_cost')
-                ->default(0);
             $table->integer('total_amount')
                 ->default(1);
             $table->string('appropriation_type');
