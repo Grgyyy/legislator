@@ -936,7 +936,8 @@ class AttributionTargetResource extends Resource
                                                     ? self::getAbddSectors($tviId)
                                                     : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
                                             })
-                                            ->disableOptionWhen(fn($value) => $value === 'no_abdd'),
+                                            ->disableOptionWhen(fn($value) => $value === 'no_abdd')
+                                            ->dehydrated(),
 
                                          TextInput::make('admin_cost')
                                             ->label('Admin Cost')

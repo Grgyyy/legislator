@@ -109,9 +109,8 @@ class EditAttributionTarget extends EditRecord
             $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
             $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
             $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
-            $admin_cost = $data['admin_cost'] ?? 0;
 
-            $total_amount = ($qualificationTitle->pcc * $numberOfSlots) + $admin_cost;
+            $total_amount = ($qualificationTitle->pcc * $numberOfSlots);
 
             $institution = Tvi::find($data['tvi_id']);
             if (!$institution) {
@@ -165,7 +164,6 @@ class EditAttributionTarget extends EditRecord
                 'total_book_allowance' => $total_book_allowance,
                 'total_uniform_allowance' => $total_uniform_allowance,
                 'total_misc_fee' => $total_misc_fee,
-                'admin_cost' => $admin_cost,
                 'total_amount' => $total_amount,
                 'appropriation_type' => $data['attribution_appropriation_type'],
                 'target_status_id' => 1,
@@ -206,7 +204,6 @@ class EditAttributionTarget extends EditRecord
                 'total_book_allowance' => $total_book_allowance,
                 'total_uniform_allowance' => $total_uniform_allowance,
                 'total_misc_fee' => $total_misc_fee,
-                'admin_cost' => $admin_cost,
                 'total_amount' => $total_amount,
                 'appropriation_type' => $data['attribution_appropriation_type'],
                 'description' => 'Target Modified',

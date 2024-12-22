@@ -9,7 +9,6 @@ use App\Models\QualificationTitle;
 use App\Filament\Resources\AttributionTargetResource;
 use App\Models\Tvi;
 use App\Models\ProvinceAbdd;
-use App\Services\NotificationHandler;
 use Exception;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -101,9 +100,9 @@ class CreateAttributionTarget extends CreateRecord
             $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
             $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
             $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
-            $admin_cost = $targetData['admin_cost'] ?? 0;
 
-            $total_amount = ($qualificationTitle->pcc * $numberOfSlots) + $admin_cost;
+            // Remove admin cost
+            $total_amount = $qualificationTitle->pcc * $numberOfSlots; // Removed admin_cost
 
             $institution = Tvi::find($targetData['tvi_id']);
             if (!$institution) {
@@ -156,8 +155,7 @@ class CreateAttributionTarget extends CreateRecord
                 'total_book_allowance' => $total_book_allowance,
                 'total_uniform_allowance' => $total_uniform_allowance,
                 'total_misc_fee' => $total_misc_fee,
-                'admin_cost' => $admin_cost,
-                'total_amount' => $total_amount,
+                'total_amount' => $total_amount, // Removed admin_cost
                 'appropriation_type' => $targetData['attribution_appropriation_type'],
                 'target_status_id' => 1,
             ]);
@@ -200,8 +198,7 @@ class CreateAttributionTarget extends CreateRecord
                 'total_book_allowance' => $total_book_allowance,
                 'total_uniform_allowance' => $total_uniform_allowance,
                 'total_misc_fee' => $total_misc_fee,
-                'admin_cost' => $admin_cost,
-                'total_amount' => $total_amount,
+                'total_amount' => $total_amount, // Removed admin_cost
                 'appropriation_type' => $targetData['attribution_appropriation_type'],
                 'description' => 'Target Created',
             ]);
