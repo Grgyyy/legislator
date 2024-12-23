@@ -96,33 +96,33 @@ class ParticularImport implements ToModel, WithHeadingRow
     }
 
     protected function getDistrictId($regionId, $provinceId, $municipalityId, $districtName)
-{
-    $region = Region::find($regionId);
+    {
+        $region = Region::find($regionId);
 
-    if (!$region) {
-        throw new \Exception("Region with ID {$regionId} does not exist.");
-    }
-
-    $province = Province::find($provinceId);
-
-    $query = District::where('name', $districtName)
-        ->where('province_id', $provinceId);
-
-    if ($region->name === "NCR" && $province->name !== 'Not Applicable') {
-        if (empty($municipalityId)) {
-            throw new \Exception("Municipality is required for districts in NCR.");
+        if (!$region) {
+            throw new \Exception("Region with ID {$regionId} does not exist.");
         }
-        $query->where('municipality_id', $municipalityId);
+
+        $province = Province::find($provinceId);
+
+        $query = District::where('name', $districtName)
+            ->where('province_id', $provinceId);
+
+        if ($region->name === "NCR" && $province->name !== 'Not Applicable') {
+            if (empty($municipalityId)) {
+                throw new \Exception("Municipality is required for districts in NCR.");
+            }
+            $query->where('municipality_id', $municipalityId);
+        }
+
+        $districtRecord = $query->first();
+
+        if (!$districtRecord) {
+            throw new \Exception("The district '{$districtName}' does not exist in the specified province and municipality.");
+        }
+
+        return $districtRecord->id;
     }
-
-    $districtRecord = $query->first();
-
-    if (!$districtRecord) {
-        throw new \Exception("The district '{$districtName}' does not exist in the specified province and municipality.");
-    }
-
-    return $districtRecord->id;
-}
 
 
     protected function getMunicipalityId($provinceId, $municipalityName)
