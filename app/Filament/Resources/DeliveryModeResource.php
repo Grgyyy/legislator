@@ -34,7 +34,7 @@ class DeliveryModeResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 8;
 
     public static function form(Form $form): Form
     {
