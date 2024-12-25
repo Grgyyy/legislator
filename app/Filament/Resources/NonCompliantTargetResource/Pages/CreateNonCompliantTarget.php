@@ -63,7 +63,6 @@ class CreateNonCompliantTarget extends CreateRecord
 
                 // Update target status to Non-Compliant
                 $targetRecord->target_status_id = $nonCompliantRecord->id;
-                // $targetRecord->abscap_id = null;
                 $targetRecord->save();
 
                 // Log target history
@@ -106,7 +105,7 @@ class CreateNonCompliantTarget extends CreateRecord
         }
 
         if (!$provinceAbdd) {
-            throw new \Exception('Prrovince ABDD Slots not found');
+            throw new \Exception('Province ABDD Slots not found');
         }
 
         $numberOfSlots = $targetRecord['number_of_slots'];
@@ -166,7 +165,6 @@ class CreateNonCompliantTarget extends CreateRecord
             'total_book_allowance' => $targetRecord['total_book_allowance'],
             'total_uniform_allowance' => $targetRecord['total_uniform_allowance'],
             'total_misc_fee' => $targetRecord['total_misc_fee'],
-            'admin_cost' => $targetRecord['admin_cost'],
             'total_amount' => $targetRecord['total_amount'],
             'appropriation_type' => $targetRecord['appropriation_type'],
             'description' => 'Marked as Non-Compliant'

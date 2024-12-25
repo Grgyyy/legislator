@@ -63,7 +63,7 @@ class NonCompliantTargetResource extends Resource
                 Select::make('sender_legislator_id')
                     ->label('Attribution Sender')
                     ->searchable()
-                    ->default($record->attributionAllocation->legislator_id ?? null) // Simplified with null coalescing
+                    ->default($record->attributionAllocation->legislator_id ?? null)
                     ->options(function () {
                         $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
                             ->pluck('id');
@@ -80,8 +80,8 @@ class NonCompliantTargetResource extends Resource
                         return !empty($legislators) ? $legislators : ['no_legislators' => 'No legislator available'];
                     })
                     ->reactive()
-                    ->disabled()  // Verify that this should be disabled
-                    ->dehydrated() // Verify that this should be dehydrated
+                    ->disabled()
+                    ->dehydrated()
                     ->afterStateUpdated(function ($state, callable $set) {
                         $set('sender_particular_id', null);
                     }),
@@ -310,17 +310,6 @@ class NonCompliantTargetResource extends Resource
                         $tviId = $get('tvi_id');
                         return $tviId ? self::getAbddSectors($tviId) : ['' => 'No ABDD Sector Available.'];
                     })
-                    ->disabled($isDisabled)
-                    ->dehydrated(),
-
-                TextInput::make('admin_cost')
-                    ->label('Admin Cost')
-                    ->placeholder('Enter amount of Admin Cost')
-                    ->default($record ? $record->admin_cost : null)
-                    ->required()
-                    ->markAsRequired(false)
-                    ->autocomplete(false)
-                    ->numeric()
                     ->disabled($isDisabled)
                     ->dehydrated(),
 
