@@ -39,6 +39,12 @@ class Province extends Model
         return $this->belongsToMany(ABDD::class, 'province_abdds')
             ->withTimestamps();
     }
+
+    public function skillPriorities()
+    {
+        return $this->belongsToMany(TrainingProgram::class, 'skill_priorities')
+            ->withTimestamps();
+    }
     public function users()
     {
         return $this->belongsTo(User::class);
