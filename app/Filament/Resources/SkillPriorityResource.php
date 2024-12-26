@@ -30,7 +30,7 @@ class SkillPriorityResource extends Resource
 {
     protected static ?string $model = SkillPriority::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-light-bulb';
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
@@ -73,6 +73,7 @@ class SkillPriorityResource extends Resource
                 TextInput::make('total_slots')
                     ->required()
                     ->markAsRequired(false)
+                    ->placeholder('Enter total slots')
                     ->numeric(),
 
                 TextInput::make('year')

@@ -32,6 +32,7 @@ class CreateSkillPriority extends CreateRecord
      */
     protected function handleRecordCreation(array $data): SkillPriority
     {
+        // Validate input data
         $this->validateCreateData($data);
 
         return DB::transaction(function () use ($data) {
@@ -41,11 +42,12 @@ class CreateSkillPriority extends CreateRecord
                 ->first();
 
             if ($existingRecord) {
-                NotificationHandler::sendErrorNotification('Record Exists', 'A record for this Province, ABDD, and Year already exists.');
-                return $existingRecord;
+                NotificationHandler::sendErrorNotification('Record Exists', 'A record for this Province, Training Program, and Year already exists.');
+                return $existingRecord; // Returning existing record prevents duplicate entries
             }
 
-            $provinceAbdd = SkillPriority::create([
+            // Create new SkillPriority record
+            $skillPriority = SkillPriority::create([
                 'province_id' => $data['province_id'],
                 'training_program_id' => $data['training_program_id'],
                 'available_slots' => $data['total_slots'],
@@ -55,7 +57,7 @@ class CreateSkillPriority extends CreateRecord
 
             NotificationHandler::sendSuccessNotification('Created', 'Skill Priority has been created successfully.');
 
-            return $provinceAbdd;
+            return $skillPriority;
         });
     }
 
@@ -68,11 +70,10 @@ class CreateSkillPriority extends CreateRecord
     protected function validateCreateData(array $data): void
     {
         $validator = \Validator::make($data, [
-            'province_id' => ['required', 'integer'],
-            'training_program_id' => ['required', 'integer'],
-            'year' => ['required', 'numeric', 'min:' . date('Y')], // Ensure year is not less than the current year
-            'total_slots' => ['required', 'numeric'],
-            'available_slots' => ['required', 'numeric'],
+            'province_id' => ['required', 'integer', 'exists:provinces,id'],
+            'training_program_id' => ['required', 'integer', 'exists:training_programs,id'],
+            'year' => ['required', 'numeric', 'min:' . date('Y'), 'digits:4'],
+            'total_slots' => ['required', 'integer', 'min:0'], // Ensure slots are non-negative
         ]);
 
         if ($validator->fails()) {
@@ -80,4 +81,5 @@ class CreateSkillPriority extends CreateRecord
             throw new ValidationException($validator);
         }
     }
+
 }

@@ -50,7 +50,7 @@ class EditSkillPriority extends EditRecord
                 ->first();
 
             if ($existingRecord) {
-                NotificationHandler::sendErrorNotification('Record Exists', 'A record for this Province, ABDD, and Year already exists.');
+                NotificationHandler::sendErrorNotification('Record Exists', 'A record for this Province, Training Program, and Year already exists.');
                 return $record;
             }
 
@@ -62,7 +62,7 @@ class EditSkillPriority extends EditRecord
                 'year' => $data['year'],
             ]);
 
-            NotificationHandler::sendSuccessNotification('Updated', 'Province ABDD has been updated successfully.');
+            NotificationHandler::sendSuccessNotification('Updated', 'Skill Priority has been updated successfully.');
 
             return $record;
         });
