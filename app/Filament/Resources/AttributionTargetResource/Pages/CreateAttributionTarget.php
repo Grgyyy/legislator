@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AttributionTargetResource\Pages;
 
+use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\Allocation;
@@ -115,18 +116,28 @@ class CreateAttributionTarget extends CreateRecord
             }
 
             // Check for available slots in ProvinceAbdd
-            $provinceAbdd = $this->getProvinceAbdd(
-                $targetData['abdd_id'],
+            // $provinceAbdd = $this->getProvinceAbdd(
+            //     $targetData['abdd_id'],
+            //     $institution->district->province_id,
+            //     $targetData['allocation_year']
+            // );
+
+            // if (!$provinceAbdd) {
+            //     throw new Exception('ProvinceAbdd entry not found');
+            // }
+
+            $skillPriority = $this->getSkillPriority(
+                $qualificationTitle->training_program_id,
                 $institution->district->province_id,
                 $targetData['allocation_year']
             );
 
-            if (!$provinceAbdd) {
-                throw new Exception('ProvinceAbdd entry not found');
+            if (!$skillPriority) {
+                throw new Exception('Skill Priority not found');
             }
 
-            if ($provinceAbdd->available_slots < $numberOfSlots) {
-                throw new Exception('Not enough available slots in ProvinceAbdd');
+            if ($skillPriority->available_slots < $numberOfSlots) {
+                throw new Exception('Not enough available slots in Skill Priority.');
             }
 
             // If both conditions are met, proceed with creation
@@ -169,7 +180,10 @@ class CreateAttributionTarget extends CreateRecord
             $receiverAllocation->save();
 
             // Decrement available slots in ProvinceAbdd
-            $provinceAbdd->decrement('available_slots', $numberOfSlots);
+            // $provinceAbdd->decrement('available_slots', $numberOfSlots);
+
+            $skillPriority->decrement('available_slots', $numberOfSlots);
+
 
             // Log the creation in TargetHistory
             TargetHistory::create([
@@ -220,5 +234,26 @@ class CreateAttributionTarget extends CreateRecord
         }
 
         return $provinceAbdd;
+    }
+
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
+    {
+        $skillPriority = SkillPriority::where([
+            'training_program_id' => $trainingProgram,
+            'province_id' => $provinceId,
+            'year' => $appropriationYear,
+        ])->first();
+
+        if (!$skillPriority) {
+            $this->sendErrorNotification('Skill Priority not found.');
+            throw new Exception('Skill Priority not found.');
+        }
+
+        if ($skillPriority->available_slots <= 0) {
+            $this->sendErrorNotification('No available slots in Skill Priority');
+            throw new Exception('No available slots in Skill Priority.');
+        }
+
+        return $skillPriority;
     }
 }

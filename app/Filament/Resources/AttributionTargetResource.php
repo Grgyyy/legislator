@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AttributionTargetResource\Pages;
+use App\Models\Abdd;
 use App\Models\Allocation;
 use App\Models\DeliveryLearning;
 use App\Models\DeliveryMode;
@@ -431,9 +432,10 @@ class AttributionTargetResource extends Resource
                                             ->native(false)
                                             ->options(function ($get) {
                                                 $scholarshipProgramId = $get('attribution_scholarship_program');
-        
+                                                $tviId = $get('tvi_id');
+                
                                                 return $scholarshipProgramId
-                                                    ? self::getQualificationTitles($scholarshipProgramId)
+                                                    ? self::getQualificationTitles($scholarshipProgramId, $tviId)
                                                     : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_qualification_title'),
@@ -483,24 +485,21 @@ class AttributionTargetResource extends Resource
                                             ->searchable()
                                             ->preload()
                                             ->native(false)
-                                            ->options(function ($get) {
-                                                $tviId = $get('tvi_id');
+                                            // ->options(function ($get) {
+                                            //     $tviId = $get('tvi_id');
         
-                                                return $tviId
-                                                    ? self::getAbddSectors($tviId)
-                                                    : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
+                                            //     return $tviId
+                                            //         ? self::getAbddSectors($tviId)
+                                            //         : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
+                                            // })
+                                            ->options(function () {
+                                                return Abdd::whereNull('deleted_at')
+                                                    ->pluck('name', 'id')
+                                                    ->toArray() ?: ['no_abdd' => 'No ABDD Sectors available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_abdd')
                                             ->disabled()
                                             ->dehydrated(),
-
-                                         TextInput::make('admin_cost')
-                                            ->label('Admin Cost')
-                                            ->placeholder('Enter amount of Admin Cost')
-                                            ->required()
-                                            ->markAsRequired(false)
-                                            ->autocomplete(false)
-                                            ->numeric(),
                                             
                                         TextInput::make('number_of_slots')
                                             ->label('Number of Slots')
@@ -878,9 +877,10 @@ class AttributionTargetResource extends Resource
                                             ->native(false)
                                             ->options(function ($get) {
                                                 $scholarshipProgramId = $get('attribution_scholarship_program');
-        
+                                                $tviId = $get('tvi_id');
+                
                                                 return $scholarshipProgramId
-                                                    ? self::getQualificationTitles($scholarshipProgramId)
+                                                    ? self::getQualificationTitles($scholarshipProgramId, $tviId)
                                                     : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_qualification_title'),
@@ -929,23 +929,20 @@ class AttributionTargetResource extends Resource
                                             ->searchable()
                                             ->preload()
                                             ->native(false)
-                                            ->options(function ($get) {
-                                                $tviId = $get('tvi_id');
+                                            // ->options(function ($get) {
+                                            //     $tviId = $get('tvi_id');
         
-                                                return $tviId
-                                                    ? self::getAbddSectors($tviId)
-                                                    : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
+                                            //     return $tviId
+                                            //         ? self::getAbddSectors($tviId)
+                                            //         : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
+                                            // })
+                                            ->options(function () {
+                                                return Abdd::whereNull('deleted_at')
+                                                    ->pluck('name', 'id')
+                                                    ->toArray() ?: ['no_abdd' => 'No ABDD Sectors available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_abdd')
                                             ->dehydrated(),
-
-                                         TextInput::make('admin_cost')
-                                            ->label('Admin Cost')
-                                            ->placeholder('Enter amount of Admin Cost')
-                                            ->required()
-                                            ->markAsRequired(false)
-                                            ->autocomplete(false)
-                                            ->numeric(),
                                             
                                         TextInput::make('number_of_slots')
                                             ->label('Number of Slots')
@@ -961,7 +958,7 @@ class AttributionTargetResource extends Resource
                                                 'max' => 'The number of slots must not exceed 25.'
                                             ]),
                                     ])
-                                    ->columns(5)
+                                    ->columns(3)
                             ])
                             ->maxItems(100)
                             ->columns(5)
@@ -1337,30 +1334,53 @@ class AttributionTargetResource extends Resource
         }
     }
     
-    protected static function getQualificationTitles($scholarshipProgramId)
+    protected static function getQualificationTitles($scholarshipProgramId, $tviId)
     {
-        return QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
-            ->where('status_id', 1)
-            ->whereNull('deleted_at')
-            ->with('trainingProgram')
-            ->get()
-            ->pluck('trainingProgram.title', 'id')
-            ->toArray() ?: ['no_qualification_title' => 'No qualification title available'];
-    }
+        // Fetch the TVI with its associated district and province
+        $tvi = Tvi::with(['district.province'])->find($tviId);
 
-    protected static function getAbddSectors($tviId)
-    {
-        $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
-
-        if (!$tvi || !$tvi->district || !$tvi->district || !$tvi->district->province) {
-            return ['no_abdd' => 'No ABDD sector available'];
+        if (!$tvi || !$tvi->district || !$tvi->district->province) {
+            return ['' => 'No Skill Priority available'];
         }
 
-        return $tvi->district->province->abdds()
-            ->select('abdds.id', 'abdds.name')
-            ->pluck('name', 'id')
-            ->toArray() ?: ['no_abdd' => 'No ABDD sector available'];
+        // Fetch skill priorities for the province
+        $skillPriorities = $tvi->district->province->skillPriorities()
+            ->where('year', date('Y')) // Optional: Filter by current year if applicable
+            ->pluck('training_program_id')
+            ->toArray();
+
+        if (empty($skillPriorities)) {
+            return ['' => 'No Training Programs available for this Skill Priority'];
+        }
+
+        // Fetch Qualification Titles based on the skill priority and scholarship program
+        $qualificationTitles = QualificationTitle::whereIn('training_program_id', $skillPriorities)
+            ->where('scholarship_program_id', $scholarshipProgramId)
+            ->where('status_id', 1) // Ensure active qualifications
+            ->whereNull('deleted_at') // Exclude soft-deleted records
+            ->with('trainingProgram') // Eager load related training program
+            ->get()
+            ->mapWithKeys(function ($qualification) {
+                return [$qualification->id => $qualification->trainingProgram->title];
+            })
+            ->toArray();
+
+        return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }
+
+    // protected static function getAbddSectors($tviId)
+    // {
+    //     $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
+
+    //     if (!$tvi || !$tvi->district || !$tvi->district || !$tvi->district->province) {
+    //         return ['no_abdd' => 'No ABDD sector available'];
+    //     }
+
+    //     return $tvi->district->province->abdds()
+    //         ->select('abdds.id', 'abdds.name')
+    //         ->pluck('name', 'id')
+    //         ->toArray() ?: ['no_abdd' => 'No ABDD sector available'];
+    // }
 
     public static function getEloquentQuery(): Builder
     {
