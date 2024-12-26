@@ -7,6 +7,7 @@ use App\Models\Allocation;
 use App\Models\NonCompliantRemark;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
+use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
@@ -90,10 +91,17 @@ class CreateNonCompliantTarget extends CreateRecord
     {
         $senderAllocation = Allocation::find($targetRecord->attribution_allocation_id);
         $receiverAllocation = Allocation::find($targetRecord->allocation->id);
-        $provinceAbdd = ProvinceAbdd::where('province_id', $targetRecord->district->province_id)
-            ->where('abdd_id', $targetRecord->abdd_id)
-            ->where('year', $data['allocation_year'])
-            ->first();
+        
+        // $provinceAbdd = ProvinceAbdd::where('province_id', $targetRecord->district->province_id)
+        //     ->where('abdd_id', $targetRecord->abdd_id)
+        //     ->where('year', $data['allocation_year'])
+        //     ->first();
+
+        $previousSkillPrio = SkillPriority::where([
+            'training_program_id' => $targetRecord->qualification_title->training_program_id,
+            'province_id' => $targetRecord->tvi->district->province_id,
+            'year' => $targetRecord->allocation->year,
+        ]);
 
         if (!$receiverAllocation) {
             throw new \Exception('Receiver Allocation/Allocation Not Found.');
@@ -104,9 +112,13 @@ class CreateNonCompliantTarget extends CreateRecord
             throw new \Exception('Qualification Title not found');
         }
 
-        if (!$provinceAbdd) {
-            throw new \Exception('Province ABDD Slots not found');
+        if (!$previousSkillPrio) {
+            throw new \Exception('Skills Priority not found');
         }
+
+        // if (!$provinceAbdd) {
+        //     throw new \Exception('Province ABDD Slots not found');
+        // }
 
         $numberOfSlots = $targetRecord['number_of_slots'];
 
@@ -125,16 +137,7 @@ class CreateNonCompliantTarget extends CreateRecord
             $receiverAllocation->save();
         }
 
-        if ($provinceAbdd) {
-            // Ensure available_slots is initialized
-            $provinceAbdd->available_slots = $provinceAbdd->available_slots ?? 0;
-
-            // Update province slots
-            $provinceAbdd->available_slots += $numberOfSlots;
-            $provinceAbdd->save();
-        } else {
-            throw new \Exception('Province ABDD record not found.');
-        }
+        $previousSkillPrio->increment('available_slots', $targetRecord->number_of_slots);
     }
 
     private function logTargetHistory(Target $targetRecord, array $data): void

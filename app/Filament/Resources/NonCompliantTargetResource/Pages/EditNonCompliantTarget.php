@@ -7,6 +7,7 @@ use App\Models\Allocation;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationScholarship;
 use App\Models\QualificationTitle;
+use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
@@ -98,14 +99,24 @@ class EditNonCompliantTarget extends EditRecord
                     throw new \Exception('Institution not found');
                 }
 
-                $provinceAbdd = ProvinceAbdd::where('province_id', $institution->district->province_id)
-                    ->where('abdd_id', $data['abdd_id'] ?? null)
-                    ->where('year', $data['allocation_year'] ?? null)
-                    ->first();
+                $skillPriority = $this->getSkillPriority(
+                    $qualificationTitle->training_program_id,
+                    $institution->district->province_id,
+                    $data['allocation_year']
+                );
 
-                if (!$provinceAbdd) {
-                    throw new \Exception('Province ABDD not found');
+                if (!$skillPriority) {
+                    throw new \Exception('Skill Priority not found');
                 }
+
+                // $provinceAbdd = ProvinceAbdd::where('province_id', $institution->district->province_id)
+                //     ->where('abdd_id', $data['abdd_id'] ?? null)
+                //     ->where('year', $data['allocation_year'] ?? null)
+                //     ->first();
+
+                // if (!$provinceAbdd) {
+                //     throw new \Exception('Province ABDD not found');
+                // }
 
                 $numberOfSlots = $data['number_of_slots'] ?? 0;
                 $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
@@ -128,8 +139,11 @@ class EditNonCompliantTarget extends EditRecord
                     $receiverAllocation->save();
                 }
 
-                $provinceAbdd->available_slots -= $numberOfSlots;
-                $provinceAbdd->save();
+                // $provinceAbdd->available_slots -= $numberOfSlots;
+                // $provinceAbdd->save();
+
+                $skillPriority->available_slots -= $numberOfSlots;
+                $skillPriority->save();
 
                 $record->update([
                     'abscap_id' => $data['abscap_id'],
@@ -198,5 +212,25 @@ class EditNonCompliantTarget extends EditRecord
             Log::error('Error updating record', ['exception' => $e]);
             throw $e;
         }
+    }
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
+    {
+        $skillPriority = SkillPriority::where([
+            'training_program_id' => $trainingProgram,
+            'province_id' => $provinceId,
+            'year' => $appropriationYear,
+        ])->first();
+
+        if (!$skillPriority) {
+            $this->sendErrorNotification('Skill Priority not found.');
+            throw new \Exception('Skill Priority not found.');
+        }
+
+        if ($skillPriority->available_slots <= 0) {
+            $this->sendErrorNotification('No available slots in Skill Priority');
+            throw new \Exception('No available slots in Skill Priority.');
+        }
+
+        return $skillPriority;
     }
 }
