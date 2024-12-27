@@ -24,10 +24,37 @@ class TargetReport extends ListRecords
         return $allocation ? $allocation->legislator->name : 'Unknown Legislator';
     }
 
+    protected function getParticularName(): string
+    {
+        $allocationId = request()->route('record');
+        $allocation = Allocation::find($allocationId);
+        $subParticularName = $allocation->particular->subParticular->name;
+
+        if ($subParticularName === "Senator" || $subParticularName === 'Party-list' || $subParticularName === 'House Speaker' || $subParticularName === 'House Speaker (LAKAS)') {
+            return $allocation ? $allocation->particular->subParticular->name : 'Unknown Legislator';
+        }
+        elseif ($subParticularName === "RO Regular" || $subParticularName === "CO Regular") {
+            return $allocation ? $allocation->particular->subParticular->name . ' ' . $allocation->particular->region->name : 'Unknown Legislator';
+        }
+        elseif ($subParticularName === "District") {
+            // return $allocation ? $allocation->particular->district->name . " " . $allocation->particular->municipality->name  : 'Unknown Legislator';
+            if ($allocation->particular->district->province->region->name === 'NCR') {
+                return $allocation ? $allocation->particular->district->name . ", " . $allocation->particular->district->underMunicipality->name  : 'Unknown Legislator';
+            }
+            else {
+                return $allocation ? $allocation->particular->district->name . ", " . $allocation->particular->district->province->name  : 'Unknown Legislator';
+            }
+        }
+        else {
+            return $allocation ? $allocation->particular->subParticular->name : 'Unknown Legislator';
+        }
+    }
+
     public function mount(): void
     {
         $legis = $this->getLegislatorName();
-        static::$title = "{$legis}";
+        $particular = $this->getParticularName();
+        static::$title = "{$legis} - {$particular}";
     }
 
     protected function getTableQuery(): \Illuminate\Database\Eloquent\Builder
