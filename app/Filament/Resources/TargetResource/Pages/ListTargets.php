@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TargetResource\Pages;
 
+use App\Imports\AdminTargetImport;
 use Exception;
 use Filament\Actions\Action;
 use App\Imports\TargetImport;
@@ -63,8 +64,8 @@ class ListTargets extends ListRecords
                     $file = public_path('storage/' . $data['attachment']);
 
                     try {
-                        Excel::import(new TargetImport, $file);
-                        NotificationHandler::sendSuccessNotification('Import Successful', 'Target data have been successfully imported from the file.');
+                        Excel::import(new AdminTargetImport, $file);
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'Target data has been successfully imported from the file without impacting the allocation or skill priority slots.');
                     } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
                     }
