@@ -981,10 +981,10 @@ class TargetResource extends Resource
                                     Column::make('district.name')
                                         ->heading('District'),
 
-                                    Column::make('tvi.district.municipality.province.name')
+                                    Column::make('tvi.district.province.name')
                                         ->heading('Province'),
 
-                                    Column::make('tvi.district.municipality.province.region.name')
+                                    Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
 
                                     Column::make('tvi.name')
@@ -992,7 +992,6 @@ class TargetResource extends Resource
 
                                     Column::make('tvi.tviClass.tviType.name')
                                         ->heading('Institution Type'),
-
 
                                     Column::make('tvi.tviClass.name')
                                         ->heading('Institution Class(A)'),
@@ -1017,9 +1016,6 @@ class TargetResource extends Resource
 
                                     Column::make('learningMode.name')
                                         ->heading('Learning Mode'),
-
-                                    Column::make('qualification_title.trainingProgram.priority.name')
-                                        ->heading('Priority Sector'),
 
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
