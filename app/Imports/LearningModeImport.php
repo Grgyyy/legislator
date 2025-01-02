@@ -2,17 +2,15 @@
 
 namespace App\Imports;
 
+use App\Models\DeliveryMode;
 use App\Models\LearningMode;
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Throwable;
-use App\Models\Recognition;
-use App\Models\Tvi;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
-use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
+use Maatwebsite\Excel\Concerns\Importable;
+
 
 class LearningModeImport implements ToModel, WithHeadingRow
 {
@@ -29,34 +27,41 @@ class LearningModeImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
+                // Retrieve or throw error if delivery mode is not found
+                $deliveryMode = DeliveryMode::where('name', $row['delivery_mode'])->first();
 
-                $learningModeExist = LearningMode::where('acronym', $row['acronym'])
-                    ->where('name', $row['name'])
-                    ->exists();
-
-                if (!$learningModeExist) {
-                    return new LearningMode([
-                        'acronym' => $row['acronym'],
-                        'name' => $row['name'],
-                    ]);
+                if (!$deliveryMode) {
+                    throw new \Exception("Delivery Mode with name '{$row['delivery_mode']}' not found.");
                 }
-            } catch (Throwable $e) {
 
+                // Check if the LearningMode with the given name already exists or create a new one
+                $learningMode = LearningMode::firstOrCreate(
+                    ['name' => $row['name']], // Search for an existing record
+                    ['name' => $row['name']]  // If not found, create the record with the given name
+                );
+
+                // Check if the LearningMode already has the DeliveryMode relationship
+                if (!$learningMode->deliveryMode()->where('delivery_mode_id', $deliveryMode->id)->exists()) {
+                    // If the relationship doesn't exist, attach the DeliveryMode
+                    $learningMode->deliveryMode()->attach($deliveryMode->id);
+                }
+
+            } catch (Throwable $e) {
                 Log::error('Failed to import Learning Modes: ' . $e->getMessage());
                 throw $e;
-
             }
         });
     }
 
     /**
+     * Validates if the required fields are present in the row.
      *
      * @param array $row
      * @throws \Exception
      */
     protected function validateRow(array $row)
     {
-        $requiredFields = ['acronym', 'name'];
+        $requiredFields = ['name', 'delivery_mode'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
@@ -64,5 +69,4 @@ class LearningModeImport implements ToModel, WithHeadingRow
             }
         }
     }
-
 }
