@@ -51,6 +51,24 @@ class ListTargets extends ListRecords
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
                     }
                 }),
+
+            Action::make('AdminTargetImport')
+                ->label('Admin Import')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('attachment')
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $file = public_path('storage/' . $data['attachment']);
+
+                    try {
+                        Excel::import(new TargetImport, $file);
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'Target data have been successfully imported from the file.');
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
+                    }
+                }),
         ];
     }
 }

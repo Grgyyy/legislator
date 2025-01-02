@@ -2,6 +2,12 @@
 
 namespace App\Imports;
 
+use App\Models\DeliveryMode;
+use App\Models\LearningMode;
+use App\Models\Particular;
+use App\Models\SkillPriority;
+use App\Models\SubParticular;
+use App\Models\TargetStatus;
 use Throwable;
 use App\Models\Tvi;
 use App\Models\Abdd;
@@ -31,59 +37,86 @@ class TargetImport implements ToModel, WithHeadingRow
         try {
             $this->validateRow($row);
             $this->validateNumberOfSlots($row['number_of_slots']);
-            $this->validateYear($row['year']);
+            $this->validateYear($row['appropriation_year']);
 
             DB::transaction(function () use ($row) {
-                $legislator_id = $this->getLegislatorId($row['legislator']);
-                $particular_id = $this->getParticularId($row['particular']);
-
-                $districtId = $this->getDistrictId($this->getMunicipalityId($this->getProvinceId($this->getRegionId($row['region']), $row['province']), $row['municipality']), $row['district']);
-                $tvi = $this->getInstitutionData($row['institution'], $districtId);
-
-                $year = $row['year'] ?? date('Y');
-                $abdd_id = $this->getAbddId($row['abdd_sector'], $tvi->id);
-
-                $qualificationTitleId = $this->getQualificationTitleId($row['qualification_title']);
+                $legislator = $this->getLegislatorId($row['legislator']);
+                $region = $this->getRegion($row['region']);
+                $province = $this->getProvince($row['province'], $region->id);
+                $district = $this->getDistrict($row['district'], $province->id);
+                $municipality = $this->getMunicipality($row['municipality'],  $province->id);
+                $partylist = $this->getPartylist($row['partylist']);
+                $sub_particular = $this->getSubParticular($row['particular']);
+                $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
+                $scholarship_program = $this->getScholarshipProgram($row['scholarship_program']);
+                $allocation = $this->getAllocation($legislator->id, $particular->id, $scholarship_program->id, $row['appropriation_year']);
+                $abddSector = $this->getAbddSector($row['abdd_sector']);
+                $delivery_mode = $this->getDeliveryMode($row['delivery_mode']);
+                $learning_mode = $this->getLearningMode($row['learning_mode'], $delivery_mode->id);
+                $tvi = $this->getTvi($row['institution']);
                 $numberOfSlots = $row['number_of_slots'];
-                $scholarshipProgramId = $this->getScholarshipProgramId($row['scholarship_program']);
 
-                $allocation = $this->getAllocationId($row, $legislator_id, $particular_id, $year, $scholarshipProgramId);
+                $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $scholarship_program->id);
+                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
 
-                $costs = $this->getQualificationCosts($qualificationTitleId, $numberOfSlots);
+                $skillPriority = $this->getSkillPriority(
+                    $qualificationTitle->training_program_id,
+                    $tvi->district->province_id,
+                    $row['appropriation_year']
+                );
+
+                $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
                 $targetData = [
+                    'abscap_id' => $row['abscap_id'],
                     'allocation_id' => $allocation->id,
-                    'legislator_id' => $legislator_id,
+                    'district_id' => $tvi->district_id,
+                    'municipality_id' => $tvi->municipality_id,
                     'tvi_id' => $tvi->id,
-                    'abdd_id' => $abdd_id,
-                    'scholarship_program_id' => $scholarshipProgramId,
-                    'qualification_title_id' => $qualificationTitleId,
-                    'appropriation_type' => $row['appropriation_type'],
-                    'year' => $year,
+                    'tvi_name' => $tvi->name,
+                    'abdd_id' => $abddSector->id,
+                    'qualification_title_id' => $qualificationTitle->id,
+                    'qualification_title_code' => $qualificationTitle->trainingProgram->code,
+                    'qualification_title_name' => $qualificationTitle->trainingProgram->title,
+                    'delivery_mode_id' => $delivery_mode->id,
+                    'learning_mode_id' => $learning_mode->id,
                     'number_of_slots' => $numberOfSlots,
-                    'total_amount' => $costs['total_amount'],
-                    'target_status_id' => 1,
-                    'total_training_cost_pcc' => $costs['total_training_cost_pcc'],
-                    'total_cost_of_toolkit_pcc' => $costs['total_cost_of_toolkit_pcc'],
-                    'total_training_support_fund' => $costs['total_training_support_fund'],
-                    'total_assessment_fee' => $costs['total_assessment_fee'],
-                    'total_entrepreneurship_fee' => $costs['total_entrepreneurship_fee'],
-                    'total_new_normal_assistance' => $costs['total_new_normal_assistance'],
-                    'total_accident_insurance' => $costs['total_accident_insurance'],
-                    'total_book_allowance' => $costs['total_book_allowance'],
-                    'total_uniform_allowance' => $costs['total_uniform_allowance'],
-                    'total_misc_fee' => $costs['total_misc_fee'],
+                    'total_training_cost_pcc' => $totals['total_training_cost_pcc'],
+                    'total_cost_of_toolkit_pcc' => $totals['total_cost_of_toolkit_pcc'],
+                    'total_training_support_fund' => $totals['total_training_support_fund'],
+                    'total_assessment_fee' => $totals['total_assessment_fee'],
+                    'total_entrepreneurship_fee' => $totals['total_entrepreneurship_fee'],
+                    'total_new_normal_assisstance' => $totals['total_new_normal_assisstance'],
+                    'total_accident_insurance' => $totals['total_accident_insurance'],
+                    'total_book_allowance' => $totals['total_book_allowance'],
+                    'total_uniform_allowance' => $totals['total_uniform_allowance'],
+                    'total_misc_fee' => $totals['total_misc_fee'],
+                    'total_amount' => $totals['total_amount'],
+                    'appropriation_type' => $row['appropriation_type'],
+                    'target_status_id' => $pendingStatus->id,
                 ];
 
+                if ($skillPriority->available_slots < $numberOfSlots) {
+                    throw new \Exception("Insufficient available slots in Skill Priorities to create the target.");
+                }
+
+                if ($allocation->balance < $totals['total_amount']) {
+                    throw new \Exception("Insufficient allocation balance to create the target.");
+                }
+
                 $target = Target::create($targetData);
+                $allocation->decrement('balance', $totals['total_amount']);
+                $skillPriority->decrement('available_slots', $numberOfSlots);
 
-                TargetHistory::create(array_merge($targetData, [
-                    'target_id' => $target->id,
-                    'description' => 'Target Created',
-                ]));
+                $this->logTargetHistory($target, $allocation, $totals);
 
-                $allocation->balance -= $costs['total_amount'];
-                $allocation->save();
+                // TargetHistory::create(array_merge($targetData, [
+                //     'target_id' => $target->id,
+                //     'description' => 'Target Created',
+                // ]));
+
+                // $allocation->balance -= $costs['total_amount'];
+                // $allocation->save();
             });
         } catch (Throwable $e) {
             Log::error("Import failed: " . $e->getMessage());
@@ -97,17 +130,19 @@ class TargetImport implements ToModel, WithHeadingRow
         $requiredFields = [
             'legislator',
             'particular',
-            'institution',
-            'partylist',
+            'scholarship_program',
             'district',
             'municipality',
             'province',
             'region',
-            'scholarship_program',
+            'partylist',
+            'appropriation_year',
+            'appropriation_type',
+            'institution',
             'qualification_title',
             'abdd_sector',
-            'appropriation_type',
-            'year',
+            'delivery_mode',
+            'learning_mode',
             'number_of_slots',
         ];
 
@@ -137,239 +172,282 @@ class TargetImport implements ToModel, WithHeadingRow
 
     protected function getLegislatorId(string $legislatorName)
     {
-        $legislator = Legislator::where('name', $legislatorName)->first();
-
+        $legislator = Legislator::where('name', $legislatorName)
+            ->whereNull('deleted_at')
+            ->has('allocation') 
+            ->first();
+    
         if (!$legislator) {
-            throw new \Exception("Legislator not found for name: {$legislatorName}");
+            throw new \Exception("No active legislator with an allocation found for name: {$legislatorName}");
         }
 
-        return $legislator->id;
+        return $legislator;
     }
 
-    protected function getParticularId(string $particularName)
+    protected function getRegion(string $regionName)
     {
-        $allocation = Allocation::whereHas('legislator.particular.subParticular', function ($query) use ($particularName) {
-            $query->where('name', $particularName);
-        })->first();
-
-        if (!$allocation) {
-            throw new \Exception("Allocation with particular name '{$particularName}' not found.");
-        }
-
-        $particular = $allocation->legislator->particular()->whereHas('subParticular', function ($query) use ($particularName) {
-            $query->where('name', $particularName);
-        })->first();
-
-        if (!$particular) {
-            throw new \Exception("Particular with name '{$particularName}' not found for legislator ID: " . $allocation->legislator_id);
-        }
-
-        return $particular->id;
-    }
-    protected function getFundSourceIdByLegislator(int $legislatorId)
-    {
-        $allocation = Allocation::with(['particular.subParticular.fundSource'])
-            ->where('legislator_id', $legislatorId)
-            ->first();
-
-        if (!$allocation || !$allocation->particular || !$allocation->particular->subParticular || !$allocation->particular->subParticular->fundSource) {
-            throw new \Exception("Fund source not found for legislator ID: " . $legislatorId);
-        }
-
-        return $allocation->particular->subParticular->fundSource->id;
-    }
-
-    protected function getSoftOrCommitmentByLegislator(int $legislatorId)
-    {
-        $allocation = Allocation::where('legislator_id', $legislatorId)->first();
-
-        if (!$allocation) {
-            throw new \Exception("Allocation not found for legislator ID: " . $legislatorId);
-        }
-
-        return $allocation->soft_or_commitment;
-    }
-
-    protected function getPartylistId(?string $partylistName)
-    {
-
-        $partylist = Partylist::where('name', $partylistName)->first();
-
-        if (!$partylist) {
-            throw new \Exception("Partylist not found for name: {$partylistName}");
-        }
-
-        return $partylist->id;
-    }
-
-    protected function getDistrictId($municipalityId, $districtName)
-    {
-        $district = District::where('name', $districtName)
-            ->where('municipality_id', $municipalityId)
+        $region = Region::where('name', $regionName)
             ->whereNull('deleted_at')
             ->first();
-
-        if (!$district) {
-            throw new \Exception($districtName, $municipalityId);
+    
+        if (!$region) {
+            throw new \Exception("Region with name '{$regionName}' not found.");
         }
 
-        return $district->id;
+        return $region;
     }
 
-    protected function getMunicipalityId($provinceId, $municipalityName)
-    {
-        $municipality = Municipality::where('name', $municipalityName)
-            ->where('province_id', $provinceId)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if (!$municipality) {
-            throw new \Exception($municipalityName, $provinceId);
-        }
-
-        return $municipality->id;
-    }
-    protected function getProvinceId($regionId, $provinceName)
+    protected function getProvince(string $provinceName, int $regionId)
     {
         $province = Province::where('name', $provinceName)
             ->where('region_id', $regionId)
             ->whereNull('deleted_at')
             ->first();
-
+    
         if (!$province) {
-            throw new \Exception($provinceName, $regionId);
+            throw new \Exception("Province with name '{$provinceName}' not found.");
         }
-        return $province->id;
+
+        return $province;
     }
-    protected function getRegionId(string $regionName)
+
+    protected function getDistrict(string $districtName, int $provinceId)
     {
-        $region = Region::where('name', $regionName)
+        $district = District::where('name', $districtName)
+            ->where('province_id', $provinceId)
+            ->whereNull('deleted_at')
+            ->first();
+    
+        if (!$district) {
+            throw new \Exception("District with name '{$districtName}' not found.");
+        }
+
+        return $district;
+    }
+
+    protected function getMunicipality(string $municipalityName, int $provinceId)
+    {
+        $municipality = Municipality::where('name', $municipalityName)
+            ->where('province_id', $provinceId)
+            ->whereNull('deleted_at')
+            ->first();
+    
+        if (!$municipality) {
+            throw new \Exception("Municipality with name '{$municipalityName}' not found.");
+        }
+
+        return $municipality;
+    }
+
+    protected function getPartylist(string $partylistName)
+    {
+        $partylist = Partylist::where('name', $partylistName)
             ->whereNull('deleted_at')
             ->first();
 
-        if (!$region) {
-            throw new \Exception("Region not found for name: {$regionName}");
+        if (!$partylist) {
+            throw new \Exception("Partylist with name '{$partylistName}' not found. ");
         }
 
-        return $region->id;
+        return $partylist;
     }
 
-    protected function getInstitutionData($institutionName, $districtId)
+    protected function getSubParticular(string $subParticularName)
     {
-        $institution = Tvi::where('name', $institutionName)
-            ->where('district_id', $districtId)
+        $subParticular = SubParticular::where('name', $subParticularName)
             ->whereNull('deleted_at')
             ->first();
 
-        if (!$institution) {
-            throw new \Exception($institutionName, $districtId);
+        if (!$subParticular) {
+            throw new \Exception("Sub-Particular with name '{$subParticularName}' not found.");
         }
 
-        return $institution;
+        return $subParticular;
     }
 
-    protected function getQualificationTitleId($qualificationTitleName)
+    protected function getParticular(int $sub_particular_id, int $partylist_id, int $district_id)
     {
-        $qualificationTitle = QualificationTitle::whereHas('trainingProgram', function ($query) use ($qualificationTitleName) {
-            $query->where('title', $qualificationTitleName);
-        })->first();
+        $subParticular = SubParticular::find($sub_particular_id);
+        $particular = Particular::where('sub_particular_id', $sub_particular_id)
+            ->where('partylist_id', $partylist_id)
+            ->where('district_id', $district_id)
+            ->whereNull('deleted_at')
+            ->first();
 
-        if (!$qualificationTitle) {
-            throw new \Exception($qualificationTitleName);
+        if (!$particular) {
+            throw new \Exception("Particular with name '{$subParticular->name}' not found.");
         }
 
-        return $qualificationTitle->id;
+        return $particular;
     }
 
-    protected function getAbddId(string $abddName, int $tvi_id)
+    protected function getScholarshipProgram(string $scholarshipProgramName)
     {
+        $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)
+            ->whereNull('deleted_at')
+            ->first();
 
-        $tvi_record = Tvi::findOrFail($tvi_id);
-        $province_id = $tvi_record->district->municipality->province_id;
+        if (!$scholarshipProgram) {
+            throw new \Exception("Scholarship Program with name '{$scholarshipProgramName}' not found.");
+        }
 
-        $abdd = Abdd::where('name', $abddName)
-            ->whereHas('provinces', function ($query) use ($province_id) {
-                $query->where('provinces.id', $province_id);
+        return $scholarshipProgram;
+    }
+
+    protected function getAllocation(int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
+    {
+        $allocation = Allocation::where('legislator_id', $legislatorId)
+            ->where('particular_id', $particularId)
+            ->where('scholarship_program_id', $scholarshipProgramId)
+            ->where('year', $appropriationYear)
+            ->whereNull('deleted_at')
+            ->first();
+    
+        if (!$allocation) {
+            throw new \Exception("No allocation found matching the provided legislator, particular, scholarship program, and year.");
+        }
+    
+        return $allocation;
+    }
+    
+    protected function getAbddSector(string $abddSectorName)
+    {
+        $abddSector = Abdd::where('name', $abddSectorName)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$abddSector) {
+            throw new \Exception("ABDD Sector with name '{$abddSectorName}' not found.");
+        }
+
+        return $abddSector;
+    }
+
+    protected function getDeliveryMode(string $deliveryModeName)
+    {
+        $deliveryMode = DeliveryMode::where('name', $deliveryModeName)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if (!$deliveryMode) {
+            throw new \Exception("Delivery Mode with name '{$deliveryModeName}' not found.");
+        }
+
+        return $deliveryMode;
+    }
+
+    protected function getLearningMode(string $learningModeName, int $deliveryModeId)
+    {
+        $learningMode = LearningMode::where('name', $learningModeName)
+            ->whereHas('deliveryMode', function ($query) use ($deliveryModeId) {
+                $query->where('delivery_mode_id', $deliveryModeId);
             })
-            ->first();
-
-        if (!$abdd) {
-            throw new \Exception("ABDD with name '$abddName' not found in province with ID $province_id.");
-        }
-
-        return $abdd->id;
-    }
-    protected function getScholarshipProgramId($scholarshipProgram)
-    {
-        $scholarship = ScholarshipProgram::where('name', $scholarshipProgram)
             ->whereNull('deleted_at')
             ->first();
 
-        if (!$scholarship) {
-            throw new \Exception($scholarshipProgram);
+        if (!$learningMode) {
+            throw new \Exception("Learning Mode with the specified name and associated Delivery Mode was not found.");
         }
 
-        return $scholarship->id;
+        return $learningMode;
     }
 
-    protected function getAllocationId(array $row, int $legislator_id, int $particular_id, int $year, int $scholarship_program_id)
+    protected function getTvi(string $tviName)
     {
-        $allocationId = Allocation::where('legislator_id', $legislator_id)
-            ->where('particular_id', $particular_id)
-            ->where('year', $year)
-            ->where('scholarship_program_id', $scholarship_program_id)
+        $tvi = Tvi::where('name', $tviName)
+            ->whereNull('deleted_at')
             ->first();
-        if (!$allocationId) {
-            throw new \Exception("Allocation not found for legislator ID {$legislator_id}, particular ID {$particular_id}, year {$year}, and scholarship program ID {$scholarship_program_id}.");
+
+        if (!$tvi) {
+            throw new \Exception("Institution with name '{$tviName}' not found.");
         }
 
-        return $allocationId;
+        return $tvi;
     }
 
-    protected function getQualificationCosts(int $qualificationTitleId, int $numberOfSlots)
+    protected function getQualificationTitle(string $qualificationTitleName, int $scholarshipProgramId)
     {
-        $qualificationTitle = QualificationTitle::find($qualificationTitleId);
+        $qualificationTitle = QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
+            ->whereHas('trainingProgram', function ($query) use ($qualificationTitleName) {
+                $query->where('title', $qualificationTitleName);
+            })
+            ->whereNull('deleted_at')
+            ->first();
+    
         if (!$qualificationTitle) {
-            throw new \Exception("Qualification Title with ID {$qualificationTitleId} not found.");
+            throw new \Exception("Qualification Title with name '{$qualificationTitleName}' not found.");
         }
-        return $this->calculateTotalAmount($qualificationTitle, $numberOfSlots);
+    
+        return $qualificationTitle;
+    }    
+
+    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots): array
+    {
+        return [
+            'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
+            'total_cost_of_toolkit_pcc' => $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots,
+            'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
+            'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
+            'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
+            'total_new_normal_assisstance' => $qualificationTitle->new_normal_assisstance * $numberOfSlots,
+            'total_accident_insurance' => $qualificationTitle->accident_insurance * $numberOfSlots,
+            'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
+            'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
+            'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
+            'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
+        ];
     }
 
-
-    protected function calculateTotalAmount(QualificationTitle $qualificationTitle, int $numberOfSlots)
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
     {
-        $total_training_cost_pcc = $qualificationTitle->training_cost * $numberOfSlots;
-        $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit * $numberOfSlots;
-        $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
-        $total_assessment_fee = $qualificationTitle->assessment_fee * $numberOfSlots;
-        $total_entrepreneurship_fee = $qualificationTitle->entrepreneurship_fee * $numberOfSlots;
-        $total_new_normal_assistance = $qualificationTitle->new_normal_assistance * $numberOfSlots;
-        $total_accident_insurance = $qualificationTitle->accident_insurance * $numberOfSlots;
-        $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
-        $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
-        $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
+        $skillPriority = SkillPriority::where([
+            'training_program_id' => $trainingProgram,
+            'province_id' => $provinceId,
+            'year' => $appropriationYear,
+        ])->first();
 
-        return [
-            'total_amount' => $total_training_cost_pcc +
-                $total_cost_of_toolkit_pcc +
-                $total_training_support_fund +
-                $total_assessment_fee +
-                $total_entrepreneurship_fee +
-                $total_new_normal_assistance +
-                $total_accident_insurance +
-                $total_book_allowance +
-                $total_uniform_allowance +
-                $total_misc_fee,
-            'total_training_cost_pcc' => $total_training_cost_pcc,
-            'total_cost_of_toolkit_pcc' => $total_cost_of_toolkit_pcc,
-            'total_training_support_fund' => $total_training_support_fund,
-            'total_assessment_fee' => $total_assessment_fee,
-            'total_entrepreneurship_fee' => $total_entrepreneurship_fee,
-            'total_new_normal_assistance' => $total_new_normal_assistance,
-            'total_accident_insurance' => $total_accident_insurance,
-            'total_book_allowance' => $total_book_allowance,
-            'total_uniform_allowance' => $total_uniform_allowance,
-            'total_misc_fee' => $total_misc_fee,
-        ];
+        if (!$skillPriority) {
+            throw new \Exception("Skill Priority Slots not found.");
+        }
+
+        if ($skillPriority->available_slots <= 0) {
+            throw new \Exception("No available slots in Skill Priority.");
+        }
+
+        return $skillPriority;
+    }
+
+    private function logTargetHistory(Target $target, Allocation $allocation, array $totals): void
+    {
+        TargetHistory::create([
+            'abscap_id' => $target['abscap_id'],
+            'target_id' => $target->id,
+            'allocation_id' => $allocation->id,
+            'district_id' => $target->district_id,
+            'municipality_id' => $target->municipality_id,
+            'tvi_id' => $target['tvi_id'],
+            'tvi_name' => $target->tvi_name,
+            'qualification_title_id' => $target->qualification_title_id,
+            'qualification_title_code' => $target->qualification_title_code,
+            'qualification_title_name' => $target->qualification_title_name,
+            'abdd_id' => $target['abdd_id'],
+            'delivery_mode_id' => $target['delivery_mode_id'],
+            'learning_mode_id' => $target['learning_mode_id'],
+            'number_of_slots' => $target['number_of_slots'],
+            'attribution_allocation_id' => $target['attribution_allocation_id'] ?? null,
+            'total_training_cost_pcc' => $totals['total_training_cost_pcc'],
+            'total_cost_of_toolkit_pcc' => $totals['total_cost_of_toolkit_pcc'],
+            'total_training_support_fund' => $totals['total_training_support_fund'],
+            'total_assessment_fee' => $totals['total_assessment_fee'],
+            'total_entrepreneurship_fee' => $totals['total_entrepreneurship_fee'],
+            'total_new_normal_assisstance' => $totals['total_new_normal_assisstance'],
+            'total_accident_insurance' => $totals['total_accident_insurance'],
+            'total_book_allowance' => $totals['total_book_allowance'],
+            'total_uniform_allowance' => $totals['total_uniform_allowance'],
+            'total_misc_fee' => $totals['total_misc_fee'],
+            'total_amount' => $totals['total_amount'],
+            'appropriation_type' => $target['appropriation_type'],
+            'description' => 'Target Created',
+        ]);
     }
 }
