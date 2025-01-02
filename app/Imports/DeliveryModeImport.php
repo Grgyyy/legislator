@@ -27,14 +27,15 @@ class DeliveryModeImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                $learningModeId = $this->getLearningMode($row['name']);
 
-                $deliveryModeExists = DeliveryMode::where('name', $row['name'])->exists();
+                $deliveryModeExists = DeliveryMode::where('name', $row['name'])
+                    ->where('acronym', $row['acronym'])
+                    ->exists();
 
                 if (!$deliveryModeExists) {
                     return new DeliveryMode([
-                        'name' => $row['name'],
-                        'learning_mode_id' => $learningModeId,
+                        'acronym' => $row['acronym'],
+                        'name' => $row['name']
                     ]);
                 }
 
@@ -47,24 +48,13 @@ class DeliveryModeImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['name'];
+        $requiredFields = ['acronym', 'name'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
                 throw new \Exception("The field '{$field}' is required and cannot be null or empty.");
             }
         }
-    }
-
-    protected function getLearningMode(string $learningMode)
-    {
-        $mode = LearningMode::where('name', $learningMode)->first();
-
-        if (!$mode) {
-            throw new \Exception("Learning Mode with name '{$learningMode}' not found.");
-        }
-
-        return $mode->id;
     }
 }
 
