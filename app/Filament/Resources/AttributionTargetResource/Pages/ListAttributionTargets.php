@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\AttributionTargetResource\Pages;
 
 use App\Filament\Resources\AttributionTargetResource;
+use App\Imports\AdminAttributionTargetImport;
 use App\Imports\AttributionTargetImport;
 use Filament\Actions\Action;
 use Exception;
@@ -24,7 +25,7 @@ class ListAttributionTargets extends ListRecords
                 ->label('New')
             ,
 
-            Action::make('TargetImport')
+            Action::make('AttributionTargetImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
@@ -36,6 +37,24 @@ class ListAttributionTargets extends ListRecords
 
                     try {
                         Excel::import(new AttributionTargetImport, $file);
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'Target data have been successfully imported from the file.');
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
+                    }
+                }),
+
+            Action::make('AdminAttributionTargetImport')
+                ->label('Admin Import')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('attachment')
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $file = public_path('storage/' . $data['attachment']);
+
+                    try {
+                        Excel::import(new AdminAttributionTargetImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'Target data have been successfully imported from the file.');
                     } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
