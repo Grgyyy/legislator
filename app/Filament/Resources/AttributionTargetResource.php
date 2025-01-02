@@ -433,9 +433,10 @@ class AttributionTargetResource extends Resource
                                             ->options(function ($get) {
                                                 $scholarshipProgramId = $get('attribution_scholarship_program');
                                                 $tviId = $get('tvi_id');
+                                                $year = $get('allocation_year');
                 
                                                 return $scholarshipProgramId
-                                                    ? self::getQualificationTitles($scholarshipProgramId, $tviId)
+                                                    ? self::getQualificationTitles($scholarshipProgramId, $tviId, $year)
                                                     : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_qualification_title'),
@@ -878,9 +879,10 @@ class AttributionTargetResource extends Resource
                                             ->options(function ($get) {
                                                 $scholarshipProgramId = $get('attribution_scholarship_program');
                                                 $tviId = $get('tvi_id');
+                                                $year = $get('allocation_year');
                 
                                                 return $scholarshipProgramId
-                                                    ? self::getQualificationTitles($scholarshipProgramId, $tviId)
+                                                    ? self::getQualificationTitles($scholarshipProgramId, $tviId, $year)
                                                     : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_qualification_title'),
@@ -1334,7 +1336,7 @@ class AttributionTargetResource extends Resource
         }
     }
     
-    protected static function getQualificationTitles($scholarshipProgramId, $tviId)
+    protected static function getQualificationTitles($scholarshipProgramId, $tviId, $year)
     {
         // Fetch the TVI with its associated district and province
         $tvi = Tvi::with(['district.province'])->find($tviId);
@@ -1345,7 +1347,7 @@ class AttributionTargetResource extends Resource
 
         // Fetch skill priorities for the province
         $skillPriorities = $tvi->district->province->skillPriorities()
-            ->where('year', date('Y')) // Optional: Filter by current year if applicable
+            ->where('year', $year) // Optional: Filter by current year if applicable
             ->pluck('training_program_id')
             ->toArray();
 
