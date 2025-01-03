@@ -55,6 +55,7 @@ class MunicipalityResource extends Resource
                     ->label('UACS Code')
                     ->placeholder('Enter UACS code')
                     ->autocomplete(false)
+                    ->integer()
                     ->validationAttribute('UACS Code'),
 
                 TextInput::make('class')
@@ -142,7 +143,7 @@ class MunicipalityResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('district')
+                TextColumn::make('district.name')
                     ->label('District')                    
                     ->searchable()
                     ->toggleable()
@@ -194,19 +195,16 @@ class MunicipalityResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-
                     DeleteAction::make()->action(function ($record) {
                         $record->delete();
 
                         NotificationHandler::sendSuccessNotification('Deleted', 'Municipality has been deleted successfully.');
                     }),
-
                     RestoreAction::make()->action(function ($record) {
                         $record->restore();
 
                         NotificationHandler::sendSuccessNotification('Restored', 'Municipality has been restored successfully.');
                     }),
-
                     ForceDeleteAction::make()->action(function ($record) {
                         $record->forceDelete();
 
@@ -222,21 +220,18 @@ class MunicipalityResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected municipalities have been deleted successfully.');
                         }),
-
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected municipalities have been restored successfully.');
                         }),
-
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected municipalities have been deleted permanently.');
                         }),
-
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -256,7 +251,7 @@ class MunicipalityResource extends Resource
                                         ->getStateUsing(function ($record) {
                                             return $record->class ?: '-';
                                         }),
-                                    Column::make('district')
+                                    Column::make('district.name')
                                         ->heading('District')
                                         ->getStateUsing(function ($record) {
                                             $districts = $record->district->map(function ($district) {
