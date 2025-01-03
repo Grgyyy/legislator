@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -26,5 +27,15 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+    
+    public function render($request, Throwable $e): \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\Response
+    {
+        if ($e instanceof RouteNotFoundException) {
+            // Redirect to a safe location, like the login page or home page
+            return redirect('/login'); // Ensure this route works in your app
+        }
+
+        return parent::render($request, $e);
     }
 }
