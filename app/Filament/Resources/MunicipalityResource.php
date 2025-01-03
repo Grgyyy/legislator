@@ -144,14 +144,14 @@ class MunicipalityResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('district.name')
-                    ->label('District')                    
+                    ->label('District')
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $hasMunicipality = $record->district->contains(function ($district) {
                             return !is_null($district->underMunicipality->name ?? null);
                         });
-                    
+
                         if ($hasMunicipality) {
                             return $record->district->map(function ($district, $index) use ($record) {
                                 $municipalityName = $district->underMunicipality->name ?? null;
@@ -160,7 +160,7 @@ class MunicipalityResource extends Resource
                                 $formattedDistrict = $municipalityName
                                     ? "{$district->name} - {$municipalityName}"
                                     : "{$district->name}";
-                    
+
                                 return '<div style="' . $paddingTop . '">' . $formattedDistrict . $comma . '</div>';
                             })->implode('');
                         } else {
@@ -170,10 +170,10 @@ class MunicipalityResource extends Resource
                                 $comma = ($index < count($districts) - 1) ? ', ' : '';
                                 $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
                                 $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
-                    
+
                                 return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
                             }, $districts, array_keys($districts));
-                    
+
                             return implode('', $districtsHtml);
                         }
                     })
