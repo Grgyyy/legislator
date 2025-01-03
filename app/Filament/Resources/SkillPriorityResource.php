@@ -25,6 +25,8 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use pxlrbt\FilamentExcel\Columns\Column;
 
 class SkillPriorityResource extends Resource
 {
@@ -155,6 +157,35 @@ class SkillPriorityResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected training programs have been deleted permanently.');
                         }),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('province.name')
+                                        ->heading('Province')
+                                        ->getStateUsing(function ($record) {
+                                            $province = $record->provinces;
+                                            return $province ? $province->name : 'No province available';
+                                        }),
+
+                                    Column::make('trainingProgram.title')
+                                        ->heading('Qualification Title')
+                                        ->getStateUsing(function ($record) {
+                                            $trainingProgram = $record->trainingPrograms;
+                                            return $trainingProgram ? $trainingProgram->title : 'No Training Program available';
+                                        }),
+
+                                    Column::make('available_slots')
+                                        ->heading('Available Slots'),
+
+                                    Column::make('total_slots')
+                                        ->heading('Total Slots'),
+
+                                    Column::make('year')
+                                        ->heading('Year'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Skill Priorities')
+                        ])
                 ]),
             ]);
     }
