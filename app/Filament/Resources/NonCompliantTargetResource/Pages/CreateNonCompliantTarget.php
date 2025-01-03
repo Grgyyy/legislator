@@ -7,6 +7,7 @@ use App\Models\Allocation;
 use App\Models\NonCompliantRemark;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
+use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
@@ -62,8 +63,7 @@ class CreateNonCompliantTarget extends CreateRecord
                 $this->adjustResources($targetRecord, $data);
 
                 // Update target status to Non-Compliant
-                // $targetRecord->target_status_id = $nonCompliantRecord->id;
-                $targetRecord->abscap_id = null;
+                $targetRecord->target_status_id = $nonCompliantRecord->id;
                 $targetRecord->save();
 
                 // Log target history
@@ -91,10 +91,17 @@ class CreateNonCompliantTarget extends CreateRecord
     {
         $senderAllocation = Allocation::find($targetRecord->attribution_allocation_id);
         $receiverAllocation = Allocation::find($targetRecord->allocation->id);
-        $provinceAbdd = ProvinceAbdd::where('province_id', $targetRecord->district->province_id)
-            ->where('abdd_id', $targetRecord->abdd_id)
-            ->where('year', $data['allocation_year'])
-            ->first();
+        
+        // $provinceAbdd = ProvinceAbdd::where('province_id', $targetRecord->district->province_id)
+        //     ->where('abdd_id', $targetRecord->abdd_id)
+        //     ->where('year', $data['allocation_year'])
+        //     ->first();
+
+        $previousSkillPrio = SkillPriority::where([
+            'training_program_id' => $targetRecord->qualification_title->training_program_id,
+            'province_id' => $targetRecord->tvi->district->province_id,
+            'year' => $targetRecord->allocation->year,
+        ]);
 
         if (!$receiverAllocation) {
             throw new \Exception('Receiver Allocation/Allocation Not Found.');
@@ -105,9 +112,13 @@ class CreateNonCompliantTarget extends CreateRecord
             throw new \Exception('Qualification Title not found');
         }
 
-        if (!$provinceAbdd) {
-            throw new \Exception('Prrovince ABDD Slots not found');
+        if (!$previousSkillPrio) {
+            throw new \Exception('Skills Priority not found');
         }
+
+        // if (!$provinceAbdd) {
+        //     throw new \Exception('Province ABDD Slots not found');
+        // }
 
         $numberOfSlots = $targetRecord['number_of_slots'];
 
@@ -126,16 +137,7 @@ class CreateNonCompliantTarget extends CreateRecord
             $receiverAllocation->save();
         }
 
-        if ($provinceAbdd) {
-            // Ensure available_slots is initialized
-            $provinceAbdd->available_slots = $provinceAbdd->available_slots ?? 0;
-
-            // Update province slots
-            $provinceAbdd->available_slots += $numberOfSlots;
-            $provinceAbdd->save();
-        } else {
-            throw new \Exception('Province ABDD record not found.');
-        }
+        $previousSkillPrio->increment('available_slots', $targetRecord->number_of_slots);
     }
 
     private function logTargetHistory(Target $targetRecord, array $data): void
@@ -166,7 +168,6 @@ class CreateNonCompliantTarget extends CreateRecord
             'total_book_allowance' => $targetRecord['total_book_allowance'],
             'total_uniform_allowance' => $targetRecord['total_uniform_allowance'],
             'total_misc_fee' => $targetRecord['total_misc_fee'],
-            'admin_cost' => $targetRecord['admin_cost'],
             'total_amount' => $targetRecord['total_amount'],
             'appropriation_type' => $targetRecord['appropriation_type'],
             'description' => 'Marked as Non-Compliant'

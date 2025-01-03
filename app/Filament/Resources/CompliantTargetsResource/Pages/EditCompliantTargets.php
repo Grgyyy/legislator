@@ -24,7 +24,7 @@ class EditCompliantTargets extends EditRecord
             'Edit'
         ];
     }
-    
+
 
     protected function getRedirectUrl(): string
     {

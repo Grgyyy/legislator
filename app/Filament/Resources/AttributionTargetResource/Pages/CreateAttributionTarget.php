@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AttributionTargetResource\Pages;
 
+use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\Allocation;
@@ -9,7 +10,6 @@ use App\Models\QualificationTitle;
 use App\Filament\Resources\AttributionTargetResource;
 use App\Models\Tvi;
 use App\Models\ProvinceAbdd;
-use App\Services\NotificationHandler;
 use Exception;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -101,9 +101,9 @@ class CreateAttributionTarget extends CreateRecord
             $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
             $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
             $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
-            $admin_cost = $targetData['admin_cost'] ?? 0;
 
-            $total_amount = ($qualificationTitle->pcc * $numberOfSlots) + $admin_cost;
+            // Remove admin cost
+            $total_amount = $qualificationTitle->pcc * $numberOfSlots; // Removed admin_cost
 
             $institution = Tvi::find($targetData['tvi_id']);
             if (!$institution) {
@@ -116,18 +116,28 @@ class CreateAttributionTarget extends CreateRecord
             }
 
             // Check for available slots in ProvinceAbdd
-            $provinceAbdd = $this->getProvinceAbdd(
-                $targetData['abdd_id'],
+            // $provinceAbdd = $this->getProvinceAbdd(
+            //     $targetData['abdd_id'],
+            //     $institution->district->province_id,
+            //     $targetData['allocation_year']
+            // );
+
+            // if (!$provinceAbdd) {
+            //     throw new Exception('ProvinceAbdd entry not found');
+            // }
+
+            $skillPriority = $this->getSkillPriority(
+                $qualificationTitle->training_program_id,
                 $institution->district->province_id,
                 $targetData['allocation_year']
             );
 
-            if (!$provinceAbdd) {
-                throw new Exception('ProvinceAbdd entry not found');
+            if (!$skillPriority) {
+                throw new Exception('Skill Priority not found');
             }
 
-            if ($provinceAbdd->available_slots < $numberOfSlots) {
-                throw new Exception('Not enough available slots in ProvinceAbdd');
+            if ($skillPriority->available_slots < $numberOfSlots) {
+                throw new Exception('Not enough available slots in Skill Priority.');
             }
 
             // If both conditions are met, proceed with creation
@@ -156,8 +166,7 @@ class CreateAttributionTarget extends CreateRecord
                 'total_book_allowance' => $total_book_allowance,
                 'total_uniform_allowance' => $total_uniform_allowance,
                 'total_misc_fee' => $total_misc_fee,
-                'admin_cost' => $admin_cost,
-                'total_amount' => $total_amount,
+                'total_amount' => $total_amount, // Removed admin_cost
                 'appropriation_type' => $targetData['attribution_appropriation_type'],
                 'target_status_id' => 1,
             ]);
@@ -171,7 +180,10 @@ class CreateAttributionTarget extends CreateRecord
             $receiverAllocation->save();
 
             // Decrement available slots in ProvinceAbdd
-            $provinceAbdd->decrement('available_slots', $numberOfSlots);
+            // $provinceAbdd->decrement('available_slots', $numberOfSlots);
+
+            $skillPriority->decrement('available_slots', $numberOfSlots);
+
 
             // Log the creation in TargetHistory
             TargetHistory::create([
@@ -200,8 +212,7 @@ class CreateAttributionTarget extends CreateRecord
                 'total_book_allowance' => $total_book_allowance,
                 'total_uniform_allowance' => $total_uniform_allowance,
                 'total_misc_fee' => $total_misc_fee,
-                'admin_cost' => $admin_cost,
-                'total_amount' => $total_amount,
+                'total_amount' => $total_amount, // Removed admin_cost
                 'appropriation_type' => $targetData['attribution_appropriation_type'],
                 'description' => 'Target Created',
             ]);
@@ -223,5 +234,26 @@ class CreateAttributionTarget extends CreateRecord
         }
 
         return $provinceAbdd;
+    }
+
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
+    {
+        $skillPriority = SkillPriority::where([
+            'training_program_id' => $trainingProgram,
+            'province_id' => $provinceId,
+            'year' => $appropriationYear,
+        ])->first();
+
+        if (!$skillPriority) {
+            $this->sendErrorNotification('Skill Priority not found.');
+            throw new Exception('Skill Priority not found.');
+        }
+
+        if ($skillPriority->available_slots <= 0) {
+            $this->sendErrorNotification('No available slots in Skill Priority');
+            throw new Exception('No available slots in Skill Priority.');
+        }
+
+        return $skillPriority;
     }
 }

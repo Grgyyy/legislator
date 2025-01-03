@@ -7,6 +7,7 @@ use App\Models\Allocation;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationScholarship;
 use App\Models\QualificationTitle;
+use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
@@ -46,15 +47,12 @@ class EditNonCompliantTarget extends EditRecord
     {
         $record = $this->record;
 
-        // Check if 'attributionAllocation' exists and set values accordingly
         $data['sender_legislator_id'] = $record->attributionAllocation->legislator_id ?? null;
         $data['sender_particular_id'] = $record->attributionAllocation->particular_id ?? null;
 
-        // Use null coalescing operator to safely assign values
         $data['receiver_legislator_id'] = $record->allocation->legislator_id ?? null;
         $data['receiver_particular_id'] = $record->allocation->particular_id;
 
-        // Proceed with other data assignments
         $data['scholarship_program_id'] = $record->allocation->scholarship_program_id ?? null;
         $data['allocation_year'] = $record->allocation->year ?? null;
         $data['target_id'] = $record->id ?? null;
@@ -66,20 +64,15 @@ class EditNonCompliantTarget extends EditRecord
     {
         try {
             return DB::transaction(function () use ($record, $data) {
-                // Retrieve sender and receiver allocations
                 $senderLegislatorId = $data['sender_legislator_id'];
                 $senderParticularId = $data['sender_particular_id'];
                 $receiverLegislatorId = $record->allocation->legislator_id;
                 $receiverParticularId = $record->allocation->particular_id;
 
-                // throw new \Exception($receiverLegislatorId);
-
-                // Validate that receiver particular_id is not null
                 if (is_null($receiverParticularId)) {
                     throw new \Exception('Receiver Particular ID cannot be null');
                 }
 
-                // Check if the receiver allocation exists, if not, create one
                 $receiverAllocation = Allocation::where('legislator_id', $receiverLegislatorId)
                     ->where('particular_id', $receiverParticularId)
                     ->where('scholarship_program_id', $data['scholarship_program_id'] ?? null)
@@ -90,16 +83,11 @@ class EditNonCompliantTarget extends EditRecord
                     throw new \Exception('Receiver Particular ID cannot be null');
                 }
 
-                // Retrieve sender allocation
                 $senderAllocation = Allocation::where('legislator_id', $senderLegislatorId)
                     ->where('particular_id', $senderParticularId)
                     ->where('scholarship_program_id', $data['scholarship_program_id'] ?? null)
                     ->where('year', $data['allocation_year'] ?? null)
                     ->first();
-
-                // if (!$senderAllocation) {
-                //     throw new \Exception('Sender Allocation not found');
-                // }
 
                 $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
                 if (!$qualificationTitle) {
@@ -111,44 +99,51 @@ class EditNonCompliantTarget extends EditRecord
                     throw new \Exception('Institution not found');
                 }
 
-                $provinceAbdd = ProvinceAbdd::where('province_id', $institution->district->province_id)
-                    ->where('abdd_id', $data['abdd_id'] ?? null)
-                    ->where('year', $data['allocation_year'] ?? null)
-                    ->first();
+                $skillPriority = $this->getSkillPriority(
+                    $qualificationTitle->training_program_id,
+                    $institution->district->province_id,
+                    $data['allocation_year']
+                );
 
-                if (!$provinceAbdd) {
-                    throw new \Exception('Province ABDD not found');
+                if (!$skillPriority) {
+                    throw new \Exception('Skill Priority not found');
                 }
+
+                // $provinceAbdd = ProvinceAbdd::where('province_id', $institution->district->province_id)
+                //     ->where('abdd_id', $data['abdd_id'] ?? null)
+                //     ->where('year', $data['allocation_year'] ?? null)
+                //     ->first();
+
+                // if (!$provinceAbdd) {
+                //     throw new \Exception('Province ABDD not found');
+                // }
 
                 $numberOfSlots = $data['number_of_slots'] ?? 0;
                 $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
-
-
 
                 if ($senderAllocation) {
                     if ($senderAllocation->balance < $totalAmount) {
                         throw new \Exception('Insufficient balance to process the transfer.');
                     }
-                    // Update sender allocation
                     $senderAllocation->balance -= $totalAmount;
                     $senderAllocation->attribution_sent += $totalAmount;
                     $senderAllocation->save();
 
-                    // Update receiver allocation balance
                     $receiverAllocation->attribution_received += $totalAmount;
                     $receiverAllocation->save();
                 } else {
                     if ($receiverAllocation->balance < $totalAmount) {
                         throw new \Exception('Insufficient balance to process the transfer.');
                     }
-                    // Deduct from receiver allocation balance directly if no sender allocation
                     $receiverAllocation->balance -= $totalAmount;
                     $receiverAllocation->save();
                 }
 
+                // $provinceAbdd->available_slots -= $numberOfSlots;
+                // $provinceAbdd->save();
 
-                $provinceAbdd->available_slots -= $numberOfSlots;
-                $provinceAbdd->save();
+                $skillPriority->available_slots -= $numberOfSlots;
+                $skillPriority->save();
 
                 $record->update([
                     'abscap_id' => $data['abscap_id'],
@@ -175,8 +170,7 @@ class EditNonCompliantTarget extends EditRecord
                     'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
                     'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
                     'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-                    'admin_cost' => $data['admin_cost'] ?? 0,
-                    'total_amount' => ($qualificationTitle->pcc * $numberOfSlots) + $data['admin_cost'],
+                    'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
                     'appropriation_type' => $data['appropriation_type'],
                     'target_status_id' => 1,
                 ]);
@@ -207,19 +201,36 @@ class EditNonCompliantTarget extends EditRecord
                     'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
                     'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
                     'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-                    'admin_cost' => $data['admin_cost'] ?? 0,
+                    'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
                     'appropriation_type' => $data['appropriation_type'],
-                    'total_amount' => ($qualificationTitle->pcc * $numberOfSlots) + $data['admin_cost'],
                     'description' => 'Target Modified'
                 ]);
 
-                // Return the updated record
                 return $record;
             });
         } catch (\Exception $e) {
-            // Handle exceptions and log errors
             Log::error('Error updating record', ['exception' => $e]);
             throw $e;
         }
+    }
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
+    {
+        $skillPriority = SkillPriority::where([
+            'training_program_id' => $trainingProgram,
+            'province_id' => $provinceId,
+            'year' => $appropriationYear,
+        ])->first();
+
+        if (!$skillPriority) {
+            $this->sendErrorNotification('Skill Priority not found.');
+            throw new \Exception('Skill Priority not found.');
+        }
+
+        if ($skillPriority->available_slots <= 0) {
+            $this->sendErrorNotification('No available slots in Skill Priority');
+            throw new \Exception('No available slots in Skill Priority.');
+        }
+
+        return $skillPriority;
     }
 }

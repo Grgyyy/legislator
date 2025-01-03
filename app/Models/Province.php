@@ -34,9 +34,15 @@ class Province extends Model
         return $this->hasMany(Municipality::class);
     }
 
-    public function abdds()
+    // public function abdds()
+    // {
+    //     return $this->belongsToMany(ABDD::class, 'province_abdds')
+    //         ->withTimestamps();
+    // }
+
+    public function skillPriorities()
     {
-        return $this->belongsToMany(ABDD::class, 'province_abdds')
+        return $this->belongsToMany(TrainingProgram::class, 'skill_priorities')
             ->withTimestamps();
     }
     public function users()

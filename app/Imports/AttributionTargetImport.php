@@ -28,7 +28,7 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class TargetImport implements ToModel, WithHeadingRow
+class AttributionTargetImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
@@ -40,6 +40,21 @@ class TargetImport implements ToModel, WithHeadingRow
             $this->validateYear($row['appropriation_year']);
 
             DB::transaction(function () use ($row) {
+
+                // Attributor
+                $attributor = $this->getLegislatorId($row['attributor']);
+                $attribution_region = $this->getRegion('Not Applicable');
+                $attribution_province = $this->getProvince('Not Applicable', $attribution_region->id);
+                $attribution_district = $this->getDistrict('Not Applicable', $attribution_province->id);
+                $attribution_municipality = $this->getMunicipality('Not Applicable', $attribution_province->id);
+                $attribution_partylist = $this->getPartylist('Not Applicable');
+                $attribution_sub_particular = $this->getSubParticular($row['attributor_particular']);
+                $attribution_particular = $this->getParticular($attribution_sub_particular->id, $attribution_partylist->id, $attribution_district->id);
+                $scholarship_program = $this->getScholarshipProgram($row['scholarship_program']);
+                $attributor_allocation = $this->getAllocation($attributor->id, $attribution_particular->id, $scholarship_program->id,  $row['appropriation_year']);
+
+
+                // Receiver
                 $legislator = $this->getLegislatorId($row['legislator']);
                 $region = $this->getRegion($row['region']);
                 $province = $this->getProvince($row['province'], $region->id);
@@ -48,8 +63,8 @@ class TargetImport implements ToModel, WithHeadingRow
                 $partylist = $this->getPartylist($row['partylist']);
                 $sub_particular = $this->getSubParticular($row['particular']);
                 $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
-                $scholarship_program = $this->getScholarshipProgram($row['scholarship_program']);
                 $allocation = $this->getAllocation($legislator->id, $particular->id, $scholarship_program->id, $row['appropriation_year']);
+
                 $abddSector = $this->getAbddSector($row['abdd_sector']);
                 $delivery_mode = $this->getDeliveryMode($row['delivery_mode']);
                 $learning_mode = $this->getLearningMode($row['learning_mode'], $delivery_mode->id);
@@ -58,7 +73,7 @@ class TargetImport implements ToModel, WithHeadingRow
 
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $scholarship_program->id);
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
-
+                
                 $skillPriority = $this->getSkillPriority(
                     $qualificationTitle->training_program_id,
                     $tvi->district->province_id,
@@ -69,10 +84,11 @@ class TargetImport implements ToModel, WithHeadingRow
 
                 $targetData = [
                     'abscap_id' => $row['abscap_id'],
+                    'attribution_allocation_id' => $attributor_allocation->id,
                     'allocation_id' => $allocation->id,
                     'district_id' => $tvi->district_id,
                     'municipality_id' => $tvi->municipality_id,
-                    'tvi_id' => $tvi->id,
+                    'tvi_id'  => $tvi->id,
                     'tvi_name' => $tvi->name,
                     'abdd_id' => $abddSector->id,
                     'qualification_title_id' => $qualificationTitle->id,
@@ -80,7 +96,7 @@ class TargetImport implements ToModel, WithHeadingRow
                     'qualification_title_name' => $qualificationTitle->trainingProgram->title,
                     'delivery_mode_id' => $delivery_mode->id,
                     'learning_mode_id' => $learning_mode->id,
-                    'number_of_slots' => $numberOfSlots,
+                    'number_of_slots' => $row['number_of_slots'],
                     'total_training_cost_pcc' => $totals['total_training_cost_pcc'],
                     'total_cost_of_toolkit_pcc' => $totals['total_cost_of_toolkit_pcc'],
                     'total_training_support_fund' => $totals['total_training_support_fund'],
@@ -95,6 +111,7 @@ class TargetImport implements ToModel, WithHeadingRow
                     'appropriation_type' => $row['appropriation_type'],
                     'target_status_id' => $pendingStatus->id,
                 ];
+                
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
                     throw new \Exception("Insufficient available slots in Skill Priorities to create the target.");
@@ -105,10 +122,15 @@ class TargetImport implements ToModel, WithHeadingRow
                 }
 
                 $target = Target::create($targetData);
-                $allocation->decrement('balance', $totals['total_amount']);
+
                 $skillPriority->decrement('available_slots', $numberOfSlots);
+                $attributor_allocation->decrement('balance', $totals['total_amount']);
+                $attributor_allocation->increment('attribution_sent', $totals['total_amount']);
+
+                $allocation->increment('attribution_received', $totals['total_amount']);
 
                 $this->logTargetHistory($target, $allocation, $totals);
+             
             });
         } catch (Throwable $e) {
             Log::error("Import failed: " . $e->getMessage());
@@ -120,16 +142,18 @@ class TargetImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         $requiredFields = [
+            'attributor',
+            'attributor_particular',
+            'scholarship_program',
+            'appropriation_year',
+            'appropriation_type',
             'legislator',
             'particular',
-            'scholarship_program',
             'district',
             'municipality',
             'province',
             'region',
             'partylist',
-            'appropriation_year',
-            'appropriation_type',
             'institution',
             'qualification_title',
             'abdd_sector',

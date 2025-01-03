@@ -6,9 +6,11 @@ use App\Filament\Resources\AttributionTargetResource;
 use App\Models\Allocation;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
+use App\Models\SkillPriority;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
 use DB;
+use Exception;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -71,7 +73,7 @@ class EditAttributionTarget extends EditRecord
                 ->first();
 
             if (!$senderAllocation) {
-                throw new \Exception('Attribution Sender Allocation not found');
+                throw new Exception('Attribution Sender Allocation not found');
             }
 
             $receiverAllocation = Allocation::where('legislator_id', $data['attribution_receiver'])
@@ -94,7 +96,7 @@ class EditAttributionTarget extends EditRecord
 
             $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
             if (!$qualificationTitle) {
-                throw new \Exception('Qualification Title not found');
+                throw new Exception('Qualification Title not found');
             }
 
             $numberOfSlots = $data['number_of_slots'] ?? 0;
@@ -109,26 +111,38 @@ class EditAttributionTarget extends EditRecord
             $total_book_allowance = $qualificationTitle->book_allowance * $numberOfSlots;
             $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
             $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
-            $admin_cost = $data['admin_cost'] ?? 0;
 
-            $total_amount = ($qualificationTitle->pcc * $numberOfSlots) + $admin_cost;
+            $total_amount = ($qualificationTitle->pcc * $numberOfSlots);
 
             $institution = Tvi::find($data['tvi_id']);
             if (!$institution) {
-                throw new \Exception('Institution not found');
+                throw new Exception('Institution not found');
             }
 
             if ($senderAllocation->balance + $record->total_amount < $total_amount) {
-                throw new \Exception('Insufficient funds in sender allocation');
+                throw new Exception('Insufficient funds in sender allocation');
             }
 
-            $provinceAbdd = ProvinceAbdd::find($data['abdd_id']);
-            if (!$provinceAbdd) {
-                throw new \Exception('ProvinceAbdd entry not found');
+            $previousSkillPrio = SkillPriority::where([
+                'training_program_id' => $record->qualification_title->training_program_id,
+                'province_id' => $record->tvi->district->province_id,
+                'year' => $record->allocation->year,
+            ]);
+
+            if (!$previousSkillPrio) {
+                $this->sendErrorNotification('Previous Skill Priority not found.');
+                throw new Exception('Previous Skill Priority not found.');
             }
 
-            if ($provinceAbdd->available_slots + $record->number_of_slots < $numberOfSlots) {
-                throw new \Exception('Not enough available slots in ProvinceAbdd');
+            $skillPriority = $this->getSkillPriority(
+                $qualificationTitle->training_program_id,
+                $institution->district->province_id,
+                $data['allocation_year']
+            );
+
+            if (!$skillPriority) {
+                $this->sendErrorNotification('Skill Priority not found.');
+                throw new Exception('Skill Priority not found.');
             }
 
             $senderAllocation->balance += $record->total_amount;
@@ -138,7 +152,7 @@ class EditAttributionTarget extends EditRecord
             $receiverAllocation->attribution_received -= $record->total_amount;
             $receiverAllocation->save();
 
-            $provinceAbdd->increment('available_slots', $record->number_of_slots);
+            $previousSkillPrio->increment('available_slots', $record->number_of_slots);
 
             $record->update([
                 'abscap_id' => $data['abscap_id'],
@@ -165,7 +179,6 @@ class EditAttributionTarget extends EditRecord
                 'total_book_allowance' => $total_book_allowance,
                 'total_uniform_allowance' => $total_uniform_allowance,
                 'total_misc_fee' => $total_misc_fee,
-                'admin_cost' => $admin_cost,
                 'total_amount' => $total_amount,
                 'appropriation_type' => $data['attribution_appropriation_type'],
                 'target_status_id' => 1,
@@ -178,7 +191,7 @@ class EditAttributionTarget extends EditRecord
             $receiverAllocation->attribution_received += $total_amount;
             $receiverAllocation->save();
 
-            $provinceAbdd->decrement('available_slots', $numberOfSlots);
+            $skillPriority->decrement('available_slots', $numberOfSlots);
 
             TargetHistory::create([
                 'abscap_id' => $data['abscap_id'],
@@ -206,7 +219,6 @@ class EditAttributionTarget extends EditRecord
                 'total_book_allowance' => $total_book_allowance,
                 'total_uniform_allowance' => $total_uniform_allowance,
                 'total_misc_fee' => $total_misc_fee,
-                'admin_cost' => $admin_cost,
                 'total_amount' => $total_amount,
                 'appropriation_type' => $data['attribution_appropriation_type'],
                 'description' => 'Target Modified',
@@ -215,5 +227,26 @@ class EditAttributionTarget extends EditRecord
 
             return $record;
         });
+    }
+
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
+    {
+        $skillPriority = SkillPriority::where([
+            'training_program_id' => $trainingProgram,
+            'province_id' => $provinceId,
+            'year' => $appropriationYear,
+        ])->first();
+
+        if (!$skillPriority) {
+            $this->sendErrorNotification('Skill Priority not found.');
+            throw new Exception('Skill Priority not found.');
+        }
+
+        if ($skillPriority->available_slots <= 0) {
+            $this->sendErrorNotification('No available slots in Skill Priority');
+            throw new Exception('No available slots in Skill Priority.');
+        }
+
+        return $skillPriority;
     }
 }

@@ -33,6 +33,11 @@ class ProvinceAbddResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false; // Completely remove from side navigation
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -145,9 +150,9 @@ class ProvinceAbddResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListProvinceAbdds::route('/'),
-            'create' => Pages\CreateProvinceAbdd::route('/create'),
-            'edit' => Pages\EditProvinceAbdd::route('/{record}/edit'),
+            // 'index' => Pages\ListProvinceAbdds::route('/'),
+            // 'create' => Pages\CreateProvinceAbdd::route('/create'),
+            // 'edit' => Pages\EditProvinceAbdd::route('/{record}/edit'),
         ];
     }
 }

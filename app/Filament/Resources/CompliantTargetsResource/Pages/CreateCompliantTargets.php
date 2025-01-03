@@ -43,7 +43,7 @@ class CreateCompliantTargets extends CreateRecord
             $qualificationTitle = $this->findQualificationTitle($data['qualification_title_id']);
 
             $numberOfSlots = $data['number_of_slots'] ?? self::DEFAULT_NUMBER_OF_SLOTS;
-            $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $data);
+            $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
 
             $this->logTargetHistory($target);
             $this->updateTarget($target, $allocation->id, $data, $totals, $compliantStatus->id);
@@ -76,7 +76,7 @@ class CreateCompliantTargets extends CreateRecord
         return QualificationTitle::findOrFail($qualificationTitleId);
     }
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, array $data): array
+    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots): array
     {
         return [
             'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
@@ -89,8 +89,7 @@ class CreateCompliantTargets extends CreateRecord
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'admin_cost' => $data['admin_cost'],
-            'total_amount' => ($qualificationTitle->pcc * $numberOfSlots) + $data['admin_cost'],
+            'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
         ];
     }
 
@@ -122,7 +121,6 @@ class CreateCompliantTargets extends CreateRecord
             'total_book_allowance' => $target['total_book_allowance'],
             'total_uniform_allowance' => $target['total_uniform_allowance'],
             'total_misc_fee' => $target['total_misc_fee'],
-            'admin_cost' => $target['admin_cost'],
             'total_amount' => $target['total_amount'],
             'appropriation_type' => $target['appropriation_type'],
             'description' => 'Marked as Compliant',

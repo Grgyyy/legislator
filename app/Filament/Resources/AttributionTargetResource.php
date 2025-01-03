@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AttributionTargetResource\Pages;
+use App\Models\Abdd;
 use App\Models\Allocation;
 use App\Models\DeliveryLearning;
 use App\Models\DeliveryMode;
@@ -39,6 +40,9 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class AttributionTargetResource extends Resource
 {
@@ -431,9 +435,11 @@ class AttributionTargetResource extends Resource
                                             ->native(false)
                                             ->options(function ($get) {
                                                 $scholarshipProgramId = $get('attribution_scholarship_program');
-        
+                                                $tviId = $get('tvi_id');
+                                                $year = $get('allocation_year');
+                
                                                 return $scholarshipProgramId
-                                                    ? self::getQualificationTitles($scholarshipProgramId)
+                                                    ? self::getQualificationTitles($scholarshipProgramId, $tviId, $year)
                                                     : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_qualification_title'),
@@ -483,24 +489,21 @@ class AttributionTargetResource extends Resource
                                             ->searchable()
                                             ->preload()
                                             ->native(false)
-                                            ->options(function ($get) {
-                                                $tviId = $get('tvi_id');
+                                            // ->options(function ($get) {
+                                            //     $tviId = $get('tvi_id');
         
-                                                return $tviId
-                                                    ? self::getAbddSectors($tviId)
-                                                    : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
+                                            //     return $tviId
+                                            //         ? self::getAbddSectors($tviId)
+                                            //         : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
+                                            // })
+                                            ->options(function () {
+                                                return Abdd::whereNull('deleted_at')
+                                                    ->pluck('name', 'id')
+                                                    ->toArray() ?: ['no_abdd' => 'No ABDD Sectors available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_abdd')
                                             ->disabled()
                                             ->dehydrated(),
-
-                                         TextInput::make('admin_cost')
-                                            ->label('Admin Cost')
-                                            ->placeholder('Enter amount of Admin Cost')
-                                            ->required()
-                                            ->markAsRequired(false)
-                                            ->autocomplete(false)
-                                            ->numeric(),
                                             
                                         TextInput::make('number_of_slots')
                                             ->label('Number of Slots')
@@ -878,9 +881,11 @@ class AttributionTargetResource extends Resource
                                             ->native(false)
                                             ->options(function ($get) {
                                                 $scholarshipProgramId = $get('attribution_scholarship_program');
-        
+                                                $tviId = $get('tvi_id');
+                                                $year = $get('allocation_year');
+                
                                                 return $scholarshipProgramId
-                                                    ? self::getQualificationTitles($scholarshipProgramId)
+                                                    ? self::getQualificationTitles($scholarshipProgramId, $tviId, $year)
                                                     : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_qualification_title'),
@@ -929,22 +934,20 @@ class AttributionTargetResource extends Resource
                                             ->searchable()
                                             ->preload()
                                             ->native(false)
-                                            ->options(function ($get) {
-                                                $tviId = $get('tvi_id');
+                                            // ->options(function ($get) {
+                                            //     $tviId = $get('tvi_id');
         
-                                                return $tviId
-                                                    ? self::getAbddSectors($tviId)
-                                                    : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
+                                            //     return $tviId
+                                            //         ? self::getAbddSectors($tviId)
+                                            //         : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
+                                            // })
+                                            ->options(function () {
+                                                return Abdd::whereNull('deleted_at')
+                                                    ->pluck('name', 'id')
+                                                    ->toArray() ?: ['no_abdd' => 'No ABDD Sectors available'];
                                             })
-                                            ->disableOptionWhen(fn($value) => $value === 'no_abdd'),
-
-                                         TextInput::make('admin_cost')
-                                            ->label('Admin Cost')
-                                            ->placeholder('Enter amount of Admin Cost')
-                                            ->required()
-                                            ->markAsRequired(false)
-                                            ->autocomplete(false)
-                                            ->numeric(),
+                                            ->disableOptionWhen(fn($value) => $value === 'no_abdd')
+                                            ->dehydrated(),
                                             
                                         TextInput::make('number_of_slots')
                                             ->label('Number of Slots')
@@ -960,7 +963,7 @@ class AttributionTargetResource extends Resource
                                                 'max' => 'The number of slots must not exceed 25.'
                                             ]),
                                     ])
-                                    ->columns(5)
+                                    ->columns(3)
                             ])
                             ->maxItems(100)
                             ->columns(5)
@@ -987,7 +990,7 @@ class AttributionTargetResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
-                        $legislator = $record->allocation->legislator;
+                        $legislator = $record->attributionAllocation->legislator;
 
                         if (!$legislator) {
                             return 'No legislator available';
@@ -1054,7 +1057,7 @@ class AttributionTargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('allocation.soft_or_commitment')
+                TextColumn::make('attributionAllocation.soft_or_commitment')
                     ->label('Source of Fund')
                     ->searchable()
                     ->toggleable(),
@@ -1063,7 +1066,7 @@ class AttributionTargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('allocation.year')
+                TextColumn::make('attributionAllocation.year')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -1111,11 +1114,11 @@ class AttributionTargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('tvi.district.municipality.province.name')
+                TextColumn::make('tvi.district.province.name')
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('tvi.district.municipality.province.region.name')
+                TextColumn::make('tvi.district.province.region.name')
                     ->searchable()
                     ->toggleable(),
 
@@ -1160,7 +1163,7 @@ class AttributionTargetResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('deliveryMode.name')
-                    ->label('Learning Mode')
+                    ->label('Delivery Mode')
                     ->searchable()
                     ->toggleable(),
 
@@ -1294,6 +1297,269 @@ class AttributionTargetResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected targets have been deleted permanently.');
                         }),
+                    ExportBulkAction::make()
+                    ->exports([
+                        ExcelExport::make()
+                            ->withColumns([
+                                Column::make('abscap_id')
+                                    ->heading('Absorptive Capacity'),
+
+                                Column::make('fund_source')
+                                    ->heading('Fund Source')
+                                    ->getStateUsing(function ($record) {
+                                        $legislator = $record->allocation->legislator;
+
+                                        if (!$legislator) {
+                                            return 'No legislator available';
+                                        }
+
+                                        $particulars = $legislator->particular;
+
+                                        if ($particulars->isEmpty()) {
+                                            return 'No particular available';
+                                        }
+
+                                        $particular = $record->allocation->particular;
+                                        $subParticular = $particular->subParticular;
+                                        $fundSource = $subParticular ? $subParticular->fundSource : null;
+
+                                        return $fundSource ? $fundSource->name : 'No fund source available';
+                                    }),
+
+                                Column::make('attributionAllocation.legislator.name')
+                                    ->heading('Attribution Sender'),
+
+                                Column::make('attributionAllocation.legislator.particular.subParticular')
+                                    ->heading('Attributor Particular')
+                                    ->getStateUsing(function ($record) {
+                                        $legislator = $record->attributionAllocation->legislator;
+
+                                        if (!$legislator) {
+                                            return 'No legislator available';
+                                        }
+
+                                        $particulars = $legislator->particular;
+
+                                        if ($particulars->isEmpty()) {
+                                            return 'No particular available';
+                                        }
+
+                                        $particular = $particulars->first();
+                                        $district = $particular->district;
+                                        $municipality = $district ? $district->underMunicipality : null;
+
+                                        $districtName = $district ? $district->name : 'Unknown District';
+                                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+
+                                        if ($districtName === 'Not Applicable') {
+                                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                                            } else {
+                                                return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                            }
+                                        } else {
+                                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                                        }
+                                    }),
+
+                                Column::make('allocation.legislator.name')
+                                    ->heading('Legislator'),
+
+                                Column::make('attributionAllocation.soft_or_commitment')
+                                    ->heading('Soft or Commitment'),
+
+                                Column::make('appropriation_type')
+                                    ->heading('Appropriation Type'),
+
+                                Column::make('attributionAllocation.year')
+                                    ->heading('Appropriation Year'),
+
+                                Column::make('allocation.legislator.particular.subParticular')
+                                    ->heading('Particular')
+                                    ->getStateUsing(function ($record) {
+                                        $legislator = $record->allocation->legislator;
+
+                                        if (!$legislator) {
+                                            return 'No legislator available';
+                                        }
+
+                                        $particulars = $legislator->particular;
+
+                                        if ($particulars->isEmpty()) {
+                                            return 'No particular available';
+                                        }
+
+                                        $particular = $particulars->first();
+                                        $district = $particular->district;
+                                        $municipality = $district ? $district->underMunicipality : null;
+
+                                        $districtName = $district ? $district->name : 'Unknown District';
+                                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+
+                                        if ($districtName === 'Not Applicable') {
+                                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                                            } else {
+                                                return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                            }
+                                        } else {
+                                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                                        }
+                                    }),
+
+                                Column::make('municipality.name')
+                                    ->heading('Municipality'),
+
+                                Column::make('district.name')
+                                    ->heading('District'),
+
+                                Column::make('tvi.district.province.name')
+                                    ->heading('Province'),
+
+                                Column::make('tvi.district.province.region.name')
+                                    ->heading('Region'),
+
+                                Column::make('tvi.name')
+                                    ->heading('Institution'),
+
+                                Column::make('tvi.tviClass.tviType.name')
+                                    ->heading('Institution Type'),
+
+                                Column::make('tvi.tviClass.name')
+                                    ->heading('Institution Class(A)'),
+
+                                Column::make('qualification_title_code')
+                                    ->heading('Qualification Code'),
+
+                                Column::make('qualification_title_name')
+                                    ->heading('Qualification Title'),
+
+                                Column::make('abdd.name')
+                                    ->heading('ABDD Sector'),
+
+                                Column::make('qualification_title.trainingProgram.tvet.name')
+                                    ->heading('TVET Sector'),
+
+                                Column::make('qualification_title.trainingProgram.priority.name')
+                                    ->heading('Priority Sector'),
+
+                                Column::make('deliveryMode.name')
+                                    ->heading('Delivery Mode'),
+
+                                Column::make('learningMode.name')
+                                    ->heading('Learning Mode'),
+
+                                Column::make('allocation.scholarship_program.name')
+                                    ->heading('Scholarship Program'),
+
+                                Column::make('number_of_slots')
+                                    ->heading('No. of slots'),
+
+                                Column::make('training_cost_per_slot')
+                                    ->heading('Training Cost')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('cost_of_toolkit_per_slot')
+                                    ->heading('Cost of Toolkit')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('training_support_fund_per_slot')
+                                    ->heading('Training Support Fund')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_support_fund'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('assessment_fee_per_slot')
+                                    ->heading('Assessment Fee')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_assessment_fee'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('entrepreneurship_fee_per_slot')
+                                    ->heading('Entrepreneurship Fee')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_entrepreneurship_fee'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('new_normal_assistance_per_slot')
+                                    ->heading('New Normal Assistance')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_new_normal_assistance'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('accident_insurance_per_slot')
+                                    ->heading('Accident Insurance')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_accident_insurance'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('book_allowance_per_slot')
+                                    ->heading('Book Allowance')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_book_allowance'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('uniform_allowance_per_slot')
+                                    ->heading('Uniform Allowance')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_uniform_allowance'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('misc_fee_per_slot')
+                                    ->heading('Miscellaneous Fee')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_misc_fee'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_amount_per_slot')
+                                    ->heading('PCC')
+                                    ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_amount'))
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_training_cost_pcc')
+                                    ->heading('Total Training Cost')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_cost_of_toolkit_pcc')
+                                    ->heading('Total Cost of Toolkit')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_training_support_fund')
+                                    ->heading('Total Training Support Fund')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_assessment_fee')
+                                    ->heading('Total Assessment Fee')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_entrepreneurship_fee')
+                                    ->heading('Total Entrepreneurship Fee')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_new_normal_assisstance')
+                                    ->heading('Total New Normal Assistance')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_accident_insurance')
+                                    ->heading('Total Accident Insurance')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+
+                                Column::make('total_book_allowance')
+                                    ->heading('Total Book Allowance')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_uniform_allowance')
+                                    ->heading('Total Uniform Allowance')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_misc_fee')
+                                    ->heading('Total Miscellaneous Fee')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('total_amount')
+                                    ->heading('Total PCC')
+                                    ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+
+                                Column::make('targetStatus.desc')
+                                    ->heading('Status'),
+                            ])
+                            ->withFilename(date('m-d-Y') . ' - Targets')
+                    ]),
                 ]),
             ])
             ->recordUrl(
@@ -1336,30 +1602,53 @@ class AttributionTargetResource extends Resource
         }
     }
     
-    protected static function getQualificationTitles($scholarshipProgramId)
+    protected static function getQualificationTitles($scholarshipProgramId, $tviId, $year)
     {
-        return QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
-            ->where('status_id', 1)
-            ->whereNull('deleted_at')
-            ->with('trainingProgram')
-            ->get()
-            ->pluck('trainingProgram.title', 'id')
-            ->toArray() ?: ['no_qualification_title' => 'No qualification title available'];
-    }
+        // Fetch the TVI with its associated district and province
+        $tvi = Tvi::with(['district.province'])->find($tviId);
 
-    protected static function getAbddSectors($tviId)
-    {
-        $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
-
-        if (!$tvi || !$tvi->district || !$tvi->district || !$tvi->district->province) {
-            return ['no_abdd' => 'No ABDD sector available'];
+        if (!$tvi || !$tvi->district || !$tvi->district->province) {
+            return ['' => 'No Skill Priority available'];
         }
 
-        return $tvi->district->province->abdds()
-            ->select('abdds.id', 'abdds.name')
-            ->pluck('name', 'id')
-            ->toArray() ?: ['no_abdd' => 'No ABDD sector available'];
+        // Fetch skill priorities for the province
+        $skillPriorities = $tvi->district->province->skillPriorities()
+            ->where('year', $year) // Optional: Filter by current year if applicable
+            ->pluck('training_program_id')
+            ->toArray();
+
+        if (empty($skillPriorities)) {
+            return ['' => 'No Training Programs available for this Skill Priority'];
+        }
+
+        // Fetch Qualification Titles based on the skill priority and scholarship program
+        $qualificationTitles = QualificationTitle::whereIn('training_program_id', $skillPriorities)
+            ->where('scholarship_program_id', $scholarshipProgramId)
+            ->where('status_id', 1) // Ensure active qualifications
+            ->whereNull('deleted_at') // Exclude soft-deleted records
+            ->with('trainingProgram') // Eager load related training program
+            ->get()
+            ->mapWithKeys(function ($qualification) {
+                return [$qualification->id => $qualification->trainingProgram->title];
+            })
+            ->toArray();
+
+        return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }
+
+    // protected static function getAbddSectors($tviId)
+    // {
+    //     $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
+
+    //     if (!$tvi || !$tvi->district || !$tvi->district || !$tvi->district->province) {
+    //         return ['no_abdd' => 'No ABDD sector available'];
+    //     }
+
+    //     return $tvi->district->province->abdds()
+    //         ->select('abdds.id', 'abdds.name')
+    //         ->pluck('name', 'id')
+    //         ->toArray() ?: ['no_abdd' => 'No ABDD sector available'];
+    // }
 
     public static function getEloquentQuery(): Builder
     {
@@ -1378,5 +1667,46 @@ class AttributionTargetResource extends Resource
             'create' => Pages\CreateAttributionTarget::route('/create'),
             'edit' => Pages\EditAttributionTarget::route('/{record}/edit'),
         ];
+    }
+
+    protected static function calculateCostPerSlot($record, $costProperty)
+    {
+        $totalCost = $record->{$costProperty};
+        $slots = $record->number_of_slots;
+
+        if ($slots > 0) {
+            return $totalCost / $slots;
+        }
+
+        return 0;
+    }
+
+    protected static function formatCurrency($amount)
+    {
+        return '₱ ' . number_format($amount, 2, '.', ',');
+    }
+    protected static function getParticularOptions($legislatorId)
+    {
+        return Particular::whereHas('allocation', function ($query) use ($legislatorId) {
+            $query->where('legislator_id', $legislatorId);
+        })
+            ->with('subParticular')
+            ->get()
+            ->mapWithKeys(function ($particular) {
+
+                if ($particular->district->name === 'Not Applicable') {
+                    if ($particular->subParticular->name === 'Partylist') {
+                        return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
+                    } else if ($particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
+                        return [$particular->id => $particular->subParticular->name];
+                    } else {
+                        return [$particular->id => $particular->subParticular->name];
+                    }
+                } else {
+                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
+                }
+
+            })
+            ->toArray() ?: ['no_particular' => 'No particular available'];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CompliantTargetsResource\Pages;
+use App\Models\Abdd;
 use App\Models\Allocation;
 use App\Models\DeliveryMode;
 use App\Models\Legislator;
@@ -50,7 +51,7 @@ class CompliantTargetsResource extends Resource
                     ->placeholder('Enter an Absorbative capacity ID')
                     ->default($record ? $record->abscap_id : null)
                     ->disabled()
-                    ->dehydrated() 
+                    ->dehydrated()
                     ->numeric(),
 
             Select::make('sender_legislator_id')
@@ -73,18 +74,18 @@ class CompliantTargetsResource extends Resource
                     return !empty($legislators) ? $legislators : ['no_legislators' => 'No legislator available'];
                 })
                 ->reactive()
-                ->disabled()  
-                ->dehydrated() 
+                ->disabled()
+                ->dehydrated()
                 ->afterStateUpdated(function ($state, callable $set) {
-                    $set('sender_particular_id', null); 
+                    $set('sender_particular_id', null);
                 }),
 
             Select::make('sender_particular_id')
                 ->label('Particular')
                 ->searchable()
-                ->default($record->attributionAllocation->particular_id ?? null) 
+                ->default($record->attributionAllocation->particular_id ?? null)
                 ->options(function ($get) {
-                    $legislatorId = $get('sender_legislator_id'); 
+                    $legislatorId = $get('sender_legislator_id');
 
                     if ($legislatorId) {
                         return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
@@ -99,8 +100,8 @@ class CompliantTargetsResource extends Resource
                     return [];
                 })
                 ->reactive()
-                ->disabled()  
-                ->dehydrated() 
+                ->disabled()
+                ->dehydrated()
                 ->afterStateUpdated(function ($state, callable $set) {
                     $set('scholarship_program_id', null);
                     $set('qualification_title_id', null);
@@ -220,7 +221,7 @@ class CompliantTargetsResource extends Resource
                 ->default($record ? $record->delivery_mode_id : null)
                 ->options(function () {
                     $deliveryModes = DeliveryMode::all();
-            
+
                     return $deliveryModes->isNotEmpty()
                         ? $deliveryModes->pluck('name', 'id')->toArray()
                         : ['no_delivery_mode' => 'No delivery modes available.'];
@@ -228,7 +229,7 @@ class CompliantTargetsResource extends Resource
                 ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode')
                 ->disabled()
                 ->dehydrated(),
-            
+
             Select::make('learning_mode_id')
                 ->label('Learning Mode')
                 ->required()
@@ -236,9 +237,9 @@ class CompliantTargetsResource extends Resource
                 ->searchable()
                 ->preload()
                 ->options(function ($get) {
-                    $deliveryModeId = $get('delivery_mode_id'); 
+                    $deliveryModeId = $get('delivery_mode_id');
                     $learningModes = [];
-            
+
                     if ($deliveryModeId) {
                         $learningModes = DeliveryMode::find($deliveryModeId)
                             ->learningMode
@@ -262,21 +263,12 @@ class CompliantTargetsResource extends Resource
                 ->disabled()
                 ->dehydrated()
                 ->default($record ? $record->abdd_id : null)
-                ->options(function ($get) {
-                    $tviId = $get('tvi_id');
-                    return $tviId ? self::getAbddSectors($tviId) : ['' => 'No ABDD Sector Available.'];
+                ->options(function () {
+                    $abdds = Abdd::all();
+                    return $abdds->isNotEmpty()
+                    ? $abdds->pluck('name', 'id')->toArray()
+                    : ['no_abddd' => 'No ABDD Sector available.'];
                 }),
-
-            TextInput::make('admin_cost')
-                ->label('Admin Cost')
-                ->placeholder('Enter amount of Admin Cost')
-                ->default($record ? $record->admin_cost : null)
-                ->required()
-                ->markAsRequired(false)
-                ->autocomplete(false)
-                ->numeric()
-                ->disabled()
-                ->dehydrated(),
 
             TextInput::make('number_of_slots')
                 ->label('Number of Slots')
@@ -487,22 +479,6 @@ class CompliantTargetsResource extends Resource
             ->get()
             ->pluck('trainingProgram.title', 'id')
             ->toArray();
-    }
-
-    protected static function getAbddSectors($tviId)
-    {
-        $tvi = Tvi::with(['district.municipality.province'])->find($tviId);
-
-        if (!$tvi || !$tvi->district || !$tvi->district || !$tvi->district->province) {
-            return ['' => 'No ABDD Sectors Available.'];
-        }
-
-        $abddSectors = $tvi->district->province->abdds()
-            ->select('abdds.id', 'abdds.name')
-            ->pluck('name', 'id')
-            ->toArray();
-
-        return empty($abddSectors) ? ['' => 'No ABDD Sectors Available.'] : $abddSectors;
     }
 
     public function getFormattedParticularAttribute()

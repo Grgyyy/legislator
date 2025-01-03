@@ -16,11 +16,11 @@ class Abdd extends Model
         'name',
     ];
 
-    public function provinces()
-    {
-        return $this->belongsToMany(Province::class, 'province_abdds')
-            ->withTimestamps();
-    }
+    // public function provinces()
+    // {
+    //     return $this->belongsToMany(Province::class, 'province_abdds')
+    //         ->withTimestamps();
+    // }
 
     public function targets()
     {

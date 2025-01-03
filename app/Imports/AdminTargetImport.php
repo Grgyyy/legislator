@@ -28,7 +28,7 @@ use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class TargetImport implements ToModel, WithHeadingRow
+class AdminTargetImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
@@ -105,10 +105,11 @@ class TargetImport implements ToModel, WithHeadingRow
                 }
 
                 $target = Target::create($targetData);
-                $allocation->decrement('balance', $totals['total_amount']);
-                $skillPriority->decrement('available_slots', $numberOfSlots);
+                // $allocation->decrement('balance', $totals['total_amount']);
+                // $skillPriority->decrement('available_slots', $numberOfSlots);
 
                 $this->logTargetHistory($target, $allocation, $totals);
+
             });
         } catch (Throwable $e) {
             Log::error("Import failed: " . $e->getMessage());

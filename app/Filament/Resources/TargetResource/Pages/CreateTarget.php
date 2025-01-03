@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TargetResource\Pages;
 
 use App\Models\ProvinceAbdd;
+use App\Models\SkillPriority;
 use App\Models\Tvi;
 use Exception;
 use App\Models\Target;
@@ -49,21 +50,32 @@ class CreateTarget extends CreateRecord
                 $allocation = $this->getAllocation($targetData);
                 $institution = $this->getInstitution($targetData['tvi_id']);
                 $qualificationTitle = $this->getQualificationTitle($targetData['qualification_title_id']);
-                $provinceAbdd = $this->getProvinceAbdd(
-                    $targetData['abdd_id'],
+
+                // $provinceAbdd = $this->getProvinceAbdd(
+                //     $targetData['abdd_id'],
+                //     $institution->district->province_id,
+                //     $targetData['allocation_year']
+                // );
+
+                $skillPriority = $this->getSkillPriority(
+                    $qualificationTitle->training_program_id,
                     $institution->district->province_id,
                     $targetData['allocation_year']
                 );
-
                 $numberOfSlots = $targetData['number_of_slots'] ?? 0;
-                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $targetData);
+                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
 
                 if ($allocation->balance < round($totals['total_amount'], 2)) {
                     $this->sendErrorNotification('Insufficient allocation balance.');
                     throw new Exception('Insufficient allocation balance.');
                 }
 
-                if ($provinceAbdd->available_slots < $numberOfSlots) {
+                // if ($provinceAbdd->available_slots < $numberOfSlots) {
+                //     $this->sendErrorNotification('Insufficient slots available in Province Abdd.');
+                //     throw new Exception('Insufficient slots available in Province Abdd.');
+                // }
+
+                if ($skillPriority->available_slots < $numberOfSlots) {
                     $this->sendErrorNotification('Insufficient slots available in Province Abdd.');
                     throw new Exception('Insufficient slots available in Province Abdd.');
                 }
@@ -71,7 +83,9 @@ class CreateTarget extends CreateRecord
                 // Create Target and Decrement Allocations/Slots
                 $target = $this->createTarget($targetData, $allocation, $institution, $qualificationTitle, $totals);
                 $allocation->decrement('balance', $totals['total_amount']);
-                $provinceAbdd->decrement('available_slots', $numberOfSlots);
+                $skillPriority->decrement('available_slots', $numberOfSlots);
+
+                // $provinceAbdd->decrement('available_slots', $numberOfSlots);
 
                 // Log the history
                 $this->logTargetHistory($targetData, $target, $allocation, $totals);
@@ -91,7 +105,6 @@ class CreateTarget extends CreateRecord
         });
     }
 
-
     private function sendSuccessNotification(string $message): void
     {
         Notification::make()
@@ -100,8 +113,6 @@ class CreateTarget extends CreateRecord
             ->body($message)
             ->send();
     }
-
-
 
     private function validateTargetData(array $targetData): void
     {
@@ -148,25 +159,46 @@ class CreateTarget extends CreateRecord
         return $institution;
     }
 
-    private function getProvinceAbdd(int $abddId, int $provinceId, int $appropriationYear): ProvinceAbdd
+    // private function getProvinceAbdd(int $abddId, int $provinceId, int $appropriationYear): ProvinceAbdd
+    // {
+    //     $provinceAbdd = ProvinceAbdd::where([
+    //         'abdd_id' => $abddId,
+    //         'province_id' => $provinceId,
+    //         'year' => $appropriationYear,
+    //     ])->first();
+
+    //     if (!$provinceAbdd) {
+    //         $this->sendErrorNotification('Province Abdd Slots not found.');
+    //         throw new Exception('Province Abdd Slots not found.');
+    //     }
+
+    //     if ($provinceAbdd->available_slots <= 0) {
+    //         $this->sendErrorNotification('No available slots in Province Abdd.');
+    //         throw new Exception('No available slots in Province Abdd.');
+    //     }
+
+    //     return $provinceAbdd;
+    // }
+
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
     {
-        $provinceAbdd = ProvinceAbdd::where([
-            'abdd_id' => $abddId,
+        $skillPriority = SkillPriority::where([
+            'training_program_id' => $trainingProgram,
             'province_id' => $provinceId,
             'year' => $appropriationYear,
         ])->first();
 
-        if (!$provinceAbdd) {
-            $this->sendErrorNotification('Province Abdd Slots not found.');
-            throw new Exception('Province Abdd Slots not found.');
+        if (!$skillPriority) {
+            $this->sendErrorNotification('Skill Priority not found.');
+            throw new Exception('Skill Priority not found.');
         }
 
-        if ($provinceAbdd->available_slots <= 0) {
-            $this->sendErrorNotification('No available slots in Province Abdd.');
-            throw new Exception('No available slots in Province Abdd.');
+        if ($skillPriority->available_slots <= 0) {
+            $this->sendErrorNotification('No available slots in Skill Priority');
+            throw new Exception('No available slots in Skill Priority.');
         }
 
-        return $provinceAbdd;
+        return $skillPriority;
     }
 
     private function getQualificationTitle(int $qualificationTitleId): QualificationTitle
@@ -181,7 +213,7 @@ class CreateTarget extends CreateRecord
         return $qualificationTitle;
     }
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, array $targetData): array
+    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots): array
     {
         return [
             'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
@@ -194,7 +226,7 @@ class CreateTarget extends CreateRecord
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => ($qualificationTitle->pcc * $numberOfSlots) + $targetData['admin_cost'],
+            'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
         ];
     }
 
@@ -215,7 +247,6 @@ class CreateTarget extends CreateRecord
             'target_status_id' => 1,
         ], $totals));
     }
-
 
     private function logTargetHistory(array $targetData, Target $target, Allocation $allocation, array $totals): void
     {
@@ -245,13 +276,11 @@ class CreateTarget extends CreateRecord
             'total_book_allowance' => $totals['total_book_allowance'],
             'total_uniform_allowance' => $totals['total_uniform_allowance'],
             'total_misc_fee' => $totals['total_misc_fee'],
-            'admin_cost' => $targetData['admin_cost'],
             'total_amount' => $totals['total_amount'],
             'appropriation_type' => $targetData['appropriation_type'],
             'description' => 'Target Created',
         ]);
     }
-
 
     private function sendErrorNotification(string $message): void
     {
