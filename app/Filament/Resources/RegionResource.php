@@ -135,8 +135,16 @@ class RegionResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
-                                    Column::make('code')->heading('Code'),
-                                    Column::make('name')->heading('Region'),
+                                    Column::make('code')
+                                        ->heading('UACS Code')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->code ?: '-';
+                                        }),
+                                    Column::make('name')
+                                        ->heading('Region')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->name ?: '-';
+                                        }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Region'),
                         ]),
@@ -157,7 +165,6 @@ class RegionResource extends Resource
             'index' => Pages\ListRegions::route('/'),
             'create' => Pages\CreateRegion::route('/create'),
             'edit' => Pages\EditRegion::route('/{record}/edit'),
-            // 'show_provinces' => Pages\ShowProvinces::route('/{record}/provinces'),
         ];
     }
 }

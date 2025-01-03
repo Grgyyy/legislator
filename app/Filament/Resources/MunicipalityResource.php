@@ -17,7 +17,6 @@ use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Forms\Components\MultiSelect;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -107,6 +106,7 @@ class MunicipalityResource extends Resource
                             ->get()
                             ->mapWithKeys(function ($district) {
                                 $municipalityName = $district->underMunicipality->name ?? null;
+
                                 return [
                                     $district->id => $municipalityName
                                         ? "{$district->name} - {$municipalityName}"
@@ -124,6 +124,7 @@ class MunicipalityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No municipalities available')
             ->columns([
                 TextColumn::make('code')
                     ->label('UACS Code')
@@ -134,17 +135,17 @@ class MunicipalityResource extends Resource
 
                 TextColumn::make('name')
                     ->label('Municipality')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('class')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('district')
-                    ->label('District')
+                    ->label('District')                    
+                    ->searchable()
+                    ->toggleable()
                     ->getStateUsing(function ($record) {
                         $hasMunicipality = $record->district->contains(function ($district) {
                             return !is_null($district->underMunicipality->name ?? null);
@@ -175,9 +176,7 @@ class MunicipalityResource extends Resource
                             return implode('', $districtsHtml);
                         }
                     })
-                    ->html()                    
-                    ->searchable()
-                    ->toggleable(),
+                    ->html(),
 
                 TextColumn::make('province.name')
                     ->searchable()
@@ -238,45 +237,51 @@ class MunicipalityResource extends Resource
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected municipalities have been deleted permanently.');
                         }),
 
-                    ExportBulkAction::make()->exports([
-                        ExcelExport::make()
-                            ->withColumns([
-                                Column::make('code')->heading('Code')
-                                    ->getStateUsing(function ($record) {
-                                        return $record->code ?: '-'; // Replace blank values with a hyphen
-                                    }),
-                                Column::make('name')->heading('Municipality')
-                                    ->getStateUsing(function ($record) {
-                                        return $record->name ?: '-'; // Replace blank values with a hyphen
-                                    }),
-                                Column::make('class')->heading('Municipality Class')
-                                    ->getStateUsing(function ($record) {
-                                        return $record->class ?: '-'; // Replace blank values with a hyphen
-                                    }),
-                                Column::make('district')->heading('District')
-                                    ->getStateUsing(function ($record) {
-                                        // Format the district value or set hyphen if blank
-                                        $districts = $record->district->map(function ($district) {
-                                            $municipalityName = $district->underMunicipality->name ?? null;
-                                            return $municipalityName
-                                                ? "{$district->name} - {$municipalityName}"
-                                                : "{$district->name}";
-                                        })->join(', ');
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('code')
+                                        ->heading('UACS Code')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->code ?: '-';
+                                        }),
+                                    Column::make('name')
+                                        ->heading('Municipality')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->name ?: '-';
+                                        }),
+                                    Column::make('class')
+                                        ->heading('Municipality Class')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->class ?: '-';
+                                        }),
+                                    Column::make('district')
+                                        ->heading('District')
+                                        ->getStateUsing(function ($record) {
+                                            $districts = $record->district->map(function ($district) {
+                                                $municipalityName = $district->underMunicipality->name ?? null;
 
-                                        return $districts ?: '-'; // Set hyphen if no districts
-                                    }),
-                                Column::make('province.name')->heading('Province')
-                                    ->getStateUsing(function ($record) {
-                                        return $record->province->name ?: '-'; // Replace blank values with a hyphen
-                                    }),
-                                Column::make('province.region.name')->heading('Region')
-                                    ->getStateUsing(function ($record) {
-                                        return $record->province->region->name ?: '-'; // Replace blank values with a hyphen
-                                    }),
-                            ])
-                            ->withFilename(now()->format('m-d-Y') . ' - Municipality'),
-                    ]),
+                                                return $municipalityName
+                                                    ? "{$district->name} - {$municipalityName}"
+                                                    : "{$district->name}";
+                                            })->join(', ');
 
+                                            return $districts ?: '-';
+                                        }),
+                                    Column::make('province.name')
+                                        ->heading('Province')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->province->name ?: '-';
+                                        }),
+                                    Column::make('province.region.name')
+                                        ->heading('Region')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->province->region->name ?: '-';
+                                        }),
+                                ])
+                                ->withFilename(now()->format('m-d-Y') . ' - Municipality'),
+                        ]),
                 ]),
             ]);
     }
@@ -292,7 +297,9 @@ class MunicipalityResource extends Resource
                 $query->whereHas('district', function (Builder $subQuery) use ($districtId) {
                     $subQuery->where('districts.id', $districtId);
                 });
-            });
+            })
+            ->orderBy('province_id')
+            ->orderBy('name');
     }
 
     public static function getPages(): array

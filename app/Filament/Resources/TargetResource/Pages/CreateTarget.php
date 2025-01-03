@@ -13,11 +13,20 @@ use App\Models\QualificationTitle;
 use Illuminate\Support\Facades\DB;
 use Filament\Notifications\Notification;
 use App\Filament\Resources\TargetResource;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateTarget extends CreateRecord
 {
     protected static string $resource = TargetResource::class;
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
 
     protected function getRedirectUrl(): string
     {

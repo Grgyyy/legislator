@@ -87,7 +87,6 @@ class ProvinceResource extends Resource
 
                 TextColumn::make('name')
                     ->label('Province')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
 
@@ -157,12 +156,20 @@ class ProvinceResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('region.code')
-                                        ->heading('Code'),
+                                        ->heading('UACS Code')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->code ?: '-';
+                                        }),
                                     Column::make('name')
-                                        ->heading('Province'),
+                                        ->heading('Province')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->name ?: '-';
+                                        }),
                                     Column::make('region.name')
-                                        ->heading('Region'),
-
+                                        ->heading('Region')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->region->name ?: '-';
+                                        }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Province')
                         ]),
@@ -176,7 +183,9 @@ class ProvinceResource extends Resource
         $routeParameter = request()->route('record');
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable');
+            ->whereNot('name', 'Not Applicable')
+            ->orderBy('region_id')
+            ->orderBy('name');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('region_id', (int) $routeParameter);

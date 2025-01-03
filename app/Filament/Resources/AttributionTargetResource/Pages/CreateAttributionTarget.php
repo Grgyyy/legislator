@@ -11,12 +11,21 @@ use App\Filament\Resources\AttributionTargetResource;
 use App\Models\Tvi;
 use App\Models\ProvinceAbdd;
 use Exception;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
 class CreateAttributionTarget extends CreateRecord
 {
     protected static string $resource = AttributionTargetResource::class;
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
 
     protected static ?string $title = 'Create Attribution Target';
 

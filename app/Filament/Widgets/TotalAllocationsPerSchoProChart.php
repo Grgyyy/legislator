@@ -41,6 +41,39 @@ class TotalAllocationsPerSchoProChart extends ApexChartWidget
             'chart' => [
                 'type' => 'pie',
                 'height' => 300,
+                'toolbar' => [
+                    'show' => true,
+                    'offsetX' => 0,
+                    'offsetY' => 0,
+                    'tools' => [
+                        'download' => true,
+                        // 'download' => '<img src="/static/icons/download.png" class="ico-download" width="20">'
+                        'selection' => true,
+                        'zoom' => true,
+                        'zoomin' => true,
+                        'zoomout' => true,
+                        'pan' => true,
+                        'reset' => true,
+                        'customIcons' => [],
+                    ],
+                    'export' => [
+                        'csv' => [
+                            'filename' => 'Total Allocations per Scholarship Program',
+                            'columnDelimiter' => ',',
+                            'headerCategory' => 'Scholarship Program',
+                            'headerValue' => 'Total Allocation',
+                            'categoryFormatter' => "function(x) { return new Date(x).toDateString(); }",
+                            'valueFormatter' => "function(y) { return y; }",
+                        ],
+                        'svg' => [
+                            'filename' => 'Total Allocations per Scholarship Program',
+                            'show' => false,
+                        ],
+                        'png' => [
+                            'filename' => 'Total Allocations per Scholarship Program',
+                        ],
+                    ],
+                ],
             ],
             'series' => $series,
             'labels' => $labels,

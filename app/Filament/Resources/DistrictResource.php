@@ -144,18 +144,18 @@ class DistrictResource extends Resource
 
                 TextColumn::make('name')
                     ->label('District')
-                    ->sortable()
                     ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('municipality.name')
                     ->label('Municipality')
-                    ->getStateUsing(function ($record) {
-                        return $record->municipality->pluck('name')->join(', ');
-                    })
                     ->searchable()
-                    ->toggleable(),
-
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        return $record->municipality->isNotEmpty()
+                            ? $record->municipality->pluck('name')->join(', ')
+                            : '-';
+                    }),
 
                 TextColumn::make('province.name')
                     ->searchable()
@@ -226,10 +226,33 @@ class DistrictResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
-                                    Column::make('code')->heading('Code'),
-                                    Column::make('name')->heading('District'),
-                                    Column::make('province.name')->heading('Province'),
-                                    Column::make('province.region.name')->heading('Region'),
+                                    Column::make('code')
+                                        ->heading('UACS Code')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->code ?: '-';
+                                        }),
+                                    Column::make('name')
+                                        ->heading('District')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->name ?: '-';
+                                        }),
+                                    Column::make('municipality.name')
+                                        ->heading('Municipality')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->municipality->isNotEmpty() 
+                                                ? $record->municipality->pluck('name')->join(', ')
+                                                : '-';
+                                        }),
+                                    Column::make('province.name')
+                                        ->heading('Province')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->province->name ?: '-';
+                                        }),
+                                    Column::make('province.region.name')
+                                        ->heading('Region')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->province->region->name ?: '-';
+                                        }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - District')
                         ])
@@ -243,7 +266,10 @@ class DistrictResource extends Resource
         $routeParameter = request()->route('record');
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable');
+            ->whereNot('name', 'Not Applicable')
+            ->orderBy('province_id')
+            ->orderBy('municipality_id')
+            ->orderBy('name');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('province_id', (int) $routeParameter);
