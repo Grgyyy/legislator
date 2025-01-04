@@ -51,7 +51,7 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
                         'hours_duration' => isset($row['no_of_training_hours']) ? (float) $row['no_of_training_hours'] : 0,
                         'days_duration' => isset($row['no_of_training_days']) ? (float) $row['no_of_training_days'] : 0,
                         'pcc' => $totalPCC,
-                        'soc' => true
+                        'soc' => 1
                     ]));
                 } else {
                     $qualificationTitle->update(array_merge($costs, [

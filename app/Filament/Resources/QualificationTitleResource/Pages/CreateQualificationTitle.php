@@ -47,7 +47,7 @@ class CreateQualificationTitle extends CreateRecord
                 'hours_duration' => $this->ensureNumeric($data['hours_duration']),
                 'days_duration' => $this->ensureNumeric($data['days_duration']),
                 'pcc' => $totalPCC,
-                'soc' => true
+                'soc' => 1
             ]));
         });
 
