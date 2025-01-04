@@ -59,6 +59,7 @@ class QualificationTitleResource extends Resource
                     ->options(function () {
                         return TrainingProgram::all()
                             ->pluck('title', 'id')
+                            ->mapWithKeys(fn ($title, $id) => [$id => ucwords($title)])
                             ->toArray() ?: ['no_training_program' => 'No Training Program Available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_training_program')
@@ -256,7 +257,8 @@ class QualificationTitleResource extends Resource
                     ->label('Qualification Title')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => ucwords($state)),
 
                 TextColumn::make('scholarshipProgram.name')
                     ->label('Scholarship Program')
