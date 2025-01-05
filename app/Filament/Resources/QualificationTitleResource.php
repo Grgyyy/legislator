@@ -59,7 +59,17 @@ class QualificationTitleResource extends Resource
                     ->options(function () {
                         return TrainingProgram::all()
                             ->pluck('title', 'id')
-                            ->mapWithKeys(fn ($title, $id) => [$id => ucwords($title)])
+                            ->mapWithKeys(function ($title, $id) {
+                                $title = ucwords($title);
+
+                                if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                                    $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                        return 'NC ' . strtoupper($matches[1]);
+                                    }, $title);
+                                }
+
+                                return [$id => $title];
+                            })
                             ->toArray() ?: ['no_training_program' => 'No Training Program Available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_training_program')

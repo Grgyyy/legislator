@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('institution_programs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('tvi_id')
-                ->constrained('provinces')
+                ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('training_program_id')
                 ->constrained()
