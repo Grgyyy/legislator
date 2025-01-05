@@ -199,9 +199,7 @@ class TargetResource extends Resource
                                     ->pluck('name', 'id')
                                     ->toArray() ?: ['no_abdd' => 'No ABDD Sectors available'];
                             })
-                            ->disableOptionWhen(fn($value) => $value === 'no_abddd')
-                            ->disabled()
-                            ->dehydrated(),
+                            ->disableOptionWhen(fn($value) => $value === 'no_abddd'),
 
                         Select::make('delivery_mode_id')
                             ->label('Delivery Mode')
@@ -775,7 +773,8 @@ class TargetResource extends Resource
                 TextColumn::make('tvi.name')
                     ->label('Institution')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
                 TextColumn::make('tvi.tviClass.tviType.name')
                     ->label('Institution Type')
@@ -795,7 +794,22 @@ class TargetResource extends Resource
                 TextColumn::make('qualification_title_name')
                     ->label('Qualification Title')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) {
+                            return $state;
+                        }
+
+                        $state = ucwords($state);
+
+                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
+                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                return 'NC ' . strtoupper($matches[1]);
+                            }, $state);
+                        }
+
+                        return $state;
+                    }),
 
                 TextColumn::make('abdd.name')
                     ->label('ABDD Sector')
