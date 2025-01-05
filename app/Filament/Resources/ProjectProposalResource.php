@@ -74,7 +74,14 @@ class ProjectProposalResource extends Resource
 
                         return $state;
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
+
+                TextColumn::make('scholarshipProgram.name')
+                    ->label('Scholarship Programs'),
+                    // ->formatStateUsing(function ($state, $record) {
+                    //     return $record->scholarshipProgram->pluck('name')->implode(', ');
+                    // }),
 
                 SelectColumn::make('status_id')
                     ->label('Status')
@@ -83,13 +90,9 @@ class ProjectProposalResource extends Resource
                         '2' => 'Inactive',
                     ])
                     ->disablePlaceholderSelection()
-                    ->extraAttributes(['style' => 'width: 125px;'])
+                    ->extraAttributes(['style' => 'width: 125px;']),
 
-                // TextColumn::make('scholarshipProgram.name')
-                //     ->label('Scholarship Programs')
-                //     ->formatStateUsing(function ($state, $record) {
-                //         return $record->scholarshipProgram->pluck('name')->implode(', ');
-                //     }),
+
             ])
             ->filters([/* Any filters you want to apply */])
             ->actions([
@@ -161,8 +164,8 @@ class ProjectProposalResource extends Resource
         return parent::getEloquentQuery()
             ->with(['trainingProgram', 'scholarshipProgram'])
             ->where('qualification_titles.soc', 0)
-            ->select('qualification_titles.*')
-            ->groupBy('qualification_titles.training_program_id');
+            ->select('qualification_titles.*');
+            // ->groupBy('qualification_titles.training_program_id');
     }
 
     public static function getPages(): array
