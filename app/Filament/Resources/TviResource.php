@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Models\TviClass;
 use App\Models\InstitutionClass;
@@ -182,6 +183,27 @@ class TviResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false),
+
+                Select::make('training_programs')
+                    ->relationship('trainingPrograms')
+                    ->label('Training Programs')
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->multiple()
+                    ->options(function () {
+                        return TrainingProgram::all()->pluck('title', 'id')->map(function ($item) {
+                            $item = ucwords($item);
+
+                            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $item)) {
+                                $item = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                    return 'NC ' . strtoupper($matches[1]);
+                                }, $item);
+                            }
+
+                            return $item;
+                        });
+                    })
             ]);
     }
 
