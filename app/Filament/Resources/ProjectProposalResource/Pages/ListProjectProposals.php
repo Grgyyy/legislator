@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProjectProposalResource\Pages;
 
 use App\Filament\Resources\ProjectProposalResource;
+use App\Imports\AdminProjectProposalImport;
 use App\Imports\ProjectProposalProgramImport;
 use Filament\Actions\CreateAction;
 use Exception;
@@ -33,22 +34,39 @@ class ListProjectProposals extends ListRecords
                 ->icon('heroicon-m-plus')
                 ->label('New'),
             Action::make('TargetImport')
-            ->label('Import')
-            ->icon('heroicon-o-document-arrow-up')
-            ->form([
-                FileUpload::make('attachment')
-                    ->required(),
-            ])
-            ->action(function (array $data) {
-                $file = public_path('storage/' . $data['attachment']);
+                ->label('Import')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('attachment')
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $file = public_path('storage/' . $data['attachment']);
 
-                try {
-                    Excel::import(new ProjectProposalProgramImport, $file);
-                    NotificationHandler::sendSuccessNotification('Import Successful', 'Target data have been successfully imported from the file.');
-                } catch (Exception $e) {
-                    NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
-                }
-            }),
+                    try {
+                        Excel::import(new ProjectProposalProgramImport, $file);
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'Target data have been successfully imported from the file.');
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
+                    }
+                }),
+            Action::make('AdminProgramImport')
+                ->label('Admin Import')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('attachment')
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $file = public_path('storage/' . $data['attachment']);
+
+                    try {
+                        Excel::import(new AdminProjectProposalImport, $file);
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'Target data have been successfully imported from the file.');
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
+                    }
+                }),
         ];
     }
 }
