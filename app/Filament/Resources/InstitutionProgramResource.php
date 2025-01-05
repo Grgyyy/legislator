@@ -37,6 +37,14 @@ class InstitutionProgramResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationGroup = "TARGET DATA INPUT";
+
+    protected static ?string $navigationParentItem = "Institutions";
+
+    protected static ?string $navigationLabel = "Institution's Training Programs";
+
+    protected static ?int $navigationSort = 4;
+
     public static function form(Form $form): Form
     {
         return $form
