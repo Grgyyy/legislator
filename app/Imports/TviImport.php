@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Region;
+use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Models\District;
 use App\Models\TviClass;
@@ -24,7 +25,6 @@ class TviImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
-
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
@@ -37,8 +37,10 @@ class TviImport implements ToModel, WithHeadingRow
                 $municipalityId = $this->getMunicipalityId($provinceId, $row['municipality']);
                 $districtId = $this->getDistrictId($regionId, $provinceId, $municipalityId, $row['district']);
                 $tviCode = $row['school_id'] ? $row['school_id'] : null;
+                $trainingProgramName = strtolower($row['qualification_title']);
 
 
+                // Fetch or create TVI record
                 $tviRecord = Tvi::where('name', $row['institution_name'])
                     ->where('school_id', $tviCode)
                     ->where('address', $row['full_address'])
@@ -46,25 +48,31 @@ class TviImport implements ToModel, WithHeadingRow
 
                 if (!$tviRecord) {
                     $tviRecord = Tvi::create([
+
                         'school_id' => $row['school_id'],
-                        'name' => $row['institution_name'],
+                        'name' => strtolower($row['institution_name']),
                         'institution_class_id' => $institutionClassId,
                         'tvi_class_id' => $tviClassId,
                         'district_id' => $districtId,
                         'municipality_id' => $municipalityId,
-                        'address' => $row['full_address'],
+                        'address' => strtolower($row['full_address']),
                     ]);
-                } else {
-                    $tviRecord->update([
-                        'institution_class_id' => $institutionClassId,
-                        'tvi_class_id' => $tviClassId,
-                        'address' => $row['full_address'],
-                    ]);
-
-                    return $tviRecord;
-
                 }
 
+                // Check if training program exists
+                if ($trainingProgramName) {
+
+                    $trainingProgramId = TrainingProgram::where('title', $trainingProgramName)
+                        ->first();
+
+                    if (!$trainingProgramId) {
+                        throw new \Exception("The training program named '{$trainingProgramName}' does not exist.");
+                    }
+
+                    $tviRecord->trainingPrograms()->attach($trainingProgramId);
+                }
+
+                return $tviRecord;
 
             } catch (Throwable $e) {
                 DB::rollBack(); // Rollback the transaction in case of error
@@ -73,6 +81,7 @@ class TviImport implements ToModel, WithHeadingRow
             }
         });
     }
+
 
     protected function validateRow(array $row)
     {

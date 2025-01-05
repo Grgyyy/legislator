@@ -222,7 +222,8 @@ class TviResource extends Resource
                     ->label("Institution")
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
                 TextColumn::make("tviClass.name")
                     ->label('Institution Class(A)')
@@ -256,7 +257,8 @@ class TviResource extends Resource
 
                 TextColumn::make("address")
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => ucwords($state)),
             ])
             ->filters([
                 TrashedFilter::make()
