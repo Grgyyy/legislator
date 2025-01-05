@@ -21,6 +21,7 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -61,11 +62,20 @@ class ProjectProposalResource extends Resource
                     ->formatStateUsing(fn ($state) => ucwords($state))
                     ->sortable(),
 
-                TextColumn::make('scholarshipProgram.name')
-                    ->label('Scholarship Programs')
-                    ->formatStateUsing(function ($state, $record) {
-                        return $record->scholarshipProgram->pluck('name')->implode(', ');
-                    }),
+                SelectColumn::make('status_id')
+                    ->label('Status')
+                    ->options([
+                        '1' => 'Active',
+                        '2' => 'Inactive',
+                    ])
+                    ->disablePlaceholderSelection()
+                    ->extraAttributes(['style' => 'width: 125px;'])
+
+                // TextColumn::make('scholarshipProgram.name')
+                //     ->label('Scholarship Programs')
+                //     ->formatStateUsing(function ($state, $record) {
+                //         return $record->scholarshipProgram->pluck('name')->implode(', ');
+                //     }),
             ])
             ->filters([/* Any filters you want to apply */])
             ->actions([

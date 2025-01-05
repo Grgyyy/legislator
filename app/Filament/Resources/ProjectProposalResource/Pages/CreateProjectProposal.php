@@ -8,6 +8,7 @@ use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
 use App\Models\Tvet;
+use App\Services\NotificationHandler;
 use DB;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
@@ -37,7 +38,10 @@ class CreateProjectProposal extends CreateRecord
             $projectProposalProgram = strtolower($data['program_name']);
 
             if (TrainingProgram::where('title', $projectProposalProgram)->exists()) {
-                throw new \Exception("Program with name '{$data['program_name']}' already exists.");
+                NotificationHandler::handleValidationException(
+                    'Proposed Project Program Exists',
+                    'The proposed project program is already exists. Please choose a different proposed project.'
+                );
             }
 
             $tvetSector = Tvet::where('name', 'Not Applicable')->first();

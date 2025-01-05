@@ -380,7 +380,7 @@ class TviResource extends Resource
                         ->url(fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id]))
                         ->icon('heroicon-o-magnifying-glass'),
                     Action::make('viewProgram')
-                        ->label('View Qualification Title')
+                        ->label('View Training Programs')
                         ->url(fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id]))
                         ->icon('heroicon-o-magnifying-glass'),
                     DeleteAction::make()

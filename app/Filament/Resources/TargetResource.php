@@ -153,8 +153,14 @@ class TargetResource extends Resource
                             ->options(function () {
                                 return TVI::whereNot('name', 'Not Applicable')
                                     ->pluck('name', 'id')
+                                    ->mapWithKeys(function ($name, $id) {
+                                        $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
+
+                                        return [$id => $formattedName];
+                                    })
                                     ->toArray() ?: ['no_tvi' => 'No institution available'];
                             })
+                            ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state)))
                             ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
                         Select::make('qualification_title_id')
@@ -526,6 +532,11 @@ class TargetResource extends Resource
                                     ->options(function () {
                                         return TVI::whereNot('name', 'Not Applicable')
                                             ->pluck('name', 'id')
+                                            ->mapWithKeys(function ($name, $id) {
+                                                $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
+
+                                                return [$id => $formattedName];
+                                            })
                                             ->toArray() ?: ['no_tvi' => 'No institution available'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
@@ -541,7 +552,7 @@ class TargetResource extends Resource
                                         $scholarshipProgramId = $get('scholarship_program_id');
                                         $tviId = $get('tvi_id');
                                         $year = $get('allocation_year');
-        
+
                                         return $scholarshipProgramId
                                             ? self::getQualificationTitles($scholarshipProgramId, $tviId, $year)
                                             : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
@@ -1210,37 +1221,54 @@ class TargetResource extends Resource
 
     protected static function getQualificationTitles($scholarshipProgramId, $tviId, $year)
     {
-        // Fetch the TVI with its associated district and province
         $tvi = Tvi::with(['district.province'])->find($tviId);
 
         if (!$tvi || !$tvi->district || !$tvi->district->province) {
             return ['' => 'No Skill Priority available'];
         }
 
-        // Fetch skill priorities for the province
         $skillPriorities = $tvi->district->province->skillPriorities()
-            ->where('year', $year) // Optional: Filter by current year if applicable
+            ->where('year', $year)
             ->pluck('training_program_id')
             ->toArray();
 
         if (empty($skillPriorities)) {
-            return ['' => 'No Training Programs available for this Skill Priority'];
+            return ['' => 'No Training Programs available for this Skill Priority.'];
         }
 
-        // Fetch Qualification Titles based on the skill priority and scholarship program
+        $institutionPrograms = $tvi->trainingPrograms()
+            ->pluck('training_program_id')
+            ->toArray();
+
+        if (empty($institutionPrograms)) {
+            return ['' => 'No Training Programs available for this Institution.'];
+        }
+
         $qualificationTitles = QualificationTitle::whereIn('training_program_id', $skillPriorities)
+            ->whereIn('training_program_id', $institutionPrograms)
             ->where('scholarship_program_id', $scholarshipProgramId)
-            ->where('status_id', 1) // Ensure active qualifications
-            ->whereNull('deleted_at') // Exclude soft-deleted records
-            ->with('trainingProgram') // Eager load related training program
+            ->where('status_id', 1)
+            ->where('soc', 1)
+            ->whereNull('deleted_at')
+            ->with('trainingProgram')
             ->get()
             ->mapWithKeys(function ($qualification) {
-                return [$qualification->id => $qualification->trainingProgram->title];
+                $title = $qualification->trainingProgram->title;
+
+                // Check for 'NC' pattern and capitalize it
+                if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                    $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                        return 'NC ' . strtoupper($matches[1]);
+                    }, $title);
+                }
+
+                return [$qualification->id => ucwords($title)];
             })
             ->toArray();
 
         return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }
+
 
 
     // protected static function getAbddSectors($tviId)
