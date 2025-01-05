@@ -81,7 +81,7 @@ class CompliantTargetsResource extends Resource
                 }),
 
             Select::make('sender_particular_id')
-                ->label('Particular')
+                ->label('Attributor Particular')
                 ->searchable()
                 ->default($record->attributionAllocation->particular_id ?? null)
                 ->options(function ($get) {
@@ -195,10 +195,19 @@ class CompliantTargetsResource extends Resource
                 ->required()
                 ->searchable()
                 ->preload()
+                ->default($record ? $record->tvi_id : null)
                 ->disabled()
                 ->dehydrated()
-                ->default($record ? $record->tvi_id : null)
-                ->relationship('tvi', 'name'),
+                ->options(function () {
+                    return TVI::whereNot('name', 'Not Applicable')
+                        ->pluck('name', 'id')
+                        ->mapWithKeys(function ($name, $id) {
+                            $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
+
+                            return [$id => $formattedName];
+                        })
+                        ->toArray() ?: ['no_tvi' => 'No institution available'];
+                }),
 
             Select::make('qualification_title_id')
                 ->label('Qualification Title')
@@ -209,7 +218,9 @@ class CompliantTargetsResource extends Resource
                 ->default($record ? $record->qualification_title_id : null)
                 ->options(function ($get) {
                     $scholarshipProgramId = $get('scholarship_program_id');
-                    return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId) : ['' => 'No Qualification Title Available.'];
+                    $tvi = $get('tvi_id');
+                    $year = $get('allocation_year');
+                    return $scholarshipProgramId ? self::getQualificationTitles($scholarshipProgramId, $tvi, $year) : ['' => 'No Qualification Title Available.'];
                 }),
 
             Select::make('delivery_mode_id')
@@ -325,11 +336,27 @@ class CompliantTargetsResource extends Resource
                     ->searchable()
                     ->toggleable(),
                 TextColumn::make('tvi.name')
-                    ->label('Institution'),
+                    ->label('Institution')
+                    ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
                 TextColumn::make('allocation.scholarship_program.name')
                     ->label('Scholarship Program'),
                 TextColumn::make('qualification_title.trainingProgram.title')
-                    ->label('Qualification Title'),
+                    ->label('Qualification Title')
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) {
+                            return $state;
+                        }
+
+                        $state = ucwords($state);
+
+                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
+                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                return 'NC ' . strtoupper($matches[1]);
+                            }, $state);
+                        }
+
+                        return $state;
+                    }),
                 TextColumn::make('qualification_title.trainingProgram.priority.name')
                     ->label('Priority Sector'),
                 TextColumn::make('qualification_title.trainingProgram.tvet.name')
@@ -470,15 +497,54 @@ class CompliantTargetsResource extends Resource
         return empty($allocations) ? ['' => 'No Allocation Available.'] : $allocations;
     }
 
-    protected static function getQualificationTitles($scholarshipProgramId)
+    protected static function getQualificationTitles($scholarshipProgramId, $tviId, $year)
     {
-        return QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
+        $tvi = Tvi::with(['district.province'])->find($tviId);
+
+        if (!$tvi || !$tvi->district || !$tvi->district->province) {
+            return ['' => 'No Skill Priority available'];
+        }
+
+        $skillPriorities = $tvi->district->province->skillPriorities()
+            ->where('year', $year)
+            ->pluck('training_program_id')
+            ->toArray();
+
+        if (empty($skillPriorities)) {
+            return ['' => 'No Training Programs available for this Skill Priority.'];
+        }
+
+        $institutionPrograms = $tvi->trainingPrograms()
+            ->pluck('training_program_id')
+            ->toArray();
+
+        if (empty($institutionPrograms)) {
+            return ['' => 'No Training Programs available for this Institution.'];
+        }
+
+        $qualificationTitles = QualificationTitle::whereIn('training_program_id', $skillPriorities)
+            ->whereIn('training_program_id', $institutionPrograms)
+            ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('status_id', 1)
+            ->where('soc', 1)
             ->whereNull('deleted_at')
             ->with('trainingProgram')
             ->get()
-            ->pluck('trainingProgram.title', 'id')
+            ->mapWithKeys(function ($qualification) {
+                $title = $qualification->trainingProgram->title;
+
+                // Check for 'NC' pattern and capitalize it
+                if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                    $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                        return 'NC ' . strtoupper($matches[1]);
+                    }, $title);
+                }
+
+                return [$qualification->id => ucwords($title)];
+            })
             ->toArray();
+
+        return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }
 
     public function getFormattedParticularAttribute()
