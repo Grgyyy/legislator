@@ -18,10 +18,9 @@ class CreateProjectProposal extends CreateRecord
 
     public function getBreadcrumbs(): array
     {
-
         return [
             route('filament.admin.resources.project-proposals.index') => 'Project Proposal Programs',
-            'Create'
+            'Create',
         ];
     }
 
@@ -37,45 +36,34 @@ class CreateProjectProposal extends CreateRecord
         return DB::transaction(function () use ($data) {
             $projectProposalProgram = strtolower($data['program_name']);
 
-            // Check if the program already exists
-            $projectProposalProgramExist = TrainingProgram::where('title', $projectProposalProgram)->exists();
-
-            if ($projectProposalProgramExist) {
+            if (TrainingProgram::where('title', $projectProposalProgram)->exists()) {
                 throw new \Exception("Program with name '{$data['program_name']}' already exists.");
             }
 
-            // Retrieve default sectors
             $tvetSector = Tvet::where('name', 'Not Applicable')->first();
             $prioSector = Priority::where('name', 'Not Applicable')->first();
 
-            // Create the training program
             $trainingProgramRecord = TrainingProgram::create([
                 'title' => $projectProposalProgram,
                 'tvet_id' => $tvetSector->id,
                 'priority_id' => $prioSector->id,
             ]);
 
-            // Fetch all scholarship programs
             $scholarshipPrograms = ScholarshipProgram::all();
 
-            // Attach scholarship programs to the training program
             $trainingProgramRecord->scholarshipPrograms()->syncWithoutDetaching(
                 $scholarshipPrograms->pluck('id')->toArray()
             );
 
-            // Create qualifications for all scholarship programs
             foreach ($scholarshipPrograms as $scholarshipProgram) {
                 QualificationTitle::create([
                     'training_program_id' => $trainingProgramRecord->id,
                     'scholarship_program_id' => $scholarshipProgram->id,
-                    'soc' => 0, // Replace with actual status logic if needed
+                    'soc' => 0,
                 ]);
             }
 
-            // Return the main record being created (e.g., TrainingProgram)
             return $trainingProgramRecord;
         });
     }
-
-
 }
