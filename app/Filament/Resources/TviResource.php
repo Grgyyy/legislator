@@ -260,6 +260,9 @@ class TviResource extends Resource
                     ->toggleable()
                     ->formatStateUsing(fn ($state) => ucwords($state)),
             ])
+            ->recordUrl(
+                fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id]),
+            )
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
@@ -375,6 +378,10 @@ class TviResource extends Resource
                     Action::make('viewRecognition')
                         ->label('View Recognition')
                         ->url(fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id]))
+                        ->icon('heroicon-o-magnifying-glass'),
+                    Action::make('viewProgram')
+                        ->label('View Qualification Title')
+                        ->url(fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id]))
                         ->icon('heroicon-o-magnifying-glass'),
                     DeleteAction::make()
                         ->action(function ($record, $data) {

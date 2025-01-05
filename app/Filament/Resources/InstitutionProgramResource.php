@@ -57,6 +57,7 @@ class InstitutionProgramResource extends Resource
                     ->searchable()
                     ->preload()
                     ->native(false)
+                    ->default(fn($get) => request()->get('tvi_id'))
                     ->options(function () {
                         return Tvi::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
@@ -131,10 +132,6 @@ class InstitutionProgramResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()->hidden(fn($record) => $record->trashed()),
-                    Action::make('viewRecognition')
-                        ->label('View Recognition')
-                        ->url(fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id]))
-                        ->icon('heroicon-o-magnifying-glass'),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
@@ -227,8 +224,16 @@ class InstitutionProgramResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class]);
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
+
+        $query->withoutGlobalScopes([SoftDeletingScope::class]);
+
+        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            $query->where('tvi_id', (int) $routeParameter);
+        }
+
+        return $query;
     }
 
     public static function getPages(): array
@@ -237,6 +242,7 @@ class InstitutionProgramResource extends Resource
             'index' => Pages\ListInstitutionPrograms::route('/'),
             'create' => Pages\CreateInstitutionProgram::route('/create'),
             'edit' => Pages\EditInstitutionProgram::route('/{record}/edit'),
+            'showPrograms' => Pages\ShowInstitutionProgram::route('/{record}/showPrograms')
         ];
     }
 }
