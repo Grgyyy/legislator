@@ -37,5 +37,9 @@ class TrainingProgram extends Model
         return $this->belongsTo(Tvet::class);
     }
 
-
+    public function tvis()
+    {
+        return $this->belongsToMany(Tvi::class, 'institution_programs')
+            ->withTimestamps();
+    }
 }
