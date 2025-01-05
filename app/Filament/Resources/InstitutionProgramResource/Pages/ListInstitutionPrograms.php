@@ -5,6 +5,7 @@ namespace App\Filament\Resources\InstitutionProgramResource\Pages;
 use App\Filament\Resources\InstitutionProgramResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\CreateAction;
 
 class ListInstitutionPrograms extends ListRecords
 {
@@ -23,7 +24,9 @@ class ListInstitutionPrograms extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            CreateAction::make()
+                ->label('New')
+                ->icon('heroicon-m-plus'),
         ];
     }
 }
