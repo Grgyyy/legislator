@@ -19909,4 +19909,71 @@ Did you mean one of these?
 [2025-01-06 05:27:10] local.INFO: Searching for region: Name = NCR  
 [2025-01-06 05:27:10] local.INFO: Searching for region: Name = NCR  
 [2025-01-06 05:27:10] local.INFO: Searching for region: Name = NCR  
+<<<<<<< HEAD
 >>>>>>> 6884cd9 (chore: fix Seeder and Resource of Province and municipaliity)
+=======
+[2025-01-06 05:41:26] local.ERROR: Failed to import municipality: The District column is required for municipalities in NCR.  
+[2025-01-06 05:48:13] local.ERROR: Import failed: Program with name 'Hilot (Wellness Massage) NC II' already exists.  
+[2025-01-06 05:48:31] local.ERROR: Import failed: Program with name 'Hilot (Wellness Massage) NC II' already exists.  
+[2025-01-06 06:41:18] local.ERROR: rename(C:\laragon\www\legislator\bootstrap\cache\pac3E42.tmp,C:\laragon\www\legislator\bootstrap\cache/packages.php): Access is denied (code: 5) {"exception":"[object] (ErrorException(code: 0): rename(C:\\laragon\\www\\legislator\\bootstrap\\cache\\pac3E42.tmp,C:\\laragon\\www\\legislator\\bootstrap\\cache/packages.php): Access is denied (code: 5) at C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Filesystem\\Filesystem.php:233)
+[stacktrace]
+#0 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Bootstrap\\HandleExceptions.php(255): Illuminate\\Foundation\\Bootstrap\\HandleExceptions->handleError(2, 'rename(C:\\\\larag...', 'C:\\\\laragon\\\\www\\\\...', 233)
+#1 [internal function]: Illuminate\\Foundation\\Bootstrap\\HandleExceptions->Illuminate\\Foundation\\Bootstrap\\{closure}(2, 'rename(C:\\\\larag...', 'C:\\\\laragon\\\\www\\\\...', 233)
+#2 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Filesystem\\Filesystem.php(233): rename('C:\\\\laragon\\\\www\\\\...', 'C:\\\\laragon\\\\www\\\\...')
+#3 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\PackageManifest.php(181): Illuminate\\Filesystem\\Filesystem->replace('C:\\\\laragon\\\\www\\\\...', '<?php return ar...')
+#4 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\PackageManifest.php(131): Illuminate\\Foundation\\PackageManifest->write(Array)
+#5 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\PackageManifest.php(107): Illuminate\\Foundation\\PackageManifest->build()
+#6 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\PackageManifest.php(90): Illuminate\\Foundation\\PackageManifest->getManifest()
+#7 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\PackageManifest.php(79): Illuminate\\Foundation\\PackageManifest->config('aliases')
+#8 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Bootstrap\\RegisterFacades.php(26): Illuminate\\Foundation\\PackageManifest->aliases()
+#9 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(263): Illuminate\\Foundation\\Bootstrap\\RegisterFacades->bootstrap(Object(Illuminate\\Foundation\\Application))
+#10 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(447): Illuminate\\Foundation\\Application->bootstrapWith(Array)
+#11 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(199): Illuminate\\Foundation\\Console\\Kernel->bootstrap()
+#12 Command line code(1): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#13 {main}
+"} 
+[2025-01-06 06:41:18] local.ERROR: Uncaught ReflectionException: Class "view" does not exist in C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Container\Container.php:912
+Stack trace:
+#0 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Container\Container.php(912): ReflectionClass->__construct('view')
+#1 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Container\Container.php(795): Illuminate\Container\Container->build('view')
+#2 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Foundation\Application.php(963): Illuminate\Container\Container->resolve('view', Array, true)
+#3 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Container\Container.php(731): Illuminate\Foundation\Application->resolve('view', Array)
+#4 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Foundation\Application.php(948): Illuminate\Container\Container->make('view', Array)
+#5 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Foundation\helpers.php(120): Illuminate\Foundation\Application->make('view', Array)
+#6 Command line code(1): app('view')
+#7 {main}
+
+Next Illuminate\Contracts\Container\BindingResolutionException: Target class [view] does not exist. in C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Container\Container.php:914
+Stack trace:
+#0 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Container\Container.php(795): Illuminate\Container\Container->build('view')
+#1 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Foundation\Application.php(963): Illuminate\Container\Container->resolve('view', Array, true)
+#2 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Container\Container.php(731): Illuminate\Foundation\Application->resolve('view', Array)
+#3 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Foundation\Application.php(948): Illuminate\Container\Container->make('view', Array)
+#4 C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Foundation\helpers.php(120): Illuminate\Foundation\Application->make('view', Array)
+#5 Command line code(1): app('view')
+#6 {main}
+  thrown {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Uncaught ReflectionException: Class \"view\" does not exist in C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php:912
+Stack trace:
+#0 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(912): ReflectionClass->__construct('view')
+#1 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(795): Illuminate\\Container\\Container->build('view')
+#2 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(963): Illuminate\\Container\\Container->resolve('view', Array, true)
+#3 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(731): Illuminate\\Foundation\\Application->resolve('view', Array)
+#4 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(948): Illuminate\\Container\\Container->make('view', Array)
+#5 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\helpers.php(120): Illuminate\\Foundation\\Application->make('view', Array)
+#6 Command line code(1): app('view')
+#7 {main}
+
+Next Illuminate\\Contracts\\Container\\BindingResolutionException: Target class [view] does not exist. in C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php:914
+Stack trace:
+#0 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(795): Illuminate\\Container\\Container->build('view')
+#1 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(963): Illuminate\\Container\\Container->resolve('view', Array, true)
+#2 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php(731): Illuminate\\Foundation\\Application->resolve('view', Array)
+#3 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(948): Illuminate\\Container\\Container->make('view', Array)
+#4 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\helpers.php(120): Illuminate\\Foundation\\Application->make('view', Array)
+#5 Command line code(1): app('view')
+#6 {main}
+  thrown at C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Container\\Container.php:914)
+[stacktrace]
+#0 {main}
+"} 
+>>>>>>> 3d03321 (chore: fix delivery mode export)

@@ -43,7 +43,7 @@ class DeliveryModeResource extends Resource
                 TextInput::make('acronym')
                     ->label('Delivery Mode Acronym')
                     ->required()
-                ->maxLength(255),
+                    ->maxLength(255),
                 TextInput::make('name')
                     ->label('Delivery Mode Name')
                     ->required()
@@ -59,7 +59,7 @@ class DeliveryModeResource extends Resource
                 TextColumn::make('acronym')
                     ->label('Delivery Mode Acronym'),
                 TextColumn::make('name')
-                ->label('Delivery Mode Name'),
+                    ->label('Delivery Mode Name'),
             ])
             ->filters([
                 //
@@ -98,14 +98,12 @@ class DeliveryModeResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
+                                    Column::make('acronym')
+                                        ->heading('Delivery Mode Acronym'),
                                     Column::make('name')
                                         ->heading('Delivery Mode Name'),
-                                    Column::make('learningMode.acronym')
-                                        ->heading('Learning Mode Acronym'),
-                                    Column::make('learningMode.name')
-                                        ->heading('Learning Mode'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Institution Recognitions')
+                                ->withFilename(date('m-d-Y') . ' - Delivery Mode')
                         ])
                 ]),
             ]);
