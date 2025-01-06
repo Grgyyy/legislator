@@ -163,7 +163,7 @@ class ProvinceResource extends Resource
                                     Column::make('region.name')
                                         ->heading('Region')
                                         ->getStateUsing(function ($record) {
-                                            return $record->region->name ?: '-';
+                                            return $record->region ? $record->region->name : '-';
                                         }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Province')

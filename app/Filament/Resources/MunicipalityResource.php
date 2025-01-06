@@ -267,12 +267,12 @@ class MunicipalityResource extends Resource
                                     Column::make('province.name')
                                         ->heading('Province')
                                         ->getStateUsing(function ($record) {
-                                            return $record->province->name ?: '-';
+                                            return $record->province ? $record->province->name : '-';
                                         }),
                                     Column::make('province.region.name')
                                         ->heading('Region')
                                         ->getStateUsing(function ($record) {
-                                            return $record->province->region->name ?: '-';
+                                            return $record->province->region ? $record->province->region->name : '-';
                                         }),
                                 ])
                                 ->withFilename(now()->format('m-d-Y') . ' - Municipality'),
