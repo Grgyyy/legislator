@@ -116,17 +116,6 @@ class QualificationTitleResource extends Resource
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
 
-                TextInput::make('cost_of_toolkit_pcc')
-                    ->label('Cost of Toolkit PCC')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->autocomplete(false)
-                    ->numeric()
-                    ->prefix('₱')
-                    ->default(0)
-                    ->minValue(0)
-                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-
                 TextInput::make('training_support_fund')
                     ->label('Training Support Fund')
                     ->required()
@@ -292,15 +281,6 @@ class QualificationTitleResource extends Resource
 
                 TextColumn::make("training_cost_pcc")
                     ->label("Training Cost PCC")
-                    ->sortable()
-                    ->toggleable()
-                    ->prefix('₱ ')
-                    ->formatStateUsing(function ($state) {
-                        return number_format($state, 2, '.', ',');
-                    }),
-
-                TextColumn::make("cost_of_toolkit_pcc")
-                    ->label("Cost of Toolkit PCC")
                     ->sortable()
                     ->toggleable()
                     ->prefix('₱ ')
@@ -492,9 +472,6 @@ class QualificationTitleResource extends Resource
                                         ->heading('Scholarship Program'),
                                     Column::make('training_cost_pcc')
                                         ->heading('Training Cost PCC')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                    Column::make('cost_of_toolkit_pcc')
-                                        ->heading('Cost of Toolkit PCC')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                     Column::make('training_support_fund')
                                         ->heading('Training Support Fund')
