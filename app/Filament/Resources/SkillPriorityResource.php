@@ -7,7 +7,6 @@ use App\Models\Province;
 use App\Models\SkillPriority;
 use App\Models\TrainingProgram;
 use App\Services\NotificationHandler;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
@@ -49,37 +48,43 @@ class SkillPriorityResource extends Resource
                     ->label('Province')
                     ->required()
                     ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
                     ->options(function () {
                         return Province::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_province' => 'No province available'];
+                            ->toArray() ?: ['no_province' => 'No provinces available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_province')
-                    ->searchable(),
+                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
 
                 Select::make('training_program_id')
                     ->label('Training Program')
                     ->required()
                     ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
                     ->options(function () {
                         return TrainingProgram::all()
                             ->pluck('title', 'id')
-                            ->toArray() ?: ['no_training_program' => 'No ABDD Sectors available'];
+                            ->toArray() ?: ['no_training_program' => 'No training programs available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_training_program')
-                    ->searchable(),
+                    ->disableOptionWhen(fn($value) => $value === 'no_training_program'),
 
                 TextInput::make('available_slots')
+                    ->label('Available Slots')
                     ->required()
                     ->markAsRequired(false)
-                    ->numeric()
-                    ->hidden(fn($livewire) => !$livewire->isEdit()), // Use the public method
+                    ->integer()
+                    ->hidden(fn($livewire) => !$livewire->isEdit()),
 
                 TextInput::make('total_slots')
+                    ->label('Slots')
+                    ->placeholder('Enter number of slots')
                     ->required()
                     ->markAsRequired(false)
-                    ->placeholder('Enter total slots')
-                    ->numeric(),
+                    ->integer(),
 
                 TextInput::make('year')
                     ->label('Year')
@@ -148,7 +153,6 @@ class SkillPriorityResource extends Resource
                                     <div style='font-weight: bold;'>Year:</div>
                                     <div>{$record->year}</div>
                                 </div>
-                                
                             ");
                         })
                         ->modalHeading('Add Slots')
@@ -240,13 +244,6 @@ class SkillPriorityResource extends Resource
                         ])
                 ]),
             ]);
-    }
-
-    public static function getRelations(): array
-    {
-        return [
-            // Add relations if necessary
-        ];
     }
 
     public static function getPages(): array
