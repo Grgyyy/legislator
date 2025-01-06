@@ -30,17 +30,18 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
                     ->where('training_program_id', $trainingProgram->id)
                     ->exists();
 
-                if($institutionTrainingProgram) {
-                    throw new \Exception("An existing training program '{$trainingProgram->title}' is already associated with institution '{$institution->name}'.");
+                if(!$institutionTrainingProgram) {
+                    $institutionTrainingProgramRecord = InstitutionProgram::create([
+                        'tvi_id' => $institution->id,
+                        'training_program_id' => $trainingProgram->id
+                    ]);
+
+                    return $institutionTrainingProgramRecord;
+    
                 }
 
-                $institutionTrainingProgramRecord = InstitutionProgram::create([
-                    'tvi_id' => $institution->id,
-                    'training_program_id' => $trainingProgram->id
-                ]);
-
-                return $institutionTrainingProgramRecord;
-
+               
+                return null;
             } catch (Throwable $e) {
                 DB::rollBack();
                 Log::error("An error occurred while importing row: " . json_encode($row) . " Error: " . $e->getMessage());
