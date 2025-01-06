@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources\LegislativeTargetsResource\Pages;
 
+use App\Filament\Resources\AllocationResource\Widgets\StatsOverview;
 use App\Filament\Resources\LegislativeTargetsResource;
+use App\Filament\Resources\LegislativeTargetsResource\Widgets\StatsOverview as WidgetsStatsOverview;
 use App\Models\Allocation;
 use App\Models\Target;
+use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -12,6 +15,8 @@ use Illuminate\Support\Facades\DB;
 
 class TargetReport extends ListRecords
 {
+    use ExposesTableToWidgets;
+
     protected static string $resource = LegislativeTargetsResource::class;
 
     protected static ?string $title = null;
@@ -22,6 +27,12 @@ class TargetReport extends ListRecords
         $allocation = Allocation::find($allocationId);
 
         return $allocation ? $allocation->legislator->name : 'Unknown Legislator';
+    }
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            StatsOverview::class,
+        ];
     }
 
     protected function getParticularName(): string
