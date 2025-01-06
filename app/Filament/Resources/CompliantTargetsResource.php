@@ -507,6 +507,7 @@ class CompliantTargetsResource extends Resource
 
         $skillPriorities = $tvi->district->province->skillPriorities()
             ->where('year', $year)
+            ->where('available_slots', '>=', 10)
             ->pluck('training_program_id')
             ->toArray();
 

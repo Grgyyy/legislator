@@ -59,18 +59,10 @@ class AllocationImport implements ToModel, WithHeadingRow
                         'allocation' => $allocation,
                         'admin_cost' => $admin_cost,
                         'balance' => $allocation - $admin_cost,
-                        'year' => $row['year']
-                    ]);
-                } else {
-                    $allocationRecord->update([
-                        'allocation' => $allocation,
-                        'admin_cost' => $admin_cost,
-                        'balance' => $allocation - $admin_cost,
-                    ]);
+                        'year' => $row['year'],
 
-                    return $allocationRecord;
+                    ]);
                 }
-
             } catch (Throwable $e) {
                 Log::error('Failed to import allocation: ' . $e->getMessage());
                 throw $e;
