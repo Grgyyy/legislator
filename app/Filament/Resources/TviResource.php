@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Models\TviClass;
 use App\Models\InstitutionClass;
@@ -47,7 +48,7 @@ class TviResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 6;
 
     public static function form(Form $form): Form
     {
@@ -182,6 +183,27 @@ class TviResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false),
+
+                Select::make('training_programs')
+                    ->relationship('trainingPrograms')
+                    ->label('Training Programs')
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->multiple()
+                    ->options(function () {
+                        return TrainingProgram::all()->pluck('title', 'id')->map(function ($item) {
+                            $item = ucwords($item);
+
+                            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $item)) {
+                                $item = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                    return 'NC ' . strtoupper($matches[1]);
+                                }, $item);
+                            }
+
+                            return $item;
+                        });
+                    })
             ]);
     }
 
@@ -200,7 +222,8 @@ class TviResource extends Resource
                     ->label("Institution")
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
                 TextColumn::make("tviClass.name")
                     ->label('Institution Class(A)')
@@ -234,8 +257,12 @@ class TviResource extends Resource
 
                 TextColumn::make("address")
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => ucwords($state)),
             ])
+            ->recordUrl(
+                fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id]),
+            )
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
@@ -351,6 +378,10 @@ class TviResource extends Resource
                     Action::make('viewRecognition')
                         ->label('View Recognition')
                         ->url(fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id]))
+                        ->icon('heroicon-o-magnifying-glass'),
+                    Action::make('viewProgram')
+                        ->label('View Training Programs')
+                        ->url(fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id]))
                         ->icon('heroicon-o-magnifying-glass'),
                     DeleteAction::make()
                         ->action(function ($record, $data) {

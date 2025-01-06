@@ -28,6 +28,7 @@ class QualificationTitle extends Model
         'days_duration',
         'pcc',
         'status_id',
+        'soc'
     ];
 
     public function trainingProgram()

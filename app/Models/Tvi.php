@@ -62,4 +62,10 @@ class Tvi extends Model
             ->withTimestamps();
     }
 
+    public function trainingPrograms()
+    {
+        return $this->belongsToMany(TrainingProgram::class, 'institution_programs')
+            ->withTimestamps();
+    }
+
 }

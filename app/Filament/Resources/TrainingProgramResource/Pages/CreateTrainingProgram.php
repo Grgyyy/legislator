@@ -20,10 +20,10 @@ class CreateTrainingProgram extends CreateRecord
     protected function handleRecordCreation(array $data): TrainingProgram
     {
         $this->validateUniqueTrainingProgram($data);
-        
+
         $trainingProgram = DB::transaction(fn () => TrainingProgram::create([
                 'code' => $data['code'],
-                'title' => $data['title'],
+                'title' => strtolower($data['title']),
                 'priority_id' => $data['priority_id'],
                 'tvet_id' => $data['tvet_id'],
         ]));
@@ -36,7 +36,7 @@ class CreateTrainingProgram extends CreateRecord
     protected function validateUniqueTrainingProgram($data)
     {
         $trainingProgram = TrainingProgram::withTrashed()
-            ->where('title', $data['title'])
+            ->where('title', strtolower($data['title']))
             ->where('tvet_id', $data['tvet_id'])
             ->where('priority_id', $data['priority_id'])
             ->first();
@@ -54,10 +54,10 @@ class CreateTrainingProgram extends CreateRecord
             ->first();
 
         if ($code) {
-            $message = $code->deleted_at 
-                ? 'A training program with this code already exists and has been deleted.' 
+            $message = $code->deleted_at
+                ? 'A training program with this code already exists and has been deleted.'
                 : 'A training program with this code already exists.';
-            
+
             NotificationHandler::handleValidationException('Invalid Code', $message);
         }
     }

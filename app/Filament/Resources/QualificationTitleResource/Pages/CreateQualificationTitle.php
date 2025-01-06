@@ -38,7 +38,7 @@ class CreateQualificationTitle extends CreateRecord
             $costing = collect($costingFields)
                 ->mapWithKeys(fn($field) => [$field => $this->ensureNumeric($data[$field])])
                 ->toArray();
-            
+
             $totalPCC = $this->computePCC($costing);
 
             return QualificationTitle::create(array_merge($costing, [
@@ -47,6 +47,7 @@ class CreateQualificationTitle extends CreateRecord
                 'hours_duration' => $this->ensureNumeric($data['hours_duration']),
                 'days_duration' => $this->ensureNumeric($data['days_duration']),
                 'pcc' => $totalPCC,
+                'soc' => 1
             ]));
         });
 

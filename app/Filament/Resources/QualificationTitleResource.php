@@ -59,6 +59,17 @@ class QualificationTitleResource extends Resource
                     ->options(function () {
                         return TrainingProgram::all()
                             ->pluck('title', 'id')
+                            ->mapWithKeys(function ($title, $id) {
+                                $title = ucwords($title);
+
+                                if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                                    $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                        return 'NC ' . strtoupper($matches[1]);
+                                    }, $title);
+                                }
+
+                                return [$id => $title];
+                            })
                             ->toArray() ?: ['no_training_program' => 'No Training Program Available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_training_program')
@@ -93,7 +104,7 @@ class QualificationTitleResource extends Resource
                     ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                     ->reactive()
                     ->live(),
-                    
+
                 TextInput::make('training_cost_pcc')
                     ->label('Training Cost PCC')
                     ->required()
@@ -159,7 +170,7 @@ class QualificationTitleResource extends Resource
                     ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                    
+
                 TextInput::make('accident_insurance')
                     ->label('Accident Insurance')
                     ->required()
@@ -192,7 +203,7 @@ class QualificationTitleResource extends Resource
                     ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
-                    
+
                 TextInput::make('misc_fee')
                     ->label('Miscellaneous Fee')
                     ->required()
@@ -256,7 +267,22 @@ class QualificationTitleResource extends Resource
                     ->label('Qualification Title')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) {
+                            return $state;
+                        }
+
+                        $state = ucwords($state);
+
+                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
+                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                return 'NC ' . strtoupper($matches[1]);
+                            }, $state);
+                        }
+
+                        return $state;
+                    }),
 
                 TextColumn::make('scholarshipProgram.name')
                     ->label('Scholarship Program')
@@ -381,7 +407,7 @@ class QualificationTitleResource extends Resource
                     ->toggleable()
                     ->formatStateUsing(function ($state) {
                         $suffix = $state == 1 ? ' day' : ' days';
-                        
+
                         return $state . $suffix;
                     }),
 
@@ -405,7 +431,7 @@ class QualificationTitleResource extends Resource
                 SelectFilter::make('scholarship_program')
                     ->label('Scholarship Program')
                     ->relationship('scholarshipProgram', 'name'),
-                
+
                 SelectFilter::make('status')
                     ->label('Status')
                     ->relationship('status', 'desc'),
@@ -509,7 +535,7 @@ class QualificationTitleResource extends Resource
                 ]),
             ]);
     }
-    
+
     public static function getScholarshipProgramsOptions($trainingProgramId): array
     {
         if (!$trainingProgramId) {
@@ -525,8 +551,12 @@ class QualificationTitleResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class]);
+        $query = parent::getEloquentQuery();
+
+        $query->withoutGlobalScopes([SoftDeletingScope::class])
+            ->whereNot('soc', 0);
+
+        return $query;
     }
 
     public static function getPages(): array

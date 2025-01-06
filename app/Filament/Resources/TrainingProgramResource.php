@@ -52,7 +52,7 @@ class TrainingProgramResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Training Program Code'),
-                    
+
                 TextInput::make('title')
                     ->label(label: "Training Program")
                     ->placeholder('Enter training program')
@@ -75,7 +75,7 @@ class TrainingProgramResource extends Resource
                             ->toArray() ?: ['no_tvet' => 'No TVET Sector Available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_tvet'),
-                
+
                 Select::make('priority_id')
                     ->label('Priority Sector')
                     ->relationship('priority', 'name')
@@ -123,14 +123,29 @@ class TrainingProgramResource extends Resource
                 TextColumn::make('title')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) {
+                            return $state;
+                        }
+
+                        $state = ucwords($state);
+
+                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
+                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                return 'NC ' . strtoupper($matches[1]);
+                            }, $state);
+                        }
+
+                        return $state;
+                    }),
 
                 TextColumn::make('priority.name')
                     ->label('Priority Sector')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                    
+
                 TextColumn::make('tvet.name')
                     ->label('TVET Sector')
                     ->sortable()
@@ -144,17 +159,17 @@ class TrainingProgramResource extends Resource
                     ->toggleable()
                     ->formatStateUsing(function ($record) {
                         $scholarshipPrograms = $record->scholarshipPrograms->pluck('name')->toArray();
-                    
+
                         $schoProHtml = array_map(function ($name, $index) use ($scholarshipPrograms) {
                             $comma = ($index < count($scholarshipPrograms) - 1) ? ', ' : '';
-                    
+
                             $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
-        
+
                             $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
-                    
+
                             return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
                         }, $scholarshipPrograms, array_keys($scholarshipPrograms));
-                    
+
                         return implode('', $schoProHtml);
                     })
                     ->html(),

@@ -15,7 +15,8 @@ return new class extends Migration {
             $table->string('code')
                 // ->unique()
                 ->nullable();
-            $table->string('title');
+            $table->string('title')
+                ->unique();
             $table->foreignId('priority_id')
                 ->constrained()
                 ->cascadeOnDelete();

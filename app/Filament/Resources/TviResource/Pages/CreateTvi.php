@@ -29,6 +29,9 @@ class CreateTvi extends CreateRecord
 
     protected function handleRecordCreation(array $data): Tvi
     {
+        $data['name'] = strtolower($data['name']);
+        $data['address'] = strtolower($data['address']);
+
         $this->validateUniqueInstitution($data);
 
         $tvi = DB::transaction(fn() => Tvi::create($data));
@@ -49,10 +52,10 @@ class CreateTvi extends CreateRecord
             ->first();
 
         if ($tvi) {
-            $message = $tvi->deleted_at 
-                ? 'This institution with the provided details has been deleted and must be restored before reuse.' 
+            $message = $tvi->deleted_at
+                ? 'This institution with the provided details has been deleted and must be restored before reuse.'
                 : 'An institution with the provided details already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
@@ -61,10 +64,10 @@ class CreateTvi extends CreateRecord
             ->first();
 
         if ($schoolId) {
-            $message = $schoolId->deleted_at 
-                ? 'An institution with this school ID already exists and has been deleted.' 
+            $message = $schoolId->deleted_at
+                ? 'An institution with this school ID already exists and has been deleted.'
                 : 'An institution with this school ID already exists.';
-            
+
             NotificationHandler::handleValidationException('Invalid School ID', $message);
         }
     }

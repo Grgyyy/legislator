@@ -38,7 +38,7 @@ class RecognitionResource extends Resource
 
     protected static ?string $navigationParentItem = "Institutions";
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
     {

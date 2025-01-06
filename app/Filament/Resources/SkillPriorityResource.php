@@ -25,6 +25,8 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use pxlrbt\FilamentExcel\Columns\Column;
 
 class SkillPriorityResource extends Resource
 {
@@ -34,9 +36,7 @@ class SkillPriorityResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationParentItem = "Scholarship Programs";
-
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 7;
 
     public static function form(Form $form): Form
     {
@@ -100,7 +100,22 @@ class SkillPriorityResource extends Resource
                 TextColumn::make('provinces.name')
                     ->label('Province'),
                 TextColumn::make('trainingPrograms.title')
-                    ->label('Training Program'),
+                    ->label('Training Program')
+                    ->formatStateUsing(function ($state) {
+                        if (!$state) {
+                            return $state;
+                        }
+
+                        $state = ucwords($state);
+
+                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
+                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                return 'NC ' . strtoupper($matches[1]);
+                            }, $state);
+                        }
+
+                        return $state;
+                    }),
                 TextColumn::make('available_slots')
                     ->label('Available Slots'),
                 TextColumn::make('total_slots')
@@ -155,6 +170,35 @@ class SkillPriorityResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected training programs have been deleted permanently.');
                         }),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('province.name')
+                                        ->heading('Province')
+                                        ->getStateUsing(function ($record) {
+                                            $province = $record->provinces;
+                                            return $province ? $province->name : 'No province available';
+                                        }),
+
+                                    Column::make('trainingProgram.title')
+                                        ->heading('Qualification Title')
+                                        ->getStateUsing(function ($record) {
+                                            $trainingProgram = $record->trainingPrograms;
+                                            return $trainingProgram ? $trainingProgram->title : 'No Training Program available';
+                                        }),
+
+                                    Column::make('available_slots')
+                                        ->heading('Available Slots'),
+
+                                    Column::make('total_slots')
+                                        ->heading('Total Slots'),
+
+                                    Column::make('year')
+                                        ->heading('Year'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Skill Priorities')
+                        ])
                 ]),
             ]);
     }

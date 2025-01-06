@@ -95,8 +95,12 @@ class TvetResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class]);
+        $query = parent::getEloquentQuery();
+
+        $query->withoutGlobalScopes([SoftDeletingScope::class])
+            ->whereNot('name', 'Not Applicable');
+
+        return $query;
     }
 
     public static function getPages(): array
