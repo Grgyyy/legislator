@@ -42,7 +42,7 @@ class FundSourceResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label('Fund Source')
-                    ->placeholder(placeholder: 'Enter fund source')
+                    ->placeholder('Enter fund source')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
@@ -53,7 +53,7 @@ class FundSourceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no fund sources available')
+            ->emptyStateHeading('No fund sources available')
             ->columns([
                 TextColumn::make("name")
                     ->label('Fund Source')
@@ -113,7 +113,10 @@ class FundSourceResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('Fund Source'),
+                                        ->heading('Fund Source')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->name ?: '-';
+                                        }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Fund Source'),
                         ]),
@@ -124,7 +127,8 @@ class FundSourceResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class]);
+            ->withoutGlobalScopes([SoftDeletingScope::class])
+            ->orderBy('name');
     }
 
     public static function getPages(): array

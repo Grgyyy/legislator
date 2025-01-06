@@ -12,7 +12,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Support\Enums\MaxWidth;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Tables\Actions\ActionGroup;
@@ -24,6 +26,7 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Illuminate\Support\HtmlString;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -130,6 +133,42 @@ class SkillPriorityResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    Action::make('addSlots')
+                        ->modalContent(function (SkillPriority $record): HtmlString {
+                            return new HtmlString("
+                                <div style='margin-bottom: 1rem; margin-top: 1rem; font-size: .9rem; display: grid; grid-template-columns: 1fr 2fr; gap: 10px;'>
+                                    <div style='font-weight: bold;'>Province:</div>
+                                    <div>{$record->provinces->name}</div>
+                                    <div style='font-weight: bold;'>Training Program:</div>
+                                    <div>{$record->trainingPrograms->title}</div>
+                                    <div style='font-weight: bold;'>Available Slots:</div>
+                                    <div>{$record->available_slots}</div>
+                                    <div style='font-weight: bold;'>Total Slots:</div>
+                                    <div>{$record->total_slots}</div>
+                                    <div style='font-weight: bold;'>Year:</div>
+                                    <div>{$record->year}</div>
+                                </div>
+                                
+                            ");
+                        })
+                        ->modalHeading('Add Slots')
+                        ->modalWidth(MaxWidth::TwoExtraLarge)
+                        ->icon('heroicon-o-plus')
+                        ->label('Add Slots')
+                        ->form([
+                            TextInput::make('available_slots')
+                                ->label('Add Slots')
+                                ->autocomplete(false)
+                                ->integer()
+                                ->default(0)
+                                ->minValue(0)
+                        ])
+                        ->action(function (array $data, SkillPriority $record): void {
+                            $record->available_slots += $data['available_slots'];
+                            $record->total_slots += $data['available_slots'];
+                            $record->save();
+                            NotificationHandler::sendSuccessNotification('Saved', 'Skill priority slots have been added successfully.');
+                        }),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();

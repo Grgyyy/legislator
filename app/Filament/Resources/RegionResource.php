@@ -52,6 +52,7 @@ class RegionResource extends Resource
                     ->label('UACS Code')
                     ->placeholder('Enter UACS code')
                     ->autocomplete(false)
+                    ->integer()
                     ->validationAttribute('UACS Code'),
             ]);
     }
@@ -85,21 +86,18 @@ class RegionResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                        
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Region has been deleted successfully.');
                         }),
-
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Region has been restored successfully.');
                         }),
-
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -116,21 +114,18 @@ class RegionResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected regions have been deleted successfully.');
                         }),
-
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected regions have been restored successfully.');
                         }),
-
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected regions have been deleted permanently.');
                         }),
-
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

@@ -55,6 +55,7 @@ class DistrictResource extends Resource
                     ->label('UACS Code')
                     ->placeholder('Enter UACS code')
                     ->autocomplete(false)
+                    ->integer()
                     ->validationAttribute('UACS Code'),
 
                 Select::make('province_id')
@@ -176,21 +177,18 @@ class DistrictResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'District has been deleted successfully.');
                         }),
-
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'District has been restored successfully.');
                         }),
-
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -207,21 +205,18 @@ class DistrictResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected districts have been deleted successfully.');
                         }),
-
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected districts have been restored successfully.');
                         }),
-
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected districts have been deleted permanently.');
                         }),
-
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -246,12 +241,12 @@ class DistrictResource extends Resource
                                     Column::make('province.name')
                                         ->heading('Province')
                                         ->getStateUsing(function ($record) {
-                                            return $record->province->name ?: '-';
+                                            return $record->province ? $record->province->name : '-';
                                         }),
                                     Column::make('province.region.name')
                                         ->heading('Region')
                                         ->getStateUsing(function ($record) {
-                                            return $record->province->region->name ?: '-';
+                                            return $record->province->region ? $record->province->region->name : '-';
                                         }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - District')

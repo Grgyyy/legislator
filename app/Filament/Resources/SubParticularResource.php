@@ -63,7 +63,7 @@ class SubParticularResource extends Resource
                     ->options(function () {
                         return FundSource::all()
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_fund_source' => 'No Fund Source Available'];
+                            ->toArray() ?: ['no_fund_source' => 'No fund sources available'];
                     })
                     ->disableOptionWhen(fn ($value) => $value === 'no_fund_source'),
             ]);
@@ -72,7 +72,7 @@ class SubParticularResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no particular types available')
+            ->emptyStateHeading('No particular types available')
             ->columns([
                 TextColumn::make('name')
                     ->label('Particular Type')
@@ -93,7 +93,6 @@ class SubParticularResource extends Resource
                 SelectFilter::make('fund_source')
                     ->label('Fund Source')
                     ->relationship('fundSource', 'name'),
-
             ])
             ->actions([
                 ActionGroup::make([
@@ -144,9 +143,15 @@ class SubParticularResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('Particular Type'),
+                                        ->heading('Particular Type')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->name ?: '-';
+                                        }),
                                     Column::make('fundSource.name')
-                                        ->heading('Fund Source'),
+                                        ->heading('Fund Source')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->fundSource ? $record->fundSource->name : '-';
+                                        }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Particular Types'),
                         ]),
@@ -157,7 +162,9 @@ class SubParticularResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class]);
+            ->withoutGlobalScopes([SoftDeletingScope::class])
+            ->orderBy('fund_source_id')
+            ->orderBy('name');
     }
 
     public static function getPages(): array

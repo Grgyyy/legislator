@@ -55,7 +55,7 @@ class PartylistResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no party-lists available')
+            ->emptyStateHeading('No party-lists available')
             ->columns([
                 TextColumn::make('name')
                     ->label('Party-list')
@@ -115,7 +115,10 @@ class PartylistResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('Party-list'),
+                                        ->heading('Party-list')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->name ?: '-';
+                                        }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Party-list'),
                         ]),
@@ -127,7 +130,8 @@ class PartylistResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable');
+            ->whereNot('name', 'Not Applicable')
+            ->orderBy('name');
     }
 
     public static function getPages(): array
