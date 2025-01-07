@@ -11,12 +11,10 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Support\Enums\Alignment;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\ButtonAction;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
@@ -26,7 +24,6 @@ use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -118,7 +115,7 @@ class AllocationResource extends Resource
                     ->options(function () {
                         return ScholarshipProgram::all()
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_scholarship_program' => 'No scholarship program available'];
+                            ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
 
@@ -133,14 +130,6 @@ class AllocationResource extends Resource
                     ->minValue(0)
                     ->maxValue(999999999999.99)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                    // ->afterStateUpdated(function (callable $set, $state, $get) {
-                    //     $adminCost = $state * 0.02;
-
-                    //     $set('admin_cost', $adminCost);
-
-                    //     $set('balance', $state - $adminCost);
-                    // })
-                    ->debounce(1000)
                     ->reactive()
                     ->live()
                     ->validationAttribute('Allocation')
@@ -153,7 +142,7 @@ class AllocationResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->numeric()
+                    ->integer()
                     ->default(date('Y'))
                     ->rules(['min:' . date('Y'), 'digits: 4'])
                     ->validationAttribute('year')
@@ -198,7 +187,7 @@ class AllocationResource extends Resource
                         $particular = $record->particular;
 
                         if (!$particular) {
-                            return ['no_particular' => 'No particular available'];
+                            return ['no_particular' => 'No particulars available'];
                         }
 
                         $district = $particular->district;
@@ -251,12 +240,6 @@ class AllocationResource extends Resource
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                TextColumn::make("balance")
-                    ->sortable()
-                    ->toggleable()
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-
                 TextColumn::make("attribution_sent")
                     ->label('Attribution Sent')
                     ->sortable()
@@ -266,6 +249,12 @@ class AllocationResource extends Resource
 
                 TextColumn::make("attribution_received")
                     ->label('Attribution Received')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+
+                TextColumn::make("balance")
                     ->sortable()
                     ->toggleable()
                     ->prefix('₱')
@@ -363,7 +352,7 @@ class AllocationResource extends Resource
                             $particular = $record->particular;
 
                             if (!$particular) {
-                                $formattedName = 'No particular available';
+                                $formattedName = 'No particulars available';
                             } else {
                                 $district = $particular->district;
                                 $municipality = $district ? $district->underMunicipality : null;
@@ -401,14 +390,14 @@ class AllocationResource extends Resource
                                     <div style='font-weight: bold;'>Legislator:</div>
                                     <div>{$record->legislator->name} <em>({$formattedName})</em></div>
 
+                                    <div style='font-weight: bold;'>Balance:</div>
+                                    <div>{$balanceFormatted}</div>
+
                                     <div style='font-weight: bold;'>Allocation:</div>
                                     <div>{$allocationFormatted}</div>
 
                                     <div style='font-weight: bold;'>Admin Cost:</div>
                                     <div>{$adminCostFormatted}</div>
-
-                                    <div style='font-weight: bold;'>Balance:</div>
-                                    <div>{$balanceFormatted}</div>
 
                                     <div style='font-weight: bold;'>Allocation Year:</div>
                                     <div>{$record->year}</div>
@@ -496,7 +485,7 @@ class AllocationResource extends Resource
                                             $particular = $record->particular;
 
                                             if (!$particular) {
-                                                return ['no_particular' => 'No particular available'];
+                                                return ['no_particular' => 'No particulars available'];
                                             }
 
                                             $district = $particular->district;
@@ -559,13 +548,13 @@ class AllocationResource extends Resource
     private static function getParticularOptions($legislatorId)
     {
         if (!$legislatorId) {
-            return ['no_legislator' => 'No legislator available'];
+            return ['no_legislator' => 'No legislators available'];
         }
 
         $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
 
         if (!$legislator) {
-            return ['no_legislator' => 'No legislator available'];
+            return ['no_legislator' => 'No legislators available'];
         }
 
         return $legislator->particular->mapWithKeys(function ($particular) {
@@ -598,7 +587,7 @@ class AllocationResource extends Resource
             }
 
             return [$particular->id => $formattedName];
-        })->toArray() ?: ['no_particular' => 'No particular available'];
+        })->toArray() ?: ['no_particular' => 'No particulars available'];
     }
 
 
