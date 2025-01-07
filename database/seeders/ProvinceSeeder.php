@@ -64,7 +64,7 @@ class ProvinceSeeder extends Seeder
             ['0679', 'Guimaras'],
             ['0600', 'Not Applicable'],
 
-            
+
             ['0712', 'Bohol'],
             ['0722', 'Cebu'],
             ['0746', 'Negros Oriental'],
@@ -111,7 +111,7 @@ class ProvinceSeeder extends Seeder
             ['1300', 'MuntiParLasTaPat'],
             ['1300', 'PasMak'],
             ['1300', 'PaMaMariSan'],
-            ['1300', 'City of Manila'],
+            ['1300', 'Manila City'],
             ['1300', 'Quezon City'],
             ['1300', 'Not Applicable'],
 

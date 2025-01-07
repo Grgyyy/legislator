@@ -62,7 +62,7 @@ class MunicipalitySeeder extends Seeder
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
                         'name' => $municipality['name'],
-                        'class' => $municipality['class'], 
+                        'class' => $municipality['class'],
                         'province_id' => $camanavaProvince->id,
                     ]);
                 }
@@ -92,17 +92,17 @@ class MunicipalitySeeder extends Seeder
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
                         'name' => $municipality['name'],
-                        'class' => $municipality['class'], 
+                        'class' => $municipality['class'],
                         'province_id' => $muntiparlastapatProvince->id,
                     ]);
                 }
             }
         }
 
-        // Handle PasMak municipalities    
+        // Handle PasMak municipalities
         $pasmakProvince = DB::table('provinces')
-        ->where('name', 'PasMak')
-        ->first();
+            ->where('name', 'PasMak')
+            ->first();
 
         if ($pasmakProvince) {
             $pasmakMunicipalities = [
@@ -119,17 +119,17 @@ class MunicipalitySeeder extends Seeder
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
                         'name' => $municipality['name'],
-                        'class' => $municipality['class'], 
+                        'class' => $municipality['class'],
                         'province_id' => $pasmakProvince->id,
                     ]);
                 }
             }
         }
 
-        // Handle PaMaMariSan municipalities    
+        // Handle PaMaMariSan municipalities
         $pamamarisanProvince = DB::table('provinces')
-        ->where('name', 'PaMaMariSan')
-        ->first();
+            ->where('name', 'PaMaMariSan')
+            ->first();
 
         if ($pamamarisanProvince) {
             $pamamarisanMunicipalities = [
@@ -148,7 +148,7 @@ class MunicipalitySeeder extends Seeder
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
                         'name' => $municipality['name'],
-                        'class' => $municipality['class'], 
+                        'class' => $municipality['class'],
                         'province_id' => $pamamarisanProvince->id,
                     ]);
                 }
@@ -156,10 +156,10 @@ class MunicipalitySeeder extends Seeder
         }
 
 
-        // Handle PaMaMariSan municipalities    
+        // Handle PaMaMariSan municipalities
         $manilaProvince = DB::table('provinces')
-        ->where('name', 'City of Manila')
-        ->first();
+            ->where('name', 'Manila City')
+            ->first();
 
         if ($manilaProvince) {
             $manilaMunicipalities = [
@@ -175,17 +175,17 @@ class MunicipalitySeeder extends Seeder
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
                         'name' => $municipality['name'],
-                        'class' => $municipality['class'], 
+                        'class' => $municipality['class'],
                         'province_id' => $manilaProvince->id,
                     ]);
                 }
             }
         }
 
-        // Handle PaMaMariSan municipalities    
+        // Handle PaMaMariSan municipalities
         $quezoncityProvince = DB::table('provinces')
-        ->where('name', 'Quezon City')
-        ->first();
+            ->where('name', 'Quezon City')
+            ->first();
 
         if ($quezoncityProvince) {
             $quezoncityMunicipalities = [
@@ -201,13 +201,13 @@ class MunicipalitySeeder extends Seeder
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
                         'name' => $municipality['name'],
-                        'class' => $municipality['class'], 
+                        'class' => $municipality['class'],
                         'province_id' => $quezoncityProvince->id,
                     ]);
                 }
             }
         }
-        
-        
+
+
     }
 }

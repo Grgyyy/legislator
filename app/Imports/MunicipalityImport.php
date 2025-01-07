@@ -62,7 +62,7 @@ class MunicipalityImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['municipality', 'region', 'province', 'code', 'class'];
+        $requiredFields = ['municipality', 'region', 'province', 'class'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {

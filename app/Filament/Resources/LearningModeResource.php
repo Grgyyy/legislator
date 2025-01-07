@@ -104,10 +104,13 @@ class LearningModeResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
-                                    Column::make('acronym')
-                                        ->heading('Acronym'),
                                     Column::make('name')
-                                        ->heading('Learning Modes'),
+                                        ->heading('Learning Mode'),
+                                    Column::make('deliveryMode.acronym')
+                                        ->heading('Delivery Mode Acronym')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->deliveryMode->pluck('acronym')->join(', ');
+                                        }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Learning Modes')
                         ]),

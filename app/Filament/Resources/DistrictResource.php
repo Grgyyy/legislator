@@ -234,7 +234,7 @@ class DistrictResource extends Resource
                                     Column::make('municipality.name')
                                         ->heading('Municipality')
                                         ->getStateUsing(function ($record) {
-                                            return $record->municipality->isNotEmpty() 
+                                            return $record->municipality->isNotEmpty()
                                                 ? $record->municipality->pluck('name')->join(', ')
                                                 : '-';
                                         }),

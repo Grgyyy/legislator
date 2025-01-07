@@ -79,9 +79,9 @@ class ProjectProposalResource extends Resource
 
                 TextColumn::make('scholarshipProgram.name')
                     ->label('Scholarship Programs'),
-                    // ->formatStateUsing(function ($state, $record) {
-                    //     return $record->scholarshipProgram->pluck('name')->implode(', ');
-                    // }),
+                // ->formatStateUsing(function ($state, $record) {
+                //     return $record->scholarshipProgram->pluck('name')->implode(', ');
+                // }),
 
                 SelectColumn::make('status_id')
                     ->label('Status')
@@ -144,7 +144,34 @@ class ProjectProposalResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('trainingProgram.title')
-                                        ->heading('Qualification Code'),
+                                        ->heading('Qualification Code')
+                                        ->formatStateUsing(function ($state) {
+                                            if (!$state) {
+                                                return $state;
+                                            }
+
+                                            // Format all words to start with an uppercase letter
+                                            $state = preg_replace_callback('/\b[a-z]+\b/i', function ($matches) {
+                                                return ucfirst(strtolower($matches[0]));
+                                            }, $state);
+
+                                            // Handle 'NC I', 'NC II', etc., formatting
+                                            $state = preg_replace_callback('/\bNC\s+[I]{1,3}\b/i', function ($matches) {
+                                                return 'NC ' . strtoupper($matches[0]);
+                                            }, $state);
+
+                                            // Recursively format words inside parentheses at any position
+                                            while (preg_match('/\(([^()]+)\)/', $state)) {
+                                                $state = preg_replace_callback('/\(([^()]+)\)/', function ($matches) {
+                                                    return '(' . preg_replace_callback('/\b[a-z]+\b/i', function ($wordMatches) {
+                                                        return ucfirst(strtolower($wordMatches[0]));
+                                                    }, $matches[1]) . ')';
+                                                }, $state);
+                                            }
+
+                                            return $state;
+                                        }),
+
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Qualification Titles')
                         ]),
@@ -165,7 +192,7 @@ class ProjectProposalResource extends Resource
             ->with(['trainingProgram', 'scholarshipProgram'])
             ->where('qualification_titles.soc', 0)
             ->select('qualification_titles.*');
-            // ->groupBy('qualification_titles.training_program_id');
+        // ->groupBy('qualification_titles.training_program_id');
     }
 
     public static function getPages(): array
