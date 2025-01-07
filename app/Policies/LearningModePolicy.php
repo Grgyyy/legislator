@@ -61,6 +61,6 @@ class LearningModePolicy
      */
     public function forceDelete(User $user, LearningMode $learningMode): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

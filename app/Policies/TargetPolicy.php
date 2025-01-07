@@ -61,6 +61,6 @@ class TargetPolicy
      */
     public function forceDelete(User $user, Target $target): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole(['Super Admin']);
     }
 }

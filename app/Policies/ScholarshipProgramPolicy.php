@@ -61,6 +61,6 @@ class ScholarshipProgramPolicy
      */
     public function forceDelete(User $user, ScholarshipProgram $scholarshipProgram): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

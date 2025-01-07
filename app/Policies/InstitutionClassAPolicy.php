@@ -61,6 +61,6 @@ class InstitutionClassAPolicy
      */
     public function forceDelete(User $user, TviClass $tviClass): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

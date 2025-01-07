@@ -62,6 +62,6 @@ class AbddPolicy
      */
     public function forceDelete(User $user, Abdd $abdd): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

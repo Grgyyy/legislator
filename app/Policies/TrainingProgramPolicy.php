@@ -61,6 +61,6 @@ class TrainingProgramPolicy
      */
     public function forceDelete(User $user, TrainingProgram $trainingProgram): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }
