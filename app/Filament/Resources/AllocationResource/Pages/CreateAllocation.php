@@ -21,15 +21,19 @@ class CreateAllocation extends CreateRecord
     {
         $this->validateUniqueAllocation($data);
 
+        $adminCost = $data['allocation'] * 0.02;
+        $balance = $data['allocation'] - $adminCost;
+    
+        // Create the allocation record within a transaction
         $allocation = DB::transaction(fn () => Allocation::create([
-                'soft_or_commitment' => $data['soft_or_commitment'],
-                'legislator_id' => $data['legislator_id'],
-                'particular_id' => $data['particular_id'],
-                'scholarship_program_id' => $data['scholarship_program_id'],
-                'allocation' => $data['allocation'],
-                'admin_cost' => $data['allocation'] * 0.02,
-                'balance' => $data['allocation'] - ($data['allocation'] * 0.02),
-                'year' => $data['year'],
+            'soft_or_commitment' => $data['soft_or_commitment'],
+            'legislator_id' => $data['legislator_id'],
+            'particular_id' => $data['particular_id'],
+            'scholarship_program_id' => $data['scholarship_program_id'],
+            'allocation' => $data['allocation'],
+            'admin_cost' => $adminCost,
+            'balance' => $balance,
+            'year' => $data['year'],
         ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'Allocation has been created successfully.');

@@ -43,15 +43,15 @@ class TargetsPerRegionChart extends ApexChartWidget
             // Join targetStatus to get the status of the target
             ->join('target_statuses', 'targets.target_status_id', '=', 'target_statuses.id')
             // Group by region and target status to count targets by their status
-            ->selectRaw('regions.name as region, target_statuses.desc as status, SUM(allocations.allocation) as total_allocation')
+            ->selectRaw('regions.name as region, target_statuses.desc as status, SUM(targets.total_amount) as total_amount')
             ->whereIn('target_statuses.desc', ['Compliant', 'Non-Compliant', 'Pending'])
             ->groupBy('regions.name', 'target_statuses.desc')
             ->get();
 
         $categories = $data->groupBy('region')->keys()->toArray();
-        $pendingData = $data->where('status', 'Pending')->pluck('total_allocation')->toArray();
-        $compliantData = $data->where('status', 'Compliant')->pluck('total_allocation')->toArray();
-        $nonCompliantData = $data->where('status', 'Non-Compliant')->pluck('total_allocation')->toArray();
+        $pendingData = $data->where('status', 'Pending')->pluck('total_amount')->toArray();
+        $compliantData = $data->where('status', 'Compliant')->pluck('total_amount')->toArray();
+        $nonCompliantData = $data->where('status', 'Non-Compliant')->pluck('total_amount')->toArray();
 
         return [
             'chart' => [

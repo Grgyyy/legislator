@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\AllocationResource\Widgets;
 
 use App\Models\Allocation;
+use App\Models\Target;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
@@ -12,15 +13,25 @@ class StatsOverview extends BaseWidget
     {
         $totalAllocations = Allocation::sum('allocation');
         $totalAdminCost = Allocation::sum('admin_cost');
+        $totalBalance = Allocation::sum('balance');
+        $fundsUsedInTargets = Target::sum('total_amount');
 
         return [
-            Stat::make('Total Allocations', '₱' . number_format($totalAllocations, 2, '.', ','))
-                ->description('Total allocated funds')
-                ->color('success'),
+            Stat::make('Allocations', '₱' . number_format($totalAllocations))
+                ->description('Total funds allocated')
+                ->color('info'),
 
-            Stat::make('Total Admin Cost', '₱' . number_format($totalAdminCost, 2, '.', ','))
-                ->description('Total admin costs')
-                ->color('warning')
+            Stat::make('Admin Costs', '₱' . number_format($totalAdminCost))
+                ->description('Total administrative costs')
+                ->color('warning'),
+
+            Stat::make('Funds Expended', '₱' . number_format($fundsUsedInTargets))
+                ->description('Total funds used for targets')
+                ->color('info'),
+
+            Stat::make('Remaining Balance', '₱' . number_format($totalBalance ))
+                ->description('Remaining balance')
+                ->color('success'),
         ];
     }
 }
