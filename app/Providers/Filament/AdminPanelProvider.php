@@ -25,14 +25,14 @@ use Filament\Navigation\MenuItem;
 use Illuminate\Support\Facades\Storage;
 use Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
-use Althinect\FilamentSpatieRolesPermissions\FilamentSpatieRolesPermissionsPlugin;
+
 
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->plugin(FilamentSpatieRolesPermissionsPlugin::make())
+
             ->default()
             ->id('admin')
             // ->path('')
