@@ -57,6 +57,7 @@ class ProjectProposalResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No project proposal programs available')
             ->columns([
                 TextColumn::make('trainingProgram.title')
                     ->label('Program Name')
