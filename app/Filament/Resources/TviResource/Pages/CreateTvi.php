@@ -29,8 +29,6 @@ class CreateTvi extends CreateRecord
 
     protected function handleRecordCreation(array $data): Tvi
     {
-        $data['name'] = strtolower($data['name']);
-        $data['address'] = strtolower($data['address']);
 
         $this->validateUniqueInstitution($data);
 
@@ -44,11 +42,8 @@ class CreateTvi extends CreateRecord
     protected function validateUniqueInstitution($data)
     {
         $tvi = Tvi::withTrashed()
-            ->where('name', $data['name'])
+            ->where(DB::raw('LOWER(name)'), strtolower($data['institution_name']))
             ->where('institution_class_id', $data['institution_class_id'])
-            ->where('tvi_class_id', $data['tvi_class_id'])
-            ->where('district_id', $data['district_id'])
-            ->where('address', $data['address'])
             ->first();
 
         if ($tvi) {

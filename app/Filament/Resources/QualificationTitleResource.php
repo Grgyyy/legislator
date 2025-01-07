@@ -60,13 +60,13 @@ class QualificationTitleResource extends Resource
                         return TrainingProgram::all()
                             ->pluck('title', 'id')
                             ->mapWithKeys(function ($title, $id) {
-                                $title = ucwords($title);
+                                // $title = ucwords($title);
 
-                                if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
-                                    $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                        return 'NC ' . strtoupper($matches[1]);
-                                    }, $title);
-                                }
+                                // if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                                //     $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                //         return 'NC ' . strtoupper($matches[1]);
+                                //     }, $title);
+                                // }
 
                                 return [$id => $title];
                             })
@@ -256,22 +256,22 @@ class QualificationTitleResource extends Resource
                     ->label('Qualification Title')
                     ->sortable()
                     ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        if (!$state) {
-                            return $state;
-                        }
+                    ->toggleable(),
+                    // ->formatStateUsing(function ($state) {
+                    //     if (!$state) {
+                    //         return $state;
+                    //     }
 
-                        $state = ucwords($state);
+                    //     $state = ucwords($state);
 
-                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                return 'NC ' . strtoupper($matches[1]);
-                            }, $state);
-                        }
+                    //     if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
+                    //         $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                    //             return 'NC ' . strtoupper($matches[1]);
+                    //         }, $state);
+                    //     }
 
-                        return $state;
-                    }),
+                    //     return $state;
+                    // }),
 
                 TextColumn::make('scholarshipProgram.name')
                     ->label('Scholarship Program')

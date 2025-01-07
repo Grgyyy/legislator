@@ -5,6 +5,7 @@ namespace App\Filament\Resources\TrainingProgramResource\Pages;
 use App\Models\TrainingProgram;
 use App\Filament\Resources\TrainingProgramResource;
 use App\Services\NotificationHandler;
+use DB;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
 use Exception;
@@ -40,7 +41,7 @@ class EditTrainingProgram extends EditRecord
     protected function validateUniqueTrainingProgram(array $data, $currentId)
     {
         $trainingProgram = TrainingProgram::withTrashed()
-            ->where('title', $data['title'])
+            ->where(DB::raw('LOWER(title)'), strtolower($data['title']))
             ->where('tvet_id', $data['tvet_id'])
             ->where('priority_id', $data['priority_id'])
             ->whereNot('id', $currentId)
