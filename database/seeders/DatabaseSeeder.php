@@ -32,6 +32,8 @@ class DatabaseSeeder extends Seeder
         $this->call(TargetStatusSeeder::class);
         $this->call(TargetRemarksSeeder::class);
         $this->call(RecognitionSeeder::class);
+        $this->call(DeliveryModeSeeder::class);
+        $this->call(LearningModeSeeder::class);
 
         // You can call other seeders here as well
         // $this->call(OtherSeeder::class);

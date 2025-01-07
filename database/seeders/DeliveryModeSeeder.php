@@ -17,7 +17,7 @@ class DeliveryModeSeeder extends Seeder
             ['acronym' => 'IBT', 'name' => 'Institution Based Training'],
             ['acronym' => 'EBT', 'name' => 'Enterprised Based Training'],
             ['acronym' => 'CBT', 'name' => 'Community Based Training'],
-            ['acronym' => 'N/A', 'name' => 'Monitored Programs'],
+
         ];
 
         foreach ($deliveryModes as $mode) {
