@@ -4,9 +4,11 @@ namespace App\Filament\Resources\ProjectProposalResource\Pages;
 
 use App\Filament\Resources\ProjectProposalResource;
 use App\Models\Priority;
+use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
 use App\Models\Tvet;
 use App\Models\QualificationTitle;
+use App\Services\NotificationHandler;
 use DB;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -43,32 +45,62 @@ class EditProjectProposal extends EditRecord
         $record = $this->record;
         $trainingProgram = $record->trainingProgram;
 
-        $data['program_name'] = ucwords($trainingProgram->title);
+        $data['program_name'] = $record->title;
+
+        $data['scholarshipPrograms'] = $record->scholarshipPrograms()
+            ->pluck('scholarship_programs.id')
+            ->toArray();
 
         return $data;
     }
 
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
-        return DB::transaction(function () use ($record, $data) {
-            $programName = ucwords($data['program_name']);
-            $trainingProgram = TrainingProgram::where('title', $programName)->first();
+        return DB::transaction(function () use ($data, $record) {
+            $trainingProgram = TrainingProgram::withTrashed()
+                ->where(DB::raw('LOWER(title)'), strtolower($data['title']))
+                ->where('tvet_id', $data['tvet_id'])
+                ->where('priority_id', $data['priority_id'])
+                ->where('id', '!=', $record->id)
+                ->first();
 
             if ($trainingProgram) {
-                QualificationTitle::where('training_program_id', $record->training_program_id)
-                    ->update(['training_program_id' => $trainingProgram->id]);
-            } else {
-                $tvetSector = Tvet::where('name', 'Not Applicable')->firstOrFail();
-                $prioSector = Priority::where('name', 'Not Applicable')->firstOrFail();
-                $createdTrainingProgram = TrainingProgram::create([
-                    'title' => $programName,
-                    'tvet_id' => $tvetSector->id,
-                    'priority_id' => $prioSector->id,
-                ]);
-
-                QualificationTitle::where('training_program_id', $record->training_program_id)
-                    ->update(['training_program_id' => $createdTrainingProgram->id]);
+                NotificationHandler::handleValidationException(
+                    'Training Program Exists',
+                    "The Training Program '{$trainingProgram->title}' already exists and cannot be updated."
+                );
             }
+
+            $record->update([
+                'title'       => $data['title'],
+                'priority_id' => $data['priority_id'],
+                'tvet_id'     => $data['tvet_id'],
+            ]);
+
+            if (!empty($data['scholarshipPrograms'])) {
+                $record->scholarshipPrograms()->detach();
+
+                $record->scholarshipPrograms()->sync($data['scholarshipPrograms']);
+
+                foreach ($data['scholarshipPrograms'] as $scholarshipProgramId) {
+                    $scholarshipProgram = ScholarshipProgram::find($scholarshipProgramId);
+
+                    $qualificationTitle = QualificationTitle::where('training_program_id', $record->id)
+                        ->where('scholarship_program_id', $scholarshipProgram->id)
+                        ->first();
+
+                    if (!$qualificationTitle) {
+                        QualificationTitle::create([
+                            'training_program_id' => $record->id,
+                            'scholarship_program_id' => $scholarshipProgram->id,
+                            'status_id' => 1,
+                            'soc' => 0
+                        ]);
+                    }
+                }
+            }
+
+            NotificationHandler::sendSuccessNotification('Updated', 'The training program and scholarships have been updated successfully.');
 
             return $record;
         });

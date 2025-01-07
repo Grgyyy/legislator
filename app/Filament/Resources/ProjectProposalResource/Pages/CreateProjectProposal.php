@@ -4,13 +4,12 @@ namespace App\Filament\Resources\ProjectProposalResource\Pages;
 
 use App\Filament\Resources\ProjectProposalResource;
 use App\Models\Priority;
-use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
+use App\Models\QualificationTitle;
 use App\Models\Tvet;
 use App\Services\NotificationHandler;
 use DB;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateProjectProposal extends CreateRecord
@@ -35,39 +34,43 @@ class CreateProjectProposal extends CreateRecord
     protected function handleRecordCreation(array $data): \Illuminate\Database\Eloquent\Model
     {
         return DB::transaction(function () use ($data) {
-            $projectProposalProgram = strtolower($data['program_name']);
+            $trainingProgram = TrainingProgram::withTrashed()
+                ->where(DB::raw('LOWER(title)'), strtolower($data['title']))
+                ->where('tvet_id', $data['tvet_id'])
+                ->where('priority_id', $data['priority_id'])
+                ->first();
 
-            if (TrainingProgram::where('title', $projectProposalProgram)->exists()) {
+            if ($trainingProgram) {
                 NotificationHandler::handleValidationException(
-                    'Proposed Project Program Exists',
-                    'The proposed project program is already exists. Please choose a different proposed project.'
+                    'Training Program Exists',
+                    "The Training Program '{$trainingProgram->title}' already exists and cannot be added to the program proposal."
                 );
             }
 
-            $tvetSector = Tvet::where('name', 'Not Applicable')->first();
-            $prioSector = Priority::where('name', 'Not Applicable')->first();
-
-            $trainingProgramRecord = TrainingProgram::create([
-                'title' => $projectProposalProgram,
-                'tvet_id' => $tvetSector->id,
-                'priority_id' => $prioSector->id,
+            $projectProposalProgram = TrainingProgram::create([
+                'title'       => $data['title'],
+                'priority_id' => $data['priority_id'],
+                'tvet_id'     => $data['tvet_id'],
             ]);
 
-            $scholarshipPrograms = ScholarshipProgram::all();
+            if (!empty($data['scholarshipPrograms'])) {
+                $projectProposalProgram->scholarshipPrograms()->sync($data['scholarshipPrograms']);
 
-            $trainingProgramRecord->scholarshipPrograms()->syncWithoutDetaching(
-                $scholarshipPrograms->pluck('id')->toArray()
-            );
+                foreach ($data['scholarshipPrograms'] as $scholarshipProgramId) {
+                    $scholarshipProgram = ScholarshipProgram::find($scholarshipProgramId);
 
-            foreach ($scholarshipPrograms as $scholarshipProgram) {
-                QualificationTitle::create([
-                    'training_program_id' => $trainingProgramRecord->id,
-                    'scholarship_program_id' => $scholarshipProgram->id,
-                    'soc' => 0,
-                ]);
+                    QualificationTitle::create([
+                        'training_program_id' => $projectProposalProgram->id,
+                        'scholarship_program_id' => $scholarshipProgram->id,
+                        'status_id' => 1,
+                        'soc' => 0
+                    ]);
+                }
             }
 
-            return $trainingProgramRecord;
+            NotificationHandler::sendSuccessNotification('Created', 'The training program has been created successfully.');
+
+            return $projectProposalProgram;
         });
     }
 }
