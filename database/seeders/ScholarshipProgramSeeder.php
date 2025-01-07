@@ -23,6 +23,7 @@ class ScholarshipProgramSeeder extends Seeder
             ['code' => 'RESP', 'name' => 'RESP', 'desc' => 'Rice Extension Services Program'],
             ['code' => 'UAQD', 'name' => 'UAQTEA', 'desc' => 'Universal Access to Quality Tertiary Education Act'],
             ['code' => 'DOTR', 'name' => 'TSUPER', 'desc' => 'Tsuper Iskolar'],
+            ['code' => 'BKST', 'name' => 'BKSTP', 'desc' => 'Barangay Kabuhayan Skills Training Program'],
         ];
 
         foreach ($programs as $program) {
