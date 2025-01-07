@@ -769,10 +769,10 @@ class NonCompliantTargetResource extends Resource
                                     Column::make('district.name')
                                         ->heading('District'),
 
-                                    Column::make('tvi.district.municipality.province.name')
+                                    Column::make('municipality.province.name')
                                         ->heading('Province'),
 
-                                    Column::make('tvi.district.municipality.province.region.name')
+                                    Column::make('municipality.province.region.name')
                                         ->heading('Region'),
 
                                     Column::make('tvi.name')
@@ -842,6 +842,7 @@ class NonCompliantTargetResource extends Resource
                                             return 'N/A';
                                         }),
 
+
                                     Column::make('nonCompliantRemark.others_remarks')
                                         ->heading('Other')
                                         ->formatStateUsing(function ($record) {
@@ -850,6 +851,7 @@ class NonCompliantTargetResource extends Resource
                                             }
                                             return 'N/A';
                                         }),
+
 
                                     Column::make('targetStatus.desc')
                                         ->heading('Status')
