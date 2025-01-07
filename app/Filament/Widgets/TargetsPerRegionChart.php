@@ -33,94 +33,25 @@ class TargetsPerRegionChart extends ApexChartWidget
     protected function getOptions(): array
     {
         // Fetch compliant, non-compliant, and pending targets per region
-        // $data = Target::query()
-        //     // Join necessary tables to access region data
-        //     ->join('allocations', 'targets.allocation_id', '=', 'allocations.id')
-        //     ->join('particulars', 'allocations.particular_id', '=', 'particulars.id')
-        //     ->join('districts', 'particulars.district_id', '=', 'districts.id')
-        //     ->join('provinces', 'districts.province_id', '=', 'provinces.id')
-        //     ->join('regions', 'provinces.region_id', '=', 'regions.id')
-        //     // Join targetStatus to get the status of the target
-        //     ->join('target_statuses', 'targets.target_status_id', '=', 'target_statuses.id')
-        //     // Group by region and target status to count targets by their status
-        //     ->selectRaw('regions.name as region, target_statuses.desc as status, COUNT(targets.id) as count')
-        //     ->whereIn('target_statuses.desc', ['Compliant', 'Non-Compliant', 'Pending'])
-        //     ->groupBy('regions.name', 'target_statuses.desc')
-        //     ->get();
+        $data = Target::query()
+            // Join necessary tables to access region data
+            ->join('allocations', 'targets.allocation_id', '=', 'allocations.id')
+            ->join('particulars', 'allocations.particular_id', '=', 'particulars.id')
+            ->join('districts', 'particulars.district_id', '=', 'districts.id')
+            ->join('provinces', 'districts.province_id', '=', 'provinces.id')
+            ->join('regions', 'provinces.region_id', '=', 'regions.id')
+            // Join targetStatus to get the status of the target
+            ->join('target_statuses', 'targets.target_status_id', '=', 'target_statuses.id')
+            // Group by region and target status to count targets by their status
+            ->selectRaw('regions.name as region, target_statuses.desc as status, SUM(allocations.allocation) as total_allocation')
+            ->whereIn('target_statuses.desc', ['Compliant', 'Non-Compliant', 'Pending'])
+            ->groupBy('regions.name', 'target_statuses.desc')
+            ->get();
 
-        // $categories = $data->groupBy('region')->keys()->toArray();
-        // $pendingData = $data->where('status', 'Pending')->pluck('count')->toArray();
-        // $compliantData = $data->where('status', 'Compliant')->pluck('count')->toArray();
-        // $nonCompliantData = $data->where('status', 'Non-Compliant')->pluck('count')->toArray();
-
-
-        $categories = [
-            'NCR',
-            'Region 1',
-            'Region 2',
-            'Region 3',
-            'Region 4',
-            'Region 5',
-            'Region 6',
-            'Region 7',
-            'Region 8',
-            'Region 9',
-            'Region 10',
-            'Region 11',
-            'CARAGA',
-            'BARMM'
-        ];
-
-        $pendingData = [
-            10,
-            15,
-            12,
-            8,
-            5,
-            6,
-            9,
-            7,
-            11,
-            6,
-            13,
-            5,
-            8,
-            3
-        ];
-
-        $compliantData = [
-            45,
-            30,
-            50,
-            25,
-            35,
-            25,
-            40,
-            55,
-            18,
-            22,
-            38,
-            47,
-            29,
-            15
-        ];
-
-        $nonCompliantData = [
-            5,
-            5,
-            2,
-            12,
-            10,
-            10,
-            6,
-            5,
-            7,
-            12,
-            6,
-            8,
-            3,
-            2
-        ];
+        $categories = $data->groupBy('region')->keys()->toArray();
+        $pendingData = $data->where('status', 'Pending')->pluck('total_allocation')->toArray();
+        $compliantData = $data->where('status', 'Compliant')->pluck('total_allocation')->toArray();
+        $nonCompliantData = $data->where('status', 'Non-Compliant')->pluck('total_allocation')->toArray();
 
         return [
             'chart' => [

@@ -260,8 +260,8 @@ class TviResource extends Resource
                 TextColumn::make("address")
                     ->searchable()
                     ->toggleable()
-                    ->limit(30)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 30 ? $state : null)
+                    ->limit(40)
+                    ->tooltip(fn ($state): ?string => strlen($state) > 40 ? $state : null)
                     ->formatStateUsing(fn ($state) => ucwords($state)),
             ])
             ->recordUrl(
