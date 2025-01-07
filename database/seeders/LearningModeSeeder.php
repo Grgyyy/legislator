@@ -25,6 +25,7 @@ class LearningModeSeeder extends Seeder
             ['name' => 'Industry-based/In-company training for its employees', 'deliver_mode_id' => 2],
             ['name' => 'Supervised Industry Learning (SIL)', 'deliver_mode_id' => 2],
             ['name' => 'Trainings conducted in farm schools/enterprises', 'deliver_mode_id' => 2],
+
             ['name' => 'Mobile Training Program of TVIs', 'deliver_mode_id' => 3],
             ['name' => 'Extension programs of TTIs', 'deliver_mode_id' => 3],
             ['name' => 'Project-based training programs conducted by TESDA PPTCs', 'deliver_mode_id' => 3],
