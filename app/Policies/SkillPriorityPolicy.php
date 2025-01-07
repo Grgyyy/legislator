@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\SubParticular;
+use App\Models\SkillPriority;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class ParticularTypePolicy
+class SkillPriorityPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -19,7 +19,7 @@ class ParticularTypePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, SubParticular $subParticular): bool
+    public function view(User $user, SkillPriority $skillPriority): bool
     {
         return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
@@ -35,7 +35,7 @@ class ParticularTypePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, SubParticular $subParticular): bool
+    public function update(User $user, SkillPriority $skillPriority): bool
     {
         return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
@@ -43,7 +43,7 @@ class ParticularTypePolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, SubParticular $subParticular): bool
+    public function delete(User $user, SkillPriority $skillPriority): bool
     {
         return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
@@ -51,7 +51,7 @@ class ParticularTypePolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, SubParticular $subParticular): bool
+    public function restore(User $user, SkillPriority $skillPriority): bool
     {
         return $user->hasRole(['Super Admin', 'Admin']);
     }
@@ -59,7 +59,7 @@ class ParticularTypePolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, SubParticular $subParticular): bool
+    public function forceDelete(User $user, SkillPriority $skillPriority): bool
     {
         return $user->hasRole('Super Admin');
     }

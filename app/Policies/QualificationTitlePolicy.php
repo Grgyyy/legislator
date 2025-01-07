@@ -61,6 +61,6 @@ class QualificationTitlePolicy
      */
     public function forceDelete(User $user, QualificationTitle $qualificationTitle): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

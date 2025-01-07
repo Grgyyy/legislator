@@ -61,6 +61,6 @@ class InstitutionClassBPolicy
      */
     public function forceDelete(User $user, InstitutionClass $institutionClass): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

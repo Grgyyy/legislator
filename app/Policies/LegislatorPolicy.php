@@ -53,7 +53,7 @@ class LegislatorPolicy
      */
     public function restore(User $user, Legislator $legislator): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 
     /**
@@ -61,6 +61,6 @@ class LegislatorPolicy
      */
     public function forceDelete(User $user, Legislator $legislator): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

@@ -2,31 +2,34 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\CompliantTargetsResource\Pages;
+use App\Models\Tvi;
 use App\Models\Abdd;
+use Filament\Tables;
+use App\Models\Target;
+use Filament\Forms\Form;
 use App\Models\Allocation;
-use App\Models\DeliveryMode;
 use App\Models\Legislator;
 use App\Models\Particular;
+use Filament\Tables\Table;
+use App\Models\DeliveryMode;
+use App\Models\TargetStatus;
+use Filament\Actions\Action;
+use App\Models\SubParticular;
+use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use App\Models\SubParticular;
-use App\Models\Target;
-use App\Models\TargetStatus;
-use App\Models\Tvi;
-use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Select;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Illuminate\Database\Eloquent\Builder;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\CompliantTargetsResource\Pages;
 
 class CompliantTargetsResource extends Resource
 {
@@ -47,12 +50,12 @@ class CompliantTargetsResource extends Resource
 
         return $form->schema([
             TextInput::make('abscap_id')
-                    ->label('Absorbative Capacity ID')
-                    ->placeholder('Enter an Absorbative capacity ID')
-                    ->default($record ? $record->abscap_id : null)
-                    ->disabled()
-                    ->dehydrated()
-                    ->numeric(),
+                ->label('Absorbative Capacity ID')
+                ->placeholder('Enter an Absorbative capacity ID')
+                ->default($record ? $record->abscap_id : null)
+                ->disabled()
+                ->dehydrated()
+                ->numeric(),
 
             Select::make('sender_legislator_id')
                 ->label('Attribution Sender')
@@ -91,10 +94,10 @@ class CompliantTargetsResource extends Resource
                         return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
                             $query->where('legislator_particular.legislator_id', $legislatorId);
                         })
-                        ->with('subParticular')
-                        ->get()
-                        ->pluck('subParticular.name', 'id')
-                        ->toArray();
+                            ->with('subParticular')
+                            ->get()
+                            ->pluck('subParticular.name', 'id')
+                            ->toArray();
                     }
 
                     return [];
@@ -277,8 +280,8 @@ class CompliantTargetsResource extends Resource
                 ->options(function () {
                     $abdds = Abdd::all();
                     return $abdds->isNotEmpty()
-                    ? $abdds->pluck('name', 'id')->toArray()
-                    : ['no_abddd' => 'No ABDD Sector available.'];
+                        ? $abdds->pluck('name', 'id')->toArray()
+                        : ['no_abddd' => 'No ABDD Sector available.'];
                 }),
 
             TextInput::make('number_of_slots')
@@ -337,7 +340,7 @@ class CompliantTargetsResource extends Resource
                     ->toggleable(),
                 TextColumn::make('tvi.name')
                     ->label('Institution')
-                    ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+                    ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
                 TextColumn::make('allocation.scholarship_program.name')
                     ->label('Scholarship Program'),
                 TextColumn::make('qualification_title.trainingProgram.title')
@@ -396,6 +399,90 @@ class CompliantTargetsResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('allocation.particular.subParticular.fundSource.name')
+                                        ->heading('Allocation Type'),
+
+                                    Column::make('attributionAllocation.legislator.name')
+                                        ->heading('Legislator I'),
+
+                                    Column::make('allocation.legislator.name')
+                                        ->heading('Legislator II'),
+
+                                    Column::make('allocation.particular.subParticular.name')
+                                        ->heading('Particular'),
+
+                                    Column::make('allocation.soft_or_commitment')
+                                        ->heading('Soft/Commitment'),
+
+                                    Column::make('appropriation_type')
+                                        ->heading('Appropriation Type'),
+
+                                    Column::make('allocation.year')
+                                        ->heading('Allocation Year'),
+
+                                    Column::make('tvi.district.name')
+                                        ->heading('District'),
+
+                                    Column::make('municipality.name')
+                                        ->heading('Municipality'),
+
+                                    Column::make('municipality.province.name')
+                                        ->heading('Province'),
+
+                                    Column::make('municipality.province.region.name')
+                                        ->heading('Region'),
+
+                                    Column::make('tvi.name')
+                                        ->heading('Institution')
+                                        ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+
+                                    Column::make('allocation.scholarship_program.name')
+                                        ->heading('Scholarship Program'),
+
+                                    Column::make('qualification_title.trainingProgram.title')
+                                        ->heading('Qualification Title')
+                                        ->formatStateUsing(function ($state) {
+                                            if (!$state) {
+                                                return $state;
+                                            }
+
+                                            $state = ucwords($state);
+
+                                            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
+                                                $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                                    return 'NC ' . strtoupper($matches[1]);
+                                                }, $state);
+                                            }
+
+                                            return $state;
+                                        }),
+
+                                    Column::make('qualification_title.trainingProgram.priority.name')
+                                        ->heading('Priority Sector'),
+
+                                    Column::make('qualification_title.trainingProgram.tvet.name')
+                                        ->heading('TVET Sector'),
+
+                                    Column::make('abdd.name')
+                                        ->heading('ABDD Sector'),
+
+                                    Column::make('number_of_slots')
+                                        ->heading('No. of Slots'),
+
+                                    Column::make('total_amount')
+                                        ->heading('Total Amount')
+                                        ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+
+                                    Column::make('targetStatus.desc')
+                                        ->heading('Status')
+
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Compliant Targets')
+                        ]),
                 ]),
             ])
             ->recordUrl(
@@ -427,7 +514,7 @@ class CompliantTargetsResource extends Resource
 
         if ($compliantStatus) {
             $query->withoutGlobalScopes([SoftDeletingScope::class])
-                  ->where('target_status_id', '=', $compliantStatus->id); // Use '=' for comparison
+                ->where('target_status_id', '=', $compliantStatus->id); // Use '=' for comparison
 
             if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
                 $query->where('region_id', (int) $routeParameter);
@@ -462,7 +549,8 @@ class CompliantTargetsResource extends Resource
         return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
     }
 
-    protected static function getAppropriationTypeOptions($year) {
+    protected static function getAppropriationTypeOptions($year)
+    {
         $yearNow = date('Y');
 
         if ($year == $yearNow) {

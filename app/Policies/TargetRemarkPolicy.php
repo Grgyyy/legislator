@@ -61,6 +61,6 @@ class TargetRemarkPolicy
      */
     public function forceDelete(User $user, TargetRemark $targetRemark): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole(['Super Admin']);
     }
 }

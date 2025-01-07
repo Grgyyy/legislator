@@ -61,6 +61,6 @@ class PartyListPolicy
      */
     public function forceDelete(User $user, Partylist $partylist): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

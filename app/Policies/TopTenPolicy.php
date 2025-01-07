@@ -61,6 +61,6 @@ class TopTenPolicy
      */
     public function forceDelete(User $user, Priority $priority): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

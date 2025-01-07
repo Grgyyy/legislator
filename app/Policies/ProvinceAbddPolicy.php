@@ -61,6 +61,6 @@ class ProvinceAbddPolicy
      */
     public function forceDelete(User $user, ProvinceAbdd $provinceAbdd): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

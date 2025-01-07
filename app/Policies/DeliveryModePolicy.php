@@ -61,6 +61,6 @@ class DeliveryModePolicy
      */
     public function forceDelete(User $user, DeliveryMode $deliveryMode): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

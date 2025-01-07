@@ -61,6 +61,6 @@ class ParticularPolicy
      */
     public function forceDelete(User $user, Particular $particular): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

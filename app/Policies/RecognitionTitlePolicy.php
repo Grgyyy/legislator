@@ -61,6 +61,6 @@ class RecognitionTitlePolicy
      */
     public function forceDelete(User $user, Recognition $recognition): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

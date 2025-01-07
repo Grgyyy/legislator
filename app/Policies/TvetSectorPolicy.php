@@ -61,6 +61,6 @@ class TvetSectorPolicy
      */
     public function forceDelete(User $user, Tvet $tvet): bool
     {
-        return $user->hasRole('Admin');
+        return $user->hasRole('Super Admin');
     }
 }

@@ -160,7 +160,7 @@ class TargetResource extends Resource
                                     })
                                     ->toArray() ?: ['no_tvi' => 'No institution available'];
                             })
-                            ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state)))
+                            ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state)))
                             ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
                         Select::make('qualification_title_id')
@@ -189,7 +189,7 @@ class TargetResource extends Resource
                             ->preload()
                             // ->options(function ($get) {
                             //     $tviId = $get('tvi_id');
-
+    
                             //     return $tviId
                             //         ? self::getAbddSectors($tviId)
                             //         : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
@@ -566,7 +566,7 @@ class TargetResource extends Resource
                                     ->native(false)
                                     // ->options(function ($get) {
                                     //     $tviId = $get('tvi_id');
-
+    
                                     //     return $tviId
                                     //         ? self::getAbddSectors($tviId)
                                     //         : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
@@ -643,23 +643,23 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-
+    
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-
+    
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-
+    
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-
+    
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
                         //         }
                         //     })
-
+    
 
                     ];
                 }
@@ -774,7 +774,7 @@ class TargetResource extends Resource
                     ->label('Institution')
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+                    ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
                 TextColumn::make('tvi.tviClass.tviType.name')
                     ->label('Institution Type')
@@ -1019,7 +1019,7 @@ class TargetResource extends Resource
                                         ->heading('Institution Type'),
 
                                     Column::make('tvi.tviClass.name')
-                                        ->heading('Institution Class(A)'),
+                                        ->heading('Institution Class'),
 
                                     Column::make('qualification_title_code')
                                         ->heading('Qualification Code'),
