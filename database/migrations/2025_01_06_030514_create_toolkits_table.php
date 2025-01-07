@@ -17,9 +17,11 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
             $table->decimal('price_per_toolkit', 15, 2)->default(0);
+            $table->integer('available_number_of_toolkit')->default(0);
             $table->integer('number_of_toolkit')->default(0);
             $table->decimal('total_abc_per_lot', 15, 2)->default(0);
             $table->integer('number_of_items_per_toolkit')->default(0);
+            $table->year('year');
             $table->timestamps();
             $table->softDeletes();
         });
