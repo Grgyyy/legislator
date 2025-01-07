@@ -20965,3 +20965,93 @@ Stack trace:
 #88 C:\\laragon\\www\\legislator\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
 #89 {main}
 "} 
+[2025-01-07 02:46:46] local.ERROR: Route [login] not defined. {"exception":"[object] (Symfony\\Component\\Routing\\Exception\\RouteNotFoundException(code: 0): Route [login] not defined. at C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\UrlGenerator.php:477)
+[stacktrace]
+#0 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\helpers.php(811): Illuminate\\Routing\\UrlGenerator->route('login', Array, true)
+#1 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions\\Handler.php(570): route('login')
+#2 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions\\Handler.php(471): Illuminate\\Foundation\\Exceptions\\Handler->unauthenticated(Object(Illuminate\\Http\\Request), Object(Illuminate\\Auth\\AuthenticationException))
+#3 C:\\laragon\\www\\legislator\\app\\Exceptions\\Handler.php(38): Illuminate\\Foundation\\Exceptions\\Handler->render(Object(Illuminate\\Http\\Request), Object(Illuminate\\Auth\\AuthenticationException))
+#4 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Pipeline.php(51): App\\Exceptions\\Handler->render(Object(Illuminate\\Http\\Request), Object(Illuminate\\Auth\\AuthenticationException))
+#5 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(188): Illuminate\\Routing\\Pipeline->handleException(Object(Illuminate\\Http\\Request), Object(Illuminate\\Auth\\AuthenticationException))
+#6 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Auth\\Middleware\\Authenticate.php(57): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#7 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Auth\\Middleware\\Authenticate->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#8 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\View\\Middleware\\ShareErrorsFromSession.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#9 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\View\\Middleware\\ShareErrorsFromSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#10 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(121): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#11 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Session\\Middleware\\StartSession.php(64): Illuminate\\Session\\Middleware\\StartSession->handleStatefulRequest(Object(Illuminate\\Http\\Request), Object(Illuminate\\Session\\Store), Object(Closure))
+#12 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Session\\Middleware\\StartSession->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#13 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse.php(37): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#14 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\AddQueuedCookiesToResponse->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#15 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Cookie\\Middleware\\EncryptCookies.php(67): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#16 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Cookie\\Middleware\\EncryptCookies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#17 C:\\laragon\\www\\legislator\\vendor\\filament\\filament\\src\\Http\\Middleware\\SetUpPanel.php(19): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#18 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Filament\\Http\\Middleware\\SetUpPanel->handle(Object(Illuminate\\Http\\Request), Object(Closure), Object(Filament\\Panel))
+#19 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#20 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(805): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#21 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(784): Illuminate\\Routing\\Router->runRouteWithinStack(Object(Illuminate\\Routing\\Route), Object(Illuminate\\Http\\Request))
+#22 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(748): Illuminate\\Routing\\Router->runRoute(Object(Illuminate\\Http\\Request), Object(Illuminate\\Routing\\Route))
+#23 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\Router.php(737): Illuminate\\Routing\\Router->dispatchToRoute(Object(Illuminate\\Http\\Request))
+#24 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(200): Illuminate\\Routing\\Router->dispatch(Object(Illuminate\\Http\\Request))
+#25 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(144): Illuminate\\Foundation\\Http\\Kernel->Illuminate\\Foundation\\Http\\{closure}(Object(Illuminate\\Http\\Request))
+#26 C:\\laragon\\www\\legislator\\vendor\\livewire\\livewire\\src\\Features\\SupportDisablingBackButtonCache\\DisableBackButtonCacheMiddleware.php(19): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#27 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Livewire\\Features\\SupportDisablingBackButtonCache\\DisableBackButtonCacheMiddleware->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#28 C:\\laragon\\www\\legislator\\vendor\\barryvdh\\laravel-debugbar\\src\\Middleware\\InjectDebugbar.php(66): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#29 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Barryvdh\\Debugbar\\Middleware\\InjectDebugbar->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#30 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#31 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull.php(31): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#32 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ConvertEmptyStringsToNull->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#33 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest.php(21): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#34 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\TrimStrings.php(40): Illuminate\\Foundation\\Http\\Middleware\\TransformsRequest->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#35 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\TrimStrings->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#36 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize.php(27): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#37 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\ValidatePostSize->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#38 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance.php(99): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#39 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Foundation\\Http\\Middleware\\PreventRequestsDuringMaintenance->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#40 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\HandleCors.php(49): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#41 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\HandleCors->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#42 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Http\\Middleware\\TrustProxies.php(39): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#43 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(183): Illuminate\\Http\\Middleware\\TrustProxies->handle(Object(Illuminate\\Http\\Request), Object(Closure))
+#44 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Pipeline\\Pipeline.php(119): Illuminate\\Pipeline\\Pipeline->Illuminate\\Pipeline\\{closure}(Object(Illuminate\\Http\\Request))
+#45 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(175): Illuminate\\Pipeline\\Pipeline->then(Object(Closure))
+#46 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#47 C:\\laragon\\www\\legislator\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#48 {main}
+"} 
+[2025-01-07 02:55:07] local.ERROR: Failed to import particular: The district 'District 1' does not exist in the specified province and municipality.  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = Not Applicable  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Creating new municipality: 'Manila City' in province ID '77'  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:56:39] local.INFO: Searching for region: Name = NCR  
+[2025-01-07 02:57:09] local.ERROR: Failed to import municipality: The District column is required for municipalities in NCR.  
+[2025-01-07 03:03:37] local.ERROR: Failed to import municipality: The District column must be empty for municipalities outside NCR.  
+[2025-01-07 03:04:12] local.ERROR: Failed to import municipality: The District column must be empty for municipalities outside NCR.  
+[2025-01-07 03:05:25] local.ERROR: Failed to import municipality: The District column must be empty for municipalities outside NCR.  
+[2025-01-07 03:06:00] local.ERROR: Failed to import municipality: The District column is required for municipalities in NCR.  
+[2025-01-07 03:06:19] local.ERROR: Failed to import municipality: The District column is required for municipalities in NCR.  
+[2025-01-07 03:06:56] local.ERROR: Failed to import municipality: The District column must be empty for municipalities outside NCR.  
+[2025-01-07 03:09:54] local.ERROR: Failed to import particular: The district 'District 1' does not exist in the specified province and municipality.  
+[2025-01-07 03:11:35] local.ERROR: Failed to import legislators: The district 'District 1' does not exist in the specified province and municipality.  
+[2025-01-07 03:14:03] local.ERROR: Import failed: Program with name 'Hilot (Wellness Massage) NC II' already exists.  
+[2025-01-07 03:14:25] local.ERROR: Import failed: Program with name 'Hilot (Wellness Massage) NC II' already exists.  
+[2025-01-07 03:14:52] local.ERROR: Import failed: Program with name 'Hilot (Wellness Massage) NC II' already exists.  
+[2025-01-07 03:19:16] local.ERROR: An error occurred while importing row: {"school_id":"1301-0028","institution_name":"3R Manpower Training and Testing Centre, Inc.","institution_class_a":"TVI","institution_class_b":"B","district":"District 1","municipality":"Caloocan City","province":"CaMaNaVa","region":"NCR","full_address":"B6 L8 Sunriser Vill. Subd., Llano Road, Caloocan City","qualification_title":null} Error: The district 'District 1' does not exist in the specified province and municipality.  
