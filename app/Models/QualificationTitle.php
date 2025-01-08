@@ -55,7 +55,4 @@ class QualificationTitle extends Model
         return $this->belongsTo(Status::class, 'status_id');
     }
 
-    public function toolkit() {
-        return $this->hasMany(Toolkit::class);
-    }
 }

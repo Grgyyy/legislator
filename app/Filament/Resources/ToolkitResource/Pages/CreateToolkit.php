@@ -28,7 +28,7 @@ class CreateToolkit extends CreateRecord
     {
         // Validate input data
         return DB::transaction(function () use ($data) {
-            $existingRecord = Toolkit::where('qualification_title_id', $data['qualification_title_id'])
+            $existingRecord = Toolkit::where('lot_name', $data['lot_name'])
                 ->where('year', $data['year'])
                 ->first();
 
@@ -38,7 +38,7 @@ class CreateToolkit extends CreateRecord
             }
 
             $toolkit = Toolkit::create([
-                'qualification_title_id' => $data['qualification_title_id'],
+                'lot_name' => $data['lot_name'],
                 'price_per_toolkit' => $data['price_per_toolkit'],
                 'available_number_of_toolkit' => $data['number_of_toolkit'],
                 'number_of_toolkit' => $data['number_of_toolkit'],

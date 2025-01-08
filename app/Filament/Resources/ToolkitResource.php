@@ -47,37 +47,42 @@ class ToolkitResource extends Resource
     {
         return $form
             ->schema([
-                Select::make('qualification_title_id')
-                    ->label('Qualification Title')
-                    ->searchable()
-                    ->options(function () {
-                        $step = ScholarshipProgram::where('name', 'STEP')->first();
+                // Select::make('qualification_title_id')
+                //     ->label('Qualification Title')
+                //     ->searchable()
+                //     ->options(function () {
+                //         $step = ScholarshipProgram::where('name', 'STEP')->first();
 
-                        if (!$step) {
-                            return ['no_step' => 'No STEP Scholarship Program available'];
-                        }
+                //         if (!$step) {
+                //             return ['no_step' => 'No STEP Scholarship Program available'];
+                //         }
 
-                        $qualificationTitles = QualificationTitle::whereNull('deleted_at')
-                            ->where('scholarship_program_id', $step->id)
-                            ->with('trainingProgram')
-                            ->get()
-                            ->filter(fn($qualification) => $qualification->trainingProgram)
-                            ->mapWithKeys(function ($qualification) {
-                                $title = $qualification->trainingProgram->title;
+                //         $qualificationTitles = QualificationTitle::whereNull('deleted_at')
+                //             ->where('scholarship_program_id', $step->id)
+                //             ->with('trainingProgram')
+                //             ->get()
+                //             ->filter(fn($qualification) => $qualification->trainingProgram)
+                //             ->mapWithKeys(function ($qualification) {
+                //                 $title = $qualification->trainingProgram->title;
 
-                                $title = preg_replace_callback(
-                                    '/\bNC\s+([I]{1,3})\b/i',
-                                    fn($matches) => 'NC ' . strtoupper($matches[1]),
-                                    $title
-                                );
+                //                 $title = preg_replace_callback(
+                //                     '/\bNC\s+([I]{1,3})\b/i',
+                //                     fn($matches) => 'NC ' . strtoupper($matches[1]),
+                //                     $title
+                //                 );
 
-                                return [$qualification->id => ucwords($title)];
-                            })
-                            ->toArray();
+                //                 return [$qualification->id => ucwords($title)];
+                //             })
+                //             ->toArray();
 
-                        return $qualificationTitles ?: ['no_available' => 'No available Qualification Titles'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_step' || $value === 'no_available'),
+                //         return $qualificationTitles ?: ['no_available' => 'No available Qualification Titles'];
+                //     })
+                //     ->disableOptionWhen(fn($value) => $value === 'no_step' || $value === 'no_available'),
+
+                TextInput::make('lot_name')
+                    ->label('Lot Name')
+                    ->placeholder('Enter a Lot Name')
+                    ->required(),
 
                 TextInput::make('price_per_toolkit')
                     ->label('Price Per Toolkit')
@@ -122,7 +127,7 @@ class ToolkitResource extends Resource
                     ->rules(['min:' . date('Y'), 'digits: 4'])
                     ->validationAttribute('year')
                     ->validationMessages([
-                        'min' => 'The allocation year must be at least ' . date('Y') . '.',
+                        'min' => 'The toolkit year must be at least ' . date('Y') . '.',
                     ]),
 
 
@@ -133,8 +138,8 @@ class ToolkitResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('qualificationTitle.trainingProgram.title')
-                    ->label('Qualification Title/Lot')
+                TextColumn::make('lot_name')
+                    ->label('Lot Name')
                     ->searchable(),
                 TextColumn::make('price_per_toolkit')
                     ->label('Price per Toolkit')
@@ -202,13 +207,9 @@ class ToolkitResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
-                                    Column::make('qualificationTitle.trainingProgram.name')
-                                        ->heading('Qualification Title / Lot')
-                                        ->getStateUsing(function ($record) {
-                                            $qualificationTitle = $record->qualificationTitle;
-                                            return $qualificationTitle ? $qualificationTitle->trainingProgram->title : 'No province available';
-                                        }),
-
+                                    Column::make('lot_name')
+                                        ->heading('Lot Name'),
+                                        
                                     Column::make('price_per_toolkit')
                                         ->heading('Estimated Price Per Toolkit')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),

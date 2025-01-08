@@ -13,9 +13,7 @@ return new class extends Migration
     {
         Schema::create('toolkits', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('qualification_title_id')
-                ->constrained()
-                ->cascadeOnDelete();
+            $table->string('lot_name');
             $table->decimal('price_per_toolkit', 15, 2)->default(0);
             $table->integer('available_number_of_toolkit')->default(0);
             $table->integer('number_of_toolkit')->default(0);

@@ -26,18 +26,17 @@ class ToolkitImport implements ToModel, WithHeadingRow
             $this->validateYear($row['year']);
 
             DB::transaction(function () use ($row) {
-                $qualificationTitle = $this->getQualificationTitle($row['qualification_title']);
                 
-                $toolkitExists = Toolkit::where('qualification_title_id', $qualificationTitle->id)
+                $toolkitExists = Toolkit::where('lot_name', $row['lot_name'])
                     ->where('year', $row['year'])
                     ->exists();
                 
                 if($toolkitExists) {
-                    throw new \Exception("A Toolkit is already linked with the Qualification Title named '{$qualificationTitle->trainingProgram->title}'.");
+                    throw new \Exception("A Toolkit named {$row['lot_name']} already exists.");
                 }
 
                 $toolkit = Toolkit::create([
-                    'qualification_title_id' => $qualificationTitle->id,
+                    'lot_name' => $row['lot_name'],
                     'price_per_toolkit' => $row['price_per_toolkit'],
                     'number_of_toolkit' => $row['number_of_toolkit'],
                     'available_number_of_toolkit' => $row['number_of_toolkit'],
@@ -59,7 +58,7 @@ class ToolkitImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         $requiredFields = [
-            'qualification_title',
+            'lot_name',
             'price_per_toolkit',
             'number_of_toolkit',
             'number_of_items_per_toolkit',

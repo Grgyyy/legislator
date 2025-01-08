@@ -34,7 +34,7 @@ class EditToolkit extends EditRecord
     {
         return DB::transaction(function () use ($record, $data) {
 
-            $existingRecord = Toolkit::where('qualification_title_id', $data['qualification_title_id'])
+            $existingRecord = Toolkit::where('lot_name', $data['lot_name'])
                 ->where('year', $data['year'])
                 ->whereNot('id', $record['id'])
                 ->first();
@@ -50,7 +50,7 @@ class EditToolkit extends EditRecord
 
             // Update the existing record instead of calling update statically
             $record->update([
-                'qualification_title_id' => $data['qualification_title_id'],
+                'lot_name' => $data['lot_name'],
                 'price_per_toolkit' => $data['price_per_toolkit'],
                 'available_number_of_toolkit' => $new_anot,
                 'number_of_toolkit' => $data['number_of_toolkit'],
