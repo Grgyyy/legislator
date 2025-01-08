@@ -17,7 +17,6 @@ class UserSeeder extends Seeder
 
         $passwordRegex = '/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/';
 
-        // Define users with their respective roles
         $users = [
             ['name' => 'Super Admin', 'email' => 'superadmin@gmail.com', 'role' => 'Super Admin'],
             ['name' => 'Cedric James Leala', 'email' => 'cjpleala@tesda.gov.ph', 'role' => 'Super Admin'],
