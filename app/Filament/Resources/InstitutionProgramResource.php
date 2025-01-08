@@ -62,11 +62,11 @@ class InstitutionProgramResource extends Resource
                         return Tvi::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
                             ->mapWithKeys(function ($name, $id) {
-                                $name = preg_replace_callback(
-                                    '/(\d)([a-zA-Z])/',
-                                    fn($matches) => $matches[1] . strtoupper($matches[2]),
-                                    ucwords($name)
-                                );
+                                // $name = preg_replace_callback(
+                                //     '/(\d)([a-zA-Z])/',
+                                //     fn($matches) => $matches[1] . strtoupper($matches[2]),
+                                //     ucwords($name)
+                                // );
                                 return [$id => $name];
                             })
                             ->toArray() ?: ['no_tvi' => 'No institution available'];
@@ -87,11 +87,11 @@ class InstitutionProgramResource extends Resource
                             ->mapWithKeys(function ($title, $id) {
                                 $title = ucwords($title);
 
-                                if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
-                                    $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                        return 'NC ' . strtoupper($matches[1]);
-                                    }, $title);
-                                }
+                                // if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                                //     $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                //         return 'NC ' . strtoupper($matches[1]);
+                                //     }, $title);
+                                // }
 
                                 return [$id => $title];
                             })
@@ -107,26 +107,26 @@ class InstitutionProgramResource extends Resource
             ->columns([
                 TextColumn::make('tvi.name')
                     ->label('Institution')
-                    ->searchable()
-                    ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+                    ->searchable(),
+                    // ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
                 TextColumn::make('trainingProgram.title')
                     ->label('Training Program')
                     ->searchable()
-                    ->formatStateUsing(function ($state) {
-                        if (!$state) {
-                            return $state;
-                        }
+                    // ->formatStateUsing(function ($state) {
+                    //     if (!$state) {
+                    //         return $state;
+                    //     }
 
-                        $state = ucwords($state);
+                    //     $state = ucwords($state);
 
-                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                return 'NC ' . strtoupper($matches[1]);
-                            }, $state);
-                        }
+                    //     if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
+                    //         $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                    //             return 'NC ' . strtoupper($matches[1]);
+                    //         }, $state);
+                    //     }
 
-                        return $state;
-                    })
+                    //     return $state;
+                    // })
             ])
             ->filters([ /* filters here */ ])
             ->actions([

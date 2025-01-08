@@ -72,19 +72,21 @@ class SkillPriorityResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_training_program'),
 
-                TextInput::make('available_slots')
-                    ->label('Available Slots')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->integer()
-                    ->hidden(fn($livewire) => !$livewire->isEdit()),
+                // TextInput::make('available_slots')
+                //     ->label('Available Slots')
+                //     ->required()
+                //     ->markAsRequired(false)
+                //     ->integer()
+                //     ->hidden(fn($livewire) => !$livewire->isEdit()),
 
                 TextInput::make('total_slots')
                     ->label('Slots')
                     ->placeholder('Enter number of slots')
                     ->required()
                     ->markAsRequired(false)
-                    ->integer(),
+                    ->integer()
+                    ->disabled(fn($livewire) => $livewire->isEdit())
+                    ->dehydrated(),
 
                 TextInput::make('year')
                     ->label('Year')
@@ -109,21 +111,22 @@ class SkillPriorityResource extends Resource
                     ->label('Province'),
                 TextColumn::make('trainingPrograms.title')
                     ->label('Training Program')
-                    ->formatStateUsing(function ($state) {
-                        if (!$state) {
-                            return $state;
-                        }
+                    // ->formatStateUsing(function ($state) {
+                    //     if (!$state) {
+                    //         return $state;
+                    //     }
 
-                        $state = ucwords($state);
+                    //     $state = ucwords($state);
 
-                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                return 'NC ' . strtoupper($matches[1]);
-                            }, $state);
-                        }
+                    //     if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
+                    //         $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                    //             return 'NC ' . strtoupper($matches[1]);
+                    //         }, $state);
+                    //     }
 
-                        return $state;
-                    }),
+                    //     return $state;
+                    // })
+                    ,
                 TextColumn::make('available_slots')
                     ->label('Available Slots'),
                 TextColumn::make('total_slots')

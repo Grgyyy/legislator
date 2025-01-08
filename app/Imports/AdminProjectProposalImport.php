@@ -65,7 +65,7 @@ class AdminProjectProposalImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         $requiredFields = [
-            'program_name',
+            'project_proposal_program_name',
         ];
 
         foreach ($requiredFields as $field) {

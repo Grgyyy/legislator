@@ -24,7 +24,6 @@ class CreateQualificationTitle extends CreateRecord
         $target = DB::transaction(function () use ($data) {
             $costingFields = [
                 'training_cost_pcc',
-                'cost_of_toolkit_pcc',
                 'training_support_fund',
                 'assessment_fee',
                 'entrepreneurship_fee',

@@ -2,42 +2,41 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\TviResource\Pages;
-use App\Models\District;
-use App\Models\InstitutionClass;
-use App\Models\Municipality;
-use App\Models\Province;
-use App\Models\Region;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Models\TviClass;
+use App\Models\InstitutionClass;
+use App\Models\District;
+use App\Filament\Resources\TviResource\Pages;
+use App\Models\Municipality;
+use App\Models\Province;
+use App\Models\Region;
 use App\Services\NotificationHandler;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Grid;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TviResource extends Resource
 {
@@ -225,8 +224,8 @@ class TviResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->limit(45)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 45 ? $state : null)
-                    ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+                    ->tooltip(fn ($state): ?string => strlen($state) > 45 ? $state : null),
+                    // ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
                 TextColumn::make("tviClass.name")
                     ->label('Institution Class(A)')
@@ -257,12 +256,13 @@ class TviResource extends Resource
                         return "{$municipalityName} - {$districtName}, {$provinceName}";
                     }),
 
+
                 TextColumn::make("address")
                     ->searchable()
                     ->toggleable()
                     ->limit(40)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 40 ? $state : null)
-                    ->formatStateUsing(fn ($state) => ucwords($state)),
+                    ->tooltip(fn ($state): ?string => strlen($state) > 40 ? $state : null),
+                    // ->formatStateUsing(fn ($state) => ucwords($state)),
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id]),

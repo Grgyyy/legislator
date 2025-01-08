@@ -5,6 +5,7 @@ namespace App\Filament\Resources\TviResource\Pages;
 use App\Models\Tvi;
 use App\Filament\Resources\TviResource;
 use App\Services\NotificationHandler;
+use DB;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
 use Exception;
@@ -51,10 +52,7 @@ class EditTvi extends EditRecord
     {
         $tvi = Tvi::withTrashed()
             ->where('name', $data['name'])
-            ->where('institution_class_id', $data['institution_class_id'])
-            ->where('tvi_class_id', $data['tvi_class_id'])
-            ->where('district_id', $data['district_id'])
-            ->where('address', $data['address'])
+            ->where(DB::raw('LOWER(name)'), strtolower($data['institution_name']))
             ->whereNot('id', $currentId)
             ->first();
 

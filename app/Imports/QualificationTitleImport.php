@@ -27,7 +27,6 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
                 $costs = [
                     'training_cost_pcc' => isset($row['training_cost_pcc']) ? (float) $row['training_cost_pcc'] : 0,
-                    'cost_of_toolkit_pcc' => isset($row['cost_of_toolkit_pcc']) ? (float) $row['cost_of_toolkit_pcc'] : 0,
                     'training_support_fund' => isset($row['training_support_fund']) ? (float) $row['training_support_fund'] : 0,
                     'assessment_fee' => isset($row['assessment_fee']) ? (float) $row['assessment_fee'] : 0,
                     'entrepreneurship_fee' => isset($row['entrepreneurship_fee']) ? (float) $row['entrepreneurship_fee'] : 0,
@@ -83,7 +82,7 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
     protected function getTrainingProgramId(string $trainingProgramName): int
     {
-        $trainingProgram = TrainingProgram::where('title', $trainingProgramName)->first();
+        $trainingProgram = TrainingProgram::where(DB::raw('LOWER(title)'), strtolower($trainingProgramName))->first();
 
         if (!$trainingProgram) {
             throw new \Exception("Training program with name '{$trainingProgramName}' not found. No changes were saved.");

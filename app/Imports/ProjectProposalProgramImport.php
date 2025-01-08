@@ -24,36 +24,40 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
             $this->validateRow($row);
 
             return DB::transaction(function () use ($row) {
-                $programName = strtolower($row['program_name']);
+                $programName = $row['project_proposal_program_name'];
 
-                if (TrainingProgram::where('title', $programName)->exists()) {
-                    throw new \Exception("Program with name '{$row['program_name']}' already exists.");
-                }
+                $projectProposalProgram = TrainingProgram::where('title', $programName)->first();
 
-                $tvetSector = Tvet::where('name', 'Not Applicable')->first();
-                $prioSector = Priority::where('name', 'Not Applicable')->first();
+                $tvetSector = Tvet::where('name', $row['tvet_sector'])->first();
+                $prioSector = Priority::where('name', $row['priority_sector'])->first();
+                $scholarshipProgram = ScholarshipProgram::where('name', $row['scholarship_program'])->first();
 
-                $trainingProgramRecord = TrainingProgram::create([
-                    'title' => $programName,
-                    'tvet_id' => $tvetSector->id,
-                    'priority_id' => $prioSector->id,
-                ]);
-
-                $scholarshipPrograms = ScholarshipProgram::all();
-
-                $trainingProgramRecord->scholarshipPrograms()->syncWithoutDetaching(
-                    $scholarshipPrograms->pluck('id')->toArray()
-                );
-
-                foreach ($scholarshipPrograms as $scholarshipProgram) {
-                    QualificationTitle::create([
-                        'training_program_id' => $trainingProgramRecord->id,
-                        'scholarship_program_id' => $scholarshipProgram->id,
-                        'soc' => 0,
+                if (!$projectProposalProgram) {
+                    $projectProposalProgram = TrainingProgram::create([
+                        'title' => $programName,
+                        'tvet_id' => $tvetSector->id,
+                        'priority_id' => $prioSector->id,
                     ]);
                 }
 
-                return $trainingProgramRecord;
+                $projectProposalProgram->scholarshipPrograms()->syncWithoutDetaching($scholarshipProgram);
+
+                $qualificationTitle = QualificationTitle::where('training_program_id', $projectProposalProgram->id)
+                    ->where('scholarship_program_id', $scholarshipProgram->id)
+                    ->where('soc', 0)
+                    ->exists();
+
+                if(!$qualificationTitle) {
+                    QualificationTitle::create([
+                        'training_program_id' => $projectProposalProgram->id,
+                        'scholarship_program_id' => $scholarshipProgram->id,
+                        'status_id' => 1,
+                        'soc' => 0
+                    ]);
+                }
+
+                
+                return $projectProposalProgram;
             });
         } catch (Throwable $e) {
             Log::error("Import failed: " . $e->getMessage());
@@ -64,7 +68,7 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         $requiredFields = [
-            'program_name',
+            'project_proposal_program_name',
         ];
 
         foreach ($requiredFields as $field) {

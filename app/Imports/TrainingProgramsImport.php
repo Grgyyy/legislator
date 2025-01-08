@@ -33,14 +33,15 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
                 $tvetId = self::getTvetId($row['tvet_sector']);
                 $priorityId = self::getPriorityId($row['priority_sector']);
 
-                $trainingProgram = TrainingProgram::where('code', $row['code'])
-                    ->where('title', strtolower($row['title']))
+                $trainingProgram = TrainingProgram::withTrashed()
+                    ->where('code', $row['code'])
+                    ->where(DB::raw('LOWER(title)'), strtolower($row['title']))
                     ->first();
 
                 if (!$trainingProgram) {
                     $trainingProgram = TrainingProgram::create([
                         'code' => $row['code'],
-                        'title' => strtolower($row['title']),
+                        'title' => $row['title'],
                         'tvet_id' => $tvetId,
                         'priority_id' => $priorityId,
                     ]);

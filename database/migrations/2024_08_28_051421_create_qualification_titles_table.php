@@ -19,7 +19,6 @@ return new class extends Migration {
                 ->constrained()
                 ->cascadeOnDelete();
             $table->decimal('training_cost_pcc', 10, 2)->default(0);
-            $table->decimal('cost_of_toolkit_pcc', 10, 2)->default(0);
             $table->decimal('training_support_fund', 10, 2)->default(0);
             $table->decimal('assessment_fee', 10, 2)->default(0);
             $table->decimal('entrepreneurship_fee', 10, 2)->default(0);

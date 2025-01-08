@@ -18,11 +18,20 @@ class EditAllocation extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function isEdit(): bool
+    {
+        return true; // Edit mode
+    }
+
     protected function handleRecordUpdate($record, array $data): Allocation
     {
         $this->validateUniqueAllocation($data, $record->id);
 
         $allocation = DB::transaction(function () use ($record, $data) {
+            $difference = $data['allocation'] - $record['allocation'];
+            $new_available_slots = $record['balance'] + $difference;
+
+
             $record->update([
                 'soft_or_commitment' => $data['soft_or_commitment'],
                 'legislator_id' => $data['legislator_id'],
@@ -30,7 +39,7 @@ class EditAllocation extends EditRecord
                 'scholarship_program_id' => $data['scholarship_program_id'],
                 'allocation' => $data['allocation'],
                 'admin_cost' => $data['allocation'] * 0.02,
-                'balance' => $data['allocation'] - ($data['allocation'] * 0.02),
+                'balance' => $new_available_slots,
                 'year' => $data['year'],
             ]);
 

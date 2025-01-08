@@ -15,7 +15,6 @@ class QualificationTitle extends Model
         'training_program_id',
         'scholarship_program_id',
         'training_cost_pcc',
-        'cost_of_toolkit_pcc',
         'training_support_fund',
         'assessment_fee',
         'entrepreneurship_fee',
@@ -56,4 +55,7 @@ class QualificationTitle extends Model
         return $this->belongsTo(Status::class, 'status_id');
     }
 
+    public function toolkit() {
+        return $this->hasMany(Toolkit::class);
+    }
 }

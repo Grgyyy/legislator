@@ -23,7 +23,7 @@ class CreateTrainingProgram extends CreateRecord
 
         $trainingProgram = DB::transaction(fn () => TrainingProgram::create([
                 'code' => $data['code'],
-                'title' => strtolower($data['title']),
+                'title' => $data['title'],
                 'priority_id' => $data['priority_id'],
                 'tvet_id' => $data['tvet_id'],
         ]));
@@ -36,7 +36,7 @@ class CreateTrainingProgram extends CreateRecord
     protected function validateUniqueTrainingProgram($data)
     {
         $trainingProgram = TrainingProgram::withTrashed()
-            ->where('title', strtolower($data['title']))
+            ->where(DB::raw('LOWER(title)'), strtolower($data['title']))
             ->where('tvet_id', $data['tvet_id'])
             ->where('priority_id', $data['priority_id'])
             ->first();

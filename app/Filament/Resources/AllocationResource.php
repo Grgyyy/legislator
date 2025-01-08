@@ -132,6 +132,8 @@ class AllocationResource extends Resource
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                     ->reactive()
                     ->live()
+                    ->disabled(fn($livewire) => $livewire->isEdit())
+                    ->dehydrated()
                     ->validationAttribute('Allocation')
                     ->validationMessages([
                         'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
@@ -150,19 +152,19 @@ class AllocationResource extends Resource
                         'min' => 'The allocation year must be at least ' . date('Y') . '.',
                     ]),
 
-                TextInput::make('balance')
-                    ->label('Balance')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->autocomplete(false)
-                    ->hidden()
-                    ->numeric()
-                    ->default(0)
-                    ->prefix('₱')
-                    ->minValue(0)
-                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                    ->reactive()
-                    ->live(),
+                // TextInput::make('balance')
+                //     ->label('Balance')
+                //     ->required()
+                //     ->markAsRequired(false)
+                //     ->autocomplete(false)
+                //     ->hidden()
+                //     ->numeric()
+                //     ->default(0)
+                //     ->prefix('₱')
+                //     ->minValue(0)
+                //     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                //     ->reactive()
+                //     ->live(),
             ]);
     }
 
