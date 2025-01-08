@@ -72,19 +72,21 @@ class SkillPriorityResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_training_program'),
 
-                TextInput::make('available_slots')
-                    ->label('Available Slots')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->integer()
-                    ->hidden(fn($livewire) => !$livewire->isEdit()),
+                // TextInput::make('available_slots')
+                //     ->label('Available Slots')
+                //     ->required()
+                //     ->markAsRequired(false)
+                //     ->integer()
+                //     ->hidden(fn($livewire) => !$livewire->isEdit()),
 
                 TextInput::make('total_slots')
                     ->label('Slots')
                     ->placeholder('Enter number of slots')
                     ->required()
                     ->markAsRequired(false)
-                    ->integer(),
+                    ->integer()
+                    ->disabled(fn($livewire) => $livewire->isEdit())
+                    ->dehydrated(),
 
                 TextInput::make('year')
                     ->label('Year')

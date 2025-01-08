@@ -97,7 +97,9 @@ class ToolkitResource extends Resource
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
-                    ->minValue(0),
+                    ->minValue(0)
+                    ->disabled(fn($livewire) => $livewire->isEdit())
+                    ->dehydrated(),
 
                 TextInput::make('number_of_items_per_toolkit')
                     ->label('Number of Items per Toolkit')

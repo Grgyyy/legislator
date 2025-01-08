@@ -19,6 +19,11 @@ class CreateToolkit extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function isEdit(): bool
+    {
+        return false; // Edit mode
+    }
+
     protected function handleRecordCreation(array $data): Toolkit
     {
         // Validate input data

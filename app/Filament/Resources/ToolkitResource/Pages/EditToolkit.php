@@ -25,6 +25,11 @@ class EditToolkit extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function isEdit(): bool
+    {
+        return true; // Edit mode
+    }
+    
     protected function handleRecordUpdate($record, array $data): Toolkit
     {
         return DB::transaction(function () use ($record, $data) {

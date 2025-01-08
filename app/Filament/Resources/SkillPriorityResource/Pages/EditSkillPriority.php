@@ -84,7 +84,6 @@ class EditSkillPriority extends EditRecord
             'training_program_id' => ['required', 'integer'],
             'year' => ['required', 'numeric', 'min:' . date('Y')],
             'total_slots' => ['required', 'numeric'],
-            'available_slots' => ['required', 'numeric'],
         ]);
 
         if ($validator->fails()) {

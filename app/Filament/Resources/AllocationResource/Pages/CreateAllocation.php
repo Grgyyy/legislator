@@ -17,6 +17,11 @@ class CreateAllocation extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function isEdit(): bool
+    {
+        return false; // Edit mode
+    }
+
     protected function handleRecordCreation(array $data): Allocation
     {
         $this->validateUniqueAllocation($data);
