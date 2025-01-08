@@ -13,7 +13,10 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define users with their respective roles
+
+
+        $passwordRegex = '/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/';
+
         $users = [
             ['name' => 'Super Admin', 'email' => 'superadmin@gmail.com', 'role' => 'Super Admin'],
             ['name' => 'Cedric James Leala', 'email' => 'cjpleala@tesda.gov.ph', 'role' => 'Super Admin'],
@@ -47,9 +50,19 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $userData) {
+
+            $defaultPassword = 'Password123!';
+
+            if (!preg_match($passwordRegex, $defaultPassword)) {
+                throw new \Exception('Default password does not meet security requirements.');
+            }
+
             $user = User::firstOrCreate(
                 ['email' => $userData['email']],
-                ['name' => $userData['name'], 'password' => bcrypt('password')]
+                [
+                    'name' => $userData['name'],
+                    'password' => bcrypt($defaultPassword),
+                ]
             );
 
             // Assign role

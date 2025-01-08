@@ -65,28 +65,53 @@ class UserResource extends Resource
                     ->autocomplete(false)
                     ->dehydrateStateUsing(fn($state) => Hash::make($state))
                     ->dehydrated(fn($state) => filled($state))
-                    ->regex('/^[A-Za-z0-9]+$/')
-                    ->minValue(8)
+                    ->regex('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$/')
+                    ->minLength(8)
                     ->validationAttribute('Password')
                     ->validationMessages([
-                        'regex' => 'The password must not contain special characters.',
-                        'min' => 'Password must be at least 8 characters long.'
+                        'regex' => 'The password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).',
+                        'minLength' => 'Password must be at least 8 characters long.',
                     ]),
+
                 Select::make('roles')
                     ->multiple()
                     ->relationship('roles', 'name')
                     ->preload(),
 
-                Select::make('region_id')
-                    ->label('Region')
-                    ->options(Region::all()->pluck('name', 'id'))
-                    ->searchable(),
-
                 Select::make('province_id')
                     ->label('Province')
-                    ->options(Province::all()->pluck('name', 'id'))
-                    ->searchable(),
+                    ->options(Province::pluck('name', 'id'))
+                    ->searchable()
+                    ->reactive()
+                    ->afterStateUpdated(function (callable $set, $state) {
 
+                        $set('region_id', null);
+
+                        $provinceId = $state;
+
+                        $regions = $provinceId
+                            ? Region::whereHas('provinces', fn($query) => $query->where('id', $provinceId))->pluck('name', 'id')
+                            : Region::pluck('name', 'id');
+
+                        $set('region_id', null);
+                        if ($regions->count() === 1) {
+                            $set('region_id', $regions->keys()->first());
+                        }
+                    })
+                    ->live()
+                    ->preload(),
+
+                Select::make('region_id')
+                    ->label('Region')
+                    ->options(function (callable $get) {
+                        $provinceId = $get('province_id');
+                        return $provinceId
+                            ? Region::whereHas('provinces', fn($query) => $query->where('id', $provinceId))->pluck('name', 'id')
+                            : Region::pluck('name', 'id');
+                    })
+                    ->searchable()
+                    ->reactive()
+                    ->preload(),
 
             ]);
     }
@@ -109,17 +134,15 @@ class UserResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make("region.name")
-                    ->label('Region')
-                    ->searchable()
-                    ->toggleable(),
-
                 TextColumn::make("province.name")
                     ->label('Province')
                     ->searchable()
                     ->toggleable(),
 
-
+                TextColumn::make("region.name")
+                    ->label('Region')
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -194,4 +217,7 @@ class UserResource extends Resource
     }
 
 
+
+
 }
+

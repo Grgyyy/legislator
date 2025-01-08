@@ -1413,24 +1413,18 @@ class TargetResource extends Resource
     //         }
     //     }
 
-    //     // Dynamic filtering for logged-in user's region and role
+    //     // Add dynamic filtering for the user's region and role
     //     if ($user && $user->hasRole('RO') && $user->region_id) {
-    //         $query->whereHas('allocation.particular.district.municipality.province.region', function ($query) use ($user) {
-    //             $query->where('id', $user->region_id);
+    //         $query->whereHas('tvi.district.province.region', function ($subQuery) use ($user) {
+    //             $subQuery->where('id', $user->region_id);
     //         });
     //     }
 
-    //     // Directly log the query object
-    //     Log::info('Query Object:', ['query' => $query]);
+    //     // Debugging: Log the generated query for inspection
+    //     Log::info('Generated Query', ['query' => $query->toSql(), 'bindings' => $query->getBindings()]);
 
     //     return $query;
     // }
-
-
-
-
-
-
 
 }
 

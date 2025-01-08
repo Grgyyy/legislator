@@ -10,7 +10,6 @@ class DistrictSeeder extends Seeder
 {
     public function run(): void
     {
-        // Handle provinces with 'Not Applicable'
         $provinces = DB::table('provinces')
             ->where('name', 'Not Applicable')
             ->pluck('id');
@@ -22,14 +21,25 @@ class DistrictSeeder extends Seeder
                 ->exists();
 
             if (!$districtExists) {
-                DB::table('districts')->insert([
+                $districtId = DB::table('districts')->insertGetId([
                     'name' => 'Not Applicable',
                     'province_id' => $provinceId,
                 ]);
+
+                $municipalityId = DB::table('municipalities')
+                    ->where('name', 'Not Applicable')
+                    ->where('province_id', $provinceId)
+                    ->value('id');
+
+                if ($municipalityId) {
+                    DB::table('district_municipalities')->insert([
+                        'district_id' => $districtId,
+                        'municipality_id' => $municipalityId,
+                    ]);
+                }
             }
         }
 
-        // NCR Municipalities and districts
         $ncrMunicipalities = [
             ['name' => 'Caloocan City', 'districts' => 3],
             ['name' => 'Malabon City', 'districts' => 1],
@@ -57,27 +67,23 @@ class DistrictSeeder extends Seeder
 
             if ($municipality) {
                 for ($i = 1; $i <= $ncrMunicipality['districts']; $i++) {
-                    $districtName = $i === 1 ? 'Lone District' : "District {$i}";
-
+                    $districtName = $ncrMunicipality['districts'] === 1 ? 'Lone District' : "District {$i}";
                     $districtExists = DB::table('districts')
                         ->where('name', $districtName)
                         ->where('municipality_id', $municipality->id)
                         ->exists();
 
                     if (!$districtExists) {
-                        $district = District::create([
+                        $districtId = District::create([
                             'name' => $districtName,
                             'municipality_id' => $municipality->id,
                             'province_id' => $municipality->province_id,
-                        ]);
+                        ])->id;
 
-                        $district->municipality()->attach($municipality->id);
-                    } else if ($i === 1) {
-                        // Update District 1 to Lone District
-                        DB::table('districts')
-                            ->where('name', 'District 1')
-                            ->where('municipality_id', $municipality->id)
-                            ->update(['name' => 'Lone District']);
+                        DB::table('district_municipalities')->insert([
+                            'district_id' => $districtId,
+                            'municipality_id' => $municipality->id,
+                        ]);
                     }
                 }
             }
