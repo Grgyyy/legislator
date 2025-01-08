@@ -1375,33 +1375,12 @@ class TargetResource extends Resource
         ];
     }
 
-    // public static function getEloquentQuery(): Builder
-    // {
-    //     $query = parent::getEloquentQuery();
-    //     $routeParameter = request()->route('record');
-    //     $pendingStatus = TargetStatus::where('desc', 'Pending')
-    //         ->first();
-
-    //     if ($pendingStatus) {
-    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
-    //             ->where('target_status_id', '=', $pendingStatus->id)
-    //             ->where('attribution_allocation_id', null);
-
-    //         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
-    //             $query->where('region_id', (int) $routeParameter);
-    //         }
-    //     }
-
-    //     return $query;
-    // }
-
-
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
         $routeParameter = request()->route('record');
-        $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
-        $user = auth()->user();
+        $pendingStatus = TargetStatus::where('desc', 'Pending')
+            ->first();
 
         if ($pendingStatus) {
             $query->withoutGlobalScopes([SoftDeletingScope::class])
@@ -1413,18 +1392,39 @@ class TargetResource extends Resource
             }
         }
 
-        // Add dynamic filtering for the user's region and role
-        if ($user && $user->hasRole('RO') && $user->region_id) {
-            $query->whereHas('tvi.district.province.region', function ($subQuery) use ($user) {
-                $subQuery->where('id', $user->region_id);
-            });
-        }
-
-        // Debugging: Log the generated query for inspection
-        Log::info('Generated Query', ['query' => $query->toSql(), 'bindings' => $query->getBindings()]);
-
         return $query;
     }
+
+
+    // public static function getEloquentQuery(): Builder
+    // {
+    //     $query = parent::getEloquentQuery();
+    //     $routeParameter = request()->route('record');
+    //     $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
+    //     $user = auth()->user();
+
+    //     if ($pendingStatus) {
+    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
+    //             ->where('target_status_id', '=', $pendingStatus->id)
+    //             ->where('attribution_allocation_id', null);
+
+    //         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+    //             $query->where('region_id', (int) $routeParameter);
+    //         }
+    //     }
+
+    //     // Add dynamic filtering for the user's region and role
+    //     if ($user && $user->hasRole('RO') && $user->region_id) {
+    //         $query->whereHas('tvi.district.province.region', function ($subQuery) use ($user) {
+    //             $subQuery->where('id', $user->region_id);
+    //         });
+    //     }
+
+    //     // Debugging: Log the generated query for inspection
+    //     Log::info('Generated Query', ['query' => $query->toSql(), 'bindings' => $query->getBindings()]);
+
+    //     return $query;
+    // }
 
 }
 
