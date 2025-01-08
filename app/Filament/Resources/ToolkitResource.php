@@ -135,13 +135,17 @@ class ToolkitResource extends Resource
                     ->label('Qualification Title/Lot')
                     ->searchable(),
                 TextColumn::make('price_per_toolkit')
-                    ->label('Price per Toolkit'),
+                    ->label('Price per Toolkit')
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make('number_of_toolkit')
-                    ->label('Number of Toolkits'),    
+                    ->label('No. of Toolkits'),    
                 TextColumn::make('total_abc_per_lot')
-                    ->label('Total ABC per Lot'),  
+                    ->label('Total ABC per Lot')
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),  
                 TextColumn::make('number_of_items_per_toolkit')
-                    ->label('Number of Items per Toolkit'),  
+                    ->label('No. of Items per Toolkit'),  
                 TextColumn::make('year')
                     ->label('Year'), 
             ])
@@ -204,13 +208,15 @@ class ToolkitResource extends Resource
                                         }),
 
                                     Column::make('price_per_toolkit')
-                                        ->heading('Estimated Price Per Toolkit'),
+                                        ->heading('Estimated Price Per Toolkit')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
 
                                     Column::make('number_of_toolkit')
                                         ->heading('Number of Toolkits Per Lot'),
 
                                     Column::make('total_abc_per_lot')
-                                        ->heading('Total ABC Per Lot'),
+                                        ->heading('Total ABC Per Lot')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
 
                                     Column::make('number_of_items_per_toolkit')
                                         ->heading('Number of Items Per Toolkit'),
