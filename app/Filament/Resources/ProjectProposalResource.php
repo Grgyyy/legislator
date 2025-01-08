@@ -196,42 +196,26 @@ class ProjectProposalResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected qualifications titles have been deleted permanently.');
                         }),
-                    // ExportBulkAction::make()
-                    //     ->exports([
-                    //         ExcelExport::make()
-                    //             ->withColumns([
-                    //                 Column::make('trainingProgram.title')
-                    //                     ->heading('Qualification Code')
-                    //                     ->formatStateUsing(function ($state) {
-                    //                         if (!$state) {
-                    //                             return $state;
-                    //                         }
+                    ExportBulkAction::make()
+                        ->exports([
+                            ExcelExport::make()
+                                ->withColumns([
+                                    Column::make('title')
+                                        ->heading('Qualification Title'),
+                                    Column::make('priority.name')
+                                        ->heading('Priority Sector'),
+                                    Column::make('tvet.name')
+                                        ->heading('TVET Sector'),
+                                    Column::make('formatted_scholarship_programs')
+                                        ->heading('Scholarship Programs')
+                                        ->getStateUsing(fn($record) => $record->scholarshipPrograms
+                                            ->pluck('name')
+                                            ->implode(', ')
+                                        ),
 
-                    //                         // Format all words to start with an uppercase letter
-                    //                         $state = preg_replace_callback('/\b[a-z]+\b/i', function ($matches) {
-                    //                             return ucfirst(strtolower($matches[0]));
-                    //                         }, $state);
-
-                    //                         // Handle 'NC I', 'NC II', etc., formatting
-                    //                         $state = preg_replace_callback('/\bNC\s+[I]{1,3}\b/i', function ($matches) {
-                    //                             return 'NC ' . strtoupper($matches[0]);
-                    //                         }, $state);
-
-                    //                         // Recursively format words inside parentheses at any position
-                    //                         while (preg_match('/\(([^()]+)\)/', $state)) {
-                    //                             $state = preg_replace_callback('/\(([^()]+)\)/', function ($matches) {
-                    //                                 return '(' . preg_replace_callback('/\b[a-z]+\b/i', function ($wordMatches) {
-                    //                                     return ucfirst(strtolower($wordMatches[0]));
-                    //                                 }, $matches[1]) . ')';
-                    //                             }, $state);
-                    //                         }
-
-                    //                         return $state;
-                    //                     }),
-
-                    //             ])
-                    //             ->withFilename(date('m-d-Y') . ' - Qualification Titles')
-                    //     ]),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Project Proposal Programs')
+                        ]),
                 ]),
             ]);
     }
