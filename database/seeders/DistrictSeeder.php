@@ -29,7 +29,6 @@ class DistrictSeeder extends Seeder
             }
         }
 
-        // NCR Municipalities and districts
         $ncrMunicipalities = [
             ['name' => 'Caloocan City', 'districts' => 3],
             ['name' => 'Malabon City', 'districts' => 1],
@@ -56,28 +55,35 @@ class DistrictSeeder extends Seeder
                 ->first();
 
             if ($municipality) {
-                for ($i = 1; $i <= $ncrMunicipality['districts']; $i++) {
-                    $districtName = $i === 1 ? 'Lone District' : "District {$i}";
-
+                if ($ncrMunicipality['districts'] === 1) {
                     $districtExists = DB::table('districts')
-                        ->where('name', $districtName)
+                        ->where('name', 'Lone District')
                         ->where('municipality_id', $municipality->id)
                         ->exists();
 
                     if (!$districtExists) {
-                        $district = District::create([
-                            'name' => $districtName,
+                        District::create([
+                            'name' => 'Lone District',
                             'municipality_id' => $municipality->id,
                             'province_id' => $municipality->province_id,
                         ]);
+                    }
+                } else {
+                    for ($i = 1; $i <= $ncrMunicipality['districts']; $i++) {
+                        $districtName = "District {$i}";
 
-                        $district->municipality()->attach($municipality->id);
-                    } else if ($i === 1) {
-                        // Update District 1 to Lone District
-                        DB::table('districts')
-                            ->where('name', 'District 1')
+                        $districtExists = DB::table('districts')
+                            ->where('name', $districtName)
                             ->where('municipality_id', $municipality->id)
-                            ->update(['name' => 'Lone District']);
+                            ->exists();
+
+                        if (!$districtExists) {
+                            District::create([
+                                'name' => $districtName,
+                                'municipality_id' => $municipality->id,
+                                'province_id' => $municipality->province_id,
+                            ]);
+                        }
                     }
                 }
             }
