@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\TargetResource\Pages;
 
-use App\Imports\AdminTargetImport;
 use Exception;
 use Filament\Actions\Action;
 use App\Imports\TargetImport;
+use App\Imports\AdminTargetImport;
 use Filament\Actions\CreateAction;
+use Illuminate\Support\Facades\Log;
+use App\Exports\PendingTargetExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
@@ -32,8 +34,30 @@ class ListTargets extends ListRecords
         return [
             CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
-            ,
+                ->label('New'),
+
+            Action::make('PendingTargetExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new PendingTargetExport, 'pending_target_export.xlsx');
+                    } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+                        // Log detailed error if validation fails
+                        Log::error('Validation exception during export: ' . $e->getMessage());
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (\PhpOffice\PhpSpreadsheet\Exception $e) {
+                        // Handle the error specific to PhpSpreadsheet
+                        Log::error('PhpSpreadsheet exception during export: ' . $e->getMessage());
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        // General error handler
+                        Log::error('General error during export: ' . $e->getMessage());
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
+
+
 
             Action::make('TargetImport')
                 ->label('Import')

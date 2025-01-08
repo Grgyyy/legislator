@@ -1029,13 +1029,13 @@ class TargetResource extends Resource
                                         ->heading('Legislator'),
 
                                     Column::make('allocation.soft_or_commitment')
-                                        ->heading('Soft or Commitment'),
+                                        ->heading('Source of Fund'),
 
                                     Column::make('appropriation_type')
                                         ->heading('Appropriation Type'),
 
                                     Column::make('allocation.year')
-                                        ->heading('Appropriation Year'),
+                                        ->heading('Allocation'),
 
                                     Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
