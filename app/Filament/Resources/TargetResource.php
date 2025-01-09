@@ -1241,9 +1241,10 @@ class TargetResource extends Resource
         return 0;
     }
 
-    protected static function formatCurrency($amount)
+    private function formatCurrency($amount)
     {
-        return '₱ ' . number_format($amount, 2, '.', ',');
+        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+        return $formatter->formatCurrency($amount, 'PHP');
     }
     protected static function getParticularOptions($legislatorId)
     {

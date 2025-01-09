@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\TargetResource\Pages;
 
-use Exception;
 use Filament\Actions\Action;
 use App\Imports\TargetImport;
 use App\Imports\AdminTargetImport;
@@ -11,9 +10,11 @@ use Illuminate\Support\Facades\Log;
 use App\Exports\PendingTargetExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
+use PhpOffice\PhpSpreadsheet\Exception;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\TargetResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListTargets extends ListRecords
 {
@@ -42,17 +43,11 @@ class ListTargets extends ListRecords
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new PendingTargetExport, 'pending_target_export.xlsx');
-                    } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
-                        // Log detailed error if validation fails
-                        Log::error('Validation exception during export: ' . $e->getMessage());
+                    } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (\PhpOffice\PhpSpreadsheet\Exception $e) {
-                        // Handle the error specific to PhpSpreadsheet
-                        Log::error('PhpSpreadsheet exception during export: ' . $e->getMessage());
+                    } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
                     } catch (Exception $e) {
-                        // General error handler
-                        Log::error('General error during export: ' . $e->getMessage());
                         NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
                     }
                 }),

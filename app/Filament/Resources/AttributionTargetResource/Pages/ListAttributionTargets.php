@@ -2,16 +2,20 @@
 
 namespace App\Filament\Resources\AttributionTargetResource\Pages;
 
-use App\Filament\Resources\AttributionTargetResource;
-use App\Imports\AdminAttributionTargetImport;
-use App\Imports\AttributionTargetImport;
-use Filament\Actions\Action;
 use Exception;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
+use App\Exports\AttributionTargetExport;
+use App\Imports\AttributionTargetImport;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
+use App\Imports\AdminAttributionTargetImport;
+use App\Filament\Resources\AttributionTargetResource;
+use Maatwebsite\Excel\Validators\ValidationException;
+
 
 class ListAttributionTargets extends ListRecords
 {
@@ -22,8 +26,23 @@ class ListAttributionTargets extends ListRecords
         return [
             CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
-            ,
+                ->label('New'),
+
+            Action::make('AttributionTargetExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new AttributionTargetExport, 'attribution_target_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
+
 
             Action::make('AttributionTargetImport')
                 ->label('Import')

@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
         'abscap_id' => 'Absorptive Capacity',
@@ -107,8 +107,7 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
                 $query->where('region_id', request()->user()->region_id);
             })
             ->where('target_status_id', 1)
-            ->whereNull('attribution_allocation_id');
-        // ->whereNot('attribution_allocation_id', null);
+            ->whereNot('attribution_allocation_id', null);
     }
 
     public function headings(): array
@@ -116,7 +115,7 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PENDING TARGET'],
+            ['ATTRIBUTION TARGET'],
             [''],
         ];
 
@@ -211,12 +210,12 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
 
         return 'No particular available';
     }
-
     private function formatCurrency($amount)
     {
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
         return $formatter->formatCurrency($amount, 'PHP');
     }
+
 
     private function calculateCostPerSlot($record, $costProperty)
     {
