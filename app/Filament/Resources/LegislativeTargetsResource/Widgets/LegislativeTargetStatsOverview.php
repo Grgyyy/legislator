@@ -28,9 +28,9 @@ class LegislativeTargetStatsOverview extends BaseWidget
         Log::info('Legislator ID: ' . $this->legislatorId);
 
         return [
-            Stat::make('Total Allocation', '₱ ' . '9,999,999,999')
+            Stat::make('Total Allocation', '₱ ' . number_format($totalAllocation))
                 ->description('Admin Cost: ₱ ' . number_format($adminCost))
-                ->color('info'),
+                ->color('info'), //might change if attribution is included or not in the report
             Stat::make('Training Cost', '₱ ' . number_format($trainingCost))
                 ->description('Total training cost')
                 ->color('warning'),
