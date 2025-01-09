@@ -2,10 +2,10 @@
 
 namespace App\Imports;
 
-
 use App\Models\SkillPriority;
 use App\Models\Toolkit;
 use App\Models\TrainingProgram;
+use App\Services\NotificationHandler;
 use Throwable;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
@@ -23,31 +23,37 @@ class ToolkitImport implements ToModel, WithHeadingRow
     {
         try {
             $this->validateRow($row);
-            $this->validateYear($row['year']);
-
+            
             DB::transaction(function () use ($row) {
-                $qualificationTitle = $this->getQualificationTitle($row['qualification_title']);
-                
-                $toolkitExists = Toolkit::where('qualification_title_id', $qualificationTitle->id)
+                // Check if the toolkit already exists
+                $toolkitRecord = Toolkit::where('lot_name', $row['lot_name'])
                     ->where('year', $row['year'])
-                    ->exists();
-                
-                if($toolkitExists) {
-                    throw new \Exception("A Toolkit is already linked with the Qualification Title named '{$qualificationTitle->trainingProgram->title}'.");
+                    ->first();
+
+                // Get the QualificationTitle based on the provided training program name
+                $qualificationTitle = $this->getQualificationTitle($row['qualification_title']);
+
+                if (!$toolkitRecord) {
+                    // If toolkit doesn't exist, create a new one
+                    $toolkitRecord = Toolkit::create([
+                        'lot_name' => $row['lot_name'],
+                        'price_per_toolkit' => $row['price_per_toolkit'],
+                        'available_number_of_toolkits' => $row['number_of_toolkit'] ?? null,
+                        'number_of_toolkits' => $row['number_of_toolkit'] ?? null,
+                        'total_abc_per_lot' => isset($row['number_of_toolkit']) 
+                            ? $row['price_per_toolkit'] * $row['number_of_toolkit'] 
+                            : null,
+                        'number_of_items_per_toolkit' => $row['number_of_items_per_toolkit'],
+                        'year' => $row['year']
+                    ]);
                 }
 
-                $toolkit = Toolkit::create([
-                    'qualification_title_id' => $qualificationTitle->id,
-                    'price_per_toolkit' => $row['price_per_toolkit'],
-                    'number_of_toolkit' => $row['number_of_toolkit'],
-                    'available_number_of_toolkit' => $row['number_of_toolkit'],
-                    'total_abc_per_lot' => $row['number_of_toolkit'] *  $row['price_per_toolkit'],
-                    'number_of_items_per_toolkit' => $row['number_of_items_per_toolkit'],
-                    'year' => $row['year'],
-                ]);
+                // Sync the qualification title only if the toolkit record exists
+                if ($toolkitRecord->exists) {
+                    $toolkitRecord->qualificationTitles()->syncWithoutDetaching([$qualificationTitle->id]);
+                }
 
-                return $toolkit;
-                
+                return $toolkitRecord;
             });
         } catch (Throwable $e) {
             Log::error("Import failed: " . $e->getMessage());
@@ -55,13 +61,12 @@ class ToolkitImport implements ToModel, WithHeadingRow
         }
     }
 
-
     protected function validateRow(array $row)
     {
         $requiredFields = [
             'qualification_title',
+            'lot_name',
             'price_per_toolkit',
-            'number_of_toolkit',
             'number_of_items_per_toolkit',
             'year',
         ];
@@ -83,29 +88,30 @@ class ToolkitImport implements ToModel, WithHeadingRow
 
     protected function getQualificationTitle(string $trainingProgramName)
     {
+        // Find the training program by title
         $trainingProgram = TrainingProgram::where(DB::raw('LOWER(title)'), '=', strtolower($trainingProgramName))->first();
 
-        if(!$trainingProgram) {
+        if (!$trainingProgram) {
             throw new \Exception("Training Program with name '{$trainingProgramName}' not found.");
         }
 
+        // Find the STEP Scholarship Program
         $stepScholarship = ScholarshipProgram::where('name', 'STEP')->first();
 
-        if(!$stepScholarship) {
+        if (!$stepScholarship) {
             throw new \Exception("Scholarship Program with name 'STEP' not found.");
         }
 
+        // Find the Qualification Title associated with the training program and STEP scholarship
         $qualificationTitle = QualificationTitle::where('training_program_id', $trainingProgram->id)
             ->where('scholarship_program_id', $stepScholarship->id)
-            ->where('soc', 1)
             ->where('status_id', 1)
             ->first();
 
-        if(!$qualificationTitle) {
-            throw new \Exception("The Qualification Title '{$qualificationTitle->id}' with the Scholarship Program 'STEP' could not be found.");
+        if (!$qualificationTitle) {
+            throw new \Exception("No Qualification Title found for Training Program '{$trainingProgramName}' and Scholarship Program 'STEP'.");
         }
-    
+
         return $qualificationTitle;
     }
-
 }

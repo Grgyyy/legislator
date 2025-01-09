@@ -12,17 +12,19 @@ class Toolkit extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'qualification_title_id',
+        'lot_name',
         'price_per_toolkit',
-        'number_of_toolkit',
-        'available_number_of_toolkit',
+        'number_of_toolkits',
+        'available_number_of_toolkits',
         'total_abc_per_lot',
         'number_of_items_per_toolkit',
-        'year',
+        'year'
     ];
 
-    public function qualificationTitle()
+   
+    public function qualificationTitles()
     {
-        return $this->belongsTo(QualificationTitle::class);
+        return $this->belongsToMany(QualificationTitle::class, 'qualification_toolkits')
+            ->withTimestamps();
     }
 }
