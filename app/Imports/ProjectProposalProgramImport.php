@@ -26,7 +26,9 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
             return DB::transaction(function () use ($row) {
                 $programName = $row['project_proposal_program_name'];
 
-                $projectProposalProgram = TrainingProgram::where('title', $programName)->first();
+                $projectProposalProgram = TrainingProgram::where('title', $programName)
+                    ->where('soc', 1)
+                    ->first();
 
                 $tvetSector = Tvet::where('name', $row['tvet_sector'])->first();
                 $prioSector = Priority::where('name', $row['priority_sector'])->first();
@@ -38,24 +40,23 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
                         'tvet_id' => $tvetSector->id,
                         'priority_id' => $prioSector->id,
                     ]);
+
+                    $projectProposalProgram->scholarshipPrograms()->syncWithoutDetaching($scholarshipProgram);
+
+                    $qualificationTitle = QualificationTitle::where('training_program_id', $projectProposalProgram->id)
+                        ->where('scholarship_program_id', $scholarshipProgram->id)
+                        ->where('soc', 0)
+                        ->exists();
+
+                    if(!$qualificationTitle) {
+                        QualificationTitle::create([
+                            'training_program_id' => $projectProposalProgram->id,
+                            'scholarship_program_id' => $scholarshipProgram->id,
+                            'status_id' => 1,
+                            'soc' => 0
+                        ]);
+                    }
                 }
-
-                $projectProposalProgram->scholarshipPrograms()->syncWithoutDetaching($scholarshipProgram);
-
-                $qualificationTitle = QualificationTitle::where('training_program_id', $projectProposalProgram->id)
-                    ->where('scholarship_program_id', $scholarshipProgram->id)
-                    ->where('soc', 0)
-                    ->exists();
-
-                if(!$qualificationTitle) {
-                    QualificationTitle::create([
-                        'training_program_id' => $projectProposalProgram->id,
-                        'scholarship_program_id' => $scholarshipProgram->id,
-                        'status_id' => 1,
-                        'soc' => 0
-                    ]);
-                }
-
                 
                 return $projectProposalProgram;
             });

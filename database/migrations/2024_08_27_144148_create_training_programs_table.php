@@ -23,6 +23,7 @@ return new class extends Migration {
             $table->foreignId('tvet_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->boolean('soc')->default(1);
             $table->timestamps();
             $table->softDeletes();
         });

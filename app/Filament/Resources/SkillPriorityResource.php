@@ -110,6 +110,7 @@ class SkillPriorityResource extends Resource
                 TextColumn::make('provinces.name')
                     ->label('Province'),
                 TextColumn::make('trainingPrograms.title')
+                    ->searchable()
                     ->label('Training Program')
                     // ->formatStateUsing(function ($state) {
                     //     if (!$state) {
