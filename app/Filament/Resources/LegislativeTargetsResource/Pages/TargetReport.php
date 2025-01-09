@@ -4,6 +4,8 @@ namespace App\Filament\Resources\LegislativeTargetsResource\Pages;
 
 use App\Filament\Resources\AllocationResource\Widgets\StatsOverview;
 use App\Filament\Resources\LegislativeTargetsResource;
+use App\Filament\Resources\LegislativeTargetsResource\Widgets\LegislativeTargetStatsOverview;
+use App\Filament\Resources\LegislativeTargetsResource\Widgets\LegislativeTargetStatsOverview_;
 use App\Filament\Resources\LegislativeTargetsResource\Widgets\StatsOverview as WidgetsStatsOverview;
 use App\Models\Allocation;
 use App\Models\Target;
@@ -28,10 +30,21 @@ class TargetReport extends ListRecords
 
         return $allocation ? $allocation->legislator->name : 'Unknown Legislator';
     }
+
     protected function getHeaderWidgets(): array
     {
+        $legislatorId = request()->route('record');
+        $allocationId = request()->route('record');
+
         return [
-            StatsOverview::class,
+            LegislativeTargetStatsOverview::make([
+                'legislatorId' => $legislatorId,
+                'allocationId' => $allocationId,
+            ]),
+            LegislativeTargetStatsOverview_::make([
+                'legislatorId' => $legislatorId,
+                'allocationId' => $allocationId,
+            ]),
         ];
     }
 

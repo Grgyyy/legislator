@@ -69,7 +69,7 @@ class AllocationResource extends Resource
                     ->options(function () {
                         return Legislator::all()
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_legislator' => 'No legislator available'];
+                            ->toArray() ?: ['no_legislator' => 'No legislators available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                     ->afterStateUpdated(function (callable $set, $state) {
@@ -98,7 +98,7 @@ class AllocationResource extends Resource
 
                         return $legislatorId
                             ? self::getParticularOptions($legislatorId)
-                            : ['no_particular' => 'No particular available. Select a legislator first.'];
+                            : ['no_particular' => 'No particulars available. Select a legislator first.'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_particular')
                     ->reactive()
@@ -291,7 +291,7 @@ class AllocationResource extends Resource
                         TextInput::make('year')
                             ->label('Allocation Year')
                             ->placeholder('Enter allocation year')
-                            ->numeric()
+                            ->integer()
                             ->reactive(),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
@@ -542,7 +542,6 @@ class AllocationResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Allocations')
                         ]),
-
                 ]),
             ]);
     }
@@ -591,7 +590,6 @@ class AllocationResource extends Resource
             return [$particular->id => $formattedName];
         })->toArray() ?: ['no_particular' => 'No particulars available'];
     }
-
 
     public static function getEloquentQuery(): Builder
     {
