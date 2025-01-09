@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [2025-01-09 06:59:19] local.ERROR: Maatwebsite\Excel\Imports\ModelManager::Maatwebsite\Excel\Imports\{closure}(): Argument #1 ($model) must be of type Illuminate\Database\Eloquent\Model, Illuminate\Database\Eloquent\Builder given, called in C:\laragon\www\legislator\vendor\laravel\framework\src\Illuminate\Collections\Traits\EnumeratesValues.php on line 240 {"userId":3,"exception":"[object] (TypeError(code: 0): Maatwebsite\\Excel\\Imports\\ModelManager::Maatwebsite\\Excel\\Imports\\{closure}(): Argument #1 ($model) must be of type Illuminate\\Database\\Eloquent\\Model, Illuminate\\Database\\Eloquent\\Builder given, called in C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Collections\\Traits\\EnumeratesValues.php on line 240 at C:\\laragon\\www\\legislator\\vendor\\maatwebsite\\excel\\src\\Imports\\ModelManager.php:148)
 [stacktrace]
 #0 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Collections\\Traits\\EnumeratesValues.php(240): Maatwebsite\\Excel\\Imports\\ModelManager->Maatwebsite\\Excel\\Imports\\{closure}(Object(Illuminate\\Database\\Eloquent\\Builder), 0)
@@ -17384,3 +17385,5 @@
 >>>>>>> 7f5317b (feat: add Legislative Target Stats Overview widget with total allocation, admin cost, training cost, and toolkit cost, total amount, and balance)
 >>>>>>> 636f0b1 (feat: add Legislative Target Stats Overview widget with total allocation, admin cost, training cost, and toolkit cost, total amount, and balance)
 >>>>>>> ab75431 (feat: add Legislative Target Stats Overview widget with total allocation, admin cost, training cost, and toolkit cost, total amount, and balance)
+=======
+>>>>>>> 33a5a92 (fix: update total allocation for dynamic updates in widgets)
