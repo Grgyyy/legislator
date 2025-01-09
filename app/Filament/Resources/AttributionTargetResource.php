@@ -5,9 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AttributionTargetResource\Pages;
 use App\Models\Abdd;
 use App\Models\Allocation;
-use App\Models\DeliveryLearning;
 use App\Models\DeliveryMode;
-use App\Models\LearningMode;
 use App\Models\Legislator;
 use App\Models\Particular;
 use App\Models\ProvinceAbdd;
@@ -25,7 +23,6 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
@@ -68,9 +65,6 @@ class AttributionTargetResource extends Resource
                                     ->label('Attributor')
                                     ->required()
                                     ->markAsRequired(false)
-                                    ->searchable()
-                                    ->preload()
-                                    ->native(false)
                                     ->options(function () {
                                         $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
                                             ->pluck('id');
@@ -82,71 +76,15 @@ class AttributionTargetResource extends Resource
                                                 $query->whereIn('sub_particular_id', $houseSpeakerIds);
                                             })
                                             ->pluck('name', 'id')
-                                            ->toArray() ?: ['no_legislator' => 'No attributor available'];
-                                    })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_legislator')
-                                    ->afterStateUpdated(function ($state, callable $set) {
-                                        if (!$state) {
-                                            $set('attribution_sender_particular', null);
-                                            $set('attribution_scholarship_program', null);
-                                            $set('allocation_year', null);
-                                            $set('attribution_appropriation_type', null);
-                                            return;
-                                        }
-
-                                        $allocations = Allocation::where('legislator_id', $state)
-                                            ->with('particular', 'scholarship_program')
-                                            ->get();
-
-                                        $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
-                                        $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
-                                        $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-
-                                        $currentYear = now()->year;
-
-                                        if (count($particularOptions) === 1) {
-                                            $set('attribution_sender_particular', key($particularOptions));
-                                        } else {
-                                            $set('attribution_sender_particular', null);
-                                        }
-
-                                        if (count($scholarshipProgramOptions) === 1) {
-                                            $set('attribution_scholarship_program', key($scholarshipProgramOptions));
-                                        } else {
-                                            $set('attribution_scholarship_program', null);
-                                        }
-
-                                        $particularId = $particularOptions ? key($particularOptions) : null;
-                                        $scholarshipProgramId = $scholarshipProgramOptions ? key($scholarshipProgramOptions) : null;
-
-                                        if ($particularId && $scholarshipProgramId) {
-                                            if (count($allocations) === 1) {
-                                                $set('allocation_year', key($appropriationYearOptions));
-
-                                                if (key($appropriationYearOptions) == $currentYear) {
-                                                    $set('attribution_appropriation_type', 'Current');
-                                                }
-                                            } else {
-                                                $set('allocation_year', null);
-                                                $set('attribution_appropriation_type', null);
-                                            }
-                                        } else {
-                                            $set('allocation_year', null);
-                                            $set('attribution_appropriation_type', null);
-                                        }
+                                            ->toArray() ?: ['no_legislator' => 'No attributors available'];
                                     })
                                     ->disabled()
-                                    ->dehydrated()
-                                    ->reactive()
-                                    ->live(),
+                                    ->dehydrated(),
 
                                 Select::make('attribution_sender_particular')
                                     ->label('Particular')
                                     ->required()
                                     ->markAsRequired(false)
-                                    ->searchable()
-                                    ->preload()
-                                    ->native(false)
                                     ->options(function ($get) {
                                         $legislatorId = $get('attribution_sender');
 
@@ -157,107 +95,33 @@ class AttributionTargetResource extends Resource
                                                 ->with('subParticular')
                                                 ->get()
                                                 ->pluck('subParticular.name', 'id')
-                                                ->toArray() ?: ['no_particular' => 'No particular available'];
+                                                ->toArray() ?: ['no_particular' => 'No particulars available'];
                                         }
 
-                                        return ['no_particular' => 'No particular available. Select an attributor first.'];
-                                    })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_particular')
-                                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                        if (!$state) {
-                                            $set('attribution_scholarship_program', null);
-                                            $set('allocation_year', null);
-                                            $set('attribution_appropriation_type', null);
-                                            return;
-                                        }
-
-                                        $legislator_id = $get('legislator_id');
-                                        $allocations = Allocation::where('legislator_id', $legislator_id)
-                                            ->where('particular_id', $state)
-                                            ->with('particular', 'scholarship_program')
-                                            ->get();
-
-                                        $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
-                                        $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-
-                                        $currentYear = now()->year;
-
-                                        if (count($allocations) === 1) {
-                                            $set('attribution_scholarship_program', key($scholarshipProgramOptions));
-                                            $set('allocation_year', key($appropriationYearOptions));
-
-                                            if (key($appropriationYearOptions) == $currentYear) {
-                                                $set('attribution_appropriation_type', 'Current');
-                                            }
-                                        } else {
-                                            $set('attribution_scholarship_program', null);
-                                            $set('allocation_year', null);
-                                            $set('attribution_appropriation_type', null);
-                                        }
+                                        return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                     })
                                     ->disabled()
-                                    ->dehydrated()
-                                    ->reactive()
-                                    ->live(),
+                                    ->dehydrated(),
 
                                 Select::make('attribution_scholarship_program')
                                     ->label('Scholarship Program')
                                     ->required()
                                     ->markAsRequired(false)
-                                    ->preload()
-                                    ->searchable()
-                                    ->native(false)
                                     ->options(function ($get) {
                                         $legislatorId = $get('attribution_sender');
                                         $particularId = $get('attribution_sender_particular');
 
                                         return $legislatorId
                                             ? self::getScholarshipProgramsOptions($legislatorId, $particularId)
-                                            : ['no_scholarship_program' => 'No scholarship program available. Select a particular first.'];
-                                    })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
-                                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                        if (!$state) {
-                                            $set('allocation_year', null);
-                                            $set('attribution_appropriation_type', null);
-                                            return;
-                                        }
-
-                                        $legislator_id = $get('legislator_id');
-                                        $particular_id = $get('attribution_sender_particular');
-                                        $allocations = Allocation::where('legislator_id', $legislator_id)
-                                            ->where('particular_id', $particular_id)
-                                            ->where('scholarship_program_id', $state)
-                                            ->with('particular', 'scholarship_program')
-                                            ->get();
-
-                                        $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-
-                                        $currentYear = now()->year;
-
-                                        if (count($allocations) === 1) {
-                                            $set('allocation_year', key($appropriationYearOptions));
-
-                                            if (key($appropriationYearOptions) == $currentYear) {
-                                                $set('attribution_appropriation_type', 'Current');
-                                            }
-                                        } else {
-                                            $set('allocation_year', null);
-                                            $set('attribution_appropriation_type', null);
-                                        }
+                                            : ['no_scholarship_program' => 'No scholarship programs available. Select a particular first.'];
                                     })
                                     ->disabled()
-                                    ->dehydrated()
-                                    ->reactive()
-                                    ->live(),
+                                    ->dehydrated(),
 
                                 Select::make('allocation_year')
                                     ->label('Appropriation Year')
                                     ->required()
                                     ->markAsRequired(false)
-                                    ->preload()
-                                    ->searchable()
-                                    ->native(false)
                                     ->options(function ($get) {
                                         $legislatorId = $get('attribution_sender');
                                         $particularId = $get('attribution_sender_particular');
@@ -265,42 +129,24 @@ class AttributionTargetResource extends Resource
 
                                         return $legislatorId
                                             ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
-                                            : ['no_allocation' => 'No appropriation year available. Select a scholarship program first.'];
-                                    })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_allocation')
-                                    ->afterStateUpdated(function ($state, callable $set) {
-                                        $set('attribution_appropriation_type', null);
-
-                                        $appropriationType = self::getAppropriationTypeOptions($state);
-
-                                        $set('attribution_appropriation_type', $appropriationType);
-
-                                        if (count($appropriationType) === 1) {
-                                            $set('attribution_appropriation_type', key($appropriationType));
-                                        }
+                                            : ['no_allocation' => 'No appropriation years available. Select a scholarship program first.'];
                                     })
                                     ->disabled()
-                                    ->dehydrated()
-                                    ->reactive()
-                                    ->live(),
+                                    ->dehydrated(),
 
                                 Select::make('attribution_appropriation_type')
                                     ->label('Appropriation Type')
                                     ->required()
                                     ->markAsRequired(false)
-                                    ->native(false)
                                     ->options(function ($get) {
                                         $year = $get('allocation_year');
 
                                         return $year
                                             ? self::getAppropriationTypeOptions($year)
-                                            : ['no_allocation' => 'No appropriation type available. Select an appropriation year first.'];
+                                            : ['no_allocation' => 'No appropriation types available. Select an appropriation year first.'];
                                     })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_allocation')
                                     ->disabled()
-                                    ->dehydrated()
-                                    ->reactive()
-                                    ->live(),
+                                    ->dehydrated(),
                             ])
                             ->columns(5),
 
@@ -308,69 +154,43 @@ class AttributionTargetResource extends Resource
                             ->schema([
                                 TextInput::make('abscap_id')
                                     ->label('Absorbative Capacity ID')
-                                    ->placeholder('Enter an Absorbative capacity ID')
-                                    ->numeric(),
+                                    ->placeholder('Enter AbsCap ID')
+                                    ->required()
+                                    ->markAsRequired(false)
+                                    ->autocomplete(false)
+                                    ->integer(),
 
                                 Select::make('attribution_receiver')
                                     ->label('Legislator')
                                     ->required()
                                     ->markAsRequired(false)
-                                    ->preload()
-                                    ->searchable()
-                                    ->native(false)
                                     ->options(function ($get) {
                                         $attributor_id = $get('attribution_sender');
+                                        
                                         return Legislator::where('status_id', 1)
                                             ->whereNot('id', $attributor_id)
                                             ->whereNull('deleted_at')
                                             ->pluck('name', 'id')
-                                            ->toArray() ?: ['no_legislator' => 'No legislator available'];
-                                    })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_legislator')
-                                    ->afterStateUpdated(function ($state, callable $set) {
-
-                                        if (!$state) {
-                                            $set('attribution_receiver_particular', null);
-                                            return;
-                                        }
-
-
-                                        $particulars = Legislator::find($state)->particular;
-
-                                        $particularOptions = $particulars->pluck('name', 'id')->toArray();
-
-                                        if (count($particularOptions) === 1) {
-                                            $set('attribution_receiver_particular', key($particularOptions));
-                                        } else {
-                                            $set('attribution_receiver_particular', null);
-                                        }
+                                            ->toArray() ?: ['no_legislator' => 'No legislators available'];
                                     })
                                     ->disabled()
-                                    ->dehydrated()
-                                    ->reactive()
-                                    ->live(),
+                                    ->dehydrated(),
 
                                 Select::make('attribution_receiver_particular')
                                     ->label('Particular')
                                     ->required()
                                     ->markAsRequired(false)
-                                    ->searchable()
-                                    ->preload()
-                                    ->native(false)
                                     ->options(function ($get, $set) {
                                         $legislatorId = $get('attribution_receiver');
 
-                                        // If a legislator is selected, load their associated particulars
                                         if ($legislatorId) {
                                             $particulars = Particular::whereHas('legislator', function ($query) use ($legislatorId) {
                                                 $query->where('legislator_particular.legislator_id', $legislatorId);
                                             })
-                                                ->with('subParticular') // Load related subParticulars
+                                                ->with('subParticular')
                                                 ->get();
 
-                                            // Create an array of options, combining subParticular.name if available
                                             $particularOptions = $particulars->mapWithKeys(function ($particular) {
-                                                // Check if subParticular exists and if its name is 'Party-list'
                                                 if ($particular->subParticular) {
                                                     if ($particular->subParticular->name === 'Party-list') {
                                                         $name = $particular->partylist->name;
@@ -388,24 +208,19 @@ class AttributionTargetResource extends Resource
                                                 return [$particular->id => $name];
                                             })->toArray();
 
-                                            // If only one particular is found, select it by default
                                             if (count($particularOptions) === 1) {
                                                 $defaultParticularId = key($particularOptions);
                                                 $set('attribution_receiver_particular', $defaultParticularId);
                                             }
 
-                                            return $particularOptions ?: ['no_particular' => 'No particular available'];
+                                            return $particularOptions ?: ['no_particular' => 'No particulars available'];
                                         }
 
-                                        // Default message when no legislator is selected
-                                        return ['no_particular' => 'No particular available. Select a legislator first.'];
+                                        return ['no_particular' => 'No particulars available. Select a legislator first.'];
                                     })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_particular')
                                     ->disabled()
                                     ->dehydrated()
-                                    ->reactive()
-                                    ->live(),
-
+                                    ->reactive(),
 
                                 Select::make('tvi_id')
                                     ->label('Institution')
@@ -423,7 +238,7 @@ class AttributionTargetResource extends Resource
 
                                                 return [$id => $formattedName];
                                             })
-                                            ->toArray() ?: ['no_tvi' => 'No institution available'];
+                                            ->toArray() ?: ['no_tvi' => 'No institutions available'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
@@ -441,7 +256,7 @@ class AttributionTargetResource extends Resource
 
                                         return $scholarshipProgramId
                                             ? self::getQualificationTitles($scholarshipProgramId, $tviId, $year)
-                                            : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
+                                            : ['no_qualification_title' => 'No qualification titles available. Select a scholarship program first.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_qualification_title'),
 
@@ -451,12 +266,13 @@ class AttributionTargetResource extends Resource
                                     ->markAsRequired(false)
                                     ->searchable()
                                     ->preload()
+                                    ->native(false)
                                     ->options(function () {
                                         $deliveryModes = DeliveryMode::all();
 
                                         return $deliveryModes->isNotEmpty()
                                             ? $deliveryModes->pluck('name', 'id')->toArray()
-                                            : ['no_delivery_mode' => 'No delivery modes available.'];
+                                            : ['no_delivery_mode' => 'No delivery modes available'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
 
@@ -466,6 +282,7 @@ class AttributionTargetResource extends Resource
                                     ->markAsRequired(false)
                                     ->searchable()
                                     ->preload()
+                                    ->native(false)
                                     ->options(function ($get) {
                                         $deliveryModeId = $get('delivery_mode_id');
                                         $learningModes = [];
@@ -478,10 +295,9 @@ class AttributionTargetResource extends Resource
                                         }
                                         return !empty($learningModes)
                                             ? $learningModes
-                                            : ['no_learning_modes' => 'No learning modes available for the selected delivery mode.'];
+                                            : ['no_learning_modes' => 'No learning modes available'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
-
 
                                 Select::make('abdd_id')
                                     ->label('ABDD Sector')
@@ -490,27 +306,20 @@ class AttributionTargetResource extends Resource
                                     ->searchable()
                                     ->preload()
                                     ->native(false)
-                                    // ->options(function ($get) {
-                                    //     $tviId = $get('tvi_id');
-    
-                                    //     return $tviId
-                                    //         ? self::getAbddSectors($tviId)
-                                    //         : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
-                                    // })
                                     ->options(function () {
                                         return Abdd::whereNull('deleted_at')
                                             ->pluck('name', 'id')
-                                            ->toArray() ?: ['no_abdd' => 'No ABDD Sectors available'];
+                                            ->toArray() ?: ['no_abdd' => 'No ABDD sectors available'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_abdd'),
 
                                 TextInput::make('number_of_slots')
-                                    ->label('Number of Slots')
+                                    ->label('Slots')
                                     ->placeholder('Enter number of slots')
                                     ->required()
                                     ->markAsRequired(false)
                                     ->autocomplete(false)
-                                    ->numeric()
+                                    ->integer()
                                     ->rules(['min: 10', 'max: 25'])
                                     ->validationAttribute('Number of Slots')
                                     ->validationMessages([
@@ -522,7 +331,7 @@ class AttributionTargetResource extends Resource
                     ];
                 } else {
                     return [
-                        Repeater::make('targets')
+                        Repeater::make('')
                             ->schema([
                                 Fieldset::make('Sender')
                                     ->schema([
@@ -544,7 +353,7 @@ class AttributionTargetResource extends Resource
                                                         $query->whereIn('sub_particular_id', $houseSpeakerIds);
                                                     })
                                                     ->pluck('name', 'id')
-                                                    ->toArray() ?: ['no_legislator' => 'No attributor available'];
+                                                    ->toArray() ?: ['no_legislator' => 'No attributors available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                                             ->afterStateUpdated(function ($state, callable $set) {
@@ -553,6 +362,7 @@ class AttributionTargetResource extends Resource
                                                     $set('attribution_scholarship_program', null);
                                                     $set('allocation_year', null);
                                                     $set('attribution_appropriation_type', null);
+                                                    
                                                     return;
                                                 }
 
@@ -617,10 +427,10 @@ class AttributionTargetResource extends Resource
                                                         ->with('subParticular')
                                                         ->get()
                                                         ->pluck('subParticular.name', 'id')
-                                                        ->toArray() ?: ['no_particular' => 'No particular available'];
+                                                        ->toArray() ?: ['no_particular' => 'No particulars available'];
                                                 }
 
-                                                return ['no_particular' => 'No particular available. Select an attributor first.'];
+                                                return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_particular')
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
@@ -628,6 +438,7 @@ class AttributionTargetResource extends Resource
                                                     $set('attribution_scholarship_program', null);
                                                     $set('allocation_year', null);
                                                     $set('attribution_appropriation_type', null);
+                                                    
                                                     return;
                                                 }
 
@@ -662,8 +473,8 @@ class AttributionTargetResource extends Resource
                                             ->label('Scholarship Program')
                                             ->required()
                                             ->markAsRequired(false)
-                                            ->preload()
                                             ->searchable()
+                                            ->preload()
                                             ->native(false)
                                             ->options(function ($get) {
                                                 $legislatorId = $get('attribution_sender');
@@ -671,13 +482,14 @@ class AttributionTargetResource extends Resource
 
                                                 return $legislatorId
                                                     ? self::getScholarshipProgramsOptions($legislatorId, $particularId)
-                                                    : ['no_scholarship_program' => 'No scholarship program available. Select a particular first.'];
+                                                    : ['no_scholarship_program' => 'No scholarship programs available. Select a particular first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
                                                 if (!$state) {
                                                     $set('allocation_year', null);
                                                     $set('attribution_appropriation_type', null);
+                                                    
                                                     return;
                                                 }
 
@@ -711,8 +523,6 @@ class AttributionTargetResource extends Resource
                                             ->label('Appropriation Year')
                                             ->required()
                                             ->markAsRequired(false)
-                                            ->preload()
-                                            ->searchable()
                                             ->native(false)
                                             ->options(function ($get) {
                                                 $legislatorId = $get('attribution_sender');
@@ -721,7 +531,7 @@ class AttributionTargetResource extends Resource
 
                                                 return $legislatorId
                                                     ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
-                                                    : ['no_allocation' => 'No appropriation year available. Select a scholarship program first.'];
+                                                    : ['no_allocation' => 'No appropriation years available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_allocation')
                                             ->afterStateUpdated(function ($state, callable $set) {
@@ -748,7 +558,7 @@ class AttributionTargetResource extends Resource
 
                                                 return $year
                                                     ? self::getAppropriationTypeOptions($year)
-                                                    : ['no_allocation' => 'No appropriation type available. Select an appropriation year first.'];
+                                                    : ['no_allocation' => 'No appropriation types available. Select an appropriation year first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_allocation')
                                             ->reactive()
@@ -760,32 +570,35 @@ class AttributionTargetResource extends Resource
                                     ->schema([
                                         TextInput::make('abscap_id')
                                             ->label('Absorbative Capacity ID')
-                                            ->placeholder('Enter an Absorbative capacity ID')
-                                            ->numeric(),
+                                            ->placeholder('Enter AbsCap ID')
+                                            ->required()
+                                            ->markAsRequired(false)
+                                            ->autocomplete(false)
+                                            ->integer(),
 
                                         Select::make('attribution_receiver')
                                             ->label('Legislator')
                                             ->required()
                                             ->markAsRequired(false)
-                                            ->preload()
                                             ->searchable()
+                                            ->preload()
                                             ->native(false)
                                             ->options(function ($get) {
                                                 $attributor_id = $get('attribution_sender');
+                                                
                                                 return Legislator::where('status_id', 1)
                                                     ->whereNot('id', $attributor_id)
                                                     ->whereNull('deleted_at')
                                                     ->pluck('name', 'id')
-                                                    ->toArray() ?: ['no_legislator' => 'No legislator available'];
+                                                    ->toArray() ?: ['no_legislator' => 'No legislators available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                                             ->afterStateUpdated(function ($state, callable $set) {
-
                                                 if (!$state) {
                                                     $set('attribution_receiver_particular', null);
+                                                    
                                                     return;
                                                 }
-
 
                                                 $particulars = Legislator::find($state)->particular;
 
@@ -797,8 +610,6 @@ class AttributionTargetResource extends Resource
                                                     $set('attribution_receiver_particular', null);
                                                 }
                                             })
-
-
                                             ->reactive()
                                             ->live(),
 
@@ -842,15 +653,14 @@ class AttributionTargetResource extends Resource
                                                         $set('attribution_receiver_particular', $defaultParticularId);
                                                     }
 
-                                                    return $particularOptions ?: ['no_particular' => 'No particular available'];
+                                                    return $particularOptions ?: ['no_particular' => 'No particulars available'];
                                                 }
 
-                                                return ['no_particular' => 'No particular available. Select a legislator first.'];
+                                                return ['no_particular' => 'No particulars available. Select a legislator first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_particular')
                                             ->reactive()
                                             ->live(),
-
 
                                         Select::make('tvi_id')
                                             ->label('Institution')
@@ -868,7 +678,7 @@ class AttributionTargetResource extends Resource
 
                                                         return [$id => $formattedName];
                                                     })
-                                                    ->toArray() ?: ['no_tvi' => 'No institution available'];
+                                                    ->toArray() ?: ['no_tvi' => 'No institutions available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
@@ -886,7 +696,7 @@ class AttributionTargetResource extends Resource
 
                                                 return $scholarshipProgramId
                                                     ? self::getQualificationTitles($scholarshipProgramId, $tviId, $year)
-                                                    : ['no_qualification_title' => 'No qualification title available. Select a scholarship program first.'];
+                                                    : ['no_qualification_title' => 'No qualification titles available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_qualification_title'),
 
@@ -896,12 +706,13 @@ class AttributionTargetResource extends Resource
                                             ->markAsRequired(false)
                                             ->searchable()
                                             ->preload()
+                                            ->native(false)
                                             ->options(function () {
                                                 $deliveryModes = DeliveryMode::all();
 
                                                 return $deliveryModes->isNotEmpty()
                                                     ? $deliveryModes->pluck('name', 'id')->toArray()
-                                                    : ['no_delivery_mode' => 'No delivery modes available.'];
+                                                    : ['no_delivery_mode' => 'No delivery modes available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
 
@@ -911,6 +722,7 @@ class AttributionTargetResource extends Resource
                                             ->markAsRequired(false)
                                             ->searchable()
                                             ->preload()
+                                            ->native(false)
                                             ->options(function ($get) {
                                                 $deliveryModeId = $get('delivery_mode_id');
                                                 $learningModes = [];
@@ -923,7 +735,7 @@ class AttributionTargetResource extends Resource
                                                 }
                                                 return !empty($learningModes)
                                                     ? $learningModes
-                                                    : ['no_learning_modes' => 'No learning modes available for the selected delivery mode.'];
+                                                    : ['no_learning_modes' => 'No learning modes available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
 
@@ -934,28 +746,21 @@ class AttributionTargetResource extends Resource
                                             ->searchable()
                                             ->preload()
                                             ->native(false)
-                                            // ->options(function ($get) {
-                                            //     $tviId = $get('tvi_id');
-    
-                                            //     return $tviId
-                                            //         ? self::getAbddSectors($tviId)
-                                            //         : ['no_abdd' => 'No ABDD sector available. Select an institution first.'];
-                                            // })
                                             ->options(function () {
                                                 return Abdd::whereNull('deleted_at')
                                                     ->pluck('name', 'id')
-                                                    ->toArray() ?: ['no_abdd' => 'No ABDD Sectors available'];
+                                                    ->toArray() ?: ['no_abdd' => 'No ABDD sectors available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_abdd')
                                             ->dehydrated(),
 
                                         TextInput::make('number_of_slots')
-                                            ->label('Number of Slots')
+                                            ->label('Slots')
                                             ->placeholder('Enter number of slots')
                                             ->required()
                                             ->markAsRequired(false)
                                             ->autocomplete(false)
-                                            ->numeric()
+                                            ->integer()
                                             ->rules(['min: 10', 'max: 25'])
                                             ->validationAttribute('Number of Slots')
                                             ->validationMessages([
@@ -966,7 +771,6 @@ class AttributionTargetResource extends Resource
                                     ->columns(3)
                             ])
                             ->maxItems(100)
-                            ->columns(5)
                             ->columnSpanFull()
                             ->addActionLabel('+')
                             ->cloneable(),
@@ -981,7 +785,7 @@ class AttributionTargetResource extends Resource
             ->emptyStateHeading('No attribution targets available')
             ->columns([
                 TextColumn::make('abscap_id')
-                    ->sortable()
+                    ->label('AbsCap ID')
                     ->searchable()
                     ->toggleable(),
 
@@ -993,44 +797,48 @@ class AttributionTargetResource extends Resource
                         $legislator = $record->attributionAllocation->legislator;
 
                         if (!$legislator) {
-                            return 'No legislator available';
+                            return 'No legislators available';
                         }
 
                         $particulars = $legislator->particular;
 
                         if ($particulars->isEmpty()) {
-                            return 'No particular available';
+                            return 'No particulars available';
                         }
 
                         $particular = $record->allocation->particular;
                         $subParticular = $particular->subParticular;
                         $fundSource = $subParticular ? $subParticular->fundSource : null;
 
-                        return $fundSource ? $fundSource->name : 'No fund source available';
+                        return $fundSource ? $fundSource->name : 'No fund sources available';
                     }),
-
+                
+                TextColumn::make('attributionAllocation.soft_or_commitment')
+                    ->label('Source of Fund')
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make('attributionAllocation.legislator.name')
-                    ->label('Attribution Sender')
+                    ->label('Attributor')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('attributionAllocation.legislator.particular.subParticular')
-                    ->label('Attribution Particular')
+                    ->label('Particular')
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $legislator = $record->attributionAllocation->legislator;
 
                         if (!$legislator) {
-                            return 'No legislator available';
+                            return 'No legislators available';
                         }
 
                         $particulars = $legislator->particular;
 
                         if ($particulars->isEmpty()) {
-                            return 'No particular available';
+                            return 'No particulars available';
                         }
 
                         $particular = $particulars->first();
@@ -1044,29 +852,14 @@ class AttributionTargetResource extends Resource
                             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
                             } else {
-                                return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                return $particular->subParticular->name ?? 'Unknown Particular Type';
                             }
                         } else {
                             return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
                         }
                     }),
 
-
                 TextColumn::make('allocation.legislator.name')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('attributionAllocation.soft_or_commitment')
-                    ->label('Source of Fund')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('appropriation_type')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('attributionAllocation.year')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -1079,13 +872,13 @@ class AttributionTargetResource extends Resource
                         $legislator = $record->allocation->legislator;
 
                         if (!$legislator) {
-                            return 'No legislator available';
+                            return 'No legislators available';
                         }
 
                         $particulars = $legislator->particular;
 
                         if ($particulars->isEmpty()) {
-                            return 'No particular available';
+                            return 'No particulars available';
                         }
 
                         $particular = $particulars->first();
@@ -1099,26 +892,21 @@ class AttributionTargetResource extends Resource
                             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
                             } else {
-                                return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                return $particular->subParticular->name ?? 'Unknown Particular Type';
                             }
                         } else {
                             return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
                         }
                     }),
 
-                TextColumn::make('municipality.name')
+                TextColumn::make('appropriation_type')
+                    ->label('Appropriation Type')
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('district.name')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('tvi.district.province.name')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('tvi.district.province.region.name')
+                TextColumn::make('attributionAllocation.year')
+                    ->label('Appropriation Year')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
 
@@ -1128,18 +916,25 @@ class AttributionTargetResource extends Resource
                     ->toggleable()
                     ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
-                TextColumn::make('tvi.tviClass.tviType.name')
-                    ->label('Institution Type')
+                TextColumn::make('location')
+                    ->label('Administrative Area')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => self::getLocationNames($record)),
 
-                TextColumn::make('tvi.tviClass.name')
+                TextColumn::make('tvi.tviClass.tviType.name')
                     ->label('Institution Class')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(function ($state, $record) {
+                        $institutionType = $record->tvi->tviClass->tviType->name ?? '';
+                        $institutionClass = $record->tvi->tviClass->name ?? '';
+                
+                        return "{$institutionType} - {$institutionClass}";
+                    }),
 
-                TextColumn::make('qualification_title_code')
-                    ->label('Qualification Code')
+                TextColumn::make('allocation.scholarship_program.name')
+                    ->label('Scholarship Program')
                     ->searchable()
                     ->toggleable(),
 
@@ -1147,20 +942,21 @@ class AttributionTargetResource extends Resource
                     ->label('Qualification Title')
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        if (!$state) {
-                            return $state;
+                    ->formatStateUsing(function ($state, $record) {
+                        $qualificationCode = $record->qualification_title_code ?? '';
+                        $qualificationName = $record->qualification_title_name ?? '';
+
+                        if ($qualificationName) {
+                            $qualificationName = ucwords($qualificationName);
+
+                            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $qualificationName)) {
+                                $qualificationName = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                    return 'NC ' . strtoupper($matches[1]);
+                                }, $qualificationName);
+                            }
                         }
 
-                        $state = ucwords($state);
-
-                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                return 'NC ' . strtoupper($matches[1]);
-                            }, $state);
-                        }
-
-                        return $state;
+                        return "{$qualificationCode} - {$qualificationName}";
                     }),
 
                 TextColumn::make('abdd.name')
@@ -1188,18 +984,8 @@ class AttributionTargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('qualification_title.trainingProgram.priority.name')
-                    ->label('Priority Sector')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('allocation.scholarship_program.name')
-                    ->label('Scholarship Program')
-                    ->searchable()
-                    ->toggleable(),
-
                 TextColumn::make('number_of_slots')
-                    ->label('Number of Slots')
+                    ->label('Slots')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -1224,27 +1010,24 @@ class AttributionTargetResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-
                     Action::make('viewHistory')
                         ->label('View History')
-                        ->icon('heroicon-o-magnifying-glass')
+                        ->icon('heroicon-o-clock')
                         ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id])),
-
                     Action::make('viewComment')
                         ->label('View Comments')
                         ->icon('heroicon-o-chat-bubble-left-ellipsis')
                         ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id])),
-
                     Action::make('setAsCompliant')
                         ->label('Set as Compliant')
                         ->icon('heroicon-o-check-circle')
                         ->url(fn($record) => route('filament.admin.resources.compliant-targets.create', ['record' => $record->id])),
-
                     Action::make('setAsNonCompliant')
                         ->label('Set as Non-Compliant')
                         ->icon('heroicon-o-x-circle')
                         ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id])),
-
+                    
+                    //skills prio or province abdd??
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $attributionAllocation = $record->attributionAllocation;
@@ -1275,14 +1058,12 @@ class AttributionTargetResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         }),
-
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         }),
-
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -1299,14 +1080,12 @@ class AttributionTargetResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected targets have been deleted successfully.');
                         }),
-
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected targets have been restored successfully.');
                         }),
-
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
@@ -1319,7 +1098,6 @@ class AttributionTargetResource extends Resource
                                 ->withColumns([
                                     Column::make('abscap_id')
                                         ->heading('Absorptive Capacity'),
-
                                     Column::make('fund_source')
                                         ->heading('Fund Source')
                                         ->getStateUsing(function ($record) {
@@ -1341,10 +1119,8 @@ class AttributionTargetResource extends Resource
 
                                             return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
-
                                     Column::make('attributionAllocation.legislator.name')
                                         ->heading('Attribution Sender'),
-
                                     Column::make('attributionAllocation.legislator.particular.subParticular')
                                         ->heading('Attributor Particular')
                                         ->getStateUsing(function ($record) {
@@ -1377,19 +1153,14 @@ class AttributionTargetResource extends Resource
                                                 return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
                                             }
                                         }),
-
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
-
                                     Column::make('attributionAllocation.soft_or_commitment')
                                         ->heading('Soft or Commitment'),
-
                                     Column::make('appropriation_type')
                                         ->heading('Appropriation Type'),
-
                                     Column::make('attributionAllocation.year')
                                         ->heading('Appropriation Year'),
-
                                     Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
@@ -1425,152 +1196,113 @@ class AttributionTargetResource extends Resource
 
                                     Column::make('municipality.name')
                                         ->heading('Municipality'),
-
                                     Column::make('district.name')
                                         ->heading('District'),
-
                                     Column::make('tvi.district.province.name')
                                         ->heading('Province'),
-
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
-
                                     Column::make('tvi.name')
                                         ->heading('Institution'),
-
                                     Column::make('tvi.tviClass.tviType.name')
                                         ->heading('Institution Type'),
-
                                     Column::make('tvi.tviClass.name')
                                         ->heading('Institution Class(A)'),
-
                                     Column::make('qualification_title_code')
                                         ->heading('Qualification Code'),
-
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
-
                                     Column::make('abdd.name')
                                         ->heading('ABDD Sector'),
-
                                     Column::make('qualification_title.trainingProgram.tvet.name')
                                         ->heading('TVET Sector'),
-
                                     Column::make('qualification_title.trainingProgram.priority.name')
                                         ->heading('Priority Sector'),
-
                                     Column::make('deliveryMode.name')
                                         ->heading('Delivery Mode'),
-
                                     Column::make('learningMode.name')
                                         ->heading('Learning Mode'),
-
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
-
                                     Column::make('number_of_slots')
                                         ->heading('No. of slots'),
-
                                     Column::make('training_cost_per_slot')
                                         ->heading('Training Cost')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('cost_of_toolkit_per_slot')
                                         ->heading('Cost of Toolkit')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('training_support_fund_per_slot')
                                         ->heading('Training Support Fund')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_support_fund'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('assessment_fee_per_slot')
                                         ->heading('Assessment Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_assessment_fee'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('entrepreneurship_fee_per_slot')
                                         ->heading('Entrepreneurship Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_entrepreneurship_fee'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('new_normal_assistance_per_slot')
                                         ->heading('New Normal Assistance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_new_normal_assistance'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('accident_insurance_per_slot')
                                         ->heading('Accident Insurance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_accident_insurance'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('book_allowance_per_slot')
                                         ->heading('Book Allowance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_book_allowance'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('uniform_allowance_per_slot')
                                         ->heading('Uniform Allowance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_uniform_allowance'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('misc_fee_per_slot')
                                         ->heading('Miscellaneous Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_misc_fee'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_amount_per_slot')
                                         ->heading('PCC')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_amount'))
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_training_cost_pcc')
                                         ->heading('Total Training Cost')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_cost_of_toolkit_pcc')
                                         ->heading('Total Cost of Toolkit')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_training_support_fund')
                                         ->heading('Total Training Support Fund')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_assessment_fee')
                                         ->heading('Total Assessment Fee')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_entrepreneurship_fee')
                                         ->heading('Total Entrepreneurship Fee')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_new_normal_assisstance')
                                         ->heading('Total New Normal Assistance')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_accident_insurance')
                                         ->heading('Total Accident Insurance')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
-
                                     Column::make('total_book_allowance')
                                         ->heading('Total Book Allowance')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_uniform_allowance')
                                         ->heading('Total Uniform Allowance')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_misc_fee')
                                         ->heading('Total Miscellaneous Fee')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('total_amount')
                                         ->heading('Total PCC')
                                         ->formatStateUsing(fn($state) => self::formatCurrency($state)),
-
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
@@ -1581,6 +1313,26 @@ class AttributionTargetResource extends Resource
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id])
             );
+    }
+
+    protected static function getLocationNames($record): string
+    {
+        $tvi = $record->tvi;
+
+        if ($tvi) {
+            $districtName = $tvi->district->name ?? 'Unknown District';
+            $provinceName = $tvi->district->province->name ?? 'Unknown Province';
+            $regionName = $tvi->district->province->region->name ?? 'Unknown Region';
+            $municipalityName = $tvi->district->underMunicipality->name ?? 'Unknown Municipality';
+
+            if ($regionName === 'NCR') {
+                return "{$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
+            } else {
+                return "{$municipalityName}, {$districtName}, {$provinceName}, {$regionName}";
+            }
+        }
+
+        return 'Location information not available';
     }
 
     protected static function getScholarshipProgramsOptions($legislatorId, $particularId)
