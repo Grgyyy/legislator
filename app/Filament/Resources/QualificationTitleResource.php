@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
+use App\Models\Toolkit;
 use App\Models\TrainingProgram;
 use App\Models\Status;
 use App\Filament\Resources\QualificationTitleResource\Pages;
@@ -42,7 +43,7 @@ class QualificationTitleResource extends Resource
 
     protected static ?string $navigationParentItem = "Scholarship Programs";
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
@@ -96,7 +97,7 @@ class QualificationTitleResource extends Resource
                     ->native(false)
                     ->options(function ($get) {
                         $trainingProgramId = $get('training_program_id');
-
+                
                         return $trainingProgramId
                             ? self::getScholarshipProgramsOptions($trainingProgramId)
                             : ['no_scholarship_program' => 'No scholarship program available. Select a training program first.'];
@@ -359,9 +360,22 @@ class QualificationTitleResource extends Resource
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
                     }),
+                
+                    TextColumn::make("toolkit.price_per_toolkit")
+                    ->label("Cost of Toolkits PCC")
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱ ')
+                    ->getStateUsing(function ($record) {
+                        // Check if the related toolkit exists and has a price_per_toolkit value
+                        return $record->toolkit && $record->toolkit->price_per_toolkit !== null
+                            ? number_format($record->toolkit->price_per_toolkit, 2, '.', ',')
+                            : '0.00';
+                    }),
+                
 
                 TextColumn::make("pcc")
-                    ->label("Total PCC")
+                    ->label("Total PCC (w/o Toolkits)")
                     ->sortable()
                     ->toggleable()
                     ->prefix('₱ ')

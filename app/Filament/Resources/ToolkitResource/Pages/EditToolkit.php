@@ -41,25 +41,38 @@ class EditToolkit extends EditRecord
 
             if ($existingRecord) {
                 NotificationHandler::sendErrorNotification('Record Exists', "A record for this Qualification Title toolkit for '{$data['year']}' already exists.");
-                return $existingRecord; // Returning existing record prevents duplicate entries
+                return $existingRecord; 
             }
 
-            $difference = $data['number_of_toolkit'] - $record['number_of_toolkit'];
+            
 
-            $new_anot = $record['available_number_of_toolkit'] + $difference;
+            if ($data['number_of_toolkit']) {
 
-            // Update the existing record instead of calling update statically
-            $record->update([
-                'lot_name' => $data['lot_name'],
-                'price_per_toolkit' => $data['price_per_toolkit'],
-                'available_number_of_toolkit' => $new_anot,
-                'number_of_toolkit' => $data['number_of_toolkit'],
-                'total_abc_per_lot' => $data['price_per_toolkit'] * $data['number_of_toolkit'],
-                'number_of_items_per_toolkit' => $data['number_of_items_per_toolkit'],
-                'year' => $data['year'],
-            ]);
+                $difference = $data['number_of_toolkit'] - $record['number_of_toolkit'];
 
-            NotificationHandler::sendSuccessNotification('Updated', 'The toolkit has been successfully updated and linked to the qualification.');
+                $new_anot = $record['available_number_of_toolkit'] + $difference;
+
+                $record->update([
+                    'lot_name' => $data['lot_name'],
+                    'price_per_toolkit' => $data['price_per_toolkit'],
+                    'available_number_of_toolkit' => $new_anot,
+                    'number_of_toolkit' => $data['number_of_toolkit'],
+                    'total_abc_per_lot' => $data['price_per_toolkit'] * $data['number_of_toolkit'],
+                    'number_of_items_per_toolkit' => $data['number_of_items_per_toolkit'],
+                    'year' => $data['year']
+                ]);
+            }
+            else {
+                $record->update([
+                    'lot_name' => $data['lot_name'],
+                    'price_per_toolkit' => $data['price_per_toolkit'],
+                    'number_of_items_per_toolkit' => $data['number_of_items_per_toolkit'],
+                    'year' => $data['year']
+                ]);
+            }
+            
+
+            NotificationHandler::sendSuccessNotification('Updated', 'The toolkit has been successfully updated.');
 
             return $record;
         });

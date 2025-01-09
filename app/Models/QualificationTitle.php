@@ -14,6 +14,7 @@ class QualificationTitle extends Model
     protected $fillable = [
         'training_program_id',
         'scholarship_program_id',
+        'toolkit_id',
         'training_cost_pcc',
         'training_support_fund',
         'assessment_fee',
@@ -50,9 +51,14 @@ class QualificationTitle extends Model
         return $this->hasMany(targetHistory::class);
     }
 
+    public function toolkits()
+    {
+        return $this->belongsToMany(Toolkit::class, 'qualification_toolkits')
+            ->withTimestamps();
+    }
+
     public function status()
     {
         return $this->belongsTo(Status::class, 'status_id');
     }
-
 }

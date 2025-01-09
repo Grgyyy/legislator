@@ -41,48 +41,54 @@ class ToolkitResource extends Resource
 
     protected static ?string $navigationParentItem = "Scholarship Programs";
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                // Select::make('qualification_title_id')
-                //     ->label('Qualification Title')
-                //     ->searchable()
-                //     ->options(function () {
-                //         $step = ScholarshipProgram::where('name', 'STEP')->first();
+                Select::make('qualification_title_id')
+                    ->label('Qualification Title')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->multiple()  // Allow multiple selections
+                    ->preload()
+                    ->native()
+                    ->options(function () {
+                        $step_scholarship = ScholarshipProgram::where('name', 'STEP')->first();
 
-                //         if (!$step) {
-                //             return ['no_step' => 'No STEP Scholarship Program available'];
-                //         }
+                        return QualificationTitle::whereNull('deleted_at')
+                            ->where('scholarship_program_id', $step_scholarship->id)
+                            ->get()
+                            ->mapWithKeys(function ($title) {
+                                return [
+                                    $title->id => "{$title->trainingProgram->title}",
+                                ];
+                            })
+                            ->toArray() ?: ['no_toolkits' => 'No Toolkits available'];
+                    })
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, $set) {
+                        if ($state && isset($state[0])) {  // Check if there is at least one selected value
+                            $qualificationTitle = QualificationTitle::find($state[0]);  // Get the first selected ID
 
-                //         $qualificationTitles = QualificationTitle::whereNull('deleted_at')
-                //             ->where('scholarship_program_id', $step->id)
-                //             ->with('trainingProgram')
-                //             ->get()
-                //             ->filter(fn($qualification) => $qualification->trainingProgram)
-                //             ->mapWithKeys(function ($qualification) {
-                //                 $title = $qualification->trainingProgram->title;
-
-                //                 $title = preg_replace_callback(
-                //                     '/\bNC\s+([I]{1,3})\b/i',
-                //                     fn($matches) => 'NC ' . strtoupper($matches[1]),
-                //                     $title
-                //                 );
-
-                //                 return [$qualification->id => ucwords($title)];
-                //             })
-                //             ->toArray();
-
-                //         return $qualificationTitles ?: ['no_available' => 'No available Qualification Titles'];
-                //     })
-                //     ->disableOptionWhen(fn($value) => $value === 'no_step' || $value === 'no_available'),
+                            if ($qualificationTitle) {
+                                $set('lot_name', $qualificationTitle->trainingProgram->title);
+                            } else {
+                                $set('lot_name', null); // Clear the value if no qualification title is found
+                            }
+                        } else {
+                            $set('lot_name', null); // Clear the value if no ID is selected
+                        }
+                    }),
 
                 TextInput::make('lot_name')
                     ->label('Lot Name')
-                    ->placeholder('Enter a Lot Name')
-                    ->required(),
+                    ->required()
+                    ->markAsRequired(false)
+                    ->placeholder('Enter a Lot Name'),
+
 
                 TextInput::make('price_per_toolkit')
                     ->label('Price Per Toolkit')
@@ -97,12 +103,13 @@ class ToolkitResource extends Resource
 
                 TextInput::make('number_of_toolkit')
                     ->label('Number of Toolkits')
-                    ->required()
-                    ->markAsRequired(false)
+                    // ->required()
+                    // ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
-                    ->default(0)
-                    ->minValue(0)
+                    // ->default(0)
+                    // ->minValue(0)
+                    ->prefix('₱')
                     ->disabled(fn($livewire) => $livewire->isEdit())
                     ->dehydrated(),
 
@@ -138,6 +145,34 @@ class ToolkitResource extends Resource
     {
         return $table
             ->columns([
+
+                TextColumn::make('qualificationTitles')
+                    ->label('Qualification Titles')
+                    ->sortable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($record) {
+                        // Ensure qualification titles are properly loaded and accessible
+                        $qualificationTitles = $record->qualificationTitles->pluck('trainingProgram.title')->toArray();
+
+                        // Check if qualification titles exist
+                        if (empty($qualificationTitles)) {
+                            return '-';  // Return a fallback message if no titles are found
+                        }
+
+                        // Format titles with commas, line breaks, and padding
+                        $schoProHtml = array_map(function ($title, $index) use ($qualificationTitles) {
+                            $comma = ($index < count($qualificationTitles) - 1) ? ', ' : '';
+                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+
+                            return "<div style='{$paddingTop} display: inline;'>{$title}{$comma}{$lineBreak}</div>";
+                        }, $qualificationTitles, array_keys($qualificationTitles));
+
+                        // Return the formatted HTML content
+                        return implode('', $schoProHtml);
+                    })
+                    ->html(),
+
                 TextColumn::make('lot_name')
                     ->label('Lot Name')
                     ->searchable(),
@@ -145,12 +180,20 @@ class ToolkitResource extends Resource
                     ->label('Price per Toolkit')
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-                TextColumn::make('number_of_toolkit')
-                    ->label('No. of Toolkits'),    
+                TextColumn::make('available_number_of_toolkits')
+                    ->label('Available Number of Toolkits Per Lot')
+                    ->getStateUsing(fn($record) => $record->available_number_of_toolkits ?? '-'),
+                    
+                TextColumn::make('number_of_toolkits')
+                    ->label('No. of Toolkits')
+                    ->getStateUsing(fn($record) => $record->number_of_toolkits ?? '-'),
+
                 TextColumn::make('total_abc_per_lot')
                     ->label('Total ABC per Lot')
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),  
+                    ->getStateUsing(fn($record) => $record->total_abc_per_lot 
+                        ? '₱' . number_format((float) $record->total_abc_per_lot, 2, '.', ',') 
+                        : '-'),
+
                 TextColumn::make('number_of_items_per_toolkit')
                     ->label('No. of Items per Toolkit'),  
                 TextColumn::make('year')
@@ -207,6 +250,13 @@ class ToolkitResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
+                                    Column::make('formatted_scholarship_programs')
+                                        ->heading('Qualification Titles')
+                                        ->getStateUsing(fn($record) => $record->qualificationTitles
+                                            ->pluck('trainingProgram.title')
+                                            ->implode(', ')
+                                        ),
+
                                     Column::make('lot_name')
                                         ->heading('Lot Name'),
                                         
@@ -214,12 +264,19 @@ class ToolkitResource extends Resource
                                         ->heading('Estimated Price Per Toolkit')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
 
+                                    Column::make('available_number_of_toolkits')
+                                        ->heading('Available Number of Toolkits Per Lot')
+                                        ->getStateUsing(fn($record) => $record->available_number_of_toolkits ?? '-'),
+
                                     Column::make('number_of_toolkit')
-                                        ->heading('Number of Toolkits Per Lot'),
+                                        ->heading('Number of Toolkits Per Lot')
+                                        ->getStateUsing(fn($record) => $record->number_of_toolkits ?? '-'),
 
                                     Column::make('total_abc_per_lot')
                                         ->heading('Total ABC Per Lot')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->getStateUsing(fn($record) => $record->total_abc_per_lot 
+                                            ? '₱' . number_format((float) $record->total_abc_per_lot, 2, '.', ',') 
+                                            : '-'),
 
                                     Column::make('number_of_items_per_toolkit')
                                         ->heading('Number of Items Per Toolkit'),

@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('lot_name');
             $table->decimal('price_per_toolkit', 15, 2)->default(0);
-            $table->integer('available_number_of_toolkit')->default(0);
-            $table->integer('number_of_toolkit')->default(0);
-            $table->decimal('total_abc_per_lot', 15, 2)->default(0);
+            $table->integer('number_of_toolkits')->nullable();
+            $table->integer('available_number_of_toolkits')->nullable();
+            $table->decimal('total_abc_per_lot', 15, 2)->nullable();
             $table->integer('number_of_items_per_toolkit')->default(0);
             $table->year('year');
             $table->timestamps();

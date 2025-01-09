@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ToolkitResource\Pages;
 
 use App\Filament\Resources\ToolkitResource;
+use App\Imports\NoOfToolkitsImport;
 use App\Imports\ToolkitImport;
 use Exception;
 use Filament\Actions\Action;
@@ -24,7 +25,7 @@ class ListToolkits extends ListRecords
                 ->label('New')
             ,
 
-            Action::make('SkillPriorityImport')
+            Action::make('ToolkitsImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
@@ -36,6 +37,24 @@ class ListToolkits extends ListRecords
 
                     try {
                         Excel::import(new ToolkitImport, $file);
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'Qualification Title Toolkits data have been successfully imported from the file.');
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Qualification Title Toolkits data: ' . $e->getMessage());
+                    }
+                }),
+
+            Action::make('ToolkitsSlotsImport')
+                ->label('Import No. of Toolkits')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('attachment')
+                        ->required(),
+                ])
+                ->action(function (array $data) {
+                    $file = public_path('storage/' . $data['attachment']);
+
+                    try {
+                        Excel::import(new NoOfToolkitsImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'Qualification Title Toolkits data have been successfully imported from the file.');
                     } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Qualification Title Toolkits data: ' . $e->getMessage());
