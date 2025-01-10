@@ -17,6 +17,16 @@ class CreateQualificationTitle extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            route('filament.admin.resources.qualification-titles.index') => 'Schedule of Cost',
+            'Insert a Record',
+        ];
+    }
+
+    protected ?string $heading = 'Insert a Record in the Schedule of Cost';
+
     protected function handleRecordCreation(array $data): QualificationTitle
     {
         $this->validateUniqueQualificationTitle($data['training_program_id'], $data['scholarship_program_id']);

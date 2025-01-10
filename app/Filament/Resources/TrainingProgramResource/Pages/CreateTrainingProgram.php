@@ -17,7 +17,7 @@ class CreateTrainingProgram extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected ?string $heading = 'Qualification Titles';
+    protected ?string $heading = 'Create a Qualification Title';
 
     public function getBreadcrumbs(): array
     {

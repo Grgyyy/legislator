@@ -30,11 +30,9 @@ class ToolkitImport implements ToModel, WithHeadingRow
                     ->where('year', $row['year'])
                     ->first();
 
-                // Get the QualificationTitle based on the provided training program name
-                $qualificationTitle = $this->getQualificationTitle($row['qualification_title']);
+                $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $row['soc_code']);
 
                 if (!$toolkitRecord) {
-                    // If toolkit doesn't exist, create a new one
                     $toolkitRecord = Toolkit::create([
                         'lot_name' => $row['lot_name'],
                         'price_per_toolkit' => $row['price_per_toolkit'],
@@ -48,7 +46,6 @@ class ToolkitImport implements ToModel, WithHeadingRow
                     ]);
                 }
 
-                // Sync the qualification title only if the toolkit record exists
                 if ($toolkitRecord->exists) {
                     $toolkitRecord->qualificationTitles()->syncWithoutDetaching([$qualificationTitle->id]);
                 }
@@ -86,10 +83,12 @@ class ToolkitImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function getQualificationTitle(string $trainingProgramName)
+    protected function getQualificationTitle(string $trainingProgramName, $socCode)
     {
         // Find the training program by title
-        $trainingProgram = TrainingProgram::where(DB::raw('LOWER(title)'), '=', strtolower($trainingProgramName))->first();
+        $trainingProgram = TrainingProgram::where(DB::raw('LOWER(title)'), '=', strtolower($trainingProgramName))
+            ->where('soc_code', $socCode)
+            ->first();
 
         if (!$trainingProgram) {
             throw new \Exception("Training Program with name '{$trainingProgramName}' not found.");
