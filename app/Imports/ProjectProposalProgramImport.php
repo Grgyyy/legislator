@@ -18,6 +18,14 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
+    private $currentSocCode;
+
+    public function __construct()
+    {
+        // Get the count of existing programs where soc is 0, and set currentSocCode
+        $this->currentSocCode = TrainingProgram::where('soc', 0)->count();
+    }
+
     public function model(array $row)
     {
         try {
@@ -35,29 +43,52 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
                 $scholarshipProgram = ScholarshipProgram::where('name', $row['scholarship_program'])->first();
 
                 if (!$projectProposalProgram) {
-                    $projectProposalProgram = TrainingProgram::create([
-                        'title' => $programName,
-                        'tvet_id' => $tvetSector->id,
-                        'priority_id' => $prioSector->id,
-                    ]);
+                    // Increment the currentSocCode to generate the next proposal
+                    $this->currentSocCode++;
+                    $formattedSocCode = $this->formatSocCode($this->currentSocCode);
 
+                    // Ensure the generated SOC code is unique
+                    while (TrainingProgram::where('soc_code', $formattedSocCode)->exists()) {
+                        $this->currentSocCode++;
+                        $formattedSocCode = $this->formatSocCode($this->currentSocCode);
+                    }
+
+                    // Check if the program already exists with soc = 0
+                    $existingProgram = TrainingProgram::where('title', $programName)
+                        ->where('soc', 0)
+                        ->first();
+
+                    if (!$existingProgram) {
+                        $projectProposalProgram = TrainingProgram::create([
+                            'soc_code' => $formattedSocCode,
+                            'title' => $programName,
+                            'tvet_id' => $tvetSector->id,
+                            'priority_id' => $prioSector->id,
+                            'soc' => 0,
+                        ]);
+                    } else {
+                        $projectProposalProgram = $existingProgram;
+                    }
+
+                    // Sync the scholarship programs
                     $projectProposalProgram->scholarshipPrograms()->syncWithoutDetaching($scholarshipProgram);
 
+                    // Check if QualificationTitle already exists
                     $qualificationTitle = QualificationTitle::where('training_program_id', $projectProposalProgram->id)
                         ->where('scholarship_program_id', $scholarshipProgram->id)
                         ->where('soc', 0)
                         ->exists();
 
-                    if(!$qualificationTitle) {
+                    if (!$qualificationTitle) {
                         QualificationTitle::create([
                             'training_program_id' => $projectProposalProgram->id,
                             'scholarship_program_id' => $scholarshipProgram->id,
                             'status_id' => 1,
-                            'soc' => 0
+                            'soc' => 0,
                         ]);
                     }
                 }
-                
+
                 return $projectProposalProgram;
             });
         } catch (Throwable $e) {
@@ -69,7 +100,7 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         $requiredFields = [
-            'project_proposal_program_name',
+            'project_proposal_program_name', 'tvet_sector', 'priority_sector',
         ];
 
         foreach ($requiredFields as $field) {
@@ -77,5 +108,14 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
                 throw new \Exception("The field '{$field}' is required and cannot be null or empty. No changes were saved.");
             }
         }
+    }
+
+    private function formatSocCode($currentSocCode)
+    {
+        if ($currentSocCode > 99999) {
+            return 'PROP' . $currentSocCode;
+        }
+
+        return sprintf('PROP%06d', $currentSocCode);
     }
 }

@@ -50,6 +50,16 @@ class ProjectProposalResource extends Resource
 
         return $form
             ->schema([
+
+                TextInput::make('soc_code')
+                    ->label(label: "Schedule of Cost Code")
+                    ->placeholder('Enter Sched')
+                    ->required()
+                    ->hidden(fn($livewire) => $livewire->isCreate())
+                    ->disabled()
+                    ->dehydrated()
+                    ->markAsRequired(false),
+
                 TextInput::make('title')
                     ->label(label: "Training Program")
                     ->placeholder('Enter training program')
@@ -112,6 +122,12 @@ class ProjectProposalResource extends Resource
         return $table
             ->emptyStateHeading('No project proposal programs available')
             ->columns([
+
+                TextColumn::make('soc_code')
+                    ->label('SOC Code')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make('title')
                     ->sortable()
@@ -201,6 +217,8 @@ class ProjectProposalResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
+                                    Column::make('soc_code')
+                                        ->heading('Schedule of Cost Code'),
                                     Column::make('title')
                                         ->heading('Qualification Title'),
                                     Column::make('priority.name')

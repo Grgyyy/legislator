@@ -31,6 +31,11 @@ class CreateProjectProposal extends CreateRecord
 
     protected ?string $heading = 'Create Project Proposal Program';
 
+    public function isCreate(): bool
+    {
+        return true; 
+    }
+
     protected function handleRecordCreation(array $data): \Illuminate\Database\Eloquent\Model
     {
         return DB::transaction(function () use ($data) {
@@ -47,10 +52,27 @@ class CreateProjectProposal extends CreateRecord
                 );
             }
 
+            // Get the count of Training Programs where soc is 0
+            $trainingProgramCount = TrainingProgram::where('soc', 0)->count();
+            
+            // Start the SOC code from the count + 1
+            $currentSocCode = $trainingProgramCount + 1;
+
+            // Generate the formatted SOC code
+            $formattedSocCode = $this->formatSocCode($currentSocCode);
+
+            // Check if the SOC code already exists and increment until it is unique
+            while (TrainingProgram::where('soc_code', $formattedSocCode)->exists()) {
+                $currentSocCode++;
+                $formattedSocCode = $this->formatSocCode($currentSocCode);
+            }
+
+            // Create the project proposal program
             $projectProposalProgram = TrainingProgram::create([
-                'title'       => $data['title'],
+                'soc_code'   => $formattedSocCode,
+                'title'      => $data['title'],
                 'priority_id' => $data['priority_id'],
-                'tvet_id'     => $data['tvet_id'],
+                'tvet_id'    => $data['tvet_id'],
             ]);
 
             if (!empty($data['scholarshipPrograms'])) {
@@ -72,5 +94,14 @@ class CreateProjectProposal extends CreateRecord
 
             return $projectProposalProgram;
         });
+    }
+
+    private function formatSocCode($currentSocCode)
+    {
+        if ($currentSocCode > 99999) {
+            return 'PROP' . $currentSocCode;
+        }
+
+        return sprintf('PROP%06d', $currentSocCode);
     }
 }
