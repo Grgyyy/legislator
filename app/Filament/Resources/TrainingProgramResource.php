@@ -46,7 +46,15 @@ class TrainingProgramResource extends Resource
         return $form
             ->schema([
                 TextInput::make('code')
-                    ->label(label: 'Training Program Code')
+                    ->label(label: 'Qualification Code')
+                    ->placeholder('Enter training program code')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('Training Program Code'),
+
+                TextInput::make('soc_code')
+                    ->label(label: 'Schedule of Cost Code')
                     ->placeholder('Enter training program code')
                     ->required()
                     ->markAsRequired(false)
@@ -70,7 +78,7 @@ class TrainingProgramResource extends Resource
                     ->preload()
                     ->native(false)
                     ->options(function () {
-                        return Tvet::all()
+                        return Tvet::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_tvet' => 'No TVET Sector Available'];
                     })
@@ -85,7 +93,7 @@ class TrainingProgramResource extends Resource
                     ->preload()
                     ->native(false)
                     ->options(function () {
-                        return Priority::all()
+                        return Priority::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_priority' => 'No Priority Sector Available'];
                     })
@@ -116,6 +124,13 @@ class TrainingProgramResource extends Resource
             ->emptyStateHeading('no training programs available')
             ->columns([
                 TextColumn::make('code')
+                    ->label('Qualification Code')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('soc_code')
+                    ->label('SOC Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -232,6 +247,8 @@ class TrainingProgramResource extends Resource
                                 ->withColumns([
                                     Column::make('code')
                                         ->heading('Qualification Code'),
+                                    Column::make('soc_code')
+                                        ->heading('Schedule of Cost Code'),
                                     Column::make('title')
                                         ->heading('Qualification Title'),
                                     Column::make('priority.name')
