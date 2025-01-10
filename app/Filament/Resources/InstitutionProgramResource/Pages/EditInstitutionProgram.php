@@ -15,17 +15,26 @@ class EditInstitutionProgram extends EditRecord
 
     protected static ?string $title = 'Edit Training Program Association with Institution';
 
+    public function getHeading(): string
+    {
+        $record = $this->getRecord();
+        return $record ? $record->tvi->name . "'s Qualification Title Association" : 'Edit Training Program Association with Institution';
+    }
+    
+    public function getBreadcrumbs(): array
+    {
+
+        $record = $this->getRecord();
+
+        return [
+            route('filament.admin.resources.training-programs.index') => $record ? $record->tvi->name . "'s Qualification Title Association" : "Institution's Training Program",
+            'Edit'
+        ];
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            '/institution-programs' => "Institution's Training Program",
-            'Edit',
-        ];
     }
 
     protected function getHeaderActions(): array
