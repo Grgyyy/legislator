@@ -113,10 +113,7 @@ class FundSourceResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('Fund Source')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->name ?: '-';
-                                        }),
+                                        ->heading('Fund Source'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Fund Source'),
                         ]),

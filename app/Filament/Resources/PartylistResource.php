@@ -115,10 +115,7 @@ class PartylistResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('Party-list')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->name ?: '-';
-                                        }),
+                                        ->heading('Party-list'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Party-list'),
                         ]),
