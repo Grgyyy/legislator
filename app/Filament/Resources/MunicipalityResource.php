@@ -140,6 +140,7 @@ class MunicipalityResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('class')
+                    ->label('Municipality Class')
                     ->searchable()
                     ->toggleable(),
 
@@ -184,6 +185,7 @@ class MunicipalityResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('province.region.name')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])
@@ -242,38 +244,15 @@ class MunicipalityResource extends Resource
                                             return $record->code ?: '-';
                                         }),
                                     Column::make('name')
-                                        ->heading('Municipality')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->name ?: '-';
-                                        }),
+                                        ->heading('Municipality'),
                                     Column::make('class')
-                                        ->heading('Municipality Class')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->class ?: '-';
-                                        }),
+                                        ->heading('Municipality Class'),
                                     Column::make('district.name')
-                                        ->heading('District')
-                                        ->getStateUsing(function ($record) {
-                                            $districts = $record->district->map(function ($district) {
-                                                $municipalityName = $district->underMunicipality->name ?? null;
-
-                                                return $municipalityName
-                                                    ? "{$district->name} - {$municipalityName}"
-                                                    : "{$district->name}";
-                                            })->join(', ');
-
-                                            return $districts ?: '-';
-                                        }),
+                                        ->heading('District'),
                                     Column::make('province.name')
-                                        ->heading('Province')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->province ? $record->province->name : '-';
-                                        }),
+                                        ->heading('Province'),
                                     Column::make('province.region.name')
-                                        ->heading('Region')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->province->region ? $record->province->region->name : '-';
-                                        }),
+                                        ->heading('Region'),
                                 ])
                                 ->withFilename(now()->format('m-d-Y') . ' - Municipality'),
                         ]),

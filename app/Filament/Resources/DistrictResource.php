@@ -227,10 +227,7 @@ class DistrictResource extends Resource
                                             return $record->code ?: '-';
                                         }),
                                     Column::make('name')
-                                        ->heading('District')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->name ?: '-';
-                                        }),
+                                        ->heading('District'),
                                     Column::make('municipality.name')
                                         ->heading('Municipality')
                                         ->getStateUsing(function ($record) {
@@ -239,15 +236,9 @@ class DistrictResource extends Resource
                                                 : '-';
                                         }),
                                     Column::make('province.name')
-                                        ->heading('Province')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->province ? $record->province->name : '-';
-                                        }),
+                                        ->heading('Province'),
                                     Column::make('province.region.name')
                                         ->heading('Region')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->province->region ? $record->province->region->name : '-';
-                                        }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - District')
                         ])

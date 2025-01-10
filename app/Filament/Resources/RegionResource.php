@@ -136,10 +136,7 @@ class RegionResource extends Resource
                                             return $record->code ?: '-';
                                         }),
                                     Column::make('name')
-                                        ->heading('Region')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->name ?: '-';
-                                        }),
+                                        ->heading('Region'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Region'),
                         ]),
@@ -151,7 +148,8 @@ class RegionResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable');
+            ->whereNot('name', 'Not Applicable')
+            ->orderBy('code');
     }
 
     public static function getPages(): array
