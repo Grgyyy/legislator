@@ -13,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
         'abscap_id' => 'Absorptive Capacity',
@@ -106,9 +106,8 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             ->when(request()->user()->role == 'RO', function (Builder $query) {
                 $query->where('region_id', request()->user()->region_id);
             })
-            ->where('target_status_id', 1)
+            ->where('target_status_id', 3)
             ->whereNull('attribution_allocation_id');
-        // ->whereNot('attribution_allocation_id', null);
     }
 
     public function headings(): array
@@ -116,7 +115,7 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PENDING TARGET'],
+            ['NON-COMPLIANT TARGET'],
             [''],
         ];
 
@@ -272,6 +271,5 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
 
         return $sheet;
     }
-
 
 }
