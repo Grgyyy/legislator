@@ -25,6 +25,7 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\SelectColumn;
+use Filament\Tables\Filters\Filter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -49,7 +50,7 @@ class LegislatorResource extends Resource
             ->schema([
                 TextInput::make("name")
                     ->label('Legislator')
-                    ->placeholder(placeholder: 'Enter legislator name')
+                    ->placeholder('Enter legislator name')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
@@ -76,7 +77,7 @@ class LegislatorResource extends Resource
                     ->options(function () {
                         return Status::all()
                             ->pluck('desc', 'id')
-                            ->toArray() ?: ['no_status' => 'No Status Available'];
+                            ->toArray() ?: ['no_status' => 'No status available'];
                     }),
             ]);
     }
@@ -84,7 +85,7 @@ class LegislatorResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no legislators available')
+            ->emptyStateHeading('No legislators available')
             ->columns([
                 TextColumn::make("name")
                     ->sortable()
@@ -109,9 +110,30 @@ class LegislatorResource extends Resource
                 TrashedFilter::make()
                     ->label('Records'),
 
-                SelectFilter::make('status')
-                    ->label('Status')
-                    ->relationship('status', 'desc'),
+                Filter::make('fundSource')
+                    ->form([
+                        Select::make('status_id')
+                            ->label("Status")
+                            ->placeholder('All')
+                            ->relationship('status', 'desc')
+                            ->reactive(),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['status_id'] ?? null,
+                                fn(Builder $query, $statusId) => $query->where('status_id', $statusId)
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if (!empty($data['status_id'])) {
+                            $indicators[] = 'Status: ' . Optional(Status::find($data['status_id']))->desc;
+                        }
+
+                        return $indicators;
+                    })
             ])
             ->actions([
                 ActionGroup::make([
@@ -167,7 +189,7 @@ class LegislatorResource extends Resource
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
                                             if (!$record->particular) {
-                                                return 'No Particular Available';
+                                                return 'No particulars available';
                                             }
 
                                             return $record->particular->map(function ($particular) {
@@ -196,7 +218,6 @@ class LegislatorResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Legislator'),
                         ])
-
                 ]),
             ]);
     }
@@ -207,7 +228,7 @@ class LegislatorResource extends Resource
             ->with('district')
             ->get()
             ->mapWithKeys(fn($item) => self::formatParticular($item))
-            ->toArray() ?: ['no_particular' => 'No Particular Available'];
+            ->toArray() ?: ['no_particular' => 'No particulars available'];
     }
 
     protected static function formatParticular($item): array
@@ -274,13 +295,12 @@ class LegislatorResource extends Resource
         })->implode('');
     }
 
-
-
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNotIn('name', ['Regional Office', 'Central Office']);
+            ->whereNotIn('name', ['Regional Office', 'Central Office'])
+            ->orderBy('name');
     }
 
     public static function getPages(): array
