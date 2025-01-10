@@ -23,10 +23,6 @@ class ListNonCompliantTargets extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            // CreateAction::make()
-            //     ->icon('heroicon-m-plus')
-            //     ->label('New'),
-
             Action::make('NonCompliantExport')
                 ->label('Export')
                 ->icon('heroicon-o-document-arrow-down')
@@ -41,9 +37,6 @@ class ListNonCompliantTargets extends ListRecords
                         NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
                     }
                 }),
-
-
-
         ];
     }
 

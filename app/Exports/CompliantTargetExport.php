@@ -13,35 +13,27 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
-    /**
-     * Column definitions for export with their headings.
-     */
-    private $columns = [
-        'abscap_id' => 'Absorptive Capacity',
-        'fund_source' => 'Fund Source',
-        'allocation.legislator.name' => 'Legislator',
+    private array $columns = [
+        'fund_source' => 'Allocation Type',
+        'attributionAllocation.legislator.name' => 'Legislator I',
+        'allocation.legislator.name' => 'Legislator II',
+        'allocation.legislator.particular.subParticular' => 'Particular',
         'allocation.soft_or_commitment' => 'Source of Fund',
         'appropriation_type' => 'Appropriation Type',
-        'allocation.year' => 'Allocation',
-        'allocation.legislator.particular.subParticular' => 'Particular',
-        'municipality_name' => 'Municipality',
+        'allocation.year' => 'Allocation Year',
         'district_name' => 'District',
+        'municipality_name' => 'Municipality',
         'municipality.province.name' => 'Province',
         'region_name' => 'Region',
         'institution_name' => 'Institution',
-        'institution_type' => 'Institution Type',
-        'institution_class' => 'Institution Class',
-        'qualification_code' => 'Qualification Code',
-        'qualification_name' => 'Qualification Title',
-        'abdd_sector' => 'ABDD Sector',
-        'tvet_sector' => 'TVET Sector',
-        'priority_sector' => 'Priority Sector',
-        'delivery_mode' => 'Delivery Mode',
-        'learning_mode' => 'Learning Mode',
         'scholarship_program' => 'Scholarship Program',
-        'number_of_slots' => 'No. of Slots',
+        'qualification_name' => 'Qualification Title',
+        'priority_sector' => 'Priority Sector',
+        'tvet_sector' => 'TVET Sector',
+        'abdd_sector' => 'ABDD Sector',
+        'number_of_slots' => 'No. of slots',
         'training_cost_per_slot' => 'Training Cost',
         'cost_of_toolkit_per_slot' => 'Cost of Toolkit',
         'training_support_fund_per_slot' => 'Training Support Fund',
@@ -67,105 +59,51 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         'status' => 'Status',
     ];
 
-    /**
-     * Define the query for retrieving pending targets.
-     */
-    public function query()
+    public function query(): Builder
     {
         return Target::query()
-            ->select([
-                'abscap_id',
-                'allocation_id',
-                'district_id',
-                'municipality_id',
-                'tvi_id',
-                'tvi_name',
-                'abdd_id',
-                'qualification_title_id',
-                'qualification_title_code',
-                'qualification_title_name',
-                'delivery_mode_id',
-                'learning_mode_id',
-                'number_of_slots',
-                'total_training_cost_pcc',
-                'total_cost_of_toolkit_pcc',
-                'total_training_support_fund',
-                'total_assessment_fee',
-                'total_entrepreneurship_fee',
-                'total_new_normal_assisstance',
-                'total_accident_insurance',
-                'total_book_allowance',
-                'total_uniform_allowance',
-                'total_misc_fee',
-                'total_amount',
-                'appropriation_type',
-                'target_status_id',
-            ])
-            ->addSelect([
-                'total_amount_per_slot' => DB::raw('CASE WHEN number_of_slots = 0 THEN NULL ELSE total_amount / number_of_slots END')
-            ])
+            ->select($this->getSelectColumns())
+            ->addSelect(['total_amount_per_slot' => $this->calculatePerSlot('total_amount')])
             ->when(request()->user()->role === 'RO', function (Builder $query) {
                 $query->where('region_id', request()->user()->region_id);
             })
-            ->where('target_status_id', 1)
+            ->where('target_status_id', 2)
             ->whereNull('attribution_allocation_id');
     }
 
-    /**
-     * Define the headings for the Excel export.
-     */
     public function headings(): array
     {
-        $customHeadings = [
+        return [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PENDING TARGET'],
+            ['COMPLIANT TARGET'],
             [''],
+            array_values($this->columns),
         ];
-
-        return array_merge($customHeadings, [array_values($this->columns)]);
     }
 
-    /**
-     * Map the data for each row in the export.
-     */
     public function map($record): array
     {
-        return [
-            $record->abscap_id,
+        return array_merge([
             $this->getFundSource($record),
+            $record->attributionAllocation->legislator->name ?? '-',
             $record->allocation->legislator->name ?? '-',
+            $this->getParticular($record),
             $record->allocation->soft_or_commitment ?? '-',
             $record->appropriation_type,
             $record->allocation->year,
-            $this->getParticular($record),
+            $record->tvi->district->name ?? '-',
             $record->municipality->name ?? '-',
-            $record->district->name ?? '-',
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
             $record->tvi->name ?? '-',
-            $record->tvi->tviClass->tviType->name ?? '-',
-            $record->tvi->tviClass->name ?? '-',
-            $record->qualification_title_code ?? '-',
-            $record->qualification_title_code ?? '-',
-            $record->abdd->name ?? '-',
-            $record->qualification_title->trainingProgram->tvet->name ?? '-',
-            $record->qualification_title->trainingProgram->priority->name ?? '-',
-            $record->deliveryMode->name ?? '-',
-            $record->learningMode->name ?? '-',
             $record->allocation->scholarship_program->name ?? '-',
+            $record->qualification_title->trainingProgram->title ?? '-',
+            $record->qualification_title->trainingProgram->priority->name ?? '-',
+            $record->qualification_title->trainingProgram->tvet->name ?? '-',
+            $record->abdd->name ?? '-',
             $record->number_of_slots,
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_support_fund')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_assessment_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_entrepreneurship_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_new_normal_assisstance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_accident_insurance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_book_allowance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_uniform_allowance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_misc_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_amount')),
+        ], $this->mapCostPerSlot($record), [
             $this->formatCurrency($record->total_training_cost_pcc),
             $this->formatCurrency($record->total_cost_of_toolkit_pcc),
             $this->formatCurrency($record->total_training_support_fund),
@@ -177,49 +115,94 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             $this->formatCurrency($record->total_uniform_allowance),
             $this->formatCurrency($record->total_misc_fee),
             $this->formatCurrency($record->total_amount),
-            $record->targetStatus->desc ?? '-',
-        ];
+            $record->targetStatus->desc ?? 'No status available',
+        ]);
     }
 
-    /**
-     * Retrieve the fund source from the record.
-     */
-    private function getFundSource($record)
+    // Helper method to fetch fund source
+    private function getFundSource($record): string
     {
-        return $record->allocation->particular->subParticular->fundSource->name ?? '-';
+        return $record->allocation->particular->subParticular->fundSource->name ?? 'No fund source available';
     }
 
-    /**
-     * Retrieve the particular from the record.
-     */
-    private function getParticular($record)
+    // Helper method to fetch particular details
+    private function getParticular($record): string
     {
         $particulars = $record->allocation->legislator->particular;
-        return $particulars->isNotEmpty() ? ($particulars->first()->subParticular->name ?? '-') : '-';
+        return $particulars->isNotEmpty() ? $particulars->first()->subParticular->name ?? 'No sub-particular available' : 'No particular available';
     }
 
-    /**
-     * Format currency values with PHP locale settings.
-     */
-    private function formatCurrency($amount)
+    // Helper method to format currency values
+    private function formatCurrency($amount): string
     {
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
         return $formatter->formatCurrency($amount, 'PHP');
     }
 
-    /**
-     * Calculate the cost per slot based on the given property.
-     */
-    private function calculateCostPerSlot($record, $costProperty)
+    // Helper method to calculate cost per slot
+    private function calculateCostPerSlot($record, string $costProperty): float
     {
-        return $record->number_of_slots > 0 ? $record->{$costProperty} / $record->number_of_slots : 0;
+        $totalCost = $record->{$costProperty};
+        $slots = $record->number_of_slots;
+        return $slots > 0 ? $totalCost / $slots : 0;
     }
 
-    /**
-     * Apply custom styles to the spreadsheet.
-     */
+    // Helper method to map costs per slot
+    private function mapCostPerSlot($record): array
+    {
+        $costProperties = [
+            'total_training_cost_pcc',
+            'total_cost_of_toolkit_pcc',
+            'total_training_support_fund',
+            'total_assessment_fee',
+            'total_entrepreneurship_fee',
+            'total_new_normal_assisstance',
+            'total_accident_insurance',
+            'total_book_allowance',
+            'total_uniform_allowance',
+            'total_misc_fee',
+            'total_amount',
+        ];
 
+        return array_map(fn($property) => $this->formatCurrency($this->calculateCostPerSlot($record, $property)), $costProperties);
+    }
 
+    // Helper method to define select columns for the query
+    private function getSelectColumns(): array
+    {
+        return [
+            'abscap_id',
+            'allocation_id',
+            'district_id',
+            'municipality_id',
+            'tvi_id',
+            'tvi_name',
+            'abdd_id',
+            'qualification_title_id',
+            'qualification_title_code',
+            'qualification_title_name',
+            'number_of_slots',
+            'total_training_cost_pcc',
+            'total_cost_of_toolkit_pcc',
+            'total_training_support_fund',
+            'total_assessment_fee',
+            'total_entrepreneurship_fee',
+            'total_new_normal_assisstance',
+            'total_accident_insurance',
+            'total_book_allowance',
+            'total_uniform_allowance',
+            'total_misc_fee',
+            'total_amount',
+            'appropriation_type',
+            'target_status_id',
+        ];
+    }
+
+    // Helper method to calculate slot-based values
+    private function calculatePerSlot(string $field)
+    {
+        return DB::raw("CASE WHEN number_of_slots = 0 THEN NULL ELSE {$field} / number_of_slots END");
+    }
 
     public function styles(Worksheet $sheet)
     {
