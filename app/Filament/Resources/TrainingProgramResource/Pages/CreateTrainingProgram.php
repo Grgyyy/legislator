@@ -17,6 +17,16 @@ class CreateTrainingProgram extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected ?string $heading = 'Qualification Titles';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            route('filament.admin.resources.training-programs.index') => 'Qualification Titles',
+            'Create'
+        ];
+    }
+
     protected function handleRecordCreation(array $data): TrainingProgram
     {
         $this->validateUniqueTrainingProgram($data);

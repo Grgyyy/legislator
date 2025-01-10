@@ -19,6 +19,23 @@ class EditTrainingProgram extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function getHeading(): string
+    {
+        $record = $this->getRecord();
+        return $record ? $record->title : 'Qualification Titles';
+    }
+    
+    public function getBreadcrumbs(): array
+    {
+
+        $record = $this->getRecord();
+
+        return [
+            route('filament.admin.resources.training-programs.index') => $record ? $record->title : 'Qualification Titles',
+            'Edit'
+        ];
+    }
+
     protected function handleRecordUpdate($record, array $data): TrainingProgram
     {
         $this->validateUniqueTrainingProgram($data, $record->id);

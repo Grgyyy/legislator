@@ -39,6 +39,8 @@ class TrainingProgramResource extends Resource
 
     protected static ?string $navigationParentItem = "Scholarship Programs";
 
+    protected static ?string $navigationLabel = "Qualification Titles";
+
     protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
@@ -262,7 +264,7 @@ class TrainingProgramResource extends Resource
                                             ->implode(', ')
                                         ),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Training Programs')
+                                ->withFilename(date('m-d-Y') . ' - Qualification Titles')
                         ]),
                 ]),
             ]);
