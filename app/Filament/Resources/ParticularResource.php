@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\Particular;
+use App\Models\Partylist;
 use App\Models\SubParticular;
 use App\Models\District;
 use App\Filament\Resources\ParticularResource\Pages;
@@ -246,16 +247,10 @@ class ParticularResource extends Resource
         }
 
         if ($subParticular->name === 'Party-list') {
-            return District::where('name', 'Not Applicable')
-                ->whereHas('province', function ($query) {
-                    $query->where('name', 'Not Applicable');
-                })
-                ->whereHas('province.region', function ($query) {
-                    $query->where('name', 'Not Applicable');
-                })
+            return Partylist::whereNot('name', 'Not Applicable')
                 ->get()
-                ->mapWithKeys(function (District $district) {
-                    return [$district->id => $district->province->region->name];
+                ->mapWithKeys(function (Partylist $partylist) {
+                    return [$partylist->id => $partylist->name];
                 })
                 ->toArray() ?: ['no_administrative_area' => 'No aministrative areas available'];
         }
@@ -266,7 +261,7 @@ class ParticularResource extends Resource
                     $query->where('name', 'Not Applicable');
                 })
                 ->whereHas('province.region', function ($query) {
-                    $query->whereNotIn('name', ['Not Applicable', 'NCR']);
+                    $query->whereNot('name', 'Not Applicable');
                 })
                 ->get()
                 ->mapWithKeys(function (District $district) {
@@ -281,7 +276,7 @@ class ParticularResource extends Resource
                     $query->where('name', 'Not Applicable');
                 })
                 ->whereHas('province.region', function ($query) {
-                    $query->where('name', 'NCR');
+                    $query->whereNot('name', 'Not Applicable');
                 })
                 ->get()
                 ->mapWithKeys(function (District $district) {

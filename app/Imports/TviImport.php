@@ -207,7 +207,7 @@ class TviImport implements ToModel, WithHeadingRow
         $districtRecord = $query->first();
 
         if (!$districtRecord) {
-            throw new \Exception("The district '{$districtName}' does not exist in the specified province and municipality.");
+            throw new \Exception("The district '{$districtName}' does not exist in the '{$province->name}' and '{$region->name}'");
         }
 
         return $districtRecord->id;

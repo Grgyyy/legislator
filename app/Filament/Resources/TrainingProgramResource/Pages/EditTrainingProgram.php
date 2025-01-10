@@ -19,6 +19,23 @@ class EditTrainingProgram extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function getHeading(): string
+    {
+        $record = $this->getRecord();
+        return $record ? $record->title : 'Qualification Titles';
+    }
+    
+    public function getBreadcrumbs(): array
+    {
+
+        $record = $this->getRecord();
+
+        return [
+            route('filament.admin.resources.training-programs.index') => $record ? $record->title : 'Qualification Titles',
+            'Edit'
+        ];
+    }
+
     protected function handleRecordUpdate($record, array $data): TrainingProgram
     {
         $this->validateUniqueTrainingProgram($data, $record->id);
@@ -41,9 +58,9 @@ class EditTrainingProgram extends EditRecord
     protected function validateUniqueTrainingProgram(array $data, $currentId)
     {
         $trainingProgram = TrainingProgram::withTrashed()
+            ->where('code', $data['code'])
+            ->where('soc_code', $data['soc_code'])
             ->where(DB::raw('LOWER(title)'), strtolower($data['title']))
-            ->where('tvet_id', $data['tvet_id'])
-            ->where('priority_id', $data['priority_id'])
             ->whereNot('id', $currentId)
             ->first();
 
@@ -53,19 +70,6 @@ class EditTrainingProgram extends EditRecord
                 : 'A training program with the provided details already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);
-        }
-
-        $code = TrainingProgram::withTrashed()
-            ->where('code', $data['code'])
-            ->whereNot('id', $currentId)
-            ->first();
-
-        if ($code) {
-            $message = $code->deleted_at 
-                ? 'A training program with this code already exists and has been deleted.' 
-                : 'A training program with this code already exists.';
-            
-            NotificationHandler::handleValidationException('Invalid Code', $message);
         }
     }
 }

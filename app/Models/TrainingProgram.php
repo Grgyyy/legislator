@@ -12,6 +12,7 @@ class TrainingProgram extends Model
 
     protected $fillable = [
         'code',
+        'soc_code',
         'title',
         'tvet_id',
         'priority_id',

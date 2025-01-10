@@ -34,13 +34,16 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
                 $priorityId = self::getPriorityId($row['priority_sector']);
 
                 $trainingProgram = TrainingProgram::withTrashed()
-                    ->where('code', $row['code'])
+                    ->where('code', $row['qualification_code'])
+                    ->where('soc_code', $row['soc_code'])
                     ->where(DB::raw('LOWER(title)'), strtolower($row['title']))
                     ->first();
 
+
                 if (!$trainingProgram) {
                     $trainingProgram = TrainingProgram::create([
-                        'code' => $row['code'],
+                        'code' => $row['qualification_code'],
+                        'soc_code' => $row['soc_code'],
                         'title' => $row['title'],
                         'tvet_id' => $tvetId,
                         'priority_id' => $priorityId,
@@ -63,7 +66,7 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['scholarship_program', 'title'];
+        $requiredFields = ['scholarship_program', 'title', 'tvet_sector', 'priority_sector', 'soc_code'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {

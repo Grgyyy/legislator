@@ -18,14 +18,23 @@ class EditProjectProposal extends EditRecord
 {
     protected static string $resource = ProjectProposalResource::class;
 
+    public function getHeading(): string
+    {
+        $record = $this->getRecord();
+        return $record ? $record->title : 'Project Proposal Programs';
+    }
+    
     public function getBreadcrumbs(): array
     {
+
+        $record = $this->getRecord();
+
         return [
-            route('filament.admin.resources.project-proposals.index') => 'Project Proposal Programs',
-            'Edit',
+            route('filament.admin.resources.training-programs.index') => $record ? $record->title : 'Project Proposal Programs',
+            'Edit'
         ];
     }
-
+    
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
@@ -52,6 +61,11 @@ class EditProjectProposal extends EditRecord
             ->toArray();
 
         return $data;
+    }
+
+    public function isCreate(): bool
+    {
+        return false; // Edit mode
     }
 
     protected function handleRecordUpdate(Model $record, array $data): Model

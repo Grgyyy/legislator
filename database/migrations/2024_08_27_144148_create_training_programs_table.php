@@ -15,14 +15,16 @@ return new class extends Migration {
             $table->string('code')
                 // ->unique()
                 ->nullable();
-            $table->string('title')
+            $table->string('soc_code')
                 ->unique();
+            $table->string('title');
             $table->foreignId('priority_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('tvet_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->boolean('soc')->default(1);
             $table->timestamps();
             $table->softDeletes();
         });

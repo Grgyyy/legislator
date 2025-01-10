@@ -16,6 +16,16 @@ class ListTrainingPrograms extends ListRecords
 {
     protected static string $resource = TrainingProgramResource::class;
 
+    protected ?string $heading = 'Qualification Titles';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            route('filament.admin.resources.training-programs.index') => 'Qualification Titles',
+            'List'
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
