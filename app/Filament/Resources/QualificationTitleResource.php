@@ -64,9 +64,9 @@ class QualificationTitleResource extends Resource
                             ->pluck('title', 'id')
                             ->mapWithKeys(function ($title, $id) {
                                 // Assuming `soc_code` is a column in the TrainingProgram model
-                                $soc_code = TrainingProgram::find($id)->soc_code;
+                                $program = TrainingProgram::find($id);
                     
-                                return [$id => "{$soc_code} - {$title}"];
+                                return [$id => "{$program->soc_code} - {$program->title}"];
                             })
                             ->toArray() ?: ['no_training_program' => 'No Training Program Available'];
                     })

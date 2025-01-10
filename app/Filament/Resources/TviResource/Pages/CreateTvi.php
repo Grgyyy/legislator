@@ -42,8 +42,8 @@ class CreateTvi extends CreateRecord
     protected function validateUniqueInstitution($data)
     {
         $tvi = Tvi::withTrashed()
-            ->where(DB::raw('LOWER(name)'), strtolower($data['institution_name']))
-            ->where('institution_class_id', $data['institution_class_id'])
+            ->where(DB::raw('LOWER(name)'), strtolower($data['name']))
+            ->where('school_id', $data['school_id'])
             ->first();
 
         if ($tvi) {
