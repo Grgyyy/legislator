@@ -9,6 +9,7 @@ use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
 use App\Models\Tvet;
 use App\Services\NotificationHandler;
+use Filament\Tables\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
@@ -173,6 +174,17 @@ class ProjectProposalResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    Action::make('Convert')
+                        ->icon('heroicon-o-arrows-right-left')
+                        ->action(function ($record, $data) {
+                            $record->soc = 1;
+                            $record->save();
+
+                            NotificationHandler::sendSuccessNotification(
+                                'Conversion Successful',
+                                'The Project Proposal Program has been successfully converted into a Qualification Title and is now ready for costing in the Schedule of Cost.'
+                            );
+                        }),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
@@ -249,10 +261,7 @@ class ProjectProposalResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['qualificationTitle'])
-            ->whereHas('qualificationTitle', function ($query) {
-                $query->where('soc', 0);
-            })
+            ->where('soc', 0)
             ;
     }
 
