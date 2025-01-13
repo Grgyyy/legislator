@@ -19,7 +19,7 @@ class ShowInstitutionRecognition extends ListRecords
         $tvi = Tvi::find($tviId);
 
         return [
-            $tvi ? $tvi->name : 'Institution',
+            route('filament.admin.resources.institution-recognitions.index') => $tvi ? $tvi->name : 'Institution',
             'Recognitions',
             'List'
         ];

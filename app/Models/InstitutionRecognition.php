@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InstitutionRecognition extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -17,7 +18,8 @@ class InstitutionRecognition extends Model
     protected $fillable = [
         'tvi_id',
         'recognition_id',
-        'year',
+        'accreditation_date',
+        'expiration_date'
     ];
 
     /**

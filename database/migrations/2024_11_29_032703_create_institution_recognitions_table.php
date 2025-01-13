@@ -19,8 +19,10 @@ return new class extends Migration
             $table->foreignId('recognition_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->integer('year');
+            $table->date('accreditation_date');
+            $table->date('expiration_date');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
