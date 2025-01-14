@@ -5,9 +5,12 @@ namespace App\Filament\Resources\CompliantTargetsResource\Pages;
 use App\Filament\Resources\CompliantTargetsResource;
 use App\Models\Allocation;
 use App\Models\QualificationTitle;
+use App\Models\ScholarshipProgram;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
+use Exception;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -43,10 +46,26 @@ class CreateCompliantTargets extends CreateRecord
             $qualificationTitle = $this->findQualificationTitle($data['qualification_title_id']);
 
             $numberOfSlots = $data['number_of_slots'] ?? self::DEFAULT_NUMBER_OF_SLOTS;
-            $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
+            $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $data['allocation_year']);
 
             $this->logTargetHistory($target);
             $this->updateTarget($target, $allocation->id, $data, $totals, $compliantStatus->id);
+
+            $step = ScholarshipProgram::where('name', 'STEP')->first();
+
+            if ($qualificationTitle->scholarship_program_id === $step->id) {
+                $costOfToolkitPcc = $qualificationTitle->toolkits()->where('year', $data['allocation_year'])->first();
+
+                if ($costOfToolkitPcc->available_number_of_toolkits === null) {
+                    throw new Exception("Please ensure that the number of toolkits for '{$qualificationTitle->trainingProgram->title}' is specified.");
+                }
+                elseif ($costOfToolkitPcc->available_number_of_toolkits < $numberOfSlots) {
+                    throw new Exception('There are not enough toolkits available for this batch.');
+                }
+                else {
+                    $costOfToolkitPcc->decrement('available_number_of_toolkits', $numberOfSlots);
+                }
+            }
 
             return $target;
         });
@@ -76,20 +95,38 @@ class CreateCompliantTargets extends CreateRecord
         return QualificationTitle::findOrFail($qualificationTitleId);
     }
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots): array
+    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, int $year): array
     {
+        $quali = QualificationTitle::find($qualificationTitle->id);
+        $costOfToolkitPcc = $quali->toolkits()->where('year', $year)->first();
+
+
+        if (!$quali) {
+            $this->sendErrorNotification('Qualification Title not found.');
+            throw new Exception('Qualification Title not found.');
+        }
+
+        $step = ScholarshipProgram::where('name', 'STEP')->first();
+
+        $totalCostOfToolkit = 0;
+        $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
+        if ($quali->scholarship_program_id === $step->id) {
+            $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
+            $totalAmount += $totalCostOfToolkit;
+        }
+
         return [
             'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
-            'total_cost_of_toolkit_pcc' => $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots,
+            'total_cost_of_toolkit_pcc' => $totalCostOfToolkit,
             'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
             'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
             'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
-            'total_new_normal_assistance' => $qualificationTitle->new_normal_assisstance * $numberOfSlots,
+            'total_new_normal_assisstance' => $qualificationTitle->new_normal_assisstance * $numberOfSlots,
             'total_accident_insurance' => $qualificationTitle->accident_insurance * $numberOfSlots,
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
+            'total_amount' => $totalAmount,
         ];
     }
 
@@ -106,6 +143,7 @@ class CreateCompliantTargets extends CreateRecord
             'tvi_name' => $target['tvi_name'],
             'qualification_title_id' => $target['qualification_title_id'],
             'qualification_title_code' => $target['qualification_title_code'],
+            'qualification_title_soc_code' => $target['qualification_title_soc_code'],
             'qualification_title_name' => $target['qualification_title_name'],
             'abdd_id' => $target['abdd_id'],
             'delivery_mode_id' => $target['delivery_mode_id'],
@@ -133,5 +171,14 @@ class CreateCompliantTargets extends CreateRecord
             'allocation_id' => $allocationId,
             'target_status_id' => $statusId,
         ]));
+    }
+
+    private function sendErrorNotification(string $message): void
+    {
+        Notification::make()
+            ->title('Error')
+            ->danger()
+            ->body($message)
+            ->send();
     }
 }
