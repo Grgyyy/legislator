@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AttributionTargetResource\Pages;
 
+use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
@@ -100,8 +101,20 @@ class CreateAttributionTarget extends CreateRecord
 
             $numberOfSlots = $targetData['number_of_slots'] ?? 0;
 
+            $step = ScholarshipProgram::where('name', 'STEP')->first();
+
+            $costOfToolkitPcc = $qualificationTitle->toolkits()->where('year', $targetData['allocation_year'])->first();
+            $totalCostOfToolkit = 0;
+            $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
+
+
+            if ($qualificationTitle->scholarship_program_id === $step->id) {
+                $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
+                $totalAmount += $totalCostOfToolkit;
+            }
+
             $total_training_cost_pcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
-            $total_cost_of_toolkit_pcc = $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots;
+            $total_cost_of_toolkit_pcc = $totalCostOfToolkit;
             $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
             $total_assessment_fee = $qualificationTitle->assessment_fee * $numberOfSlots;
             $total_entrepreneurship_fee = $qualificationTitle->entrepreneurship_fee * $numberOfSlots;
@@ -112,7 +125,7 @@ class CreateAttributionTarget extends CreateRecord
             $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
 
             // Remove admin cost
-            $total_amount = $qualificationTitle->pcc * $numberOfSlots; // Removed admin_cost
+            $total_amount = $totalAmount; // Removed admin_cost
 
             $institution = Tvi::find($targetData['tvi_id']);
             if (!$institution) {
@@ -206,6 +219,7 @@ class CreateAttributionTarget extends CreateRecord
                 'district_id' => $institution->district_id,
                 'qualification_title_id' => $qualificationTitle->id,
                 'qualification_title_code' => $qualificationTitle->trainingProgram->code ?? null,
+                'qualification_title_soc_code' => $qualificationTitle->trainingProgram->soc_code ?? null,
                 'qualification_title_name' => $qualificationTitle->trainingProgram->title,
                 'delivery_mode_id' => $targetData['delivery_mode_id'],
                 'learning_mode_id' => $targetData['learning_mode_id'],
@@ -245,7 +259,7 @@ class CreateAttributionTarget extends CreateRecord
         return $provinceAbdd;
     }
 
-    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority
     {
         $skillPriority = SkillPriority::where([
             'training_program_id' => $trainingProgram,
