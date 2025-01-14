@@ -16,6 +16,7 @@ class TrainingProgram extends Model
         'title',
         'tvet_id',
         'priority_id',
+        'soc'
     ];
 
     public function scholarshipPrograms()
@@ -41,6 +42,12 @@ class TrainingProgram extends Model
     public function tvis()
     {
         return $this->belongsToMany(Tvi::class, 'institution_programs')
+            ->withTimestamps();
+    }
+
+    public function skillPriorities()
+    {
+        return $this->belongsToMany(Province::class, 'skill_priorities')
             ->withTimestamps();
     }
 }

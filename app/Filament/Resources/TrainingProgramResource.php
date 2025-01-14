@@ -276,19 +276,9 @@ class TrainingProgramResource extends Resource
         $routeParameter = request()->route('id');
     
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->with(['qualificationTitle'])
-            ->where(function ($query) {
-                $query->whereDoesntHave('qualificationTitle') // Records without a Qualification Title
-                      ->orWhereHas('qualificationTitle', function ($query) {
-                          $query->where('soc', 1); // Records with Qualification Title where soc === 1
-                      });
-            });
+            ->where('soc', 1);
     
-        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
-            $query->whereHas('scholarshipPrograms', function (Builder $query) use ($routeParameter) {
-                $query->where('scholarship_programs.id', $routeParameter);
-            });
-        }
+
     
         return $query;
     }

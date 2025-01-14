@@ -18,6 +18,23 @@ class EditQualificationTitle extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function getHeading(): string
+    {
+        $record = $this->getRecord();
+        return $record ? $record->trainingProgram->title : 'Project Proposal Programs';
+    }
+    
+    public function getBreadcrumbs(): array
+    {
+
+        $record = $this->getRecord();
+
+        return [
+            route('filament.admin.resources.training-programs.index') => $record ? $record->trainingProgram->title : 'Project Proposal Programs',
+            'Edit'
+        ];
+    }
+
     protected function handleRecordUpdate($record, array $data): QualificationTitle
     {
         $this->validateUniqueQualificationTitle($data['training_program_id'], $data['scholarship_program_id'], $record->id);

@@ -14,12 +14,19 @@ class EditTvi extends EditRecord
 {
     protected static string $resource = TviResource::class;
 
-    protected static ?string $title = 'Edit Institution';
-
+    public function getHeading(): string
+    {
+        $record = $this->getRecord();
+        return $record ? $record->name : 'Institution';
+    }
+    
     public function getBreadcrumbs(): array
     {
+
+        $record = $this->getRecord();
+
         return [
-            '/tvis' => 'Institutions',
+            route('filament.admin.resources.training-programs.index') => $record ? $record->name : 'Institution',
             'Edit'
         ];
     }
@@ -51,8 +58,8 @@ class EditTvi extends EditRecord
     protected function validateUniqueInstitution(array $data, $currentId)
     {
         $tvi = Tvi::withTrashed()
-            ->where('name', $data['name'])
-            ->where(DB::raw('LOWER(name)'), strtolower($data['institution_name']))
+            ->where(DB::raw('LOWER(name)'), strtolower($data['name']))
+            ->where('school_id', $data['school_id'])
             ->whereNot('id', $currentId)
             ->first();
 

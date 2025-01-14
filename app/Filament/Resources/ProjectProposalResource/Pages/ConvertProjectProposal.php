@@ -14,7 +14,7 @@ use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 
-class EditProjectProposal extends EditRecord
+class ConvertProjectProposal extends EditRecord
 {
     protected static string $resource = ProjectProposalResource::class;
 
@@ -31,13 +31,13 @@ class EditProjectProposal extends EditRecord
 
         return [
             route('filament.admin.resources.training-programs.index') => $record ? $record->title : 'Project Proposal Programs',
-            'Edit'
+            'Convert into Training Program'
         ];
     }
     
     protected function getRedirectUrl(): string
     {
-        return $this->getResource()::getUrl('index');
+        return route('filament.admin.resources.training-programs.index');
     }
 
     protected ?string $heading = 'Edit Project Proposal Program';
@@ -65,12 +65,12 @@ class EditProjectProposal extends EditRecord
 
     public function disabledSoc(): bool
     {
-        return true;
+        return false;
     }
 
     public function noQualiCode(): bool
     {
-        return true;
+        return false;
     }
 
     public function noSocCode(): bool
@@ -80,7 +80,7 @@ class EditProjectProposal extends EditRecord
 
     public function noSchoPro(): bool
     {
-        return false;
+        return true;
     }
 
     protected function handleRecordUpdate(Model $record, array $data): Model
@@ -101,35 +101,18 @@ class EditProjectProposal extends EditRecord
             }
 
             $record->update([
+                'code' => $data['code'],
+                'soc_code' => $data['soc_code'],
                 'title'       => $data['title'],
                 'priority_id' => $data['priority_id'],
                 'tvet_id'     => $data['tvet_id'],
+                'soc' => 1
             ]);
 
-            if (!empty($data['scholarshipPrograms'])) {
-                $record->scholarshipPrograms()->detach();
-
-                $record->scholarshipPrograms()->sync($data['scholarshipPrograms']);
-
-                foreach ($data['scholarshipPrograms'] as $scholarshipProgramId) {
-                    $scholarshipProgram = ScholarshipProgram::find($scholarshipProgramId);
-
-                    $qualificationTitle = QualificationTitle::where('training_program_id', $record->id)
-                        ->where('scholarship_program_id', $scholarshipProgram->id)
-                        ->first();
-
-                    if (!$qualificationTitle) {
-                        QualificationTitle::create([
-                            'training_program_id' => $record->id,
-                            'scholarship_program_id' => $scholarshipProgram->id,
-                            'status_id' => 1,
-                            'soc' => 0
-                        ]);
-                    }
-                }
-            }
-
-            NotificationHandler::sendSuccessNotification('Updated', 'The training program and scholarships have been updated successfully.');
+            NotificationHandler::sendSuccessNotification(
+                'Conversion Successful',
+                'The Project Proposal Program has been successfully converted into a Qualification Title and is now ready for costing in the Schedule of Cost.'
+            );
 
             return $record;
         });

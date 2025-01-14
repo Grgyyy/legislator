@@ -45,6 +45,7 @@ class Province extends Model
         return $this->belongsToMany(TrainingProgram::class, 'skill_priorities')
             ->withTimestamps();
     }
+    
     public function users()
     {
         return $this->belongsTo(User::class);

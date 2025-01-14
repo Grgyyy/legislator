@@ -41,8 +41,6 @@ class ListTvis extends ListRecords
                         ->required(),
                 ])
                 ->action(function (array $data) {
-                    $file = public_path('storage/' . $data['attachment']);
-
                     try {
                         Excel::import(new TviImport, $file);
                         NotificationHandler::sendSuccessNotification('Import Successful', 'The institutions have been successfully imported from the file.');

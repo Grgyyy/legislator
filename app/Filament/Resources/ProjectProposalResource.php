@@ -9,6 +9,7 @@ use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
 use App\Models\Tvet;
 use App\Services\NotificationHandler;
+use Filament\Tables\Actions\Action;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
@@ -51,12 +52,19 @@ class ProjectProposalResource extends Resource
         return $form
             ->schema([
 
+                TextInput::make('code')
+                    ->label(label: "Qualification Code")
+                    ->placeholder('Enter Qualification Code')
+                    ->required()
+                    ->hidden(fn($livewire) => $livewire->noQualiCode())
+                    ->markAsRequired(false),
+
                 TextInput::make('soc_code')
                     ->label(label: "Schedule of Cost Code")
-                    ->placeholder('Enter Sched')
+                    ->placeholder('Enter SOC Code')
                     ->required()
-                    ->hidden(fn($livewire) => $livewire->isCreate())
-                    ->disabled()
+                    ->hidden(fn($livewire) => $livewire->noSocCode())
+                    ->disabled(fn($livewire) => $livewire->disabledSoc())
                     ->dehydrated()
                     ->markAsRequired(false),
 
@@ -108,6 +116,7 @@ class ProjectProposalResource extends Resource
                     ->multiple(fn($get) => request()->get('scholarship_program_id') === null)
                     ->default(fn($get) => request()->get('scholarship_program_id'))
                     ->native(false)
+                    // ->hidden(fn($livewire) => $livewire->noSchoPro())
                     ->options(function () {
                         return ScholarshipProgram::all()
                             ->pluck('name', 'id')
@@ -173,6 +182,19 @@ class ProjectProposalResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    Action::make('Convert')
+                        ->icon('heroicon-o-arrows-right-left')
+                        ->action(function ($record, $data) {
+                            // $record->soc = 1;
+                            // $record->save();
+
+                            // NotificationHandler::sendSuccessNotification(
+                            //     'Conversion Successful',
+                            //     'The Project Proposal Program has been successfully converted into a Qualification Title and is now ready for costing in the Schedule of Cost.'
+                            // );
+
+                            return redirect()->route('filament.admin.resources.project-proposals.convert', ['record' => $record]);
+                        }),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
@@ -249,10 +271,7 @@ class ProjectProposalResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['qualificationTitle'])
-            ->whereHas('qualificationTitle', function ($query) {
-                $query->where('soc', 0);
-            })
+            ->where('soc', 0)
             ;
     }
 
@@ -262,6 +281,7 @@ class ProjectProposalResource extends Resource
             'index' => Pages\ListProjectProposals::route('/'),
             'create' => Pages\CreateProjectProposal::route('/create'),
             'edit' => Pages\EditProjectProposal::route('/{record}/edit'),
+            'convert' => Pages\ConvertProjectProposal::route('/{record}/convert'),
         ];
     }
 }

@@ -14,13 +14,19 @@ class ShowInstitutionProgram extends ListRecords
     protected static ?string $title = "Institution's Training Programs";
 
 
+    public function getHeading(): string
+    {
+        $tvi = $this->getTvi();
+        return $tvi ? $tvi->name . "'s Qualification Titles" : 'Edit Training Program Association with Institution';
+    }
+
     public function getBreadcrumbs(): array
     {
         $tvi = $this->getTvi();
 
         return [
-            '/institution-programs' => $tvi ? "{$tvi->name} Training Programs" : "Training Programs",
-            'List',
+            route('filament.admin.resources.training-programs.index') => $tvi ? $tvi->name . "'s Qualification Titles" : "Institution's Training Program",
+            'Edit',
         ];
     }
 

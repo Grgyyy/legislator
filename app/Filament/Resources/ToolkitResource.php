@@ -145,14 +145,19 @@ class ToolkitResource extends Resource
     {
         return $table
             ->columns([
-
                 TextColumn::make('qualificationTitles')
                     ->label('Qualification Titles')
                     ->sortable()
                     ->toggleable()
                     ->formatStateUsing(function ($record) {
                         // Ensure qualification titles are properly loaded and accessible
-                        $qualificationTitles = $record->qualificationTitles->pluck('trainingProgram.title')->toArray();
+                        $qualificationTitles = $record->qualificationTitles->map(function ($qualificationTitle) {
+                            $trainingProgram = $qualificationTitle->trainingProgram;
+                            if ($trainingProgram) {
+                                return "{$trainingProgram->soc_code} - {$trainingProgram->title}";
+                            }
+                            return null; // Return null if trainingProgram is not set
+                        })->filter()->toArray();
 
                         // Check if qualification titles exist
                         if (empty($qualificationTitles)) {
@@ -253,7 +258,12 @@ class ToolkitResource extends Resource
                                     Column::make('formatted_scholarship_programs')
                                         ->heading('Qualification Titles')
                                         ->getStateUsing(fn($record) => $record->qualificationTitles
-                                            ->pluck('trainingProgram.title')
+                                            ->map(fn($qualificationTitle) => 
+                                                $qualificationTitle->trainingProgram 
+                                                    ? "{$qualificationTitle->trainingProgram->soc_code}" 
+                                                    : null
+                                            )
+                                            ->filter() // Remove null values
                                             ->implode(', ')
                                         ),
 

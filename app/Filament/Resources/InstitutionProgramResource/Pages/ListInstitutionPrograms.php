@@ -18,12 +18,12 @@ class ListInstitutionPrograms extends ListRecords
 {
     protected static string $resource = InstitutionProgramResource::class;
 
-    protected static ?string $title = "Institution's Training Programs";
+    protected static ?string $title = "Institution's Qualification Titles";
 
     public function getBreadcrumbs(): array
     {
         return [
-            '/institution-programs' => "Institution's Training Programs",
+            '/institution-programs' => "Institution's Qualification Titles",
             'List',
         ];
     }

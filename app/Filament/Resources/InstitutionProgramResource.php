@@ -74,8 +74,7 @@ class InstitutionProgramResource extends Resource
                     ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
                 Select::make('training_program_id')
-                    ->label('Training Program')
-                    ->relationship('trainingProgram', 'title')
+                    ->label('Qualification TItle')
                     ->required()
                     ->markAsRequired(false)
                     ->searchable()
@@ -85,19 +84,15 @@ class InstitutionProgramResource extends Resource
                         return TrainingProgram::all()
                             ->pluck('title', 'id')
                             ->mapWithKeys(function ($title, $id) {
-                                $title = ucwords($title);
-
-                                // if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
-                                //     $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                //         return 'NC ' . strtoupper($matches[1]);
-                                //     }, $title);
-                                // }
-
-                                return [$id => $title];
+                                // Assuming `soc_code` is a column in the TrainingProgram model
+                                $program = TrainingProgram::find($id);
+                    
+                                return [$id => "{$program->soc_code} - {$program->title}"];
                             })
                             ->toArray() ?: ['no_training_program' => 'No Training Program Available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_training_program')
+                    ->live(),
             ]);
     }
 
@@ -110,7 +105,7 @@ class InstitutionProgramResource extends Resource
                     ->searchable(),
                     // ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
                 TextColumn::make('trainingProgram.title')
-                    ->label('Training Program')
+                    ->label('Qualification Title')
                     ->searchable()
                     // ->formatStateUsing(function ($state) {
                     //     if (!$state) {
@@ -190,7 +185,7 @@ class InstitutionProgramResource extends Resource
                                                 ucwords($tvi->name));
                                         }),
                                     Column::make('training_program_id')
-                                        ->heading('Training Program')
+                                        ->heading('Qualification Title')
                                         ->getStateUsing(function ($record) {
                                             $trainingProgram = $record->trainingProgram;
 

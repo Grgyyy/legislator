@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources;
 
+use App\Services\NotificationHandler;
 use Carbon\Carbon;
 use App\Models\Tvi;
+use Date;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
@@ -20,6 +23,15 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\InstitutionRecognitionResource\Pages;
 use App\Filament\Resources\InstitutionRecognitionResource\RelationManagers;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 
 class InstitutionRecognitionResource extends Resource
 {
@@ -69,15 +81,21 @@ class InstitutionRecognitionResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_recognition'),
 
-                Select::make('year')
-                    ->label('Year')
+                DatePicker::make('accreditation_date')
+                    ->label('Accreditation Date')
                     ->required()
                     ->markAsRequired(false)
-                    ->options(function () {
-                        $currentYear = Carbon::now()->year;
-                        $years = range($currentYear - 2, $currentYear);
-                        return array_combine($years, $years);
-                    }),
+                    ->native(false)
+                    ->weekStartsOnSunday()
+                    ->closeOnDateSelection(),
+                
+                DatePicker::make('expiration_date')
+                    ->label('Expiration Date')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->weekStartsOnSunday()
+                    ->closeOnDateSelection()
             ]);
     }
 
@@ -93,16 +111,41 @@ class InstitutionRecognitionResource extends Resource
                     ->label('Recognition Title')
                     ->searchable()
                     ->toggleable(),
-                TextColumn::make('year')
-                    ->label('Year')
-                    ->searchable()
-                    ->toggleable(),
+                TextColumn::make('accreditation_date')
+                    ->label('Accreditation Date')
+                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('F j, Y')),
+                
+                TextColumn::make('expiration_date')
+                    ->label('Expiration Date')
+                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('F j, Y')),
+                
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    EditAction::make()
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Allocation has been deleted successfully.');
+                        }),
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $record->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Allocation has been restored successfully.');
+                        }),
+                    ForceDeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Allocation has been deleted permanently.');
+                        }),
+                ])
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -115,8 +158,12 @@ class InstitutionRecognitionResource extends Resource
                                         ->heading('Institution'),
                                     Column::make('recognition.name')
                                         ->heading('Recognition Title'),
-                                    Column::make('year')
-                                        ->heading('Year'),
+                                    Column::make('accreditation_date')
+                                        ->heading('Accreditation Date')
+                                        ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('F j, Y')),
+                                    Column::make('expiration_date')
+                                        ->heading('Expiration Date')
+                                        ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('F j, Y')),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Institution Recognitions')
                         ])
@@ -150,7 +197,7 @@ class InstitutionRecognitionResource extends Resource
             $query->where('tvi_id', (int) $routeParameter);
         }
 
-        $query->orderBy('year', 'desc');
+        $query->orderBy('accreditation_date', 'desc');
 
         return $query;
     }

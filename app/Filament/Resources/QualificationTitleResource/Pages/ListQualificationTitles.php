@@ -16,6 +16,16 @@ class ListQualificationTitles extends ListRecords
 {
     protected static string $resource = QualificationTitleResource::class;
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            route('filament.admin.resources.qualification-titles.index') => 'Schedule of Cost',
+            'List',
+        ];
+    }
+
+    protected ?string $heading = 'Schedule of Cost';
+
     protected function getHeaderActions(): array
     {
         return [

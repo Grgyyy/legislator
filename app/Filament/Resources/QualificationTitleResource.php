@@ -60,18 +60,13 @@ class QualificationTitleResource extends Resource
                     ->preload()
                     ->native(false)
                     ->options(function () {
-                        return TrainingProgram::all()
+                        return TrainingProgram::where('soc', 1)
                             ->pluck('title', 'id')
                             ->mapWithKeys(function ($title, $id) {
-                                // $title = ucwords($title);
-
-                                // if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
-                                //     $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                //         return 'NC ' . strtoupper($matches[1]);
-                                //     }, $title);
-                                // }
-
-                                return [$id => $title];
+                                // Assuming `soc_code` is a column in the TrainingProgram model
+                                $program = TrainingProgram::find($id);
+                    
+                                return [$id => "{$program->soc_code} - {$program->title}"];
                             })
                             ->toArray() ?: ['no_training_program' => 'No Training Program Available'];
                     })
@@ -250,7 +245,13 @@ class QualificationTitleResource extends Resource
             ->emptyStateHeading('no qualification titles available')
             ->columns([
                 TextColumn::make('trainingProgram.code')
-                    ->label('Code')
+                    ->label('Qualification Code')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+                   TextColumn::make('trainingProgram.soc_code')
+                    ->label('SOC Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -482,6 +483,8 @@ class QualificationTitleResource extends Resource
                                 ->withColumns([
                                     Column::make('TrainingProgram.code')
                                         ->heading('Qualification Code'),
+                                    Column::make('TrainingProgram.soc_code')
+                                        ->heading('Schedule of Cost Code'),
                                     Column::make('TrainingProgram.title')
                                         ->heading('Qualification Title'),
                                     Column::make('ScholarshipProgram.name')
@@ -523,7 +526,7 @@ class QualificationTitleResource extends Resource
                                     Column::make('status.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Qualification Titles')
+                                ->withFilename(date('m-d-Y') . ' - Schedule of Cost')
                         ]),
                 ]),
             ]);
