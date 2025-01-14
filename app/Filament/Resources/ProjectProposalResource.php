@@ -52,12 +52,19 @@ class ProjectProposalResource extends Resource
         return $form
             ->schema([
 
+                TextInput::make('code')
+                    ->label(label: "Qualification Code")
+                    ->placeholder('Enter Qualification Code')
+                    ->required()
+                    ->hidden(fn($livewire) => $livewire->noQualiCode())
+                    ->markAsRequired(false),
+
                 TextInput::make('soc_code')
                     ->label(label: "Schedule of Cost Code")
-                    ->placeholder('Enter Sched')
+                    ->placeholder('Enter SOC Code')
                     ->required()
-                    ->hidden(fn($livewire) => $livewire->isCreate())
-                    ->disabled()
+                    ->hidden(fn($livewire) => $livewire->noSocCode())
+                    ->disabled(fn($livewire) => $livewire->disabledSoc())
                     ->dehydrated()
                     ->markAsRequired(false),
 
@@ -109,6 +116,7 @@ class ProjectProposalResource extends Resource
                     ->multiple(fn($get) => request()->get('scholarship_program_id') === null)
                     ->default(fn($get) => request()->get('scholarship_program_id'))
                     ->native(false)
+                    // ->hidden(fn($livewire) => $livewire->noSchoPro())
                     ->options(function () {
                         return ScholarshipProgram::all()
                             ->pluck('name', 'id')
@@ -177,13 +185,15 @@ class ProjectProposalResource extends Resource
                     Action::make('Convert')
                         ->icon('heroicon-o-arrows-right-left')
                         ->action(function ($record, $data) {
-                            $record->soc = 1;
-                            $record->save();
+                            // $record->soc = 1;
+                            // $record->save();
 
-                            NotificationHandler::sendSuccessNotification(
-                                'Conversion Successful',
-                                'The Project Proposal Program has been successfully converted into a Qualification Title and is now ready for costing in the Schedule of Cost.'
-                            );
+                            // NotificationHandler::sendSuccessNotification(
+                            //     'Conversion Successful',
+                            //     'The Project Proposal Program has been successfully converted into a Qualification Title and is now ready for costing in the Schedule of Cost.'
+                            // );
+
+                            return redirect()->route('filament.admin.resources.project-proposals.convert', ['record' => $record]);
                         }),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
@@ -271,6 +281,7 @@ class ProjectProposalResource extends Resource
             'index' => Pages\ListProjectProposals::route('/'),
             'create' => Pages\CreateProjectProposal::route('/create'),
             'edit' => Pages\EditProjectProposal::route('/{record}/edit'),
+            'convert' => Pages\ConvertProjectProposal::route('/{record}/convert'),
         ];
     }
 }

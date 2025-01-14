@@ -63,9 +63,24 @@ class EditProjectProposal extends EditRecord
         return $data;
     }
 
-    public function isCreate(): bool
+    public function disabledSoc(): bool
     {
-        return false; // Edit mode
+        return true;
+    }
+
+    public function noQualiCode(): bool
+    {
+        return true;
+    }
+
+    public function noSocCode(): bool
+    {
+        return false;
+    }
+
+    public function noSchoPro(): bool
+    {
+        return false;
     }
 
     protected function handleRecordUpdate(Model $record, array $data): Model

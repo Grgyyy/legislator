@@ -31,9 +31,24 @@ class CreateProjectProposal extends CreateRecord
 
     protected ?string $heading = 'Create Project Proposal Program';
 
-    public function isCreate(): bool
+    public function disabledSoc(): bool
     {
-        return true; 
+        return false;
+    }
+
+    public function noQualiCode(): bool
+    {
+        return true;
+    }
+
+    public function noSocCode(): bool
+    {
+        return true;
+    }
+
+    public function noSchoPro(): bool
+    {
+        return false;
     }
 
     protected function handleRecordCreation(array $data): \Illuminate\Database\Eloquent\Model
@@ -52,20 +67,18 @@ class CreateProjectProposal extends CreateRecord
                 );
             }
 
-            // Get the count of Training Programs where soc is 0
-            $trainingProgramCount = TrainingProgram::where('soc', 0)->count();
-            
-            // Start the SOC code from the count + 1
-            $currentSocCode = $trainingProgramCount + 1;
+            // Get the last record where soc_code starts with 'PROP'
+            $lastTrainingProgram = TrainingProgram::where('soc_code', 'like', 'PROP%')
+                ->orderByDesc('soc_code') // Get the most recent soc_code
+                ->first();
 
-            // Generate the formatted SOC code
-            $formattedSocCode = $this->formatSocCode($currentSocCode);
+            // Extract the number part from the soc_code, remove 'PROP' and leading zeros
+            $lastSocCode = $lastTrainingProgram ? substr($lastTrainingProgram->soc_code, 4) : 0;
+            $lastSocCode = ltrim($lastSocCode, '0'); // Remove leading zeros
+            $newSocCode = (int)$lastSocCode + 1; // Increment by 1
 
-            // Check if the SOC code already exists and increment until it is unique
-            while (TrainingProgram::where('soc_code', $formattedSocCode)->exists()) {
-                $currentSocCode++;
-                $formattedSocCode = $this->formatSocCode($currentSocCode);
-            }
+            // Generate the formatted SOC code for the new record
+            $formattedSocCode = $this->formatSocCode($newSocCode);
 
             // Create the project proposal program
             $projectProposalProgram = TrainingProgram::create([
@@ -73,6 +86,7 @@ class CreateProjectProposal extends CreateRecord
                 'title'      => $data['title'],
                 'priority_id' => $data['priority_id'],
                 'tvet_id'    => $data['tvet_id'],
+                'soc' => 0
             ]);
 
             if (!empty($data['scholarshipPrograms'])) {
@@ -95,6 +109,7 @@ class CreateProjectProposal extends CreateRecord
             return $projectProposalProgram;
         });
     }
+
 
     private function formatSocCode($currentSocCode)
     {
