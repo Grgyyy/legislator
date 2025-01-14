@@ -157,8 +157,7 @@ class ScholarshipProgramResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->orderBy('name');
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array
