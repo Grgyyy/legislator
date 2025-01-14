@@ -381,7 +381,7 @@ class TargetImport implements ToModel, WithHeadingRow
             'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
             'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
             'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
-            'total_new_normal_assisstance' => $qualificationTitle->new_normal_assisstance * $numberOfSlots,
+            'total_new_normal_assisstance' => $qualificationTitle->new_normal_assistance * $numberOfSlots,
             'total_accident_insurance' => $qualificationTitle->accident_insurance * $numberOfSlots,
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,

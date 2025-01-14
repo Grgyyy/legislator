@@ -184,6 +184,7 @@ class TrainingProgramResource extends Resource
                     ->formatStateUsing(fn ($state) => $state ?: '-'),
 
                 TextColumn::make('title')
+                    ->label('Qualification Title')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
@@ -247,34 +248,31 @@ class TrainingProgramResource extends Resource
                                 ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                                 ->reactive(),
 
-                            Grid::make(2)
+                            Fieldset::make('Sectors')
                                 ->schema([
-                                    Fieldset::make('Sectors')
-                                        ->schema([
-                                            Select::make('tvet')
-                                                ->label("TVET Sector")
-                                                ->placeholder('All')
-                                                ->relationship('tvet', 'name')
-                                                ->options(function () {
-                                                    return Tvet::whereNot('name', 'Not Applicable')
-                                                        ->pluck('name', 'id')
-                                                        ->toArray() ?: ['no_tvet' => 'No TVET sectors available'];
-                                                })
-                                                ->disableOptionWhen(fn($value) => $value === 'no_tvet')
-                                                ->reactive(),
+                                    Select::make('tvet')
+                                        ->label("TVET Sector")
+                                        ->placeholder('All')
+                                        ->relationship('tvet', 'name')
+                                        ->options(function () {
+                                            return Tvet::whereNot('name', 'Not Applicable')
+                                                ->pluck('name', 'id')
+                                                ->toArray() ?: ['no_tvet' => 'No TVET sectors available'];
+                                        })
+                                        ->disableOptionWhen(fn($value) => $value === 'no_tvet')
+                                        ->reactive(),
 
-                                            Select::make('priority')
-                                                ->label("Priority Sector")
-                                                ->placeholder('All')
-                                                ->relationship('priority', 'name')
-                                                ->options(function () {
-                                                    return Priority::whereNot('name', 'Not Applicable')
-                                                        ->pluck('name', 'id')
-                                                        ->toArray() ?: ['no_priority' => 'No priority sectors available'];
-                                                })
-                                                ->disableOptionWhen(fn($value) => $value === 'no_priority')
-                                                ->reactive(),
-                                        ]),
+                                    Select::make('priority')
+                                        ->label("Priority Sector")
+                                        ->placeholder('All')
+                                        ->relationship('priority', 'name')
+                                        ->options(function () {
+                                            return Priority::whereNot('name', 'Not Applicable')
+                                                ->pluck('name', 'id')
+                                                ->toArray() ?: ['no_priority' => 'No priority sectors available'];
+                                        })
+                                        ->disableOptionWhen(fn($value) => $value === 'no_priority')
+                                        ->reactive(),
                                 ]),
                         ];
                     })
