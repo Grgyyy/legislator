@@ -10,6 +10,7 @@ class TargetHistory extends Model
     use HasFactory;
 
     protected $fillable = [
+        'abscap_id',
         'target_id',
         'allocation_id',
         'district_id',

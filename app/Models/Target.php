@@ -12,6 +12,7 @@ class Target extends Model
 
     protected $fillable = [
         'abscap_id',
+        'rqm_code',
         'allocation_id',
         'district_id',
         'municipality_id',

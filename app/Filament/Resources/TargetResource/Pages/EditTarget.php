@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TargetResource\Pages;
 
 use App\Models\ProvinceAbdd;
+use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
 use App\Models\Tvi;
 use Exception;
@@ -230,9 +231,26 @@ class EditTarget extends EditRecord
 
     private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, array $data): array
     {
+
+        $quali = QualificationTitle::find($qualificationTitle->id);
+        $costOfToolkitPcc = $quali->toolkits()->where('year', $data['allocation_year'])->first();
+
+        if (!$costOfToolkitPcc) {
+            $this->sendErrorNotification('Qualification Title not found.');
+            throw new Exception('Qualification Title not found.');
+        }
+
+        $step = ScholarshipProgram::where('name', 'STEP')->first();
+
+        $totalCostOfToolkit = 0; 
+        if ($quali->scholarship_program_id === $step->id) {
+            $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
+        }
+
+
         return [
             'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
-            'total_cost_of_toolkit_pcc' => $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots,
+            'total_cost_of_toolkit_pcc' => $totalCostOfToolkit,
             'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
             'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
             'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
@@ -241,7 +259,7 @@ class EditTarget extends EditRecord
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => ($qualificationTitle->pcc * $numberOfSlots),
+            'total_amount' => ($qualificationTitle->pcc + $costOfToolkitPcc->price_per_toolkit) * $numberOfSlots,
         ];
     }
 
@@ -257,6 +275,7 @@ class EditTarget extends EditRecord
             'tvi_name' => $target->tvi_name,
             'qualification_title_id' => $target->qualification_title_id,
             'qualification_title_code' => $target->qualification_title_code,
+            'qualification_title_soc_code' => $target->qualification_title_soc_code,
             'qualification_title_name' => $target->qualification_title_name,
             'abdd_id' => $targetData['abdd_id'],
             'delivery_mode_id' => $targetData['delivery_mode_id'],

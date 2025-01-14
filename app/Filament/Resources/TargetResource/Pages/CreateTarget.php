@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\TargetResource\Pages;
 
 use App\Models\ProvinceAbdd;
+use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
+use App\Models\Toolkit;
 use App\Models\Tvi;
 use Exception;
 use App\Models\Target;
@@ -72,7 +74,7 @@ class CreateTarget extends CreateRecord
                     $targetData['allocation_year']
                 );
                 $numberOfSlots = $targetData['number_of_slots'] ?? 0;
-                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
+                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $targetData['allocation_year']);
 
                 if ($allocation->balance < round($totals['total_amount'], 2)) {
                     $this->sendErrorNotification('Insufficient allocation balance.');
@@ -222,11 +224,32 @@ class CreateTarget extends CreateRecord
         return $qualificationTitle;
     }
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots): array
+    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, int $year): array
     {
+
+        // $qtToolkit = Toolkit::whereHas('qualificationTitles', function ($query) use ($qualificationTitle, $year) {
+        //     $query->where('qualification_title_id', $qualificationTitle->id)
+        //     ->where('year', $year);
+        // })->get();
+
+        $quali = QualificationTitle::find($qualificationTitle->id);
+        $costOfToolkitPcc = $quali->toolkits()->where('year', $year)->first();
+
+        if (!$costOfToolkitPcc) {
+            $this->sendErrorNotification('Qualification Title not found.');
+            throw new Exception('Qualification Title not found.');
+        }
+
+        $step = ScholarshipProgram::where('name', 'STEP')->first();
+
+        $totalCostOfToolkit = 0; 
+        if ($quali->scholarship_program_id === $step->id) {
+            $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
+        }
+
         return [
             'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
-            'total_cost_of_toolkit_pcc' => $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots,
+            'total_cost_of_toolkit_pcc' => $totalCostOfToolkit,
             'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
             'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
             'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
@@ -235,7 +258,7 @@ class CreateTarget extends CreateRecord
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
+            'total_amount' => ($qualificationTitle->pcc + $costOfToolkitPcc->price_per_toolkit) * $numberOfSlots,
         ];
     }
 
@@ -261,7 +284,7 @@ class CreateTarget extends CreateRecord
     private function logTargetHistory(array $targetData, Target $target, Allocation $allocation, array $totals): void
     {
         TargetHistory::create([
-            'abscap_id' => $targetData['abscap_id'],
+            'abscap_id' => $target->abscap_id,
             'target_id' => $target->id,
             'allocation_id' => $allocation->id,
             'district_id' => $target->district_id,

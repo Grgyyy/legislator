@@ -71,7 +71,7 @@ class TargetResource extends Resource
                             ->label('Absorbative Capacity ID')
                             ->placeholder('Enter an Absorbative capacity ID')
                             ->required()
-                            ->markAsRequired()
+                            ->markAsRequired(false)
                             ->numeric(),
 
                         Select::make('legislator_id')
@@ -261,7 +261,7 @@ class TargetResource extends Resource
                                 TextInput::make('abscap_id')
                                     ->label('Absorbative Capacity ID')
                                     ->required()
-                                    ->markAsRequired()
+                                    ->markAsRequired(false)
                                     ->placeholder('Enter an Absorbative capacity ID')
                                     ->numeric(),
                                 Select::make('legislator_id')
