@@ -20,6 +20,7 @@ class Target extends Model
         'abdd_id',
         'qualification_title_id',
         'qualification_title_code',
+        'qualification_title_soc_code',
         'qualification_title_name',
 
         'delivery_mode_id',

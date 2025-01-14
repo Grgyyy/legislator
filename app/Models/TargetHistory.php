@@ -18,6 +18,7 @@ class TargetHistory extends Model
         'tvi_name',
         'qualification_title_id',
         'qualification_title_code',
+        'qualification_title_soc_code',
         'qualification_title_name',
         'abdd_id',
         'delivery_mode_id',

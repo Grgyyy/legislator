@@ -31,7 +31,9 @@ return new class extends Migration {
             $table->foreignId('qualification_title_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->string('qualification_title_code');
+            $table->string('qualification_title_code')
+                ->nullable();
+            $table->string('qualification_title_soc_code');
             $table->string('qualification_title_name');
             $table->foreignId('abdd_id')
                 ->constrained()

@@ -41,11 +41,13 @@ class ListTvis extends ListRecords
                         ->required(),
                 ])
                 ->action(function (array $data) {
+                    $file = public_path('storage/' . $data['attachment']);
+
                     try {
                         Excel::import(new TviImport, $file);
-                        NotificationHandler::sendSuccessNotification('Import Successful', 'The institutions have been successfully imported from the file.');
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The institution training programs have been successfully imported from the file.');
                     } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institutions: ' . $e->getMessage());
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institution training programs : ' . $e->getMessage());
                     }
                 }),
         ];

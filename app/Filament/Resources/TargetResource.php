@@ -70,6 +70,8 @@ class TargetResource extends Resource
                         TextInput::make('abscap_id')
                             ->label('Absorbative Capacity ID')
                             ->placeholder('Enter an Absorbative capacity ID')
+                            ->required()
+                            ->markAsRequired()
                             ->numeric(),
 
                         Select::make('legislator_id')
@@ -152,15 +154,15 @@ class TargetResource extends Resource
                             ->native(false)
                             ->options(function () {
                                 return TVI::whereNot('name', 'Not Applicable')
+                                    ->has('trainingPrograms')
                                     ->pluck('name', 'id')
                                     ->mapWithKeys(function ($name, $id) {
-                                        $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
-
-                                        return [$id => $formattedName];
+                                        // $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
+                                        $tvi = Tvi::find($id);
+                                        return [$id => "{$tvi->school_id} - {$tvi->name}"];
                                     })
                                     ->toArray() ?: ['no_tvi' => 'No institution available'];
                             })
-                            ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state)))
                             ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
                         Select::make('qualification_title_id')
@@ -258,6 +260,8 @@ class TargetResource extends Resource
                             ->schema([
                                 TextInput::make('abscap_id')
                                     ->label('Absorbative Capacity ID')
+                                    ->required()
+                                    ->markAsRequired()
                                     ->placeholder('Enter an Absorbative capacity ID')
                                     ->numeric(),
                                 Select::make('legislator_id')
@@ -529,11 +533,12 @@ class TargetResource extends Resource
                                     ->native(false)
                                     ->options(function () {
                                         return TVI::whereNot('name', 'Not Applicable')
+                                            ->has('trainingPrograms')
                                             ->pluck('name', 'id')
                                             ->mapWithKeys(function ($name, $id) {
-                                                $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
-
-                                                return [$id => $formattedName];
+                                                // $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
+                                                $tvi = Tvi::find($id);
+                                                return [$id => "{$tvi->school_id} - {$tvi->name}"];
                                             })
                                             ->toArray() ?: ['no_tvi' => 'No institution available'];
                                     })
@@ -788,6 +793,11 @@ class TargetResource extends Resource
 
                 TextColumn::make('qualification_title_code')
                     ->label('Qualification Code')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title_soc_code')
+                    ->label('Qualification SOC Code')
                     ->searchable()
                     ->toggleable(),
 
@@ -1259,11 +1269,12 @@ class TargetResource extends Resource
             return ['' => 'No Training Programs available for this Institution.'];
         }
 
-        $qualificationTitles = QualificationTitle::whereIn('training_program_id', $skillPriorities)
+        $qualificationTitles = 
+            QualificationTitle::whereIn('training_program_id', $skillPriorities)
             ->whereIn('training_program_id', $institutionPrograms)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('status_id', 1)
-            ->where('soc', 1)
+            // ->where('soc', 1)
             ->whereNull('deleted_at')
             ->with('trainingProgram')
             ->get()
@@ -1277,7 +1288,8 @@ class TargetResource extends Resource
                     }, $title);
                 }
 
-                return [$qualification->id => ucwords($title)];
+                return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+
             })
             ->toArray();
 
