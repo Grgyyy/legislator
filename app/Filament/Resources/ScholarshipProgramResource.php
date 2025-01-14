@@ -69,7 +69,7 @@ class ScholarshipProgramResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no scholarship programs available')
+            ->emptyStateHeading('No scholarship programs available')
             ->columns([
                 TextColumn::make("code")
                     ->sortable()
@@ -157,7 +157,8 @@ class ScholarshipProgramResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class]);
+            ->withoutGlobalScopes([SoftDeletingScope::class])
+            ->orderBy('name');
     }
 
     public static function getPages(): array

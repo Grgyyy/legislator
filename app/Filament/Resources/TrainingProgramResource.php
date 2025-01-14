@@ -2,34 +2,37 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\TrainingProgram;
-use App\Models\ScholarshipProgram;
-use App\Models\Tvet;
-use App\Models\Priority;
 use App\Filament\Resources\TrainingProgramResource\Pages;
+use App\Models\Priority;
+use App\Models\ScholarshipProgram;
+use App\Models\TrainingProgram;
+use App\Models\Tvet;
 use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
-use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TrainingProgramResource extends Resource
 {
@@ -48,21 +51,21 @@ class TrainingProgramResource extends Resource
         return $form
             ->schema([
                 TextInput::make('code')
-                    ->label(label: 'Qualification Code')
-                    ->placeholder('Enter training program code')
+                    ->label('Qualification Code')
+                    ->placeholder('Enter qualification code')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Training Program Code'),
+                    ->validationAttribute('Qualification Code'),
 
                 TextInput::make('soc_code')
-                    ->label(label: 'Schedule of Cost Code')
-                    ->placeholder('Enter training program code')
+                    ->label('Schedule of Cost Code')
+                    ->placeholder('Enter soc code')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Training Program Code'),
-
+                    ->validationAttribute('Schedule of Cost Code'),
+                
                 Select::make('full_coc_ele')
                     ->label('Full/COC/ELE')
                     ->options([
@@ -92,42 +95,12 @@ class TrainingProgramResource extends Resource
                     
 
                 TextInput::make('title')
-                    ->label(label: "Training Program")
-                    ->placeholder('Enter training program')
+                    ->label('Qualification Title')
+                    ->placeholder('Enter qualification title')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Training Program'),
-
-                Select::make('tvet_id')
-                    ->label('TVET Sector')
-                    ->relationship('tvet', 'name')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->preload()
-                    ->native(false)
-                    ->options(function () {
-                        return Tvet::whereNot('name', 'Not Applicable')
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_tvet' => 'No TVET Sector Available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_tvet'),
-
-                Select::make('priority_id')
-                    ->label('Priority Sector')
-                    ->relationship('priority', 'name')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->preload()
-                    ->native(false)
-                    ->options(function () {
-                        return Priority::whereNot('name', 'Not Applicable')
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_priority' => 'No Priority Sector Available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_priority'),
+                    ->validationAttribute('Qualification Title'),
 
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Program')
@@ -142,16 +115,46 @@ class TrainingProgramResource extends Resource
                     ->options(function () {
                         return ScholarshipProgram::all()
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_scholarship_program' => 'No Scholarship Program Available'];
+                            ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
+
+                Select::make('tvet_id')
+                    ->label('TVET Sector')
+                    ->relationship('tvet', 'name')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function () {
+                        return Tvet::whereNot('name', 'Not Applicable')
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_tvet' => 'No TVET sectors available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_tvet'),
+
+                Select::make('priority_id')
+                    ->label('Priority Sector')
+                    ->relationship('priority', 'name')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function () {
+                        return Priority::whereNot('name', 'Not Applicable')
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_priority' => 'No priority sectors available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_priority'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no training programs available')
+            ->emptyStateHeading('No qualification titles available')
             ->columns([
                 TextColumn::make('code')
                     ->label('Qualification Code')
@@ -184,26 +187,14 @@ class TrainingProgramResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-
-                TextColumn::make('priority.name')
-                    ->label('Priority Sector')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('tvet.name')
-                    ->label('TVET Sector')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-
+                
                 TextColumn::make('scholarshipPrograms.name')
                     ->label('Scholarship Program')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($record) {
-                        $scholarshipPrograms = $record->scholarshipPrograms->pluck('name')->toArray();
+                        $scholarshipPrograms = $record->scholarshipPrograms->sortBy('name')->pluck('name')->toArray();
 
                         $schoProHtml = array_map(function ($name, $index) use ($scholarshipPrograms) {
                             $comma = ($index < count($scholarshipPrograms) - 1) ? ', ' : '';
@@ -218,14 +209,105 @@ class TrainingProgramResource extends Resource
                         return implode('', $schoProHtml);
                     })
                     ->html(),
+
+                TextColumn::make('tvet.name')
+                        ->label('TVET Sector')
+                        ->sortable()
+                        ->searchable()
+                        ->toggleable(),
+
+                TextColumn::make('priority.name')
+                    ->label('Priority Sector')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
+                
+                Filter::make('filter')
+                    ->form(function () {
+                        return [
+                            Select::make('scholarship_program')
+                                ->label("Scholarship Program")
+                                ->placeholder('All')
+                                ->relationship('scholarshipPrograms', 'name')
+                                ->options(function () {
+                                    return ScholarshipProgram::all()
+                                        ->pluck('name', 'id')
+                                        ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
+                                })
+                                ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
+                                ->reactive(),
 
-                SelectFilter::make('scholarshipPrograms')
-                    ->label('Scholarship Program')
-                    ->relationship('scholarshipPrograms', 'name'),
+                            Grid::make(2)
+                                ->schema([
+                                    Fieldset::make('Sectors')
+                                        ->schema([
+                                            Select::make('tvet')
+                                                ->label("TVET Sector")
+                                                ->placeholder('All')
+                                                ->relationship('tvet', 'name')
+                                                ->options(function () {
+                                                    return Tvet::whereNot('name', 'Not Applicable')
+                                                        ->pluck('name', 'id')
+                                                        ->toArray() ?: ['no_tvet' => 'No TVET sectors available'];
+                                                })
+                                                ->disableOptionWhen(fn($value) => $value === 'no_tvet')
+                                                ->reactive(),
+
+                                            Select::make('priority')
+                                                ->label("Priority Sector")
+                                                ->placeholder('All')
+                                                ->relationship('priority', 'name')
+                                                ->options(function () {
+                                                    return Priority::whereNot('name', 'Not Applicable')
+                                                        ->pluck('name', 'id')
+                                                        ->toArray() ?: ['no_priority' => 'No priority sectors available'];
+                                                })
+                                                ->disableOptionWhen(fn($value) => $value === 'no_priority')
+                                                ->reactive(),
+                                        ]),
+                                ]),
+                        ];
+                    })
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['scholarship_program'] ?? null,
+                                fn(Builder $query, $scholarshipProgramId) => $query->whereHas('scholarshipPrograms', function ($query) use ($scholarshipProgramId) {
+                                    $query->where('scholarship_program_id', $scholarshipProgramId);
+                                })
+                            )
+
+                            ->when(
+                                $data['tvet'] ?? null,
+                                fn(Builder $query, $tvetId) => $query->where('tvet_id', $tvetId)
+                            )
+
+                            ->when(
+                                $data['priority'] ?? null,
+                                fn(Builder $query, $priorityId) => $query->where('priority_id', $priorityId)
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if (!empty($data['scholarship_program'])) {
+                            $indicators[] = 'Scholarship Program: ' . Optional(ScholarshipProgram::find($data['scholarship_program']))->name;
+                        }
+
+                        if (!empty($data['tvet'])) {
+                            $indicators[] = 'TVET Sector: ' . Optional(Tvet::find($data['tvet']))->name;
+                        }
+
+                        if (!empty($data['priority'])) {
+                            $indicators[] = 'Priority Sector: ' . Optional(Priority::find($data['priority']))->name;
+                        }
+
+                        return $indicators;
+                    })
             ])
             ->actions([
                 ActionGroup::make([
@@ -315,7 +397,6 @@ class TrainingProgramResource extends Resource
         return $query;
     }
     
-
     public static function getPages(): array
     {
         return [
