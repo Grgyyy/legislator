@@ -191,7 +191,7 @@ class CreateTarget extends CreateRecord
     //     return $provinceAbdd;
     // }
 
-    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority
     {
         $skillPriority = SkillPriority::where([
             'training_program_id' => $trainingProgram,
@@ -226,25 +226,22 @@ class CreateTarget extends CreateRecord
 
     private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, int $year): array
     {
-
-        // $qtToolkit = Toolkit::whereHas('qualificationTitles', function ($query) use ($qualificationTitle, $year) {
-        //     $query->where('qualification_title_id', $qualificationTitle->id)
-        //     ->where('year', $year);
-        // })->get();
-
         $quali = QualificationTitle::find($qualificationTitle->id);
         $costOfToolkitPcc = $quali->toolkits()->where('year', $year)->first();
 
-        if (!$costOfToolkitPcc) {
+
+        if (!$quali) {
             $this->sendErrorNotification('Qualification Title not found.');
             throw new Exception('Qualification Title not found.');
         }
 
         $step = ScholarshipProgram::where('name', 'STEP')->first();
 
-        $totalCostOfToolkit = 0; 
+        $totalCostOfToolkit = 0;
+        $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
         if ($quali->scholarship_program_id === $step->id) {
             $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
+            $totalAmount += $totalCostOfToolkit;
         }
 
         return [
@@ -258,7 +255,7 @@ class CreateTarget extends CreateRecord
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => ($qualificationTitle->pcc + $costOfToolkitPcc->price_per_toolkit) * $numberOfSlots,
+            'total_amount' => $totalAmount,
         ];
     }
 

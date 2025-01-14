@@ -191,7 +191,7 @@ class TargetResource extends Resource
                             ->preload()
                             // ->options(function ($get) {
                             //     $tviId = $get('tvi_id');
-    
+
                             //     return $tviId
                             //         ? self::getAbddSectors($tviId)
                             //         : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
@@ -571,7 +571,7 @@ class TargetResource extends Resource
                                     ->native(false)
                                     // ->options(function ($get) {
                                     //     $tviId = $get('tvi_id');
-    
+
                                     //     return $tviId
                                     //         ? self::getAbddSectors($tviId)
                                     //         : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
@@ -648,23 +648,23 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-    
+
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-    
+
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-    
+
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-    
+
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
                         //         }
                         //     })
-    
+
 
                     ];
                 }
@@ -1269,7 +1269,7 @@ class TargetResource extends Resource
             return ['' => 'No Training Programs available for this Institution.'];
         }
 
-        $qualificationTitles = 
+        $qualificationTitles =
             QualificationTitle::whereIn('training_program_id', $skillPriorities)
             ->whereIn('training_program_id', $institutionPrograms)
             ->where('scholarship_program_id', $scholarshipProgramId)

@@ -41,6 +41,7 @@ class EditTarget extends EditRecord
         $record = $this->record;
         $allocation = $record->allocation;
 
+        // Set default data values if not already set
         $data['legislator_id'] = $data['legislator_id'] ?? $allocation->legislator_id ?? null;
         $data['particular_id'] = $data['particularId'] ?? $allocation->particular_id ?? null;
         $data['scholarship_program_id'] = $data['scholarship_program_id'] ?? $allocation->scholarship_program_id ?? null;
@@ -60,12 +61,6 @@ class EditTarget extends EditRecord
             $qualificationTitle = $this->getQualificationTitle($data['qualification_title_id']);
             $allocationYear = $allocation->year;
 
-            // $provinceAbdd = $this->getProvinceAbdd(
-            //     $record['abdd_id'],
-            //     $record->district->province_id,
-            //     $allocationYear
-            // );
-
             $skillPriority = $this->getSkillPriority(
                 $qualificationTitle->training_program_id,
                 $institution->district->province_id,
@@ -80,7 +75,7 @@ class EditTarget extends EditRecord
                 'training_program_id' => $record->qualification_title->training_program_id,
                 'province_id' => $record->tvi->district->province_id,
                 'year' => $record->allocation->year,
-            ]);
+            ])->first();
 
             if (!$previousSkillPrio) {
                 $this->sendErrorNotification('Previous Skill Priority not found.');
@@ -90,34 +85,43 @@ class EditTarget extends EditRecord
             $allocation->increment('balance', $record->total_amount);
             $previousSkillPrio->increment('available_slots', $previousSlots);
 
-            // $provinceAbdd->increment('available_slots', $previousSlots);
-
             if ($allocation->balance < round($totals['total_amount'], 2)) {
                 $this->sendErrorNotification('Insufficient allocation balance.');
                 throw new Exception('Insufficient allocation balance.');
             }
-
-            // if ($provinceAbdd->available_slots < $numberOfSlots) {
-            //     $this->sendErrorNotification('Insufficient slots available in Province Abdd.');
-            //     throw new Exception('Insufficient slots available in Province Abdd.');
-            // }
 
             if ($skillPriority->available_slots < $numberOfSlots) {
                 $this->sendErrorNotification('Insufficient slots available in Skill Priority.');
                 throw new Exception('Insufficient slots available in Skill Priority.');
             }
 
-            $record->update(array_merge($data, $totals));
+            $record->update(array_merge($totals, [
+                'abscap_id' => $data['abscap_id'],
+                'allocation_id' => $allocation->id,
+                'district_id' => $institution->district_id,
+                'municipality_id' => $institution->municipality_id,
+                'qualification_title_id' => $qualificationTitle->id,
+                'tvi_name' => $institution->name,
+                'qualification_title_code' => $qualificationTitle->trainingProgram->code,
+                'qualification_title_soc_code' => $qualificationTitle->trainingProgram->soc_code,
+                'qualification_title_name' => $qualificationTitle->trainingProgram->title,
+                'number_of_slots' => $data['number_of_slots'],
+                'learning_mode_id' => $data['learning_mode_id'],
+                'delivery_mode_id' => $data['delivery_mode_id'],
+                'target_status_id' => 1,
+            ]));
+
             $allocation->decrement('balance', $totals['total_amount']);
             $skillPriority->decrement('available_slots', $numberOfSlots);
-
-            // $provinceAbdd->decrement('available_slots', $numberOfSlots);
 
             $this->logTargetHistory($data, $record, $allocation, $totals);
 
             $this->sendSuccessNotification('Target updated successfully.');
 
+            // dd($data, $qualificationTitle->trainingProgram->title);
+
             return $record;
+
         });
     }
 
@@ -175,28 +179,7 @@ class EditTarget extends EditRecord
         return $institution;
     }
 
-    // private function getProvinceAbdd(int $abddId, int $provinceId, int $appropriationYear): ProvinceAbdd
-    // {
-    //     $provinceAbdd = ProvinceAbdd::where([
-    //         'abdd_id' => $abddId,
-    //         'province_id' => $provinceId,
-    //         'year' => $appropriationYear,
-    //     ])->first();
-
-    //     if (!$provinceAbdd) {
-    //         $this->sendErrorNotification('Province Abdd Slots not found.');
-    //         throw new Exception('Province Abdd Slots not found.');
-    //     }
-
-    //     if ($provinceAbdd->available_slots <= 0) {
-    //         $this->sendErrorNotification('No available slots in Province Abdd.');
-    //         throw new Exception('No available slots in Province Abdd.');
-    //     }
-
-    //     return $provinceAbdd;
-    // }
-
-    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority
     {
         $skillPriority = SkillPriority::where([
             'training_program_id' => $trainingProgram,
@@ -210,7 +193,7 @@ class EditTarget extends EditRecord
         }
 
         if ($skillPriority->available_slots <= 0) {
-            $this->sendErrorNotification('No available slots in Skill Priority');
+            $this->sendErrorNotification('No available slots in Skill Priority.');
             throw new Exception('No available slots in Skill Priority.');
         }
 
@@ -231,22 +214,22 @@ class EditTarget extends EditRecord
 
     private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, array $data): array
     {
-
         $quali = QualificationTitle::find($qualificationTitle->id);
         $costOfToolkitPcc = $quali->toolkits()->where('year', $data['allocation_year'])->first();
 
-        if (!$costOfToolkitPcc) {
+        if (!$quali) {
             $this->sendErrorNotification('Qualification Title not found.');
             throw new Exception('Qualification Title not found.');
         }
 
         $step = ScholarshipProgram::where('name', 'STEP')->first();
 
-        $totalCostOfToolkit = 0; 
+        $totalCostOfToolkit = 0;
+        $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
         if ($quali->scholarship_program_id === $step->id) {
             $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
+            $totalAmount += $totalCostOfToolkit;
         }
-
 
         return [
             'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
@@ -259,7 +242,7 @@ class EditTarget extends EditRecord
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => ($qualificationTitle->pcc + $costOfToolkitPcc->price_per_toolkit) * $numberOfSlots,
+            'total_amount' => $totalAmount,
         ];
     }
 
@@ -296,14 +279,5 @@ class EditTarget extends EditRecord
             'appropriation_type' => $targetData['appropriation_type'],
             'description' => 'Target Modified',
         ]);
-    }
-
-    private function sendErrorNotification(string $message): void
-    {
-        Notification::make()
-            ->title('Error')
-            ->danger()
-            ->body($message)
-            ->send();
     }
 }
