@@ -163,6 +163,7 @@ class DistrictResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('province.region.name')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])

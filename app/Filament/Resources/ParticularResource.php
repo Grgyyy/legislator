@@ -347,7 +347,9 @@ class ParticularResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class]);
+            ->withoutGlobalScopes([SoftDeletingScope::class])
+            ->orderBy('district_id')
+            ->orderBy('partylist_id');
     }
 
     public static function getPages(): array
