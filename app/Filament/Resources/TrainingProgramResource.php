@@ -186,7 +186,9 @@ class TrainingProgramResource extends Resource
                 TextColumn::make('title')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->limit(50)
+                    ->tooltip(fn ($state): ?string => strlen($state) > 50 ? $state : null),
                 
                 TextColumn::make('scholarshipPrograms.name')
                     ->label('Scholarship Program')
@@ -214,13 +216,17 @@ class TrainingProgramResource extends Resource
                     ->label('TVET Sector')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->limit(35)
+                    ->tooltip(fn ($state): ?string => strlen($state) > 35 ? $state : null),
 
                 TextColumn::make('priority.name')
                     ->label('Priority Sector')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->limit(35)
+                    ->tooltip(fn ($state): ?string => strlen($state) > 35 ? $state : null),
             ])
             ->filters([
                 TrashedFilter::make()
