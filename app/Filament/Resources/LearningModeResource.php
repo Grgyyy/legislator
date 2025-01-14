@@ -64,9 +64,6 @@ class LearningModeResource extends Resource
                 TextColumn::make('deliveryMode.acronym'),
                 // TextColumn::make('deliveryMode.name'),
             ])
-            ->recordUrl(
-                fn($record) => route('filament.admin.resources.delivery-modes.showDeliveryMode', ['record' => $record->id]),
-            )
             ->filters([
                 //
             ])
@@ -131,6 +128,26 @@ class LearningModeResource extends Resource
             'index' => Pages\ListLearningModes::route('/'),
             'create' => Pages\CreateLearningMode::route('/create'),
             'edit' => Pages\EditLearningMode::route('/{record}/edit'),
+            'showLearningMode' => Pages\ShowLearningMode::route('/{record}/learningMode')
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        // Remove global soft delete scope to include trashed records
+        $query->withoutGlobalScopes([SoftDeletingScope::class]);
+
+        $routeParameter = request()->route('record');
+
+        // Apply filter only if a valid delivery_mode_id is present in the route
+        if ($routeParameter && is_numeric($routeParameter)) {
+            $query->whereHas('deliveryMode', function ($subQuery) use ($routeParameter) {
+                $subQuery->where('delivery_modes.id', (int) $routeParameter);
+            });
+        }
+
+        return $query;
     }
 }
