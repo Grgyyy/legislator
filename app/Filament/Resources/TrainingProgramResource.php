@@ -211,10 +211,10 @@ class TrainingProgramResource extends Resource
                     ->html(),
 
                 TextColumn::make('tvet.name')
-                        ->label('TVET Sector')
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable(),
+                    ->label('TVET Sector')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make('priority.name')
                     ->label('Priority Sector')
@@ -367,10 +367,10 @@ class TrainingProgramResource extends Resource
                                         ->heading('Schedule of Cost Code'),
                                     Column::make('title')
                                         ->heading('Qualification Title'),
-                                    Column::make('priority.name')
-                                        ->heading('Priority Sector'),
                                     Column::make('tvet.name')
                                         ->heading('TVET Sector'),
+                                    Column::make('priority.name')
+                                        ->heading('Priority Sector'),
                                     Column::make('formatted_scholarship_programs')
                                         ->heading('Scholarship Programs')
                                         ->getStateUsing(fn($record) => $record->scholarshipPrograms
