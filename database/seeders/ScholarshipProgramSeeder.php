@@ -14,7 +14,7 @@ class ScholarshipProgramSeeder extends Seeder
     public function run(): void
     {
         $programs = [
-            ['code' => 'TWSP', 'name' => 'TWSP', 'desc' => 'Training for Work Scholarship'],
+            ['code' => 'TWSP', 'name' => 'TWSP', 'desc' => 'Training for Work Scholarship Program'],
             ['code' => 'TWSP', 'name' => 'TWSP-PAFSE', 'desc' => 'Training for Work Scholarship - Program on Accelerating Farm School Establishment'],
             ['code' => 'STEP', 'name' => 'STEP', 'desc' => 'Special Training for Employment Program'],
             ['code' => 'TTSP', 'name' => 'TTSP', 'desc' => 'Tulong Trabaho Scholarship Program'],

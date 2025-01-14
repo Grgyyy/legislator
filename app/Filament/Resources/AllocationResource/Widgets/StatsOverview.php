@@ -25,7 +25,7 @@ class StatsOverview extends BaseWidget
                 ->description('Total funds used for targets')
                 ->color('info'),
 
-            Stat::make('Total Balance', '₱' . number_format($totalBalance ))
+            Stat::make('Total Balance', '₱' . number_format($totalBalance))
                 ->description('Remaining balance')
                 ->color('success'),
         ];
