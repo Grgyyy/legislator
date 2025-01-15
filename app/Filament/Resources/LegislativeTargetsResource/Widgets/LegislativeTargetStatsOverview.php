@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Log;
 class LegislativeTargetStatsOverview extends BaseWidget
 {
     public ?int $legislatorId = null;
+
+    public ?int $scholarshipProgramId = null;
+
     public ?int $allocationId = null;
 
     protected function getColumns(): int
@@ -20,12 +23,13 @@ class LegislativeTargetStatsOverview extends BaseWidget
 
     protected function getCards(): array
     {
-        $totalAllocation = $this->getTotalAllocation($this->legislatorId);
+        $totalAllocation = $this->getTotalAllocation($this->legislatorId, $this->scholarshipProgramId);
         $adminCost = $this->calculateAdminCost($totalAllocation);
         $trainingCost = $this->getTotalTrainingCost($this->allocationId);
         $costOfToolkits = $this->getTotalCostOfToolkits($this->allocationId);
         
         Log::info('Legislator ID: ' . $this->legislatorId);
+    Log::info('Scholarship Program ID: ' . $this->scholarshipProgramId);
 
         return [
             Stat::make('Total Allocation', '₱ ' . number_format($totalAllocation))
@@ -39,9 +43,10 @@ class LegislativeTargetStatsOverview extends BaseWidget
                 ->color('warning'),
         ];
     }
-    protected function getTotalAllocation($legislatorId): float
+    protected function getTotalAllocation($legislatorId, $scholarshipProgramId): float
     {
         return Allocation::where('id', $legislatorId)
+            ->where('id', $scholarshipProgramId)
             ->sum('allocation');
     }
 
