@@ -15,6 +15,9 @@ return new class extends Migration {
             $table->integer('abscap_id')
                 ->unique()
                 ->nullable();
+            $table->integer('rqm_code')
+                ->unique()
+                ->nullable();
             $table->foreignId('allocation_id')
                 ->constrained()
                 ->cascadeOnDelete();
@@ -31,7 +34,9 @@ return new class extends Migration {
             $table->foreignId('qualification_title_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->string('qualification_title_code');
+            $table->string('qualification_title_code')
+                ->nullable();
+            $table->string('qualification_title_soc_code');
             $table->string('qualification_title_name');
             $table->foreignId('abdd_id')
                 ->constrained()
@@ -47,28 +52,29 @@ return new class extends Migration {
                 ->nullable()
                 ->constrained('allocations')
                 ->cascadeOnDelete();
-            $table->integer('total_training_cost_pcc')
+            $table->decimal('total_training_cost_pcc', 15, 2)
                 ->default(0);
-            $table->integer('total_cost_of_toolkit_pcc')
+            $table->decimal('total_cost_of_toolkit_pcc', 15, 2)
                 ->default(0);
-            $table->integer('total_training_support_fund')
+            $table->decimal('total_training_support_fund', 15, 2)
                 ->default(0);
-            $table->integer('total_assessment_fee')
+            $table->decimal('total_assessment_fee', 15, 2)
                 ->default(0);
-            $table->integer('total_entrepreneurship_fee')
+            $table->decimal('total_entrepreneurship_fee', 15, 2)
                 ->default(0);
-            $table->integer('total_new_normal_assisstance')
+            $table->decimal('total_new_normal_assisstance', 15, 2)
                 ->default(0);
-            $table->integer('total_accident_insurance')
+            $table->decimal('total_accident_insurance', 15, 2)
                 ->default(0);
-            $table->integer('total_book_allowance')
+            $table->decimal('total_book_allowance', 15, 2)
                 ->default(0);
-            $table->integer('total_uniform_allowance')
+            $table->decimal('total_uniform_allowance', 15, 2)
                 ->default(0);
-            $table->integer('total_misc_fee')
+            $table->decimal('total_misc_fee', 15, 2)
                 ->default(0);
-            $table->integer('total_amount')
-                ->default(1);
+            $table->decimal('total_amount', 15, 2)
+                ->default(0);
+
             $table->string('appropriation_type');
             $table->foreignId('target_status_id')
                 ->constrained()

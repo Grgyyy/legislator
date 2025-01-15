@@ -166,7 +166,7 @@ class AttributionTargetResource extends Resource
                                     ->markAsRequired(false)
                                     ->options(function ($get) {
                                         $attributor_id = $get('attribution_sender');
-                                        
+
                                         return Legislator::where('status_id', 1)
                                             ->whereNot('id', $attributor_id)
                                             ->whereNull('deleted_at')
@@ -232,13 +232,14 @@ class AttributionTargetResource extends Resource
                                     ->native(false)
                                     ->options(function () {
                                         return TVI::whereNot('name', 'Not Applicable')
+                                            ->has('trainingPrograms')
                                             ->pluck('name', 'id')
                                             ->mapWithKeys(function ($name, $id) {
-                                                $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
-
-                                                return [$id => $formattedName];
+                                                // $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
+                                                $tvi = Tvi::find($id);
+                                                return [$id => "{$tvi->school_id} - {$tvi->name}"];
                                             })
-                                            ->toArray() ?: ['no_tvi' => 'No institutions available'];
+                                            ->toArray() ?: ['no_tvi' => 'No institution available'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
@@ -331,7 +332,7 @@ class AttributionTargetResource extends Resource
                     ];
                 } else {
                     return [
-                        Repeater::make('')
+                        Repeater::make('targets')
                             ->schema([
                                 Fieldset::make('Sender')
                                     ->schema([
@@ -362,7 +363,7 @@ class AttributionTargetResource extends Resource
                                                     $set('attribution_scholarship_program', null);
                                                     $set('allocation_year', null);
                                                     $set('attribution_appropriation_type', null);
-                                                    
+
                                                     return;
                                                 }
 
@@ -438,7 +439,7 @@ class AttributionTargetResource extends Resource
                                                     $set('attribution_scholarship_program', null);
                                                     $set('allocation_year', null);
                                                     $set('attribution_appropriation_type', null);
-                                                    
+
                                                     return;
                                                 }
 
@@ -489,7 +490,7 @@ class AttributionTargetResource extends Resource
                                                 if (!$state) {
                                                     $set('allocation_year', null);
                                                     $set('attribution_appropriation_type', null);
-                                                    
+
                                                     return;
                                                 }
 
@@ -585,7 +586,7 @@ class AttributionTargetResource extends Resource
                                             ->native(false)
                                             ->options(function ($get) {
                                                 $attributor_id = $get('attribution_sender');
-                                                
+
                                                 return Legislator::where('status_id', 1)
                                                     ->whereNot('id', $attributor_id)
                                                     ->whereNull('deleted_at')
@@ -596,7 +597,7 @@ class AttributionTargetResource extends Resource
                                             ->afterStateUpdated(function ($state, callable $set) {
                                                 if (!$state) {
                                                     $set('attribution_receiver_particular', null);
-                                                    
+
                                                     return;
                                                 }
 
@@ -672,13 +673,14 @@ class AttributionTargetResource extends Resource
                                             ->native(false)
                                             ->options(function () {
                                                 return TVI::whereNot('name', 'Not Applicable')
+                                                    ->has('trainingPrograms')
                                                     ->pluck('name', 'id')
                                                     ->mapWithKeys(function ($name, $id) {
-                                                        $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
-
-                                                        return [$id => $formattedName];
+                                                        // $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
+                                                        $tvi = Tvi::find($id);
+                                                        return [$id => "{$tvi->school_id} - {$tvi->name}"];
                                                     })
-                                                    ->toArray() ?: ['no_tvi' => 'No institutions available'];
+                                                    ->toArray() ?: ['no_tvi' => 'No institution available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
@@ -812,7 +814,7 @@ class AttributionTargetResource extends Resource
 
                         return $fundSource ? $fundSource->name : 'No fund sources available';
                     }),
-                
+
                 TextColumn::make('attributionAllocation.soft_or_commitment')
                     ->label('Source of Fund')
                     ->searchable()
@@ -929,7 +931,7 @@ class AttributionTargetResource extends Resource
                     ->formatStateUsing(function ($state, $record) {
                         $institutionType = $record->tvi->tviClass->tviType->name ?? '';
                         $institutionClass = $record->tvi->tviClass->name ?? '';
-                
+
                         return "{$institutionType} - {$institutionClass}";
                     }),
 
@@ -1026,7 +1028,7 @@ class AttributionTargetResource extends Resource
                         ->label('Set as Non-Compliant')
                         ->icon('heroicon-o-x-circle')
                         ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id])),
-                    
+
                     //skills prio or province abdd??
                     DeleteAction::make()
                         ->action(function ($record, $data) {
@@ -1210,6 +1212,8 @@ class AttributionTargetResource extends Resource
                                         ->heading('Institution Class(A)'),
                                     Column::make('qualification_title_code')
                                         ->heading('Qualification Code'),
+                                    Column::make('qualification_title_soc_code')
+                                        ->heading('Schedule of Cost Code'),
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
                                     Column::make('abdd.name')
@@ -1396,7 +1400,8 @@ class AttributionTargetResource extends Resource
             return ['' => 'No Training Programs available for this Institution.'];
         }
 
-        $qualificationTitles = QualificationTitle::whereIn('training_program_id', $skillPriorities)
+        $qualificationTitles =
+            QualificationTitle::whereIn('training_program_id', $skillPriorities)
             ->whereIn('training_program_id', $institutionPrograms)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('status_id', 1)
@@ -1414,7 +1419,8 @@ class AttributionTargetResource extends Resource
                     }, $title);
                 }
 
-                return [$qualification->id => ucwords($title)];
+                return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+
             })
             ->toArray();
 
@@ -1437,12 +1443,24 @@ class AttributionTargetResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
         $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('attribution_allocation_id', null)
-            ->where('target_status_id', $pendingStatus->id);
+        if ($pendingStatus) {
+            $query->withoutGlobalScopes([SoftDeletingScope::class])
+                ->where('target_status_id', '=', $pendingStatus->id)
+                ->whereHas('qualification_title', function ($subQuery) {
+                    $subQuery->where('soc', 1); 
+                })
+                ->whereNot('attribution_allocation_id', null);
+
+            if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
+                $query->where('region_id', (int) $routeParameter);
+            }
+        }
+
+        return $query;
     }
 
     public static function getPages(): array

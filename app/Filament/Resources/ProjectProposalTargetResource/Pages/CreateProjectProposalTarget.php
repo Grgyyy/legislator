@@ -1,32 +1,30 @@
 <?php
 
-namespace App\Filament\Resources\TargetResource\Pages;
+namespace App\Filament\Resources\ProjectProposalTargetResource\Pages;
 
-use App\Models\ProvinceAbdd;
+use App\Filament\Resources\ProjectProposalTargetResource;
+use App\Models\Allocation;
+use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
-use App\Models\Toolkit;
-use App\Models\Tvi;
-use Exception;
 use App\Models\Target;
-use App\Models\Allocation;
 use App\Models\TargetHistory;
-use App\Models\QualificationTitle;
-use Illuminate\Support\Facades\DB;
-use Filament\Notifications\Notification;
-use App\Filament\Resources\TargetResource;
-use Filament\Actions\Action;
+use App\Models\Tvi;
+use DB;
+use Exception;
+use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
+use Filament\Notifications\Notification;
 
-class CreateTarget extends CreateRecord
+class CreateProjectProposalTarget extends CreateRecord
 {
-    protected static string $resource = TargetResource::class;
+    protected static string $resource = ProjectProposalTargetResource::class;
 
-    protected function getFormActions(): array
+    public function getBreadcrumbs(): array
     {
         return [
-            $this->getCreateFormAction(),
-            $this->getCancelFormAction(),
+            route('filament.admin.resources.project-proposal-targets.index') => 'Project Proposal',
+            'Create',
         ];
     }
 
@@ -35,15 +33,7 @@ class CreateTarget extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected ?string $heading = 'Create Pending Targets';
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            route('filament.admin.resources.targets.create') => 'Pending Targets',
-            'Create'
-        ];
-    }
+    protected ?string $heading = 'Create Project Proposal';
 
     protected function handleRecordCreation(array $data): Target
     {
@@ -74,7 +64,7 @@ class CreateTarget extends CreateRecord
                     $targetData['allocation_year']
                 );
                 $numberOfSlots = $targetData['number_of_slots'] ?? 0;
-                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $targetData['allocation_year']);
+                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $targetData['allocation_year'], $targetData['per_capita_cost']);
 
                 if ($allocation->balance < round($totals['total_amount'], 2)) {
                     $this->sendErrorNotification('Insufficient allocation balance.');
@@ -224,7 +214,7 @@ class CreateTarget extends CreateRecord
         return $qualificationTitle;
     }
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, int $year): array
+    private function calculateTotals($qualificationTitle, $numberOfSlots, $year, $perCapitaCost): array
     {
         $quali = QualificationTitle::find($qualificationTitle->id);
         $costOfToolkitPcc = $quali->toolkits()->where('year', $year)->first();
@@ -238,7 +228,7 @@ class CreateTarget extends CreateRecord
         $step = ScholarshipProgram::where('name', 'STEP')->first();
 
         $totalCostOfToolkit = 0;
-        $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
+        $totalAmount = $perCapitaCost * $numberOfSlots;
         if ($quali->scholarship_program_id === $step->id) {
             $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
             $totalAmount += $totalCostOfToolkit;

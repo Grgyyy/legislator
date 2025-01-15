@@ -1,25 +1,26 @@
 <?php
 
-namespace App\Filament\Resources\TargetResource\Pages;
+namespace App\Filament\Resources\ProjectProposalTargetResource\Pages;
 
-use App\Models\ProvinceAbdd;
+use App\Filament\Resources\ProjectProposalTargetResource;
+use App\Models\Allocation;
+use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
-use App\Models\Tvi;
-use Exception;
 use App\Models\Target;
-use App\Models\Allocation;
 use App\Models\TargetHistory;
-use App\Models\QualificationTitle;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use App\Models\Tvi;
+use DB;
+use Exception;
+use Filament\Actions;
 use Filament\Notifications\Notification;
-use App\Filament\Resources\TargetResource;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\Eloquent\Model;
 
-class EditTarget extends EditRecord
+
+class EditProjectProposalTarget extends EditRecord
 {
-    protected static string $resource = TargetResource::class;
+    protected static string $resource = ProjectProposalTargetResource::class;
 
     protected function getRedirectUrl(): string
     {
@@ -47,6 +48,7 @@ class EditTarget extends EditRecord
         $data['scholarship_program_id'] = $data['scholarship_program_id'] ?? $allocation->scholarship_program_id ?? null;
         $data['allocation_year'] = $data['allocation_year'] ?? $allocation->year ?? null;
         $data['abscap_id'] = $data['abscap_id'] ?? $record->abscap_id ?? null;
+        $data['per_capita_cost'] = $data['per_capita_cost'] ?? $record->total_amount ?? null;
 
         return $data;
     }
@@ -68,7 +70,7 @@ class EditTarget extends EditRecord
             );
 
             $numberOfSlots = $data['number_of_slots'] ?? 0;
-            $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $data);
+            $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $data['allocation_year'], $data['per_capita_cost']);
 
             $previousSlots = $record->number_of_slots;
             $previousSkillPrio = SkillPriority::where([
@@ -213,10 +215,11 @@ class EditTarget extends EditRecord
         return $qualificationTitle;
     }
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, array $data): array
+    private function calculateTotals($qualificationTitle, $numberOfSlots, $year, $perCapitaCost): array
     {
         $quali = QualificationTitle::find($qualificationTitle->id);
-        $costOfToolkitPcc = $quali->toolkits()->where('year', $data['allocation_year'])->first();
+        $costOfToolkitPcc = $quali->toolkits()->where('year', $year)->first();
+
 
         if (!$quali) {
             $this->sendErrorNotification('Qualification Title not found.');
@@ -226,7 +229,7 @@ class EditTarget extends EditRecord
         $step = ScholarshipProgram::where('name', 'STEP')->first();
 
         $totalCostOfToolkit = 0;
-        $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
+        $totalAmount = $perCapitaCost * $numberOfSlots;
         if ($quali->scholarship_program_id === $step->id) {
             $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
             $totalAmount += $totalCostOfToolkit;

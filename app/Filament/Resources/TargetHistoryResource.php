@@ -153,6 +153,11 @@ class TargetHistoryResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
+                TextColumn::make('qualification_title_soc_code')
+                    ->label('Qualification Code')
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('qualification_title_name')
                     ->label('Qualification Title')
                     ->searchable()

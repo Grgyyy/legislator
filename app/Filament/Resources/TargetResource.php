@@ -70,6 +70,8 @@ class TargetResource extends Resource
                         TextInput::make('abscap_id')
                             ->label('Absorbative Capacity ID')
                             ->placeholder('Enter an Absorbative capacity ID')
+                            ->required()
+                            ->markAsRequired(false)
                             ->numeric(),
 
                         Select::make('legislator_id')
@@ -152,15 +154,15 @@ class TargetResource extends Resource
                             ->native(false)
                             ->options(function () {
                                 return TVI::whereNot('name', 'Not Applicable')
+                                    ->has('trainingPrograms')
                                     ->pluck('name', 'id')
                                     ->mapWithKeys(function ($name, $id) {
-                                        $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
-
-                                        return [$id => $formattedName];
+                                        // $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
+                                        $tvi = Tvi::find($id);
+                                        return [$id => "{$tvi->school_id} - {$tvi->name}"];
                                     })
                                     ->toArray() ?: ['no_tvi' => 'No institution available'];
                             })
-                            ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state)))
                             ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
                         Select::make('qualification_title_id')
@@ -189,7 +191,7 @@ class TargetResource extends Resource
                             ->preload()
                             // ->options(function ($get) {
                             //     $tviId = $get('tvi_id');
-    
+
                             //     return $tviId
                             //         ? self::getAbddSectors($tviId)
                             //         : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
@@ -258,6 +260,8 @@ class TargetResource extends Resource
                             ->schema([
                                 TextInput::make('abscap_id')
                                     ->label('Absorbative Capacity ID')
+                                    ->required()
+                                    ->markAsRequired(false)
                                     ->placeholder('Enter an Absorbative capacity ID')
                                     ->numeric(),
                                 Select::make('legislator_id')
@@ -529,11 +533,12 @@ class TargetResource extends Resource
                                     ->native(false)
                                     ->options(function () {
                                         return TVI::whereNot('name', 'Not Applicable')
+                                            ->has('trainingPrograms')
                                             ->pluck('name', 'id')
                                             ->mapWithKeys(function ($name, $id) {
-                                                $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
-
-                                                return [$id => $formattedName];
+                                                // $formattedName = preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($name));
+                                                $tvi = Tvi::find($id);
+                                                return [$id => "{$tvi->school_id} - {$tvi->name}"];
                                             })
                                             ->toArray() ?: ['no_tvi' => 'No institution available'];
                                     })
@@ -566,7 +571,7 @@ class TargetResource extends Resource
                                     ->native(false)
                                     // ->options(function ($get) {
                                     //     $tviId = $get('tvi_id');
-    
+
                                     //     return $tviId
                                     //         ? self::getAbddSectors($tviId)
                                     //         : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
@@ -643,23 +648,23 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-    
+
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-    
+
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-    
+
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-    
+
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
                         //         }
                         //     })
-    
+
 
                     ];
                 }
@@ -788,6 +793,11 @@ class TargetResource extends Resource
 
                 TextColumn::make('qualification_title_code')
                     ->label('Qualification Code')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title_soc_code')
+                    ->label('Qualification SOC Code')
                     ->searchable()
                     ->toggleable(),
 
@@ -1024,6 +1034,9 @@ class TargetResource extends Resource
                                     Column::make('qualification_title_code')
                                         ->heading('Qualification Code'),
 
+                                    Column::make('qualification_title_soc_code')
+                                        ->heading('Schedule of Cost Code'),
+
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
 
@@ -1259,7 +1272,8 @@ class TargetResource extends Resource
             return ['' => 'No Training Programs available for this Institution.'];
         }
 
-        $qualificationTitles = QualificationTitle::whereIn('training_program_id', $skillPriorities)
+        $qualificationTitles =
+            QualificationTitle::whereIn('training_program_id', $skillPriorities)
             ->whereIn('training_program_id', $institutionPrograms)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('status_id', 1)
@@ -1277,7 +1291,8 @@ class TargetResource extends Resource
                     }, $title);
                 }
 
-                return [$qualification->id => ucwords($title)];
+                return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+
             })
             ->toArray();
 
@@ -1379,15 +1394,19 @@ class TargetResource extends Resource
     {
         $query = parent::getEloquentQuery();
         $routeParameter = request()->route('record');
-        $pendingStatus = TargetStatus::where('desc', 'Pending')
-            ->first();
+        $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
         if ($pendingStatus) {
+            // Ensure proper relationship for qualification_title
             $query->withoutGlobalScopes([SoftDeletingScope::class])
                 ->where('target_status_id', '=', $pendingStatus->id)
-                ->where('attribution_allocation_id', null);
+                ->whereHas('qualification_title', function ($subQuery) {
+                    $subQuery->where('soc', 1); // Assuming 'qualificationTitle' is the relationship name
+                })
+                ->whereNull('attribution_allocation_id');
 
-            if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            // Add region filter if valid route parameter
+            if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
                 $query->where('region_id', (int) $routeParameter);
             }
         }

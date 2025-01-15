@@ -11,6 +11,7 @@ use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use Illuminate\Support\Facades\Storage;
 
 class ListTvis extends ListRecords
 {
@@ -41,11 +42,18 @@ class ListTvis extends ListRecords
                         ->required(),
                 ])
                 ->action(function (array $data) {
+                    $filePath = public_path('storage/' . $data['attachment']);
+
                     try {
-                        Excel::import(new TviImport, $file);
-                        NotificationHandler::sendSuccessNotification('Import Successful', 'The institutions have been successfully imported from the file.');
+                        Excel::import(new TviImport, $filePath);
+                        NotificationHandler::sendSuccessNotification('Import Successful', 'The institution training programs have been successfully imported from the file.');
+
                     } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institutions: ' . $e->getMessage());
+                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institution training programs: ' . $e->getMessage());
+                    } finally {
+                        if (file_exists($filePath)) {
+                            unlink($filePath);
+                        }
                     }
                 }),
         ];
