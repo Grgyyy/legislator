@@ -18,18 +18,18 @@ class StatsOverview extends BaseWidget
 
         return [
             Stat::make('Allocations', '₱' . number_format($totalAllocations))
-                ->description('Total funds allocated')
+                ->description('Total allocation')
                 ->color('info'),
 
             Stat::make('Admin Costs', '₱' . number_format($totalAdminCost))
-                ->description('Total administrative costs')
+                ->description('Total administrative cost')
                 ->color('warning'),
 
             Stat::make('Funds Expended', '₱' . number_format($fundsUsedInTargets))
                 ->description('Total funds used for targets')
                 ->color('info'),
 
-            Stat::make('Remaining Balance', '₱' . number_format($totalBalance ))
+            Stat::make('Balance', '₱' . number_format($totalBalance ))
                 ->description('Remaining balance')
                 ->color('success'),
         ];
