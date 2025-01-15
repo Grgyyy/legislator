@@ -54,11 +54,12 @@ class EditAllocation extends EditRecord
     protected function validateUniqueAllocation(array $data, $currentId)
     {
         $allocation = Allocation::withTrashed()
+            ->where('soft_or_commitment', $data['soft_or_commitment'])
             ->where('legislator_id', $data['legislator_id'])
             ->where('particular_id', $data['particular_id'])
             ->where('scholarship_program_id', $data['scholarship_program_id'])
             ->where('year', $data['year'])
-            ->where('id', '!=', $currentId) // Exclude current record ID
+            ->where('id', '!=', $currentId) 
             ->first();
 
         if ($allocation) {
@@ -66,9 +67,7 @@ class EditAllocation extends EditRecord
                 ? 'This allocation with the provided details has been deleted and must be restored before reuse.'
                 : 'This Allocation with the provided details already exists.';
 
-            throw ValidationException::withMessages([
-                'error' => $message,
-            ]);
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
 }

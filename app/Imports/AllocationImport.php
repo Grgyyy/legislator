@@ -12,6 +12,7 @@ use App\Models\Province;
 use App\Models\Region;
 use App\Models\ScholarshipProgram;
 use App\Models\SubParticular;
+use App\Services\NotificationHandler;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -28,7 +29,6 @@ class AllocationImport implements ToModel, WithHeadingRow
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
-            try {
                 $legislator_id = $this->getLegislatorId($row['legislator']);
 
                 $region_id = $this->getRegionId($row['region']);
@@ -47,11 +47,19 @@ class AllocationImport implements ToModel, WithHeadingRow
                 $allocationRecord = Allocation::where('legislator_id', $legislator_id)
                     ->where('particular_id', $particular_id)
                     ->where('scholarship_program_id', $schopro_id)
+                    ->where('soft_or_commitment', $row['soft_or_commitment'])
                     ->where('year', $row['year'])
                     ->first();
 
-                if (!$allocationRecord) {
-                    return Allocation::create([
+                if ($allocationRecord) {
+                    $message = $allocationRecord->deleted_at
+                        ? 'This allocation with the provided details has been deleted and must be restored before reuse.'
+                        : 'This Allocation with the provided details already exists.';
+
+                        throw new \Exception($message);
+                }
+                else {
+                    $allocationRecord = Allocation::create([
                         'soft_or_commitment' => $row['soft_or_commitment'],
                         'legislator_id' => $legislator_id,
                         'particular_id' => $particular_id,
@@ -60,13 +68,8 @@ class AllocationImport implements ToModel, WithHeadingRow
                         'admin_cost' => $admin_cost,
                         'balance' => $allocation - $admin_cost,
                         'year' => $row['year'],
-
                     ]);
                 }
-            } catch (Throwable $e) {
-                Log::error('Failed to import allocation: ' . $e->getMessage());
-                throw $e;
-            }
         });
     }
 
@@ -83,10 +86,6 @@ class AllocationImport implements ToModel, WithHeadingRow
         if (!is_numeric($row['allocation']) || $row['allocation'] <= 0) {
             throw new \Exception("Validation error: The field 'allocation' must be a positive number. No changes were saved.");
         }
-
-        // if (!is_numeric($row['year']) || $row['year'] < 2000 || $row['year'] < date('Y')) {
-        //     throw new \Exception("Validation error: The field 'year' must be a valid year. No changes were saved.");
-        // }
     }
 
     protected function getLegislatorId(string $legislatorName)
