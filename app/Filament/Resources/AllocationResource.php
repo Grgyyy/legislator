@@ -271,6 +271,17 @@ class AllocationResource extends Resource
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
+                TextColumn::make("expended_funds")
+                    ->label('Funds Expended')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->getStateUsing(function ($record) {
+                        $fundsExpended = $record->target->sum('total_amount');
+                
+                        return number_format($fundsExpended, 2);
+                    }),
+
                 TextColumn::make("balance")
                     ->sortable()
                     ->toggleable()
