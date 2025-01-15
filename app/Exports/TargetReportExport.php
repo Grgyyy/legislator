@@ -57,21 +57,28 @@ class TargetReportExport implements FromQuery, WithHeadings, WithStyles, WithMap
         $cost = $this->getCost();
 
         // Concatenate values into a single string for one cell
-        $combinedCell = implode(' ', array_filter([
+        $yearAndSpCell = implode(' ', array_filter([
             'FY',
             $this->getAllocationYear(Target::first()),
             $this->getScholarshipProgramDescription(),
             '(' . $this->getScholarshipProgramCode() . ')'
         ]));
 
+        $particularAndProvince = implode(' - ', array_filter([
+            '',
+            $this->getParticularName(), // Now based on Target relationships
+            $this->getProvince(Target::first()), // Province remains based on the Target
+        ]));
+
+
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
             ['TARGET REPORT'],
             [''], // Empty row
-            [$combinedCell], // Concatenated values in one cell
+            [$yearAndSpCell], // Concatenated values in one cell
             ['Name of Representative:', $this->getLegislator(Target::first())],
-            ['', $this->getProvince(Target::first())], // Pass Target instance here
+            ['', $particularAndProvince],
             ['Total Allocation:', $this->formatCurrency($cost->total_allocation ?? 0)],
             ['2% Administrative Cost:', $this->formatCurrency($cost->total_admin_cost ?? 0)],
             ['Total Training Cost:', $this->formatCurrency($cost->sum_of_total_training_cost) ?? 0],
@@ -160,7 +167,7 @@ class TargetReportExport implements FromQuery, WithHeadings, WithStyles, WithMap
 
         // Define header style with center alignment
         $headerStyle = [
-            'font' => ['bold' => true, 'size' => 12],
+            'font' => ['bold' => true, 'size' => 10],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
@@ -168,13 +175,22 @@ class TargetReportExport implements FromQuery, WithHeadings, WithStyles, WithMap
         ];
 
         $boldStyle = [
-            'font' => ['bold' => true, 'size' => 12],
+            'font' => ['bold' => true, 'size' => 10],
         ];
 
         $centerStyle = [
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ];
+        // Define the underline style for borders
+        $underlineStyle = [
+            'borders' => [
+                'bottom' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => '000000'],
+                ],
             ],
         ];
 
@@ -224,6 +240,11 @@ class TargetReportExport implements FromQuery, WithHeadings, WithStyles, WithMap
                 ],
             ],
         ];
+
+        // Apply bottom border to cells B7 to B13
+        foreach (range(6, 13) as $row) {
+            $sheet->getStyle("B$row")->applyFromArray($underlineStyle);
+        }
 
         // Apply borders to the header row (A15:J15)
         $sheet->getStyle("A15:J15")->applyFromArray($dynamicBorderStyle);
@@ -288,36 +309,6 @@ class TargetReportExport implements FromQuery, WithHeadings, WithStyles, WithMap
             ->value('allocations.year') ?? 'No year';
     }
 
-    protected function getParticularName(): string
-    {
-        $allocationId = request()->route('record');
-        $allocation = Allocation::find($allocationId);
-
-        if (!$allocation) {
-            abort(404, 'Allocation not found.');
-        }
-
-        $subParticularName = $allocation->particular->subParticular->name;
-
-        if (in_array($subParticularName, ['Senator', 'Party-list', 'House Speaker', 'House Speaker (LAKAS)'])) {
-            return $subParticularName;
-        } elseif (in_array($subParticularName, ['RO Regular', 'CO Regular'])) {
-            return $subParticularName . ' ' . $allocation->particular->region->name;
-        } elseif ($subParticularName === 'District') {
-            if ($allocation->particular->district->province->region->name === 'NCR') {
-                return $allocation->particular->district->name . ', ' . $allocation->particular->district->underMunicipality->name;
-            } else {
-                return $allocation->particular->district->name . ', ' . $allocation->particular->district->province->name;
-            }
-        } else {
-            return $subParticularName;
-        }
-
-        // dd($allocation);
-    }
-
-
-
     protected function getCost()
     {
         return Target::query()
@@ -378,6 +369,60 @@ class TargetReportExport implements FromQuery, WithHeadings, WithStyles, WithMap
     //         ->where('targets.id', $record->id)
     //         ->value('municipalities.name') ?? 'No Municipality'; // Fix: Reference municipality name
     // }
+
+
+    protected function getParticularName(): string
+    {
+        // Retrieve the first Target (you can adjust this logic if needed)
+        $target = Target::first();
+
+        if (!$target) {
+            abort(404, 'Target not found.');
+        }
+
+        // Access the related Allocation through the Target
+        $allocation = $target->allocation;
+
+        if (!$allocation) {
+            abort(404, 'Allocation not found for the Target.');
+        }
+
+        // Access the Particular through Allocation
+        $particular = $allocation->particular;
+
+        if (!$particular) {
+            abort(404, 'Particular not found for the Allocation.');
+        }
+
+        // Access SubParticular and FundSource
+        $subParticular = $particular->subParticular;
+        if (!$subParticular) {
+            abort(404, 'Sub-Particular not found for the Particular.');
+        }
+
+        $subParticularName = $subParticular->name;
+        $fundSourceName = $subParticular->fundSource->name ?? null;
+
+
+        if ($fundSourceName === "RO Regular" || $fundSourceName === "CO Regular") {
+            return $particular->subParticular->name . " - " . $particular->district->province->region->name;
+        } elseif ($fundSourceName === "CO Legislator Funds") {
+            if ($subParticularName === 'District') {
+                $regionName = $particular->district->province->region->name;
+                if ($regionName === 'NCR') {
+                    return $particular->subParticular->name . " - " . $particular->district->underMunicipality->name;
+                } else {
+                    return $particular->subParticular->name . " - " . $particular->district->province->name;
+                }
+            }
+        } elseif (in_array($subParticularName, ['House Speaker', 'House Speaker (LAKAS)'])) {
+            return $subParticularName;
+        }
+
+        return 'Unknown Particular Name';
+    }
+
+
 
     private function getProvince($record)
     {
