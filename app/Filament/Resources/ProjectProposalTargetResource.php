@@ -8,6 +8,7 @@ use App\Models\Abdd;
 use App\Models\Allocation;
 use App\Models\DeliveryMode;
 use App\Models\Legislator;
+use App\Models\Particular;
 use App\Models\ProjectProposalTarget;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
