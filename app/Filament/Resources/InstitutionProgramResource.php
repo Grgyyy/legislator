@@ -5,31 +5,36 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\InstitutionProgramResource\Pages;
 use App\Filament\Resources\InstitutionProgramResource\RelationManagers;
 use App\Models\InstitutionProgram;
+use App\Models\Province;
+use App\Models\Region;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Filament\Forms;
+use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class InstitutionProgramResource extends Resource
 {
@@ -123,7 +128,67 @@ class InstitutionProgramResource extends Resource
                     //     return $state;
                     // })
             ])
-            ->filters([ /* filters here */ ])
+            ->filters([
+                TrashedFilter::make()
+                    ->label('Records'),
+                
+                Filter::make('filter')
+                    ->form(function () {
+                        return [
+                            Fieldset::make('Address')
+                                ->schema([
+                                    Select::make('region_id')
+                                        ->label('Region')
+                                        ->placeholder('All')
+                                        ->options(Region::pluck('name', 'id'))
+                                        ->afterStateUpdated(function (callable $set, $state) {
+                                            $set('province_id', null);
+                                        })
+                                        ->reactive(),
+
+                                    Select::make('province_id')
+                                        ->label('Province')
+                                        ->placeholder('All')
+                                        ->options(function ($get) {
+                                            $regionId = $get('region_id');
+
+                                            return Province::whereNot('name', 'Not Applicable')
+                                                ->where('region_id', $regionId)
+                                                ->pluck('name', 'id');
+                                        })
+                                        ->reactive(),
+                                ]),
+                        ];
+                    })
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['region_id'] ?? null,
+                                fn (Builder $query, $regionId) => $query->whereHas('tvi.district.province.region', function ($query) use ($regionId) {
+                                    $query->where('id', $regionId);
+                                })
+                            )
+                            ->when(
+                                $data['province_id'] ?? null,
+                                fn (Builder $query, $provinceId) => $query->whereHas('tvi.district.province', function ($query) use ($provinceId) {
+                                    $query->where('id', $provinceId);
+                                })
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if (!empty($data['region_id'])) {
+                            $indicators[] = 'Region: ' . Region::find($data['region_id'])->name;
+                        }
+
+                        if (!empty($data['province_id'])) {
+                            $indicators[] = 'Province: ' . Province::find($data['province_id'])->name;
+                        }
+
+                        return $indicators;
+                    })
+            ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()->hidden(fn($record) => $record->trashed()),
