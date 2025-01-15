@@ -1236,6 +1236,9 @@ class ProjectProposalTargetResource extends Resource
                                     Column::make('qualification_title_code')
                                         ->heading('Qualification Code'),
 
+                                    Column::make('qualification_title_soc_code')
+                                        ->heading('Schedule of Cost Code'),
+
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
 

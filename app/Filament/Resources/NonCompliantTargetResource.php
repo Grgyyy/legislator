@@ -661,7 +661,6 @@ class NonCompliantTargetResource extends Resource
                                 ->withColumns([
                                     Column::make('abscap_id')
                                         ->heading('Absorptive Capacity'),
-
                                     Column::make('fund_source')
                                         ->heading('Fund Source')
                                         ->getStateUsing(function ($record) {
@@ -683,22 +682,22 @@ class NonCompliantTargetResource extends Resource
 
                                             return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
-
-
                                     Column::make('attributionAllocation.legislator.name')
                                         ->heading('Attribution Sender'),
-
                                     Column::make('attributionAllocation.legislator.particular.subParticular')
-                                        ->heading('Attribution Particular')
+                                        ->heading('Attributor Particular')
                                         ->getStateUsing(function ($record) {
-                                            // Check if attributionAllocation exists
-                                            if (!$record->attributionAllocation) {
-                                                return '';
-                                            }
-
                                             $legislator = $record->attributionAllocation->legislator;
 
+                                            if (!$legislator) {
+                                                return 'No legislator available';
+                                            }
+
                                             $particulars = $legislator->particular;
+
+                                            if ($particulars->isEmpty()) {
+                                                return 'No particular available';
+                                            }
 
                                             $particular = $particulars->first();
                                             $district = $particular->district;
@@ -717,19 +716,14 @@ class NonCompliantTargetResource extends Resource
                                                 return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
                                             }
                                         }),
-
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
-
-                                    Column::make('allocation.soft_or_commitment')
-                                        ->heading('Source of Fund'),
-
+                                    Column::make('attributionAllocation.soft_or_commitment')
+                                        ->heading('Soft or Commitment'),
                                     Column::make('appropriation_type')
                                         ->heading('Appropriation Type'),
-
-                                    Column::make('allocation.year')
-                                        ->heading('Allocation'),
-
+                                    Column::make('attributionAllocation.year')
+                                        ->heading('Appropriation Year'),
                                     Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
@@ -765,68 +759,115 @@ class NonCompliantTargetResource extends Resource
 
                                     Column::make('municipality.name')
                                         ->heading('Municipality'),
-
                                     Column::make('district.name')
                                         ->heading('District'),
-
-                                    Column::make('municipality.province.name')
+                                    Column::make('tvi.district.province.name')
                                         ->heading('Province'),
-
-                                    Column::make('municipality.province.region.name')
+                                    Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
-
                                     Column::make('tvi.name')
-                                        ->heading('Institution')
-                                        ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
-
+                                        ->heading('Institution'),
                                     Column::make('tvi.tviClass.tviType.name')
                                         ->heading('Institution Type'),
-
                                     Column::make('tvi.tviClass.name')
-                                        ->heading('Institution Class'),
-
+                                        ->heading('Institution Class(A)'),
                                     Column::make('qualification_title_code')
                                         ->heading('Qualification Code'),
-
+                                    Column::make('qualification_title_soc_code')
+                                        ->heading('Schedule of Cost Code'),
                                     Column::make('qualification_title_name')
-                                        ->heading('Qualification Title')
-                                        ->formatStateUsing(function ($state) {
-                                            if (!$state) {
-                                                return $state;
-                                            }
-
-                                            $state = ucwords($state);
-
-                                            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                                                $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                                    return 'NC ' . strtoupper($matches[1]);
-                                                }, $state);
-                                            }
-
-                                            return $state;
-                                        }),
-
+                                        ->heading('Qualification Title'),
+                                    Column::make('abdd.name')
+                                        ->heading('ABDD Sector'),
                                     Column::make('qualification_title.trainingProgram.tvet.name')
                                         ->heading('TVET Sector'),
-
                                     Column::make('qualification_title.trainingProgram.priority.name')
                                         ->heading('Priority Sector'),
-
                                     Column::make('deliveryMode.name')
                                         ->heading('Delivery Mode'),
-
                                     Column::make('learningMode.name')
                                         ->heading('Learning Mode'),
-
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
-
                                     Column::make('number_of_slots')
-                                        ->heading('Number of Slots'),
-
+                                        ->heading('No. of slots'),
+                                    Column::make('training_cost_per_slot')
+                                        ->heading('Training Cost')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('cost_of_toolkit_per_slot')
+                                        ->heading('Cost of Toolkit')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('training_support_fund_per_slot')
+                                        ->heading('Training Support Fund')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_support_fund'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('assessment_fee_per_slot')
+                                        ->heading('Assessment Fee')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_assessment_fee'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('entrepreneurship_fee_per_slot')
+                                        ->heading('Entrepreneurship Fee')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_entrepreneurship_fee'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('new_normal_assistance_per_slot')
+                                        ->heading('New Normal Assistance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_new_normal_assistance'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('accident_insurance_per_slot')
+                                        ->heading('Accident Insurance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_accident_insurance'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('book_allowance_per_slot')
+                                        ->heading('Book Allowance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_book_allowance'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('uniform_allowance_per_slot')
+                                        ->heading('Uniform Allowance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_uniform_allowance'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('misc_fee_per_slot')
+                                        ->heading('Miscellaneous Fee')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_misc_fee'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_amount_per_slot')
+                                        ->heading('PCC')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_amount'))
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_training_cost_pcc')
+                                        ->heading('Total Training Cost')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_cost_of_toolkit_pcc')
+                                        ->heading('Total Cost of Toolkit')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_training_support_fund')
+                                        ->heading('Total Training Support Fund')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_assessment_fee')
+                                        ->heading('Total Assessment Fee')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_entrepreneurship_fee')
+                                        ->heading('Total Entrepreneurship Fee')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_new_normal_assisstance')
+                                        ->heading('Total New Normal Assistance')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_accident_insurance')
+                                        ->heading('Total Accident Insurance')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_book_allowance')
+                                        ->heading('Total Book Allowance')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_uniform_allowance')
+                                        ->heading('Total Uniform Allowance')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                    Column::make('total_misc_fee')
+                                        ->heading('Total Miscellaneous Fee')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
                                     Column::make('total_amount')
-                                        ->heading('Total Amount')
-                                        ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                                        ->heading('Total PCC')
+                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
 
                                     Column::make('nonCompliantRemark.target_remarks.remarks')
                                         ->heading('Remarks')
@@ -852,9 +893,8 @@ class NonCompliantTargetResource extends Resource
                                             return 'N/A';
                                         }),
 
-
                                     Column::make('targetStatus.desc')
-                                        ->heading('Status')
+                                        ->heading('Status'),
 
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Non-Compliant Targets')
