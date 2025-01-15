@@ -1274,7 +1274,7 @@ class TargetResource extends Resource
             ->whereIn('training_program_id', $institutionPrograms)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('status_id', 1)
-            // ->where('soc', 1)
+            ->where('soc', 1)
             ->whereNull('deleted_at')
             ->with('trainingProgram')
             ->get()
@@ -1391,15 +1391,19 @@ class TargetResource extends Resource
     {
         $query = parent::getEloquentQuery();
         $routeParameter = request()->route('record');
-        $pendingStatus = TargetStatus::where('desc', 'Pending')
-            ->first();
+        $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
         if ($pendingStatus) {
+            // Ensure proper relationship for qualification_title
             $query->withoutGlobalScopes([SoftDeletingScope::class])
                 ->where('target_status_id', '=', $pendingStatus->id)
-                ->where('attribution_allocation_id', null);
+                ->whereHas('qualification_title', function ($subQuery) {
+                    $subQuery->where('soc', 1); // Assuming 'qualificationTitle' is the relationship name
+                })
+                ->whereNull('attribution_allocation_id');
 
-            if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            // Add region filter if valid route parameter
+            if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
                 $query->where('region_id', (int) $routeParameter);
             }
         }

@@ -1403,7 +1403,7 @@ class AttributionTargetResource extends Resource
             ->whereIn('training_program_id', $institutionPrograms)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('status_id', 1)
-            // ->where('soc', 1)
+            ->where('soc', 1)
             ->whereNull('deleted_at')
             ->with('trainingProgram')
             ->get()
@@ -1441,12 +1441,24 @@ class AttributionTargetResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
         $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
-        return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('attribution_allocation_id', null)
-            ->where('target_status_id', $pendingStatus->id);
+        if ($pendingStatus) {
+            $query->withoutGlobalScopes([SoftDeletingScope::class])
+                ->where('target_status_id', '=', $pendingStatus->id)
+                ->whereHas('qualification_title', function ($subQuery) {
+                    $subQuery->where('soc', 1); 
+                })
+                ->whereNot('attribution_allocation_id', null);
+
+            if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
+                $query->where('region_id', (int) $routeParameter);
+            }
+        }
+
+        return $query;
     }
 
     public static function getPages(): array
