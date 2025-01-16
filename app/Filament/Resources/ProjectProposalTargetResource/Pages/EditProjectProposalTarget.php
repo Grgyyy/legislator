@@ -32,7 +32,7 @@ class EditProjectProposalTarget extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [
-            route('filament.admin.resources.targets.edit', ['record' => $this->record->id]) => 'Target',
+            route('filament.admin.resources.project-proposal-targets.index') => 'Project Proposal',
             'Edit'
         ];
     }
@@ -48,7 +48,7 @@ class EditProjectProposalTarget extends EditRecord
         $data['scholarship_program_id'] = $data['scholarship_program_id'] ?? $allocation->scholarship_program_id ?? null;
         $data['allocation_year'] = $data['allocation_year'] ?? $allocation->year ?? null;
         $data['abscap_id'] = $data['abscap_id'] ?? $record->abscap_id ?? null;
-        $data['per_capita_cost'] = $data['per_capita_cost'] ?? $record->total_amount ?? null;
+        $data['per_capita_cost'] = $data['per_capita_cost'] ?? $record->total_amount / $record->number_of_slots ?? null;
 
         return $data;
     }

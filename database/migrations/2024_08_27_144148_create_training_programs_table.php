@@ -17,6 +17,9 @@ return new class extends Migration {
                 ->nullable();
             $table->string('soc_code')
                 ->unique();
+            $table->string('full_coc_ele');
+            $table->string('nc_level')
+                ->nullable();    
             $table->string('title');
             $table->foreignId('priority_id')
                 ->constrained()

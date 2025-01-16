@@ -1,24 +1,25 @@
 <?php
 
-namespace App\Filament\Resources\AttributionTargetResource\Pages;
+namespace App\Filament\Resources\AttributionProjectProposalResource\Pages;
 
+use App\Filament\Resources\AttributionProjectProposalResource;
+use App\Models\Allocation;
+use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
-use App\Models\Allocation;
-use App\Models\QualificationTitle;
-use App\Filament\Resources\AttributionTargetResource;
 use App\Models\Tvi;
-use App\Models\ProvinceAbdd;
+use App\Services\NotificationHandler;
+use Filament\Notifications\Notification;
+use DB;
 use Exception;
-use Filament\Actions\Action;
+use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
-use Illuminate\Support\Facades\DB;
 
-class CreateAttributionTarget extends CreateRecord
+class CreateAttributionProjectProposal extends CreateRecord
 {
-    protected static string $resource = AttributionTargetResource::class;
+    protected static string $resource = AttributionProjectProposalResource::class;
 
     protected function getFormActions(): array
     {
@@ -28,7 +29,7 @@ class CreateAttributionTarget extends CreateRecord
         ];
     }
 
-    protected static ?string $title = 'Create Attribution Target';
+    protected static ?string $title = 'Create Attribution Project Proposal';
 
     protected function getRedirectUrl(): string
     {
@@ -38,7 +39,7 @@ class CreateAttributionTarget extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/attribution-targets' => 'Attribution Targets',
+            '/attribution-targets' => 'Attribution Project Proposal',
             'Create'
         ];
     }
@@ -49,7 +50,7 @@ class CreateAttributionTarget extends CreateRecord
             $targetData = $data['targets'][0] ?? null;
 
             if (!$targetData) {
-                throw new Exception('No Attribution Target found.');
+                throw new Exception('No Attribution Project Proposal found.');
             }
 
             $requiredFields = [
@@ -63,6 +64,12 @@ class CreateAttributionTarget extends CreateRecord
                     throw new \InvalidArgumentException("The field '$field' is required.");
                 }
             }
+
+            if (Target::where('abscap_id', $targetData['abscap_id'])->exists()) {
+                NotificationHandler::handleValidationException('Something went wrong', "The abscap_id '{$targetData['abscap_id']}' already exists in the targets table.");
+            }
+            
+            
 
             // Fetch sender allocation
             $senderAllocation = Allocation::where('legislator_id', $targetData['attribution_sender'])
@@ -105,7 +112,7 @@ class CreateAttributionTarget extends CreateRecord
 
             $costOfToolkitPcc = $qualificationTitle->toolkits()->where('year', $targetData['allocation_year'])->first();
             $totalCostOfToolkit = 0;
-            $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
+            $totalAmount = $targetData['per_capita_cost'] * $numberOfSlots;
 
 
             if ($qualificationTitle->scholarship_program_id === $step->id) {
@@ -240,24 +247,11 @@ class CreateAttributionTarget extends CreateRecord
                 'appropriation_type' => $targetData['attribution_appropriation_type'],
                 'description' => 'Target Created',
             ]);
+            
 
             return $target;
         });
-    }
-
-    private function getProvinceAbdd(int $abddId, int $provinceId, int $appropriationYear): ProvinceAbdd
-    {
-        $provinceAbdd = ProvinceAbdd::where([
-            'abdd_id' => $abddId,
-            'province_id' => $provinceId,
-            'year' => $appropriationYear,
-        ])->first();
-
-        if (!$provinceAbdd || $provinceAbdd->available_slots <= 0) {
-            throw new Exception('ProvinceAbdd entry unavailable or no slots left.');
-        }
-
-        return $provinceAbdd;
+        
     }
 
     private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority
@@ -279,5 +273,14 @@ class CreateAttributionTarget extends CreateRecord
         }
 
         return $skillPriority;
+    }
+
+    private function sendErrorNotification(string $message): void
+    {
+        Notification::make()
+            ->title('Error')
+            ->danger()
+            ->body($message)
+            ->send();
     }
 }

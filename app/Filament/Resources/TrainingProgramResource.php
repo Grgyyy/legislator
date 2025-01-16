@@ -63,6 +63,34 @@ class TrainingProgramResource extends Resource
                     ->autocomplete(false)
                     ->validationAttribute('Training Program Code'),
 
+                Select::make('full_coc_ele')
+                    ->label('Full/COC/ELE')
+                    ->options([
+                        'Full' => 'Full',
+                        'COC' => 'COC',
+                        'ELE' => 'ELE',
+                        'NTR/CS' => 'NTR/CS',
+                    ])
+                    ->required()
+                    ->markAsRequired(false)
+                    ->reactive(),
+                
+                Select::make('nc_level')
+                    ->label('NC Level')
+                    ->options([
+                        'NC I' => 'NC I',
+                        'NC II' => 'NC II',
+                        'NC III' => 'NC III',
+                        'NC IV' => 'NC IV',
+                        'NC V' => 'NC V',
+                        'NC VI' => 'NC VI',
+                    ])
+                    ->reactive() // Ensure the field reacts to changes in other fields
+                    ->hidden(fn ($get) => $get('full_coc_ele') !== 'Full') // Hide the field unless full_coc_ele is 'Full'
+                    ->required(fn ($get) => $get('full_coc_ele') === 'Full')
+                    ->markAsRequired(false),
+                    
+
                 TextInput::make('title')
                     ->label(label: "Training Program")
                     ->placeholder('Enter training program')
@@ -137,25 +165,25 @@ class TrainingProgramResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
+                
+                TextColumn::make('full_coc_ele')
+                    ->label('Full/COC/ELE')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => $state ?: '-'),
+
+                TextColumn::make('nc_level')
+                    ->label('NC Level')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(fn ($state) => $state ?: '-'),
+
                 TextColumn::make('title')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                    // ->formatStateUsing(function ($state) {
-                    //     if (!$state) {
-                    //         return $state;
-                    //     }
-
-                    //     $state = ucwords($state);
-
-                    //     if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                    //         $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                    //             return 'NC ' . strtoupper($matches[1]);
-                    //         }, $state);
-                    //     }
-
-                    //     return $state;
-                    // }),
 
                 TextColumn::make('priority.name')
                     ->label('Priority Sector')
@@ -250,6 +278,10 @@ class TrainingProgramResource extends Resource
                                     Column::make('code')
                                         ->heading('Qualification Code'),
                                     Column::make('soc_code')
+                                        ->heading('Full/COC/Ele'),
+                                    Column::make('full_coc_ele')
+                                        ->heading('NC Level'),
+                                    Column::make('nc_level')
                                         ->heading('Schedule of Cost Code'),
                                     Column::make('title')
                                         ->heading('Qualification Title'),

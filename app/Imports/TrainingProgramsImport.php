@@ -29,12 +29,25 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
 
             try {
 
+                // dd($row);
+
                 $scholarshipProgramId = self::getScholarshipProgramId($row['scholarship_program']);
                 $tvetId = self::getTvetId($row['tvet_sector']);
                 $priorityId = self::getPriorityId($row['priority_sector']);
 
+                $options = ['Full', 'COC', 'ELE', 'NTR/CS'];
+
+                if (!in_array($row['fullcocele'], $options, true)) {
+                    throw new \Exception("Invalid value '{$row['fullcocele']}' for 'fullcocele'. Allowed values are: " . implode(', ', $options));
+                }
+
+                $nc_levels = ['NC I', 'NC II', 'NC III', 'NC IV', 'NC V', 'NC VI'];
+
+                if ($row['nc_level'] !== null && !in_array($row['nc_level'], $nc_levels, true)) {
+                    throw new \Exception("Invalid value '{$row['nc_level']}' for 'nc_level'. Allowed values are: " . implode(', ', $nc_levels));
+                }
+
                 $trainingProgram = TrainingProgram::withTrashed()
-                    ->where('code', $row['qualification_code'])
                     ->where('soc_code', $row['soc_code'])
                     ->where(DB::raw('LOWER(title)'), strtolower($row['title']))
                     ->first();
@@ -44,6 +57,8 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
                     $trainingProgram = TrainingProgram::create([
                         'code' => $row['qualification_code'],
                         'soc_code' => $row['soc_code'],
+                        'full_coc_ele' => $row['fullcocele'],
+                        'nc_level' => $row['nc_level'],
                         'title' => $row['title'],
                         'tvet_id' => $tvetId,
                         'priority_id' => $priorityId,

@@ -41,6 +41,11 @@ class EditTrainingProgram extends EditRecord
         $this->validateUniqueTrainingProgram($data, $record->id);
 
         try {
+
+            if($data['full_coc_ele'] === 'COC' || $data['full_coc_ele'] === 'ELEV') {
+                $data['nc_level'] = null;
+            }
+
             $record->update($data);
 
             NotificationHandler::sendSuccessNotification('Saved', 'Training program has been updated successfully.');

@@ -35,6 +35,8 @@ class CreateTrainingProgram extends CreateRecord
                 'code' => $data['code'],
                 'soc_code' => $data['soc_code'],
                 'title' => $data['title'],
+                'full_coc_ele' => $data['full_coc_ele'],
+                'nc_level' => $data['nc_level'],
                 'priority_id' => $data['priority_id'],
                 'tvet_id' => $data['tvet_id'],
         ]));
@@ -47,7 +49,6 @@ class CreateTrainingProgram extends CreateRecord
     protected function validateUniqueTrainingProgram($data)
     {
         $trainingProgram = TrainingProgram::withTrashed()
-            ->where('code', $data['code'])
             ->where('soc_code', $data['soc_code'])
             ->where(DB::raw('LOWER(title)'), strtolower($data['title']))
             ->first();
