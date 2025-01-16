@@ -987,11 +987,6 @@ class TargetResource extends Resource
                         }),
                     
                     ForceDeleteAction::make()
-                        ->action(function ($record, $data) {
-                            $record->destroy();
-
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
-                        }),
                 ])
             ])
 

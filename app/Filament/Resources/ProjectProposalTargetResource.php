@@ -13,6 +13,7 @@ use App\Models\ProjectProposalTarget;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
+use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetStatus;
 use App\Models\Tvi;
@@ -1109,27 +1110,84 @@ class ProjectProposalTargetResource extends Resource
                             $allocation = $record->allocation;
                             $totalAmount = $record->total_amount;
 
-                            $institution = $record->tvi;
-                            $abdd = $record->abdd;
+                            $qualificationTitleId = $record->qualification_title_id;
+                            $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+                           
+                            $provinceId = $record->tvi->district->province_id;
 
-                            $provinceAbdd = ProvinceAbdd::where('abdd_id', $abdd->id)
-                                ->where('province_id', $institution->district->province_id)
+                            $quali = QualificationTitle::find($qualificationTitleId);
+                            $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                            $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                            $compliant = TargetStatus::where("desc", "Conpliant")->first();
+
+                            $slots = $record->number_of_slots;
+
+                            $totalCostOfToolkit = 0;
+                            if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+                                $totalCostOfToolkit = $toolkit->price_per_toolkit * $slots;
+
+                                $toolkit->available_number_of_toolkits += $slots;
+                                $toolkit->save();
+                            }
+                           
+                            $skillPriority = SkillPriority::where('province_id', $provinceId)
+                                ->where('training_program_id', $trainingProgramId)
                                 ->where('year', $allocation->year)
                                 ->first();
 
-                            $totalSlots = $record->number_of_slots;
+                            $skillPriority->available_slots += $slots;
+                            $skillPriority->save();
 
-                            $provinceAbdd->available_slots += $totalSlots;
-                            $provinceAbdd->save();
-
-                            $allocation->balance += $totalAmount;
+                            $allocation->balance += $totalAmount + $totalCostOfToolkit;
                             $allocation->save();
 
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         }),
-                    RestoreAction::make(),
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $allocation = $record->allocation;
+                            $totalAmount = $record->total_amount;
+
+                            $qualificationTitleId = $record->qualification_title_id;
+                            $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+                        
+                            $provinceId = $record->tvi->district->province_id;
+
+                            $quali = QualificationTitle::find($qualificationTitleId);
+                            $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                            $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                            $compliant = TargetStatus::where("desc", "Conpliant")->first();
+
+                            $slots = $record->number_of_slots;
+
+                            $totalCostOfToolkit = 0;
+                            if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+                                $totalCostOfToolkit = $toolkit->price_per_toolkit * $slots;
+
+                                $toolkit->available_number_of_toolkits -= $slots;
+                                $toolkit->save();
+                            }
+                        
+                            $skillPriority = SkillPriority::where('province_id', $provinceId)
+                                ->where('training_program_id', $trainingProgramId)
+                                ->where('year', $allocation->year)
+                                ->first();
+
+                            $skillPriority->available_slots -= $slots;
+                            $skillPriority->save();
+
+                            $allocation->balance -= $totalAmount + $totalCostOfToolkit;
+                            $allocation->save();
+
+                            $record->deleted_at = null;
+                            $record->save();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
+                        }),
                     ForceDeleteAction::make(),
                 ])
             ])
