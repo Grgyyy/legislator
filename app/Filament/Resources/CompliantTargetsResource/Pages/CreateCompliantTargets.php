@@ -9,6 +9,7 @@ use App\Models\ScholarshipProgram;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -57,10 +58,12 @@ class CreateCompliantTargets extends CreateRecord
                 $costOfToolkitPcc = $qualificationTitle->toolkits()->where('year', $data['allocation_year'])->first();
 
                 if ($costOfToolkitPcc->available_number_of_toolkits === null) {
-                    throw new Exception("Please ensure that the number of toolkits for '{$qualificationTitle->trainingProgram->title}' is specified.");
+                    $message = "Please ensure that the number of toolkits for '{$qualificationTitle->trainingProgram->title}' is specified.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
                 elseif ($costOfToolkitPcc->available_number_of_toolkits < $numberOfSlots) {
-                    throw new Exception('There are not enough toolkits available for this batch.');
+                    $message = "There are not enough toolkits available for this batch.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
                 else {
                     $costOfToolkitPcc->decrement('available_number_of_toolkits', $numberOfSlots);
