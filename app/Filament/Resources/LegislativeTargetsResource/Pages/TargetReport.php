@@ -34,11 +34,13 @@ class TargetReport extends ListRecords
     protected function getHeaderWidgets(): array
     {
         $legislatorId = request()->route('record');
+        $scholarshipProgramId = request()->route('record');
         $allocationId = request()->route('record');
 
         return [
             LegislativeTargetStatsOverview::make([
                 'legislatorId' => $legislatorId,
+                'scholarshipProgramId' => $scholarshipProgramId,
                 'allocationId' => $allocationId,
             ]),
             LegislativeTargetStatsOverview_::make([

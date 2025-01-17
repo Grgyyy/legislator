@@ -115,10 +115,7 @@ class PartylistResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('Party-list')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->name ?: '-';
-                                        }),
+                                        ->heading('Party-list'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Party-list'),
                         ]),
@@ -130,8 +127,7 @@ class PartylistResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable')
-            ->orderBy('name');
+            ->whereNot('name', 'Not Applicable');
     }
 
     public static function getPages(): array

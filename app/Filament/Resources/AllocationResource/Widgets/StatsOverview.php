@@ -17,19 +17,15 @@ class StatsOverview extends BaseWidget
         $fundsUsedInTargets = Target::sum('total_amount');
 
         return [
-            Stat::make('Allocations', '₱' . number_format($totalAllocations))
-                ->description('Total funds allocated')
+            Stat::make('Total Allocations', '₱' . number_format($totalAllocations))
+                ->description('Admin Cost: ₱ ' . number_format($totalAdminCost))
                 ->color('info'),
 
-            Stat::make('Admin Costs', '₱' . number_format($totalAdminCost))
-                ->description('Total administrative costs')
-                ->color('warning'),
-
-            Stat::make('Funds Expended', '₱' . number_format($fundsUsedInTargets))
+            Stat::make('Total Funds Expended', '₱' . number_format($fundsUsedInTargets))
                 ->description('Total funds used for targets')
                 ->color('info'),
 
-            Stat::make('Remaining Balance', '₱' . number_format($totalBalance ))
+            Stat::make('Total Balance', '₱' . number_format($totalBalance ))
                 ->description('Remaining balance')
                 ->color('success'),
         ];

@@ -69,7 +69,7 @@ class ScholarshipProgramResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no scholarship programs available')
+            ->emptyStateHeading('No scholarship programs available')
             ->columns([
                 TextColumn::make("code")
                     ->sortable()

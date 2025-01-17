@@ -274,49 +274,46 @@ class TviResource extends Resource
                 Filter::make('institution')
                     ->form(function () {
                         return [
-                            Grid::make(2)
+                            Fieldset::make('Institution Classes')
                                 ->schema([
-                                    Fieldset::make('Institution Classes')
-                                        ->schema([
-                                            Select::make('tvi_class_id')
-                                                ->label("Class (A)")
-                                                ->placeholder('All')
-                                                ->relationship('tviClass', 'name')
-                                                ->reactive(),
+                                    Select::make('tvi_class_id')
+                                        ->label("Class (A)")
+                                        ->placeholder('All')
+                                        ->relationship('tviClass', 'name')
+                                        ->reactive(),
 
-                                            Select::make('institution_class_id')
-                                                ->label("Class (B)")
-                                                ->placeholder('All')
-                                                ->relationship('InstitutionClass', 'name')
-                                                ->reactive(),
-                                        ]),
+                                    Select::make('institution_class_id')
+                                        ->label("Class (B)")
+                                        ->placeholder('All')
+                                        ->relationship('InstitutionClass', 'name')
+                                        ->reactive(),
+                                ]),
 
-                                    Fieldset::make('Address')
-                                        ->schema([
-                                            Select::make('province_id')
-                                                ->label('Province')
-                                                ->placeholder('All')
-                                                ->options(Province::whereNot('name', 'Not Applicable')->pluck('name', 'id'))
-                                                ->afterStateUpdated(function (callable $set, $state) {
-                                                    $set('municipality_id', null);
-                                                    $set('district_id', null);
-                                                })
-                                                ->reactive(),
+                            Fieldset::make('Address')
+                                ->schema([
+                                    Select::make('province_id')
+                                        ->label('Province')
+                                        ->placeholder('All')
+                                        ->options(Province::whereNot('name', 'Not Applicable')->pluck('name', 'id'))
+                                        ->afterStateUpdated(function (callable $set, $state) {
+                                            $set('municipality_id', null);
+                                            $set('district_id', null);
+                                        })
+                                        ->reactive(),
 
-                                            Select::make('municipality_id')
-                                                ->label('Municipality')
-                                                ->placeholder('All')
-                                                ->options(function ($get) {
-                                                    $provinceId = $get('province_id');
+                                    Select::make('municipality_id')
+                                        ->label('Municipality')
+                                        ->placeholder('All')
+                                        ->options(function ($get) {
+                                            $provinceId = $get('province_id');
 
-                                                    return Municipality::where('province_id', $provinceId)
-                                                        ->pluck('name', 'id');
-                                                })
-                                                ->afterStateUpdated(function (callable $set) {
-                                                    $set('district_id', null);
-                                                })
-                                                ->reactive(),
-                                        ]),
+                                            return Municipality::where('province_id', $provinceId)
+                                                ->pluck('name', 'id');
+                                        })
+                                        ->afterStateUpdated(function (callable $set) {
+                                            $set('district_id', null);
+                                        })
+                                        ->reactive(),
                                 ]),
                         ];
                     })

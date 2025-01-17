@@ -76,8 +76,8 @@ class AdminPanelProvider extends PanelProvider
             ->plugins([
                 FilamentEditProfilePlugin::make()
                     ->slug('my-profile')
-                    ->setTitle('My Profile')
-                    ->setNavigationLabel('My Profile')
+                    ->setTitle('User Profile')
+                    ->setNavigationLabel('User Profile')
                     ->setNavigationGroup('USER MANAGEMENT')
                     ->setIcon('heroicon-o-user')
                     ->setSort(1)

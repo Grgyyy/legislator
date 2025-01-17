@@ -21,7 +21,7 @@ class ListTrainingPrograms extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            route('filament.admin.resources.training-programs.index') => 'Qualification Titles',
+            '/qualification-titles'=> 'Qualification Titles',
             'List'
         ];
     }

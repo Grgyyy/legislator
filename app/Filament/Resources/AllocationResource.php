@@ -29,6 +29,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -242,6 +243,20 @@ class AllocationResource extends Resource
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
+                TextColumn::make('admin_cost_difference')
+                    ->label('Allocation - Admin Cost')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->getStateUsing(function ($record) {
+                        $allocation = $record->allocation ?? 0;
+                        $adminCost = $record->admin_cost ?? 0;
+
+                        $difference = $allocation - $adminCost;
+
+                        return number_format($difference, 2);
+                    }),
+
                 TextColumn::make("attribution_sent")
                     ->label('Attribution Sent')
                     ->sortable()
@@ -255,6 +270,17 @@ class AllocationResource extends Resource
                     ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+
+                TextColumn::make("expended_funds")
+                    ->label('Funds Expended')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->getStateUsing(function ($record) {
+                        $fundsExpended = $record->target->sum('total_amount');
+                
+                        return number_format($fundsExpended, 2);
+                    }),
 
                 TextColumn::make("balance")
                     ->sortable()

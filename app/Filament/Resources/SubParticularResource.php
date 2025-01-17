@@ -21,6 +21,7 @@ use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\Filter;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -54,6 +55,7 @@ class SubParticularResource extends Resource
                     ->validationAttribute('Particular Type'),
 
                 Select::make('fund_source_id')
+                    ->label('Fund Source')
                     ->relationship('fundSource', 'name')
                     ->required()
                     ->markAsRequired(false)
@@ -90,9 +92,30 @@ class SubParticularResource extends Resource
                 TrashedFilter::make()
                     ->label('Records'),
 
-                SelectFilter::make('fund_source')
-                    ->label('Fund Source')
-                    ->relationship('fundSource', 'name'),
+                Filter::make('fundSource')
+                    ->form([
+                        Select::make('fund_source_id')
+                            ->label("Fund Source")
+                            ->placeholder('All')
+                            ->relationship('fundSource', 'name')
+                            ->reactive(),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['fund_source_id'] ?? null,
+                                fn(Builder $query, $fundSourceId) => $query->where('fund_source_id', $fundSourceId)
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if (!empty($data['fund_source_id'])) {
+                            $indicators[] = 'Fund Source: ' . Optional(FundSource::find($data['fund_source_id']))->name;
+                        }
+
+                        return $indicators;
+                    })
             ])
             ->actions([
                 ActionGroup::make([
@@ -143,15 +166,9 @@ class SubParticularResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
-                                        ->heading('Particular Type')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->name ?: '-';
-                                        }),
+                                        ->heading('Particular Type'),
                                     Column::make('fundSource.name')
-                                        ->heading('Fund Source')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->fundSource ? $record->fundSource->name : '-';
-                                        }),
+                                        ->heading('Fund Source'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Particular Types'),
                         ]),
@@ -162,9 +179,7 @@ class SubParticularResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->orderBy('fund_source_id')
-            ->orderBy('name');
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array

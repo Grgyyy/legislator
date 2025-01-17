@@ -3,13 +3,12 @@
 namespace App\Filament\Clusters\Sectors\Resources;
 
 use App\Models\Abdd;
-use App\Models\Province;
 use App\Filament\Clusters\Sectors;
 use App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
+use App\Services\NotificationHandler;
 use Filament\Resources\Resource;
 use Filament\Forms\Form;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
@@ -51,57 +50,18 @@ class AbddResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Sector'),
-
-                // Select::make('province')
-                //     ->label('Province')
-                //     ->relationship('provinces', 'name')
-                //     ->required()
-                //     ->markAsRequired(false)
-                //     ->searchable()
-                //     ->preload()
-                //     ->multiple()
-                //     ->native(false)
-                //     ->options(function () {
-                //         return Province::whereNot('name', 'Not Applicable')
-                //             ->pluck('name', 'id')
-                //             ->toArray() ?: ['no_province' => 'No Province Available'];
-                //     })
-                //     ->disableOptionWhen(fn($value) => $value === 'no_province'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no sectors available')
+            ->emptyStateHeading('No sectors available')
             ->columns([
                 TextColumn::make('name')
                     ->label("Sector")
                     ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-
-                // TextColumn::make('provinces.name')
-                //     ->label('Provinces')
-                //     ->sortable()
-                //     ->searchable()
-                //     ->toggleable()
-                //     ->formatStateUsing(function ($record) {
-                //         $provinces = $record->provinces->pluck('name')->toArray();
-
-                //         $provincesHtml = array_map(function ($name, $index) use ($provinces) {
-                //             $comma = ($index < count($provinces) - 1) ? ', ' : '';
-
-                //             $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
-
-                //             $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
-
-                //             return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
-                //         }, $provinces, array_keys($provinces));
-
-                //         return implode('', $provincesHtml);
-                //     })
-                //     ->html(),
+                    ->searchable(),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -111,25 +71,52 @@ class AbddResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    DeleteAction::make(),
-                    RestoreAction::make(),
-                    ForceDeleteAction::make(),
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Sector has been deleted successfully.');
+                        }),
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $record->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Sector has been restored successfully.');
+                        }),
+                    ForceDeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Sector has been deleted permanently.');
+                        }),
                 ])
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected sectors have been deleted successfully.');
+                        }),
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected sectors have been restored successfully.');
+                        }),
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected sectors have been deleted permanently.');
+                        }),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('ABDD Sector'),
-                                    // Column::make('provinces.name')
-                                    //     ->heading('ABDD Sector')
-                                    //     ->getStateUsing(fn($record) => $record->provinces->pluck('name')->implode(', ')),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - ABDD Sector')
                         ]),
@@ -142,7 +129,8 @@ class AbddResource extends Resource
         $query = parent::getEloquentQuery();
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable');
+            ->whereNot('name', 'Not Applicable')
+            ->orderBy('name');
 
         return $query;
     }

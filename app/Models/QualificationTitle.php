@@ -19,7 +19,7 @@ class QualificationTitle extends Model
         'training_support_fund',
         'assessment_fee',
         'entrepreneurship_fee',
-        'new_normal_assisstance',
+        'new_normal_assistance',
         'accident_insurance',
         'book_allowance',
         'uniform_allowance',

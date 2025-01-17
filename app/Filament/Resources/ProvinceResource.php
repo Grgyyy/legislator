@@ -92,6 +92,7 @@ class ProvinceResource extends Resource
                     ->toggleable(),
 
                 TextColumn::make('region.name')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
             ])
@@ -156,15 +157,9 @@ class ProvinceResource extends Resource
                                             return $record->code ?: '-';
                                         }),
                                     Column::make('name')
-                                        ->heading('Province')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->name ?: '-';
-                                        }),
+                                        ->heading('Province'),
                                     Column::make('region.name')
-                                        ->heading('Region')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->region ? $record->region->name : '-';
-                                        }),
+                                        ->heading('Region'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Province')
                         ]),
