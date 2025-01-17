@@ -93,8 +93,20 @@ class TargetReport extends ListRecords
     /**
      * Mount method to set the title dynamically.
      */
+    public $allocationId;
+
     public function mount(): void
     {
+        // Fetch allocationId from the route
+        $this->allocationId = request()->route('record');
+
+        // Ensure that the allocationId is valid and exists
+        $allocation = Allocation::find($this->allocationId);
+        if (!$allocation) {
+            abort(404, 'Allocation not found.');
+        }
+
+        // Set the title dynamically
         $legis = $this->getLegislatorName();
         $particular = $this->getParticularName();
         static::$title = "{$legis} - {$particular}";
@@ -119,20 +131,17 @@ class TargetReport extends ListRecords
             Action::make('TargetReportExport')
                 ->label('Export')
                 ->icon('heroicon-o-document-arrow-down')
-                ->url(route('export.targets'))
+                ->url(route('export.targets', ['allocationId' => $this->allocationId]))  // Use the allocated allocationId
                 ->action(function () {
                     try {
-                        return Excel::download(new TargetReportExport(), 'pending_target_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                        return Excel::download(new TargetReportExport($this->allocationId), 'pending_target_export.xlsx');
                     } catch (\Throwable $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                        NotificationHandler::sendErrorNotification('Export Failed', $e->getMessage());
                     }
                 }),
         ];
     }
+
 
     /**
      * Define the table query.
