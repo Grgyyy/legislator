@@ -2,16 +2,19 @@
 
 namespace App\Filament\Resources\TargetResource\Pages;
 
-use App\Imports\AdminTargetImport;
-use Exception;
 use Filament\Actions\Action;
 use App\Imports\TargetImport;
+use App\Imports\AdminTargetImport;
 use Filament\Actions\CreateAction;
+use Illuminate\Support\Facades\Log;
+use App\Exports\PendingTargetExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
+use PhpOffice\PhpSpreadsheet\Exception;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\TargetResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListTargets extends ListRecords
 {
@@ -32,8 +35,24 @@ class ListTargets extends ListRecords
         return [
             CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
-            ,
+                ->label('New'),
+
+            Action::make('PendingTargetExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new PendingTargetExport, 'pending_target_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
+
+
 
             Action::make('TargetImport')
                 ->label('Import')

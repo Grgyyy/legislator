@@ -18,8 +18,8 @@ class ListLegislativeTargets extends ListRecords
 
     protected function getTableQuery(): ?\Illuminate\Database\Eloquent\Builder
     {
-        // Fetch only allocations where legislator_id matches the route parameter
-        return Legislator::query();
+        return Legislator::query()
+            ->has('allocation.target');
     }
 
     public function table(Tables\Table $table): Tables\Table

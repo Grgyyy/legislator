@@ -13,7 +13,7 @@ class TargetRemarkPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal', 'RO']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
 
     /**
@@ -21,7 +21,7 @@ class TargetRemarkPolicy
      */
     public function view(User $user, TargetRemark $targetRemark): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal', 'RO']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
 
     /**
@@ -53,7 +53,7 @@ class TargetRemarkPolicy
      */
     public function restore(User $user, TargetRemark $targetRemark): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

@@ -53,7 +53,7 @@ class ProvinceAbddPolicy
      */
     public function restore(User $user, ProvinceAbdd $provinceAbdd): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

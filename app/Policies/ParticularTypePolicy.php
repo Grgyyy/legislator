@@ -53,7 +53,7 @@ class ParticularTypePolicy
      */
     public function restore(User $user, SubParticular $subParticular): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

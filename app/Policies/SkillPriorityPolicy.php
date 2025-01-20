@@ -53,7 +53,7 @@ class SkillPriorityPolicy
      */
     public function restore(User $user, SkillPriority $skillPriority): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

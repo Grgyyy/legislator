@@ -16,10 +16,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
 
-    
+
     public function getFilamentAvatarUrl(): ?string
     {
-        return $this->avatar_url ? Storage::url($this->avatar_url) : null ;
+        return $this->avatar_url ? Storage::url($this->avatar_url) : null;
     }
     /**
      * The attributes that are mass assignable.
@@ -77,6 +77,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         $allowedRoles = [
             'Super Admin',
             'Admin',
+            'Director',
             'SMD Head',
             'SMD Focal',
             'RO',

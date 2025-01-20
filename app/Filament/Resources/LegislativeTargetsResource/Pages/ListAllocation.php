@@ -5,9 +5,16 @@ namespace App\Filament\Resources\LegislativeTargetsResource\Pages;
 use App\Filament\Resources\LegislativeTargetsResource;
 use App\Models\Allocation;
 use App\Models\Legislator;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use App\Exports\PendingTargetExport;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Services\NotificationHandler;
+use PhpOffice\PhpSpreadsheet\Exception;
+use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListAllocation extends ListRecords
 {
@@ -44,6 +51,7 @@ class ListAllocation extends ListRecords
         // Main query to fetch allocations, eager load related models like scholarship_program
         return Allocation::query()
             ->where('legislator_id', $legislatorId)
+            ->has('target')
             ->with('scholarship_program'); // Eager load scholarship_program for optimized performance
     }
 

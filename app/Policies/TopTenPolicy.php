@@ -53,7 +53,7 @@ class TopTenPolicy
      */
     public function restore(User $user, Priority $priority): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

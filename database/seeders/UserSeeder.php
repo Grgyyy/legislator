@@ -23,6 +23,7 @@ class UserSeeder extends Seeder
             ['name' => 'Mark Ian Amado', 'email' => 'mimamado@tesda.gov.ph', 'role' => 'Super Admin'],
             ['name' => 'Tj Dhaniella Maurea Ojerio', 'email' => 'tmdlojerio@tesda.gov.ph', 'role' => 'Super Admin'],
             ['name' => 'Admin', 'email' => 'admin@gmail.com', 'role' => 'Admin'],
+            ['name' => 'Rosalina S. Constantino', 'email' => 'rsconstantino@tesda.gov.ph', 'role' => 'Director'],
             ['name' => 'SMD Head', 'email' => 'smdhead@gmail.com', 'role' => 'SMD Head'],
             ['name' => 'Joemar Caballero', 'email' => 'jbcaballero@tesda.gov.ph', 'role' => 'SMD Head'],
             ['name' => 'Glenford M. Prospero ', 'email' => 'gmprospero@tesda.gov.ph', 'role' => 'SMD Head'],

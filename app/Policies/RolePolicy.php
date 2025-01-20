@@ -53,7 +53,7 @@ class RolePolicy
      */
     public function restore(User $user, Role $role): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

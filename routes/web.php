@@ -1,5 +1,9 @@
 <?php
 
+use App\Models\Target;
+use App\Models\Allocation;
+use App\Exports\TargetReportExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +20,12 @@ use Illuminate\Support\Facades\Route;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+
+Route::get('/export-targets/{allocationId}', function ($allocationId) {
+    $allocation = Allocation::find($allocationId);
+    if (!$allocation) {
+        return redirect()->route('some.error.page')->with('error', 'Invalid Allocation ID');
+    }
+
+    return Excel::download(new TargetReportExport($allocationId), 'pending_target_export.xlsx');
+})->name('export.targets');

@@ -58,7 +58,7 @@ class PermissionPolicy
      */
     public function restore(User $user, Permission $permission): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
 
     }
 

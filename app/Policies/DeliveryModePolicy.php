@@ -53,7 +53,7 @@ class DeliveryModePolicy
      */
     public function restore(User $user, DeliveryMode $deliveryMode): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**
