@@ -53,7 +53,7 @@ class TargetPolicy
      */
     public function restore(User $user, Target $target): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**
@@ -61,6 +61,6 @@ class TargetPolicy
      */
     public function forceDelete(User $user, Target $target): bool
     {
-        return $user->hasRole(['Super Admin']);
+        return $user->hasRole('Super Admin');
     }
 }

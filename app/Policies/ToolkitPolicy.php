@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\TviClass;
+use App\Models\Toolkit;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class InstitutionClassAPolicy
+class ToolkitPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -19,7 +19,7 @@ class InstitutionClassAPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, TviClass $tviClass): bool
+    public function view(User $user, Toolkit $toolkit): bool
     {
         return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
@@ -35,7 +35,7 @@ class InstitutionClassAPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, TviClass $tviClass): bool
+    public function update(User $user, Toolkit $toolkit): bool
     {
         return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
@@ -43,7 +43,7 @@ class InstitutionClassAPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, TviClass $tviClass): bool
+    public function delete(User $user, Toolkit $toolkit): bool
     {
         return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
@@ -51,7 +51,7 @@ class InstitutionClassAPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, TviClass $tviClass): bool
+    public function restore(User $user, Toolkit $toolkit): bool
     {
         return $user->hasRole('Super Admin');
     }
@@ -59,7 +59,7 @@ class InstitutionClassAPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, TviClass $tviClass): bool
+    public function forceDelete(User $user, Toolkit $toolkit): bool
     {
         return $user->hasRole('Super Admin');
     }

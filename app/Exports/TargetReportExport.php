@@ -108,9 +108,6 @@ class TargetReportExport implements FromCollection, WithStyles
         $partyListName = $particular->partylist?->name ?? 'Unknown Party-list Name';
         $districtName = $particular->district?->name ?? 'Unknown District Name';
 
-
-
-
         if ($fundSourceName === "CO Regular" || $fundSourceName === "RO Regular") {
             return "$subParticularName - $regionName";
         }

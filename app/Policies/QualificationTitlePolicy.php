@@ -2,7 +2,7 @@
 
 namespace App\Policies;
 
-use App\Models\QualificationTitle;
+use App\Models\TrainingProgram;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
@@ -19,7 +19,7 @@ class QualificationTitlePolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, QualificationTitle $qualificationTitle): bool
+    public function view(User $user, TrainingProgram $trainingProgram): bool
     {
         return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
@@ -35,7 +35,7 @@ class QualificationTitlePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, QualificationTitle $qualificationTitle): bool
+    public function update(User $user, TrainingProgram $trainingProgram): bool
     {
         return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
@@ -43,7 +43,7 @@ class QualificationTitlePolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, QualificationTitle $qualificationTitle): bool
+    public function delete(User $user, TrainingProgram $trainingProgram): bool
     {
         return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
@@ -51,15 +51,15 @@ class QualificationTitlePolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, QualificationTitle $qualificationTitle): bool
+    public function restore(User $user, TrainingProgram $trainingProgram): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, QualificationTitle $qualificationTitle): bool
+    public function forceDelete(User $user, TrainingProgram $trainingProgram): bool
     {
         return $user->hasRole('Super Admin');
     }

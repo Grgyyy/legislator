@@ -16,10 +16,11 @@ class RoleSeeder extends Seeder
         $roles = [
             'Super Admin',
             'Admin',
+            'Director',
             'SMD Head',
             'SMD Focal',
             'TESDO',
-            'RO', // Consolidated role for all regions
+            'RO',
             'PO/DO',
         ];
 

@@ -53,7 +53,7 @@ class InstitutionPolicy
      */
     public function restore(User $user, Tvi $tvi): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

@@ -53,7 +53,7 @@ class RecognitionTitlePolicy
      */
     public function restore(User $user, Recognition $recognition): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

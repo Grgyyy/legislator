@@ -13,7 +13,7 @@ class AllocationPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
     }
 
     /**
@@ -21,7 +21,7 @@ class AllocationPolicy
      */
     public function view(User $user, Allocation $allocation): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
     }
 
     /**
@@ -29,7 +29,7 @@ class AllocationPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
     }
 
     /**
@@ -37,7 +37,7 @@ class AllocationPolicy
      */
     public function update(User $user, Allocation $allocation): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
     }
 
     /**
@@ -45,7 +45,7 @@ class AllocationPolicy
      */
     public function delete(User $user, Allocation $allocation): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
     }
 
     /**
@@ -53,7 +53,7 @@ class AllocationPolicy
      */
     public function restore(User $user, Allocation $allocation): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'TESDO']);
+        return $user->hasRole('Super Admin');
     }
 
     /**
@@ -61,6 +61,6 @@ class AllocationPolicy
      */
     public function forceDelete(User $user, Allocation $allocation): bool
     {
-        return $user->hasRole(['Super Admin']);
+        return $user->hasRole('Super Admin');
     }
 }

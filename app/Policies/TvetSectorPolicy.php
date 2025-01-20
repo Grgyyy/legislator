@@ -53,7 +53,7 @@ class TvetSectorPolicy
      */
     public function restore(User $user, Tvet $tvet): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

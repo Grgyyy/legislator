@@ -131,7 +131,7 @@ class TargetReport extends ListRecords
             Action::make('TargetReportExport')
                 ->label('Export')
                 ->icon('heroicon-o-document-arrow-down')
-                ->url(route('export.targets', ['allocationId' => $this->allocationId]))  // Use the allocated allocationId
+                ->url(route('export.targets', ['allocationId' => $this->allocationId]))
                 ->action(function () {
                     try {
                         return Excel::download(new TargetReportExport($this->allocationId), 'pending_target_export.xlsx');

@@ -53,7 +53,7 @@ class LearningModePolicy
      */
     public function restore(User $user, LearningMode $learningMode): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

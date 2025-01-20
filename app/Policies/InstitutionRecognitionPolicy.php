@@ -53,7 +53,7 @@ class InstitutionRecognitionPolicy
      */
     public function restore(User $user, InstitutionRecognition $institutionRecognition): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

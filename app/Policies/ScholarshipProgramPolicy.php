@@ -53,7 +53,7 @@ class ScholarshipProgramPolicy
      */
     public function restore(User $user, ScholarshipProgram $scholarshipProgram): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**

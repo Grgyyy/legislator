@@ -58,17 +58,21 @@ use App\Policies\ProvinceAbddPolicy;
 use App\Policies\TargetRemarkPolicy;
 use App\Policies\SkillPriorityPolicy;
 use App\Models\InstitutionRecognition;
+use App\Models\Toolkit;
 use App\Policies\ParticularTypePolicy;
 use App\Policies\InstitutionTypePolicy;
-use App\Policies\TrainingProgramPolicy;
+use App\Policies\QualificationTitlePolicy;
 use App\Policies\RecognitionTitlePolicy;
 use App\Policies\InstitutionClassAPolicy;
 use App\Policies\InstitutionClassBPolicy;
 use App\Policies\InstitutionProgramPolicy;
-use App\Policies\QualificationTitlePolicy;
+use App\Policies\ScheduleOfCostPolicy;
 use App\Policies\ScholarshipProgramPolicy;
 use App\Policies\InstitutionRecognitionPolicy;
+use App\Policies\LegislativeTargetPolicy;
 use App\Policies\ProjectProposalPolicy;
+use App\Policies\ToolkitPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -102,8 +106,8 @@ class AuthServiceProvider extends ServiceProvider
         Abdd::class => AbddPolicy::class,
         ProvinceAbdd::class => ProvinceAbddPolicy::class,
         ScholarshipProgram::class => ScholarshipProgramPolicy::class,
-        TrainingProgram::class => TrainingProgramPolicy::class,
-        QualificationTitle::class => QualificationTitlePolicy::class,
+        TrainingProgram::class => QualificationTitlePolicy::class,
+        QualificationTitle::class => ScheduleOfCostPolicy::class,
         Allocation::class => AllocationPolicy::class,
         LearningMode::class => LearningModePolicy::class,
         DeliveryMode::class => DeliveryModePolicy::class,
@@ -112,13 +116,18 @@ class AuthServiceProvider extends ServiceProvider
         SkillPriority::class => SkillPriorityPolicy::class,
         InstitutionProgram::class => InstitutionProgramPolicy::class,
         QualificationTitle::class => ProjectProposalPolicy::class,
+        Toolkit::class => ToolkitPolicy::class,
+        Legislator::class => LegislativeTargetPolicy::class,
     ];
 
-    /**
-     * Register any authentication / authorization services.
-     */
     public function boot(): void
     {
-        //
+        $this->registerPolicies();
+
+        // Gate::define('import-region', function ($user) {
+        //     return $user->isAdmin;
+        // });
+        // Gate::define('update-post', 'App\Policies\RegionPolicy@import');
+
     }
 }

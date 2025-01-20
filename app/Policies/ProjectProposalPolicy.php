@@ -39,7 +39,7 @@ class ProjectProposalPolicy
 
     public function restore(User $user, QualificationTitle $qualificationTitle): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
     public function forceDelete(User $user, QualificationTitle $qualificationTitle): bool
     {
