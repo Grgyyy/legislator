@@ -72,7 +72,7 @@ class TargetResource extends Resource
                 if ($record) {
                     return [
                         TextInput::make('abscap_id')
-                            ->label('Absorbative Capacity ID')
+                            ->label('Absorptive Capacity ID')
                             ->placeholder('Enter an Absorbative capacity ID')
                             ->required()
                             ->markAsRequired(false)
@@ -263,7 +263,7 @@ class TargetResource extends Resource
                         Repeater::make('targets')
                             ->schema([
                                 TextInput::make('abscap_id')
-                                    ->label('Absorbative Capacity ID')
+                                    ->label('Absorptive Capacity ID')
                                     ->required()
                                     ->markAsRequired(false)
                                     ->placeholder('Enter an Absorbative capacity ID')

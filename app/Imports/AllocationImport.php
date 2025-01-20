@@ -29,24 +29,19 @@ class AllocationImport implements ToModel, WithHeadingRow
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
-                $legislator_id = $this->getLegislatorId($row['legislator']);
-
-                $region_id = $this->getRegionId($row['region']);
-                $province_id = $this->getProvinceId($region_id, $row['province']);
-                $municipality_id = $this->getMunicipalityId($province_id, $row['municipality']);
-                $district_id = $this->getDistrictId($region_id, $province_id, $municipality_id, $row['district']);
-                $partylist_id = $this->getPartylistId($row['particular'], $row['partylist']);
-                $sub_particular_id = $this->getSubparticularId($row['particular']);
-                $particular_id = $this->getParticularId($sub_particular_id, $partylist_id, $district_id);
-
-
-                $schopro_id = $this->getScholarshipProgramId($row['scholarship_program']);
+            try{
+                $legislatorRecord = $this->getLegislatorId($row['legislator']);
+                $subParticularRecord = $this->getSubParticularName($row['particular']);
+                $partylistRecord = $this->getPartylist($row['partylist']);
+                $districtRecord = $this->getDistrict($row);
+                $particularRecord = $this->getParticularRecord($subParticularRecord->id, $partylistRecord->id, $districtRecord->id);
+                $scholarshipProgramRecord = $this->getScholarhipProgram($row['scholarship_program']);
                 $allocation = $row['allocation'];
-                $admin_cost = $allocation * 0.02;
+                $adminCost = $allocation * 0.02;
 
-                $allocationRecord = Allocation::where('legislator_id', $legislator_id)
-                    ->where('particular_id', $particular_id)
-                    ->where('scholarship_program_id', $schopro_id)
+                $allocationRecord = Allocation::where('legislator_id', $legislatorRecord->id)
+                    ->where('particular_id', $particularRecord->id)
+                    ->where('scholarship_program_id', $scholarshipProgramRecord->id)
                     ->where('soft_or_commitment', $row['soft_or_commitment'])
                     ->where('year', $row['year'])
                     ->first();
@@ -61,15 +56,21 @@ class AllocationImport implements ToModel, WithHeadingRow
                 else {
                     $allocationRecord = Allocation::create([
                         'soft_or_commitment' => $row['soft_or_commitment'],
-                        'legislator_id' => $legislator_id,
-                        'particular_id' => $particular_id,
-                        'scholarship_program_id' => $schopro_id,
+                        'legislator_id' => $legislatorRecord->id,
+                        'particular_id' => $particularRecord->id,
+                        'scholarship_program_id' => $scholarshipProgramRecord->id,
                         'allocation' => $allocation,
-                        'admin_cost' => $admin_cost,
-                        'balance' => $allocation - $admin_cost,
+                        'admin_cost' => $adminCost,
+                        'balance' => $allocation - $adminCost,
                         'year' => $row['year'],
                     ]);
                 }
+
+            }
+            catch (Throwable $e) {
+                Log::error('Failed to import allocation: ' . $e->getMessage());
+                throw $e;
+            }
         });
     }
 
@@ -94,152 +95,106 @@ class AllocationImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$legislator) {
-            throw new \Exception("Legislator with name '{$legislatorName}' not found. No changes were saved.");
+            throw new \Exception("The Legislator named '{$legislatorName}' is not existing.");
         }
 
-        return $legislator->id;
+        return $legislator;
     }
 
-
-    protected function getRegionId($regionName)
-    {
-        $regionRecord = Region::where('name', $regionName)
+    protected function getSubParticularName(string $subParticularName) {
+        $subParticular = SubParticular::where('name', $subParticularName)
             ->whereNull('deleted_at')
             ->first();
 
-        if (!$regionRecord) {
-            throw new \Exception("The {$regionName} region does not exist.");
+        if(!$subParticular) {
+            throw new \Exception("The Partcular named '{$subParticularName}' is not existing.");
         }
 
-        return $regionRecord->id;
+        return $subParticular;
     }
 
-    protected function getProvinceId($regionId, $provinceName)
-    {
-        $provinceRecord = Province::where('name', $provinceName)
-            ->where('region_id', $regionId)
+    protected function getPartylist(string $partylistName) {
+        $partylist = Partylist::where('name', $partylistName)
             ->whereNull('deleted_at')
             ->first();
 
-        if (!$provinceRecord) {
-            throw new \Exception("The {$provinceName} province does not exist.");
+        if(!$partylist) {
+            throw new \Exception("The Partylist named '{$partylistName}' is not existing.");
         }
 
-        return $provinceRecord->id;
+        return $partylist;
     }
 
-    protected function getMunicipalityId($provinceId, $municipalityName)
-    {
-        $municipalityRecord = Municipality::where('name', $municipalityName)
-            ->where('province_id', $provinceId)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if (!$municipalityRecord) {
-            throw new \Exception("The {$municipalityName} municipality does not exist.");
-        }
-
-        return $municipalityRecord->id;
-    }
-
-    protected function getDistrictId($regionId, $provinceId, $municipalityId, $districtName)
-    {
-        $region = Region::find($regionId);
+    protected function getDistrict(array $row) {
+        $region = Region::where('name', $row['region'])
+        ->whereNull('deleted_at')
+        ->first();
 
         if (!$region) {
-            throw new \Exception("Region with ID {$regionId} does not exist.");
+            throw new \Exception("The Region named '{$row['region']}' is not existing.");
         }
 
-        $province = Province::find($provinceId);
-
-        $query = District::where('name', $districtName)
-            ->where('province_id', $provinceId);
-
-        if ($region->name === "NCR" && $province->name !== 'Not Applicable') {
-            if (empty($municipalityId)) {
-                throw new \Exception("Municipality is required for districts in NCR.");
-            }
-            $query->where('municipality_id', $municipalityId);
-        }
-
-        $districtRecord = $query->first();
-
-        if (!$districtRecord) {
-            throw new \Exception("The district '{$districtName}' does not exist in the specified province and municipality.");
-        }
-
-        return $districtRecord->id;
-    }
-
-    protected function getSubparticularId($particularName)
-    {
-        $subParticular = SubParticular::where('name', $particularName)
+        $province = Province::where('name', $row['province'])
+            ->where('region_id', $region->id)
             ->whereNull('deleted_at')
             ->first();
-
-        if (!$subParticular) {
-            throw new \Exception("The {$particularName} sub-particular does not exist.");
+        
+        if (!$province) {
+            throw new \Exception("The Province named '{$row['province']}' is not existing.");
         }
 
-        return $subParticular->id;
-    }
+        $districtQuery = District::where('name', $row['district'])
+            ->where('province_id', $province->id)
+            ->whereNull('deleted_at');
+    
+        if($row['particular'] === 'District') {
+            if($row['region'] === 'NCR') {
+                $municipality = Municipality::where('name', $row['municipality'])
+                    ->where('province_id', $province->id)
+                    ->whereNull('deleted_at')
+                    ->first();
 
-    protected function getPartylistId($particularName, $partylistName)
-    {
-        $particularRecord = SubParticular::where('name', $particularName)
-            ->whereNull('deleted_at')
-            ->first();
+                if (!$municipality) {
+                    throw new \Exception("The Municipality named '{$row['municipality']}' is not existing.");
+                }
 
-        if (!$particularRecord) {
-            throw new \Exception("The {$particularName} particular type does not exist.");
-        }
-
-        if ($particularRecord->name === 'Party-list') {
-            $partylistRecord = Partylist::where('name', $partylistName)
-                ->whereNull('deleted_at')
-                ->first();
-
-            if (!$partylistRecord) {
-                throw new \Exception("The {$partylistName} partylist does not exist.");
-            }
-        } else {
-            $partylistRecord = Partylist::where('name', 'Not Applicable')
-                ->whereNull('deleted_at')
-                ->first();
-
-            if (!$partylistRecord) {
-                throw new \Exception("The Not Applicable partylist does not exist.");
+                $districtQuery->where('municipality_id', $municipality->id);
             }
         }
 
-        return $partylistRecord->id;
-    }
+        $district = $districtQuery->first();
 
-    protected function getParticularId($sub_particular_id, $partylist_id, $district_id)
-    {
-        $particularRecord = Particular::where('sub_particular_id', $sub_particular_id)
-            ->where('partylist_id', $partylist_id)
-            ->where('district_id', $district_id)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if (!$particularRecord) {
-            throw new \Exception("The Particular does not exist.");
+        if (!$province) {
+            throw new \Exception("The District named '{$row['district']}' under Province named '{$row['province']}' is not existing.");
         }
 
-        return $particularRecord->id;
+        return $district;
+        
     }
 
-
-    protected function getScholarshipProgramId(string $schoproName)
-    {
-        $scholarship = ScholarshipProgram::where('name', $schoproName)
+    protected function getParticularRecord(int $subParticularId, int $partylistId, int $districtId) {
+        $particular = Particular::where('sub_particular_id', $subParticularId)
+            ->where('partylist_id', $partylistId)
+            ->where('district_id', $districtId)
             ->first();
 
-        if (!$scholarship) {
-            throw new \Exception("Scholarship program with name '{$schoproName}' not found. No changes were saved.");
+        if (!$particular) {
+            throw new \Exception("The Particular named '{$particular->subParticular->name}' is not existing.");
         }
 
-        return $scholarship->id;
+        return $particular;
     }
+
+    protected function getScholarhipProgram(string $scholarshipProgramName) {
+        $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)
+            ->first();
+
+        if (!$scholarshipProgram) {
+            throw new \Exception("The Scholarship Program named '{$scholarshipProgramName}' is not existing.");
+        }
+
+        return $scholarshipProgram;
+    }
+
+    
 }
