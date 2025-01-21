@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AllocationResource\Pages;
 
 use App\Models\Allocation;
 use App\Filament\Resources\AllocationResource;
+use App\Models\Particular;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\DB;
@@ -28,8 +29,10 @@ class EditAllocation extends EditRecord
         $this->validateUniqueAllocation($data, $record->id);
 
         $allocation = DB::transaction(function () use ($record, $data) {
+            
             $difference = $data['allocation'] - $record['allocation'];
-            $new_balance = $record['balance'] + $difference;
+            $deduction = $difference * 0.02;
+            $new_balance = $record['balance'] + ($difference - $deduction);
 
 
             $record->update([
@@ -72,6 +75,14 @@ class EditAllocation extends EditRecord
                 : 'This Allocation with the provided details already exists.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        if ($data['attributor_particular_id']) {
+            $particular = Particular::find($data['attributor_particular_id']);
+
+            if (!$particular) {
+                throw new \Exception("The 'attributor_particular_id' does not exist in the 'particulars' table.");
+            }
         }
     }
 }

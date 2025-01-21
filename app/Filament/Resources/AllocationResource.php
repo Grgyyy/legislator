@@ -86,8 +86,6 @@ class AllocationResource extends Resource
 
                 Select::make('attributor_particular_id')
                     ->label('Attributor Particular')
-                    ->required()
-                    ->markAsRequired(false)
                     ->searchable()
                     ->preload()
                     ->native(false)
@@ -223,17 +221,6 @@ class AllocationResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('attributorParticular.subParticular.name')
-                    ->label('Attributor Particular')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable()
-                    ->getStateUsing(function ($record) {
-                        $attributor = $record->attributor->name ?? "-";
-
-                        return $attributor;
-                    }),
-                
                 TextColumn::make('attributor.name')
                     ->label('Attributor')
                     ->sortable()
@@ -243,6 +230,23 @@ class AllocationResource extends Resource
                         $attributor = $record->attributor->name ?? "-";
 
                         return $attributor;
+                    }),
+
+                TextColumn::make('attributorParticular.subParticular.name')
+                    ->label('Attributor Particular')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $particularName = $record->attributorParticular->subParticular->name ?? "-";
+                        $regionName = $record->attributorParticular->district->province->region->name ??"-";
+
+                        if ($particularName === 'RO Regular' || $particularName === 'CO Regular') {
+                            return $particularName . ' - ' . $regionName;
+                        }
+                        else {
+                            return $particularName;
+                        }
                     }),
 
                 TextColumn::make("legislator.name")
@@ -262,7 +266,7 @@ class AllocationResource extends Resource
                         $district = $particular->district;
                         $municipality = $district ? $district->underMunicipality : null;
                         $districtName = $district ? $district->name : 'Unknown District';
-                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                        $municipalityName = $municipality ? $municipality->name : '';
                         $provinceName = $district ? $district->province->name : 'Unknown Province';
                         $regionName = $district ? $district->province->region->name : 'Unknown Region';
 

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\AllocationResource\Pages;
 
 use App\Models\Allocation;
 use App\Filament\Resources\AllocationResource;
+use App\Models\Particular;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -43,6 +44,9 @@ class CreateAllocation extends CreateRecord
     {
         $this->validateUniqueAllocation($data);
 
+        // Validate that the 'attributor_particular_id' exists in the 'particulars' table
+        $this->validateAttributorParticularId($data['attributor_particular_id']);
+
         $adminCost = $this->calculateAdminCost($data['allocation']);
         $balance = $this->calculateBalance($data['allocation'], $adminCost);
 
@@ -65,6 +69,17 @@ class CreateAllocation extends CreateRecord
         NotificationHandler::sendSuccessNotification('Created', 'Allocation has been created successfully.');
 
         return $allocation;
+    }
+
+    protected function validateAttributorParticularId($attributorParticularId): void
+    {
+        if ($attributorParticularId) {
+            $particular = Particular::find($attributorParticularId);
+
+            if (!$particular) {
+                throw new \Exception("The 'attributor_particular_id' does not exist in the 'particulars' table.");
+            }
+        }
     }
 
     /**
