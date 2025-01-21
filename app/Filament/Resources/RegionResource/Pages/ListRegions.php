@@ -28,7 +28,8 @@ class ListRegions extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('attachment')
-                        ->required(),
+                        ->required()
+                        ->markAsRequired(false),
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);
