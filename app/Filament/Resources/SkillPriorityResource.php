@@ -135,7 +135,7 @@ class SkillPriorityResource extends Resource
                 ,
                 TextColumn::make('available_slots')
                     ->label('Available Slots'),
-                TextColumn::make('total_total_slots')
+                TextColumn::make('total_slots')
                     ->label('Total Slots'),
                 TextColumn::make('year')
                     ->label('Year'),
@@ -196,20 +196,40 @@ class SkillPriorityResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected Skills Priority have been deleted successfully.');
+                        }),
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected Skills Priority have been restored successfully.');
+                        }),
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected Skills Priority have been deleted permanently.');
+                        }),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
-                                    Column::make('title')->heading('Training Program Title'),
-                                    Column::make('total_available_slots')->heading('Available Slots'),
-                                    Column::make('total_total_slots')->heading('Total Slots'),
+                                    Column::make('provinces.name')
+                                        ->heading('Province'),
+                                    Column::make('trainingPrograms.title')
+                                        ->heading('Training Program Title'),
+                                    Column::make('available_slots')
+                                        ->heading('Available Slots'),
+                                    Column::make('total_slots')
+                                        ->heading('Total Slots'),
                                     Column::make('year')->heading('Year'),
                                 ])
                                 ->withFilename(date('Y-m-d') . '-skill-priorities-export.xlsx'),
                         ])
-                        ->action(function () {
-                            Log::info('Export triggered');
-                        })
                 ]),
             ]);
     }

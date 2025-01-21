@@ -842,7 +842,6 @@ class CompliantTargetsResource extends Resource
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
-        // Ensure the user is authenticated before checking policies
         return $user && app(TargetPolicy::class)->viewActionable($user);
     }
 
@@ -851,7 +850,6 @@ class CompliantTargetsResource extends Resource
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
-        // Ensure the user is authenticated before checking policies
         return $user && app(TargetPolicy::class)->update($user, $record);
     }
 }
