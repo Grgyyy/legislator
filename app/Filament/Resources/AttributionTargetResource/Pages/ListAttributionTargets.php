@@ -6,6 +6,7 @@ use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
 use App\Exports\AttributionTargetExport;
@@ -78,7 +79,8 @@ class ListAttributionTargets extends ListRecords
                     } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
                     }
-                }),
+                })
+                ->visible(fn() => Auth::user()->hasRole('Super Admin')),
         ];
     }
 

@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Models\Tvi;
 use App\Models\Abdd;
+use App\Models\User;
 use Filament\Tables;
 use App\Models\Target;
 use Filament\Forms\Form;
@@ -15,10 +16,12 @@ use App\Models\DeliveryMode;
 use App\Models\TargetStatus;
 use Filament\Actions\Action;
 use App\Models\SubParticular;
+use App\Policies\TargetPolicy;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use Filament\Actions\DeleteAction;
+use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
@@ -832,5 +835,23 @@ class CompliantTargetsResource extends Resource
         $fundSource = $subParticular ? $subParticular->fundSource : null;
 
         return $fundSource ? $fundSource->name : 'No Fund Source Available';
+    }
+
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->viewActionable($user);
+    }
+
+    public static function canUpdate($record): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->update($user, $record);
     }
 }

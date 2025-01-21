@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Models\Tvi;
 use Filament\Forms;
 use App\Models\Abdd;
+use App\Models\User;
 use Filament\Tables;
 use App\Models\Target;
 use Filament\Forms\Form;
@@ -17,6 +18,7 @@ use App\Models\TargetRemark;
 use App\Models\TargetStatus;
 use Filament\Actions\Action;
 use App\Models\SubParticular;
+use App\Policies\TargetPolicy;
 use Filament\Resources\Resource;
 use App\Models\NonCompliantTarget;
 use App\Models\QualificationTitle;
@@ -38,6 +40,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\NonCompliantTargetResource\Pages;
 use App\Filament\Resources\NonCompliantTargetResource\RelationManagers;
+use Illuminate\Support\Facades\Auth;
 
 class NonCompliantTargetResource extends Resource
 {
@@ -1104,4 +1107,26 @@ class NonCompliantTargetResource extends Resource
 
         return $fundSource ? $fundSource->name : 'No Fund Source Available';
     }
+
+
+
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->viewActionable($user);
+    }
+
+    public static function canUpdate($record): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->update($user, $record);
+    }
+
+
 }

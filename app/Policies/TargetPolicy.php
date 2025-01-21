@@ -4,61 +4,60 @@ namespace App\Policies;
 
 use App\Models\Target;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TargetPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
+
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal', 'RO', 'TESDO']);
+        if ($user->hasRole('TESDO')) {
+            return true;
+        }
+
+        return $user->hasRole(['SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin']);
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Target $target): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal', 'RO', 'TESDO']);
+        return $user->hasRole(['TESDO', 'SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin']);
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
     public function create(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal', 'TESDO']);
+        if ($user->hasRole(['SMD Head', 'TESDO', 'Admin', 'Super Admin'])) {
+            return true;
+        }
+        return false;
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
     public function update(User $user, Target $target): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
+        if ($user->hasRole(['SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin'])) {
+            return true;
+        }
+        return false;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
+    public function viewPending(User $user): bool
+    {
+        return $user->hasRole('TESDO') || $user->hasRole(['SMD Head', 'SMD Focal', 'Admin', 'Super Admin']);
+    }
+
+    public function viewActionable(User $user): bool
+    {
+        return $user->hasRole(['SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin']);
+    }
+
     public function delete(User $user, Target $target): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'TESDO']);
+        return $user->hasRole(['Admin', 'Super Admin']);
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
     public function restore(User $user, Target $target): bool
     {
         return $user->hasRole('Super Admin');
     }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
     public function forceDelete(User $user, Target $target): bool
     {
         return $user->hasRole('Super Admin');

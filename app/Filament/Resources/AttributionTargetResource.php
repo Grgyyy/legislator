@@ -2,44 +2,48 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AttributionTargetResource\Pages;
+use App\Models\Tvi;
 use App\Models\Abdd;
+use App\Models\Target;
+use Filament\Forms\Form;
 use App\Models\Allocation;
-use App\Models\DeliveryMode;
 use App\Models\Legislator;
 use App\Models\Particular;
+use Filament\Tables\Table;
+use App\Models\DeliveryMode;
 use App\Models\ProvinceAbdd;
+use App\Models\TargetStatus;
+use Filament\Actions\Action;
+use App\Models\SubParticular;
+use App\Policies\TargetPolicy;
+use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use App\Models\SubParticular;
-use App\Models\Target;
-use App\Models\TargetStatus;
-use App\Models\Tvi;
 use App\Services\NotificationHandler;
-use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use App\Filament\Resources\AttributionTargetResource\Pages;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Traits\HasRoles;
+
 
 class AttributionTargetResource extends Resource
 {
@@ -1023,11 +1027,13 @@ class AttributionTargetResource extends Resource
                     Action::make('setAsCompliant')
                         ->label('Set as Compliant')
                         ->icon('heroicon-o-check-circle')
-                        ->url(fn($record) => route('filament.admin.resources.compliant-targets.create', ['record' => $record->id])),
+                        ->url(fn($record) => route('filament.admin.resources.compliant-targets.create', ['record' => $record->id]))
+                        ->visible(fn() => !Auth::user()->hasRole('TESDO')),
                     Action::make('setAsNonCompliant')
                         ->label('Set as Non-Compliant')
                         ->icon('heroicon-o-x-circle')
-                        ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id])),
+                        ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id]))
+                        ->visible(fn() => !Auth::user()->hasRole('TESDO')),
 
                     //skills prio or province abdd??
                     DeleteAction::make()
@@ -1402,27 +1408,27 @@ class AttributionTargetResource extends Resource
 
         $qualificationTitles =
             QualificationTitle::whereIn('training_program_id', $skillPriorities)
-            ->whereIn('training_program_id', $institutionPrograms)
-            ->where('scholarship_program_id', $scholarshipProgramId)
-            ->where('status_id', 1)
-            ->where('soc', 1)
-            ->whereNull('deleted_at')
-            ->with('trainingProgram')
-            ->get()
-            ->mapWithKeys(function ($qualification) {
-                $title = $qualification->trainingProgram->title;
+                ->whereIn('training_program_id', $institutionPrograms)
+                ->where('scholarship_program_id', $scholarshipProgramId)
+                ->where('status_id', 1)
+                ->where('soc', 1)
+                ->whereNull('deleted_at')
+                ->with('trainingProgram')
+                ->get()
+                ->mapWithKeys(function ($qualification) {
+                    $title = $qualification->trainingProgram->title;
 
-                // Check for 'NC' pattern and capitalize it
-                if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
-                    $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                        return 'NC ' . strtoupper($matches[1]);
-                    }, $title);
-                }
+                    // Check for 'NC' pattern and capitalize it
+                    if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                        $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                            return 'NC ' . strtoupper($matches[1]);
+                        }, $title);
+                    }
 
-                return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+                    return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
 
-            })
-            ->toArray();
+                })
+                ->toArray();
 
         return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }
@@ -1451,7 +1457,7 @@ class AttributionTargetResource extends Resource
             $query->withoutGlobalScopes([SoftDeletingScope::class])
                 ->where('target_status_id', '=', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
-                    $subQuery->where('soc', 1); 
+                    $subQuery->where('soc', 1);
                 })
                 ->whereNot('attribution_allocation_id', null);
 
@@ -1512,5 +1518,24 @@ class AttributionTargetResource extends Resource
 
             })
             ->toArray() ?: ['no_particular' => 'No particular available'];
+    }
+
+
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->viewActionable($user);
+    }
+
+    public static function canUpdate($record): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->update($user, $record);
     }
 }

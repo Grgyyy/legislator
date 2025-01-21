@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Traits\HasRoles;
+
 
 class User extends Authenticatable implements FilamentUser, HasAvatar
 {
@@ -80,6 +81,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             'Director',
             'SMD Head',
             'SMD Focal',
+            'Planning Office',
             'RO',
             'PO/DO',
             'TESDO',
