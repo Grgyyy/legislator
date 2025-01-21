@@ -28,6 +28,7 @@ class UserSeeder extends Seeder
             ['name' => 'Joemar Caballero', 'email' => 'jbcaballero@tesda.gov.ph', 'role' => 'SMD Head'],
             ['name' => 'Glenford M. Prospero ', 'email' => 'gmprospero@tesda.gov.ph', 'role' => 'SMD Head'],
             ['name' => 'SMD Focal', 'email' => 'smdfocal@gmail.com', 'role' => 'SMD Focal'],
+            ['name' => 'Planning Office', 'email' => 'planning@gmail.com', 'role' => 'Planning Office'],
             ['name' => 'TESDO', 'email' => 'tesdo@gmail.com', 'role' => 'TESDO'],
             ['name' => 'Region I', 'email' => 'regionI@gmail.com', 'role' => 'RO'],
             ['name' => 'Region II', 'email' => 'regionII@gmail.com', 'role' => 'RO'],

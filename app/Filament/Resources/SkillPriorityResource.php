@@ -223,17 +223,4 @@ class SkillPriorityResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): Builder
-    {
-        return parent::getEloquentQuery()
-            ->join('training_programs', 'training_programs.id', '=', 'skill_priorities.training_program_id')
-            ->select(
-                'training_programs.id',
-                'training_programs.title',
-                'skill_priorities.year',
-                DB::raw('SUM(skill_priorities.available_slots) as total_available_slots'),
-                DB::raw('SUM(skill_priorities.total_slots) as total_total_slots')
-            )
-            ->groupBy('training_programs.id', 'skill_priorities.year');
-    }
 }

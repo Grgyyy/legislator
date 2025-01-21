@@ -2,12 +2,10 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Abdd;
-use App\Models\ProvinceAbdd;
-use App\Models\SkillPriority;
-use App\Services\NotificationHandler;
 use Throwable;
 use App\Models\Tvi;
+use App\Models\Abdd;
+use App\Models\User;
 use App\Models\Region;
 use App\Models\Target;
 use Filament\Forms\Form;
@@ -17,16 +15,19 @@ use App\Models\Particular;
 use Filament\Tables\Table;
 use App\Models\DeliveryMode;
 use App\Models\LearningMode;
+use App\Models\ProvinceAbdd;
 use App\Models\TargetStatus;
 use Filament\Actions\Action;
+use App\Models\SkillPriority;
 use App\Models\TargetHistory;
+use App\Policies\TargetPolicy;
 use Filament\Facades\Filament;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
+use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Actions\EditAction;
@@ -48,6 +49,8 @@ use App\Filament\Resources\TargetResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Traits\HasRoles;
 
 class TargetResource extends Resource
 {
@@ -192,7 +195,7 @@ class TargetResource extends Resource
                             ->preload()
                             // ->options(function ($get) {
                             //     $tviId = $get('tvi_id');
-
+    
                             //     return $tviId
                             //         ? self::getAbddSectors($tviId)
                             //         : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
@@ -572,7 +575,7 @@ class TargetResource extends Resource
                                     ->native(false)
                                     // ->options(function ($get) {
                                     //     $tviId = $get('tvi_id');
-
+    
                                     //     return $tviId
                                     //         ? self::getAbddSectors($tviId)
                                     //         : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
@@ -649,23 +652,23 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-
+    
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-
+    
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-
+    
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-
+    
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
                         //         }
                         //     })
-
+    
 
                     ];
                 }
@@ -897,11 +900,15 @@ class TargetResource extends Resource
                     Action::make('setAsCompliant')
                         ->label('Set as Compliant')
                         ->url(fn($record) => route('filament.admin.resources.compliant-targets.create', ['record' => $record->id]))
-                        ->icon('heroicon-o-check-circle'),
+                        ->icon('heroicon-o-check-circle')
+                        ->visible(fn() => !Auth::user()->hasRole('TESDO')),
+
                     Action::make('setAsNonCompliant')
                         ->label('Set as Non-Compliant')
                         ->url(fn($record) => route('filament.admin.resources.non-compliant-targets.create', ['record' => $record->id]))
-                        ->icon('heroicon-o-x-circle'),
+                        ->icon('heroicon-o-x-circle')
+                        ->visible(fn() => !Auth::user()->hasRole('TESDO')),
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $allocation = $record->allocation;
@@ -909,7 +916,7 @@ class TargetResource extends Resource
 
                             $qualificationTitleId = $record->qualification_title_id;
                             $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
-                           
+
                             $provinceId = $record->tvi->district->province_id;
 
                             $quali = QualificationTitle::find($qualificationTitleId);
@@ -927,7 +934,7 @@ class TargetResource extends Resource
                                 $toolkit->available_number_of_toolkits += $slots;
                                 $toolkit->save();
                             }
-                           
+
                             $skillPriority = SkillPriority::where('province_id', $provinceId)
                                 ->where('training_program_id', $trainingProgramId)
                                 ->where('year', $allocation->year)
@@ -950,7 +957,7 @@ class TargetResource extends Resource
 
                             $qualificationTitleId = $record->qualification_title_id;
                             $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
-                        
+
                             $provinceId = $record->tvi->district->province_id;
 
                             $quali = QualificationTitle::find($qualificationTitleId);
@@ -968,7 +975,7 @@ class TargetResource extends Resource
                                 $toolkit->available_number_of_toolkits -= $slots;
                                 $toolkit->save();
                             }
-                        
+
                             $skillPriority = SkillPriority::where('province_id', $provinceId)
                                 ->where('training_program_id', $trainingProgramId)
                                 ->where('year', $allocation->year)
@@ -985,7 +992,7 @@ class TargetResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         }),
-                    
+
                     ForceDeleteAction::make()
                 ])
             ])
@@ -1334,27 +1341,27 @@ class TargetResource extends Resource
 
         $qualificationTitles =
             QualificationTitle::whereIn('training_program_id', $skillPriorities)
-            ->whereIn('training_program_id', $institutionPrograms)
-            ->where('scholarship_program_id', $scholarshipProgramId)
-            ->where('status_id', 1)
-            ->where('soc', 1)
-            ->whereNull('deleted_at')
-            ->with('trainingProgram')
-            ->get()
-            ->mapWithKeys(function ($qualification) {
-                $title = $qualification->trainingProgram->title;
+                ->whereIn('training_program_id', $institutionPrograms)
+                ->where('scholarship_program_id', $scholarshipProgramId)
+                ->where('status_id', 1)
+                ->where('soc', 1)
+                ->whereNull('deleted_at')
+                ->with('trainingProgram')
+                ->get()
+                ->mapWithKeys(function ($qualification) {
+                    $title = $qualification->trainingProgram->title;
 
-                // Check for 'NC' pattern and capitalize it
-                if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
-                    $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                        return 'NC ' . strtoupper($matches[1]);
-                    }, $title);
-                }
+                    // Check for 'NC' pattern and capitalize it
+                    if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                        $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                            return 'NC ' . strtoupper($matches[1]);
+                        }, $title);
+                    }
 
-                return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+                    return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
 
-            })
-            ->toArray();
+                })
+                ->toArray();
 
         return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }
@@ -1504,6 +1511,23 @@ class TargetResource extends Resource
 
     //     return $query;
     // }
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->viewActionable($user);
+    }
+
+    public static function canUpdate($record): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->update($user, $record);
+    }
 
 }
 

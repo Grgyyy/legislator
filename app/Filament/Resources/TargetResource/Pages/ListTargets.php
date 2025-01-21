@@ -8,6 +8,7 @@ use App\Imports\AdminTargetImport;
 use Filament\Actions\CreateAction;
 use Illuminate\Support\Facades\Log;
 use App\Exports\PendingTargetExport;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
 use PhpOffice\PhpSpreadsheet\Exception;
@@ -88,7 +89,8 @@ class ListTargets extends ListRecords
                     } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
                     }
-                }),
+                })
+                ->visible(fn() => Auth::user()->hasRole('Super Admin')),
         ];
     }
 }

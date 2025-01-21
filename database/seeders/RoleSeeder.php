@@ -19,6 +19,7 @@ class RoleSeeder extends Seeder
             'Director',
             'SMD Head',
             'SMD Focal',
+            'Planning Office',
             'TESDO',
             'RO',
             'PO/DO',
