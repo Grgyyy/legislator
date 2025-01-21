@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ProvinceResource\Pages;
 
 use App\Models\Province;
 use App\Filament\Resources\ProvinceResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,9 @@ class CreateProvince extends CreateRecord
 
     protected function handleRecordCreation(array $data): Province
     {
-        $this->validateUniqueProvince($data['name'], $data['code'], $data['region_id']);
+        $this->validateUniqueProvince($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $province = DB::transaction(fn() => Province::create([
             'name' => $data['name'],
@@ -38,12 +41,11 @@ class CreateProvince extends CreateRecord
         return $province;
     }
 
-    protected function validateUniqueProvince($name, $code, $regionId)
+    protected function validateUniqueProvince($data)
     {
         $province = Province::withTrashed()
-            ->where('name', $name)
-            ->where('code', $code)
-            ->where('region_id', $regionId)
+            ->where('name', $data['name'])
+            ->where('region_id', $data['region_id'])
             ->first();
 
         if ($province) {
@@ -52,6 +54,20 @@ class CreateProvince extends CreateRecord
                 : 'A province with this name already exists in the specified region.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        if (!empty($data['code'])) {
+            $code = Province::withTrashed()
+                ->whereRaw('CAST(code AS UNSIGNED) = ?', [(int)$data['code']])
+                ->first();
+
+            if ($code) {
+                $message = $code->deleted_at 
+                    ? 'A province with this PSG code already exists and has been deleted.' 
+                    : 'A province with this PSG code already exists.';
+            
+                NotificationHandler::handleValidationException('Invalid Code', $message);
+            }
         }
     }
 }

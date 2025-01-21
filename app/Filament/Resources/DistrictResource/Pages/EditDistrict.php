@@ -4,12 +4,12 @@ namespace App\Filament\Resources\DistrictResource\Pages;
 use Exception;
 use App\Models\District;
 use App\Models\Province;
-use App\Models\Municipality;
 use Illuminate\Support\Facades\Log;
 use App\Services\NotificationHandler;
 use Illuminate\Database\QueryException;
 use Filament\Resources\Pages\EditRecord;
 use App\Filament\Resources\DistrictResource;
+use App\Helpers\Helper;
 
 class EditDistrict extends EditRecord
 {
@@ -30,7 +30,9 @@ class EditDistrict extends EditRecord
             }
         }
 
-        $this->validateUniqueDistrict($data['name'], $record->id, $data['code'], $data['municipality_id'], $data['province_id']);
+        $this->validateUniqueDistrict($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -63,22 +65,46 @@ class EditDistrict extends EditRecord
         }
     }
 
-    protected function validateUniqueDistrict($name, $currentId, $code, $municipalityId, $provinceId)
+    protected function validateUniqueDistrict($data, $currentId)
     {
-        $district = District::withTrashed()
-            ->where('name', $name)
-            ->where('code', $code)
-            ->where('province_id', $provinceId)
-            ->where('municipality_id', $municipalityId)
-            ->whereNot('id', $currentId)
-            ->first();
+        $districtQuery = District::withTrashed()
+            ->where('name', $data['name'])
+            ->where('province_id', $data['province_id'])
+            ->whereNot('id', $currentId);
+
+        if (!empty($data['municipality_id'])) {
+            $districtQuery->where('municipality_id', $data['municipality_id']);
+        }
+
+        $district = $districtQuery->first();
 
         if ($district) {
-            $message = $district->deleted_at
-                ? 'This district exists in the municipality but has been deleted; it must be restored before reuse.'
-                : 'A district with this name already exists in the specified municipality.';
+            if (!empty($data['municipality_id'])) {
+                $message = $district->deleted_at
+                    ? 'This district exists in the municipality but has been deleted; it must be restored before reuse.'
+                    : 'A district with this name already exists in the specified municipality.';
+            } else {
+                $message = $district->deleted_at
+                    ? 'This district exists in the province but has been deleted; it must be restored before reuse.'
+                    : 'A district with this name already exists in the specified province.';
+            }
 
             NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        if (!empty($data['code'])) {
+            $code = District::withTrashed()
+                ->whereRaw('CAST(code AS UNSIGNED) = ?', [(int)$data['code']])
+                ->whereNot('id', $currentId)
+                ->first();
+
+            if ($code) {
+                $message = $code->deleted_at 
+                    ? 'A district with this PSG code already exists and has been deleted.' 
+                    : 'A district with this PSG code already exists.';
+            
+                NotificationHandler::handleValidationException('Invalid Code', $message);
+            }
         }
     }
 }

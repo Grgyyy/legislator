@@ -4,6 +4,7 @@ namespace App\Filament\Resources\RegionResource\Pages;
 
 use App\Models\Region;
 use App\Filament\Resources\RegionResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,9 @@ class CreateRegion extends CreateRecord
 
     protected function handleRecordCreation(array $data): Region
     {
-        $this->validateUniqueRegion($data['name']);
+        $this->validateUniqueRegion($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $region = DB::transaction(fn() => Region::create([
             'name' => $data['name'],
@@ -31,10 +34,10 @@ class CreateRegion extends CreateRecord
         return $region;
     }
 
-    protected function validateUniqueRegion($name)
+    protected function validateUniqueRegion($data)
     {
         $region = Region::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->first();
 
         if ($region) {
@@ -43,6 +46,20 @@ class CreateRegion extends CreateRecord
                 : 'A region with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        if (!empty($data['code'])) {
+            $code = Region::withTrashed()
+                ->whereRaw('CAST(code AS UNSIGNED) = ?', [(int)$data['code']])
+                ->first();
+
+            if ($code) {
+                $message = $code->deleted_at 
+                    ? 'A region with this PSG code already exists and has been deleted.' 
+                    : 'A region with this PSG code already exists.';
+            
+                NotificationHandler::handleValidationException('Invalid Code', $message);
+            }
         }
     }
 }
