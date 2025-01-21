@@ -64,6 +64,7 @@ class DistrictResource extends Resource
                     ->markAsRequired(false)
                     ->searchable()
                     ->preload()
+                    ->default(fn($get) => request()->get('province_id'))
                     ->native(false)
                     ->options(function () {
                         return Province::whereNot('name', 'Not Applicable')
@@ -254,10 +255,7 @@ class DistrictResource extends Resource
         $routeParameter = request()->route('record');
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable')
-            ->orderBy('province_id')
-            ->orderBy('municipality_id')
-            ->orderBy('name');
+            ->whereNot('name', 'Not Applicable');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('province_id', (int) $routeParameter);

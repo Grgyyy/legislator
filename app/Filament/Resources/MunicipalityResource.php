@@ -72,6 +72,7 @@ class MunicipalityResource extends Resource
                     ->markAsRequired(false)
                     ->searchable()
                     ->preload()
+                    ->default(fn($get) => request()->get('province_id'))
                     ->native(false)
                     ->options(function () {
                         return Province::whereNot('name', 'Not Applicable')
@@ -93,6 +94,11 @@ class MunicipalityResource extends Resource
                     ->searchable()
                     ->preload()
                     ->multiple()
+                    ->default(function ($get) {
+                        // Default to district_id based on selected province, if any
+                        $provinceId = $get('province_id');
+                        return $provinceId ? District::where('province_id', $provinceId)->pluck('id')->toArray() : [];
+                    })
                     ->native(false)
                     ->options(function (callable $get) {
                         $selectedProvince = $get('province_id');
@@ -271,9 +277,7 @@ class MunicipalityResource extends Resource
                 $query->whereHas('district', function (Builder $subQuery) use ($districtId) {
                     $subQuery->where('districts.id', $districtId);
                 });
-            })
-            ->orderBy('province_id')
-            ->orderBy('name');
+            });
     }
 
     public static function getPages(): array

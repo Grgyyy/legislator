@@ -175,9 +175,7 @@ class ProvinceResource extends Resource
         $routeParameter = request()->route('record');
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable')
-            ->orderBy('region_id')
-            ->orderBy('name');
+            ->whereNot('name', 'Not Applicable');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('region_id', (int) $routeParameter);

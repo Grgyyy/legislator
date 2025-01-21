@@ -35,7 +35,7 @@ class ShowDistrict extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus')
-                ->url(route('filament.admin.resources.districts.create', ['district_id' => $provinceId])),
+                ->url(route('filament.admin.resources.districts.create', ['province_id' => $provinceId])),
         ];
     }
 
