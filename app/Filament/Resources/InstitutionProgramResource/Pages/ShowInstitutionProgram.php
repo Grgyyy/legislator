@@ -25,8 +25,8 @@ class ShowInstitutionProgram extends ListRecords
         $tvi = $this->getTvi();
 
         return [
-            route('filament.admin.resources.training-programs.index') => $tvi ? $tvi->name . "'s Qualification Titles" : "Institution's Training Program",
-            'Edit',
+            route('filament.admin.resources.tvis.index') => $tvi ? $tvi->name : "Institution",
+            'Qualification Titles',
         ];
     }
 
