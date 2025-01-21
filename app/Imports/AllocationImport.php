@@ -29,20 +29,23 @@ class AllocationImport implements ToModel, WithHeadingRow
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
-            try{
+            try {
+                // Get legislator and attributor details (attributor_id may be null)
                 $legislatorRecord = $this->getLegislatorId($row['legislator']);
+                $attributorRecord = $row['attributor'] ? $this->getLegislatorId($row['attributor']) : null;
                 $subParticularRecord = $this->getSubParticularName($row['particular']);
                 $partylistRecord = $this->getPartylist($row['partylist']);
                 $districtRecord = $this->getDistrict($row);
                 $particularRecord = $this->getParticularRecord($subParticularRecord->id, $partylistRecord->id, $districtRecord->id);
-                $scholarshipProgramRecord = $this->getScholarhipProgram($row['scholarship_program']);
+                $scholarshipProgramRecord = $this->getScholarshipProgram($row['scholarship_program']);
                 $allocation = $row['allocation'];
                 $adminCost = $allocation * 0.02;
 
+                // Check if the allocation already exists (handle attributor_id properly)
                 $allocationRecord = Allocation::where('legislator_id', $legislatorRecord->id)
+                    ->where('attributor_id', $attributorRecord ? $attributorRecord->id : null)  // Handle nullable attributor_id
                     ->where('particular_id', $particularRecord->id)
                     ->where('scholarship_program_id', $scholarshipProgramRecord->id)
-                    ->where('soft_or_commitment', $row['soft_or_commitment'])
                     ->where('year', $row['year'])
                     ->first();
 
@@ -51,11 +54,12 @@ class AllocationImport implements ToModel, WithHeadingRow
                         ? 'This allocation with the provided details has been deleted and must be restored before reuse.'
                         : 'This Allocation with the provided details already exists.';
 
-                        throw new \Exception($message);
-                }
-                else {
+                    throw new \Exception($message);
+                } else {
+                    // Create a new allocation if not found
                     $allocationRecord = Allocation::create([
                         'soft_or_commitment' => $row['soft_or_commitment'],
+                        'attributor_id' => $attributorRecord ? $attributorRecord->id : null, // Only assign if not null
                         'legislator_id' => $legislatorRecord->id,
                         'particular_id' => $particularRecord->id,
                         'scholarship_program_id' => $scholarshipProgramRecord->id,
@@ -66,13 +70,13 @@ class AllocationImport implements ToModel, WithHeadingRow
                     ]);
                 }
 
-            }
-            catch (Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error('Failed to import allocation: ' . $e->getMessage());
                 throw $e;
             }
         });
     }
+
 
     protected function validateRow(array $row)
     {
@@ -86,6 +90,12 @@ class AllocationImport implements ToModel, WithHeadingRow
 
         if (!is_numeric($row['allocation']) || $row['allocation'] <= 0) {
             throw new \Exception("Validation error: The field 'allocation' must be a positive number. No changes were saved.");
+        }
+
+        if ($row['attributor'] != null) {
+            if($row['legislator'] === $row['attributor']) {
+                throw new \Exception("Validation error: The field 'legislator' and 'attribution' must be different. No changes were saved.");
+            }
         }
     }
 
@@ -185,7 +195,7 @@ class AllocationImport implements ToModel, WithHeadingRow
         return $particular;
     }
 
-    protected function getScholarhipProgram(string $scholarshipProgramName) {
+    protected function getScholarshipProgram(string $scholarshipProgramName) {
         $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)
             ->first();
 

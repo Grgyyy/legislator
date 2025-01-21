@@ -197,6 +197,7 @@ class AllocationResource extends Resource
                 TextColumn::make('attributor.name')
                     ->label('Attributor')
                     ->sortable()
+                    ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $attributor = $record->attributor->name ?? "-";
@@ -530,6 +531,8 @@ class AllocationResource extends Resource
                                 ->withColumns([
                                     Column::make('soft_or_commitment')
                                         ->heading('Soft of Commitment'),
+                                    Column::make('attributor.name')
+                                        ->heading('Attributor'),
                                     Column::make('legislator.name')
                                         ->heading('Legislator'),
                                     Column::make('particular.name')
@@ -582,12 +585,19 @@ class AllocationResource extends Resource
                                     Column::make('balance')
                                         ->heading('Balance')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                    Column::make('attribution_sent')
-                                        ->heading('Attribution Sent')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                    Column::make('attribution_received')
-                                        ->heading('Attribution Received')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    // Column::make('attribution_sent')
+                                    //     ->heading('Attribution Sent')
+                                    //     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    // Column::make('attribution_received')
+                                    //     ->heading('Attribution Received')
+                                    //     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('expended_funds')
+                                        ->heading('Funds Expended')
+                                        ->getStateUsing(function ($record) {
+                                            $fundsExpended = $record->target->sum('total_amount');
+                                    
+                                            return '₱ ' . number_format($fundsExpended, 2, '.', ',');
+                                        }),
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
