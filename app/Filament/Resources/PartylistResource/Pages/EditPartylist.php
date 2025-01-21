@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PartylistResource\Pages;
 
 use App\Models\Partylist;
 use App\Filament\Resources\PartylistResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -18,7 +19,7 @@ class EditPartylist extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/partylists' => 'Party-lists',
+            '/party-lists' => 'Party-lists',
             'Edit'
         ];
     }
@@ -30,8 +31,10 @@ class EditPartylist extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Partylist
     {
-        $this->validateUniquePartyList($data['name'], $record->id);
+        $this->validateUniquePartyList($data, $record->id);
 
+        $data['name'] = Helper::capitalizeWords($data['name']);
+        
         try {
             $record->update($data);
 
@@ -47,16 +50,16 @@ class EditPartylist extends EditRecord
         return $record;
     }
 
-    protected function validateUniquePartyList($name, $currentId)
+    protected function validateUniquePartyList($data, $currentId)
     {
         $partyList = Partylist::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->whereNot('id', $currentId)
             ->first();
 
         if ($partyList) {
             $message = $partyList->deleted_at
-                ? 'This party-list has been deleted. Restoration is required before it can be reused.'
+                ? 'This party-list has been deleted and must be restored before reuse.'
                 : 'A party-list with this name already exists.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);

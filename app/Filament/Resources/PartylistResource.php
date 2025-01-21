@@ -38,13 +38,15 @@ class PartylistResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    protected static ?string $slug = "party-lists";
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make('name')
                     ->label('Party-list')
-                    ->placeholder(placeholder: 'Enter party-list name')
+                    ->placeholder('Enter party-list name')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
@@ -117,7 +119,7 @@ class PartylistResource extends Resource
                                     Column::make('name')
                                         ->heading('Party-list'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Party-list'),
+                                ->withFilename(date('m-d-Y') . ' - Party-lists'),
                         ]),
                 ])
             ]);

@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PartylistResource\Pages;
 
 use App\Models\Partylist;
 use App\Filament\Resources\PartylistResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ class CreatePartylist extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/partylists' => 'Party-lists',
+            '/party-lists' => 'Party-lists',
             'Create'
         ];
     }
@@ -29,7 +30,9 @@ class CreatePartylist extends CreateRecord
 
     protected function handleRecordCreation(array $data): Partylist
     {
-        $this->validateUniquePartyList($data['name']);
+        $this->validateUniquePartyList($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $partylist = DB::transaction(fn() => Partylist::create([
             'name' => $data['name'],
@@ -40,10 +43,10 @@ class CreatePartylist extends CreateRecord
         return $partylist;
     }
 
-    protected function validateUniquePartyList($name)
+    protected function validateUniquePartyList($data)
     {
         $partyList = Partylist::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->first();
 
         if ($partyList) {
