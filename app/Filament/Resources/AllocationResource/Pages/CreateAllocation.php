@@ -50,6 +50,7 @@ class CreateAllocation extends CreateRecord
             return Allocation::create([
                 'soft_or_commitment' => $data['soft_or_commitment'],
                 'legislator_id' => $data['legislator_id'],
+                'attributor_id' => $data['attributor_id'],
                 'particular_id' => $data['particular_id'],
                 'scholarship_program_id' => $data['scholarship_program_id'],
                 'allocation' => $data['allocation'],
@@ -73,9 +74,9 @@ class CreateAllocation extends CreateRecord
      */
     protected function validateUniqueAllocation(array $data): void
     {
-        $allocation = Allocation::withTrashed()
-            ->where('soft_or_commitment', $data['soft_or_commitment'])
+        $allocation = Allocation::where('soft_or_commitment', $data['soft_or_commitment'])
             ->where('legislator_id', $data['legislator_id'])
+            ->where('attributor_id', $data['attributor_id'])
             ->where('particular_id', $data['particular_id'])
             ->where('scholarship_program_id', $data['scholarship_program_id'])
             ->where('year', $data['year'])

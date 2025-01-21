@@ -59,16 +59,31 @@ class AllocationResource extends Resource
                         'Commitment' => 'Commitment'
                     ]),
 
-                Select::make('legislator_id')
-                    ->label('Legislator')
-                    ->relationship('legislator', 'name')
-                    ->required()
-                    ->markAsRequired(false)
+                Select::make('attributor_id')
+                    ->label('Attributor')
                     ->searchable()
                     ->preload()
                     ->native(false)
                     ->options(function () {
                         return Legislator::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_legislator' => 'No legislators available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_legislator')
+                    ->reactive()
+                    ->live(),
+
+                Select::make('legislator_id')
+                    ->label('Legislator')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function ($get) {
+                        $attributor_id = $get('attributor_id');
+
+                        return Legislator::whereNot('id', $attributor_id)
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_legislator' => 'No legislators available'];
                     })
@@ -133,7 +148,7 @@ class AllocationResource extends Resource
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                     ->reactive()
                     ->live()
-                    ->disabled(fn($livewire) => $livewire->isEdit())
+                    // ->disabled(fn($livewire) => $livewire->isEdit())
                     ->dehydrated()
                     ->validationAttribute('Allocation')
                     ->validationMessages([
@@ -178,6 +193,16 @@ class AllocationResource extends Resource
                     ->label('Source of Fund')
                     ->searchable()
                     ->toggleable(),
+
+                TextColumn::make('attributor.name')
+                    ->label('Attributor')
+                    ->sortable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $attributor = $record->attributor->name ?? "-";
+
+                        return $attributor;
+                    }),
 
                 TextColumn::make("legislator.name")
                     ->sortable()
@@ -257,19 +282,19 @@ class AllocationResource extends Resource
                         return number_format($difference, 2);
                     }),
 
-                TextColumn::make("attribution_sent")
-                    ->label('Attribution Sent')
-                    ->sortable()
-                    ->toggleable()
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                // TextColumn::make("attribution_sent")
+                //     ->label('Attribution Sent')
+                //     ->sortable()
+                //     ->toggleable()
+                //     ->prefix('₱')
+                //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                TextColumn::make("attribution_received")
-                    ->label('Attribution Received')
-                    ->sortable()
-                    ->toggleable()
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                // TextColumn::make("attribution_received")
+                //     ->label('Attribution Received')
+                //     ->sortable()
+                //     ->toggleable()
+                //     ->prefix('₱')
+                //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
                 TextColumn::make("expended_funds")
                     ->label('Funds Expended')

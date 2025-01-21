@@ -15,6 +15,7 @@ class Allocation extends Model
     protected $fillable = [
         'soft_or_commitment',
         'legislator_id',
+        'attributor_id',
         'particular_id',
         'scholarship_program_id',
         'allocation',
