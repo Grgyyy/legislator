@@ -26,7 +26,6 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -41,6 +40,8 @@ class SubParticularResource extends Resource
     protected static ?string $navigationLabel = "Particular Types";
     
     protected static ?int $navigationSort = 2;
+
+    protected static ?string $slug = "particular-types";
 
     public static function form(Form $form): Form
     {

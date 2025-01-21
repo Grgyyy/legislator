@@ -4,6 +4,7 @@ namespace App\Filament\Resources\SubParticularResource\Pages;
 
 use App\Models\SubParticular;
 use App\Filament\Resources\SubParticularResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -18,7 +19,7 @@ class EditSubParticular extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/sub-particulars' => 'Particular Types',
+            '/particular-types' => 'Particular Types',
             'Edit'
         ];
     }
@@ -30,7 +31,9 @@ class EditSubParticular extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): SubParticular
     {
-        $this->validateUniqueSubParticular($data['name'], $data['fund_source_id'], $record->id);
+        $this->validateUniqueSubParticular($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -47,17 +50,17 @@ class EditSubParticular extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueSubParticular($name, $fundSourceId, $currentId)
+    protected function validateUniqueSubParticular($data, $currentId)
     {
         $subParticular = SubParticular::withTrashed()
-            ->where('name', $name)
-            ->where('fund_source_id', $fundSourceId)
+            ->where('name', $data['name'])
+            ->where('fund_source_id', $data['fund_source_id'])
             ->whereNot('id', $currentId)
             ->first();
 
         if ($subParticular) {
             $message = $subParticular->deleted_at 
-                ? 'This particular type for the selected fund source has been deleted. Restoration is required before it can be reused.' 
+                ? 'This particular type for the selected fund source has been deleted and must be restored before reuse.' 
                 : 'A particular type for the selected fund source already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

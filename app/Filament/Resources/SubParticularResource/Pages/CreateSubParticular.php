@@ -4,6 +4,7 @@ namespace App\Filament\Resources\SubParticularResource\Pages;
 
 use App\Models\SubParticular;
 use App\Filament\Resources\SubParticularResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ class CreateSubParticular extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/sub-particulars' => 'Particular Types',
+            '/particular-types' => 'Particular Types',
             'Create'
         ];
     }
@@ -29,7 +30,9 @@ class CreateSubParticular extends CreateRecord
 
     protected function handleRecordCreation(array $data): SubParticular
     {
-        $this->validateUniqueSubParticular($data['name'], $data['fund_source_id']);
+        $this->validateUniqueSubParticular($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $subParticular = DB::transaction(fn() => SubParticular::create([
             'name' => $data['name'],
@@ -41,11 +44,11 @@ class CreateSubParticular extends CreateRecord
         return $subParticular;
     }
 
-    protected function validateUniqueSubParticular($name, $fundSourceId)
+    protected function validateUniqueSubParticular($data)
     {
         $subParticular = SubParticular::withTrashed()
-            ->where('name', $name)
-            ->where('fund_source_id', $fundSourceId)
+            ->where('name', $data['name'])
+            ->where('fund_source_id', $data['fund_source_id'])
             ->first();
 
         if ($subParticular) {
