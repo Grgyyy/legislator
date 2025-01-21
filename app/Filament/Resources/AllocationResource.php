@@ -65,11 +65,40 @@ class AllocationResource extends Resource
                     ->preload()
                     ->native(false)
                     ->options(function () {
-                        return Legislator::all()
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_legislator' => 'No legislators available'];
+                        return Legislator::all()->mapWithKeys(function ($record) {
+                            return [$record->id => $record->name];
+                        })->toArray() ?: ['no_legislator' => 'No legislators available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_legislator')
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        $set('attributor_particular_id', null);
+
+                        $particulars = self::getParticularOptions($state);
+
+                        $set('particularOptions', $particulars);
+
+                        if (count($particulars) === 1) {
+                            $set('attributor_particular_id', key($particulars));
+                        }
+                    })
+                    ->reactive()
+                    ->live(),
+
+                Select::make('attributor_particular_id')
+                    ->label('Attributor Particular')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function ($get) {
+                        $legislatorId = $get('attributor_id');
+
+                        return $legislatorId
+                            ? self::getParticularOptions($legislatorId)
+                            : ['no_particular' => 'No particulars available. Select a legislator first.'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_particular')
                     ->reactive()
                     ->live(),
 
@@ -194,6 +223,17 @@ class AllocationResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
+                TextColumn::make('attributorParticular.subParticular.name')
+                    ->label('Attributor Particular')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $attributor = $record->attributor->name ?? "-";
+
+                        return $attributor;
+                    }),
+                
                 TextColumn::make('attributor.name')
                     ->label('Attributor')
                     ->sortable()

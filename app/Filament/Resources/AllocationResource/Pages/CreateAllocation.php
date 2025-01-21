@@ -52,6 +52,7 @@ class CreateAllocation extends CreateRecord
                 'legislator_id' => $data['legislator_id'],
                 'attributor_id' => $data['attributor_id'],
                 'particular_id' => $data['particular_id'],
+                'attributor_particular_id' => $data['attributor_particular_id'],
                 'scholarship_program_id' => $data['scholarship_program_id'],
                 'allocation' => $data['allocation'],
                 'admin_cost' => $adminCost,
@@ -77,6 +78,7 @@ class CreateAllocation extends CreateRecord
         $allocation = Allocation::where('soft_or_commitment', $data['soft_or_commitment'])
             ->where('legislator_id', $data['legislator_id'])
             ->where('attributor_id', $data['attributor_id'])
+            ->where('attributor_particular_id', $data['attributor_particular_id'])
             ->where('particular_id', $data['particular_id'])
             ->where('scholarship_program_id', $data['scholarship_program_id'])
             ->where('year', $data['year'])

@@ -34,18 +34,22 @@ class AllocationImport implements ToModel, WithHeadingRow
                 $legislatorRecord = $this->getLegislatorId($row['legislator']);
                 $attributorRecord = $row['attributor'] ? $this->getLegislatorId($row['attributor']) : null;
                 $subParticularRecord = $this->getSubParticularName($row['particular']);
+                $attributorSubParticularRecord = $row['attributor_particular'] ? $this->getSubParticularName($row['attributor_particular']) : null;
                 $partylistRecord = $this->getPartylist($row['partylist']);
                 $districtRecord = $this->getDistrict($row);
                 $particularRecord = $this->getParticularRecord($subParticularRecord->id, $partylistRecord->id, $districtRecord->id);
+                $attributorParticularRecord = $row['attributor_particular'] ? $this->getParticularRecord($attributorSubParticularRecord->id, $partylistRecord->id, $districtRecord->id) : null;
                 $scholarshipProgramRecord = $this->getScholarshipProgram($row['scholarship_program']);
                 $allocation = $row['allocation'];
                 $adminCost = $allocation * 0.02;
 
                 // Check if the allocation already exists (handle attributor_id properly)
                 $allocationRecord = Allocation::where('legislator_id', $legislatorRecord->id)
-                    ->where('attributor_id', $attributorRecord ? $attributorRecord->id : null)  // Handle nullable attributor_id
+                    ->where('attributor_id', $attributorRecord ? $attributorRecord->id : null)  
+                    ->where('attributor_particular_id', $attributorParticularRecord ? $attributorParticularRecord->id : null)  
                     ->where('particular_id', $particularRecord->id)
                     ->where('scholarship_program_id', $scholarshipProgramRecord->id)
+                    ->where('soft_or_commitment', $row['soft_or_commitment'])
                     ->where('year', $row['year'])
                     ->first();
 
@@ -62,6 +66,7 @@ class AllocationImport implements ToModel, WithHeadingRow
                         'attributor_id' => $attributorRecord ? $attributorRecord->id : null, // Only assign if not null
                         'legislator_id' => $legislatorRecord->id,
                         'particular_id' => $particularRecord->id,
+                        'attributor_particular_id' => $attributorParticularRecord ? $attributorParticularRecord->id : null,
                         'scholarship_program_id' => $scholarshipProgramRecord->id,
                         'allocation' => $allocation,
                         'admin_cost' => $adminCost,

@@ -279,13 +279,15 @@ class TargetResource extends Resource
                                         return Legislator::where('status_id', 1)
                                             ->whereNull('deleted_at')
                                             ->whereHas('allocation', function ($query) {
-                                                $query->where('balance', '>', 0);
+                                                $query->where('balance', '>', 0)
+                                                ->where('soft_or_commitment', 'Soft');
                                             })
                                             ->pluck('name', 'id')
                                             ->toArray() ?: ['no_legislator' => 'No legislator available'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_legislators')
                                     ->afterStateUpdated(function ($state, callable $set) {
+                                        // Reset dependent fields
                                         if (!$state) {
                                             $set('particular_id', null);
                                             $set('scholarship_program_id', null);
@@ -293,36 +295,40 @@ class TargetResource extends Resource
                                             $set('appropriation_type', null);
                                             return;
                                         }
-
+                                
+                                        // Fetch allocations based on the selected legislator
                                         $allocations = Allocation::where('legislator_id', $state)
+                                            ->where('soft_or_commitment', 'Soft')
                                             ->with('particular', 'scholarship_program')
                                             ->get();
-
+                                
+                                        // Prepare options for the particular, scholarship programs, and allocation year
                                         $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                         $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-
-                                        $currentYear = now()->year;
-
+                                
+                                        // Set particular_id, scholarship_program_id, and allocation_year based on the allocations available
                                         if (count($particularOptions) === 1) {
                                             $set('particular_id', key($particularOptions));
                                         } else {
                                             $set('particular_id', null);
                                         }
-
+                                
                                         if (count($scholarshipProgramOptions) === 1) {
                                             $set('scholarship_program_id', key($scholarshipProgramOptions));
                                         } else {
                                             $set('scholarship_program_id', null);
                                         }
-
+                                
                                         $particularId = $particularOptions ? key($particularOptions) : null;
                                         $scholarshipProgramId = $scholarshipProgramOptions ? key($scholarshipProgramOptions) : null;
-
+                                
+                                        // Set allocation year and appropriation type if both particular and scholarship_program are set
                                         if ($particularId && $scholarshipProgramId) {
                                             if (count($allocations) === 1) {
                                                 $set('allocation_year', key($appropriationYearOptions));
-
+                                
+                                                $currentYear = now()->year;
                                                 if (key($appropriationYearOptions) == $currentYear) {
                                                     $set('appropriation_type', 'Current');
                                                 }
@@ -337,7 +343,7 @@ class TargetResource extends Resource
                                     })
                                     ->reactive()
                                     ->live(),
-
+                                
                                 Select::make('particular_id')
                                     ->label('Particular')
                                     ->required()
@@ -348,11 +354,11 @@ class TargetResource extends Resource
                                     ->options(function ($get) {
                                         $legislator_id = $get('legislator_id');
                                         $legislatorRecords = Legislator::find($legislator_id);
-
+                                
                                         if ($legislatorRecords) {
                                             // Get particulars with subParticular names
                                             $particulars = $legislatorRecords->particular()->with(['subParticular', 'district.province.region'])->get();
-
+                                
                                             if ($particulars->isNotEmpty()) {
                                                 // Prepare options array
                                                 $options = $particulars->mapWithKeys(function ($particular) {
@@ -363,8 +369,7 @@ class TargetResource extends Resource
                                                     $provinceName = $particular->district && $particular->district && $particular->district->province ? $particular->district->province->name : 'No Province';
                                                     $regionName = $particular->district && $particular->district && $particular->district->province && $particular->district->province->region ? $particular->district->province->region->name : 'No Region';
                                                     $partylistName = $particular->partylist ? $particular->partylist->name : 'No Partylist';
-
-
+                                
                                                     if ($fundSourceName === 'CO Legislator Funds') {
                                                         if ($subParticularName === 'Senator') {
                                                             return [$particular->id => "{$subParticularName}"];
@@ -386,44 +391,49 @@ class TargetResource extends Resource
                                                         $regionName = $particular->district?->province?->region ?? 'No Region';
                                                         return [$particular->id => "{$subParticularName} - {$regionName->name}"];
                                                     }
-
+                                
                                                     return [];
                                                 })->toArray();
-
+                                
                                                 return $options ?: ['no_particular' => 'No particular available'];
                                             }
                                         }
-
+                                
                                         return ['no_particular' => 'No particular available. Select a legislator first.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_particular')
                                     ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                        // If particular is cleared, reset dependent fields
                                         if (!$state) {
                                             $set('scholarship_program_id', null);
                                             $set('allocation_year', null);
                                             $set('appropriation_type', null);
                                             return;
                                         }
-
+                                
                                         $legislator_id = $get('legislator_id');
                                         $allocations = Allocation::where('legislator_id', $legislator_id)
                                             ->where('particular_id', $state)
+                                            ->where('soft_or_commitment', 'Soft')
                                             ->with('particular', 'scholarship_program')
                                             ->get();
-
+                                
                                         $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-
+                                
                                         $currentYear = now()->year;
-
+                                
                                         if (count($allocations) === 1) {
+                                            // If only one allocation exists, set values automatically
                                             $set('scholarship_program_id', key($scholarshipProgramOptions));
                                             $set('allocation_year', key($appropriationYearOptions));
-
+                                
+                                            // If the allocation year matches the current year, set the appropriation type as 'Current'
                                             if (key($appropriationYearOptions) == $currentYear) {
                                                 $set('appropriation_type', 'Current');
                                             }
                                         } else {
+                                            // If multiple allocations exist, clear the related fields
                                             $set('scholarship_program_id', null);
                                             $set('allocation_year', null);
                                             $set('appropriation_type', null);
@@ -489,7 +499,7 @@ class TargetResource extends Resource
                                     ->searchable()
                                     ->native(false)
                                     ->options(function ($get) {
-                                        $legislatorId = $get('allocation_legislator_id');
+                                        $legislatorId = $get('legislator_id');
                                         $particularId = $get('particular_id');
                                         $scholarshipProgramId = $get('scholarship_program_id');
 

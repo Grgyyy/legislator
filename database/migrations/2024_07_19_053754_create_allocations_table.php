@@ -31,6 +31,10 @@ return new class extends Migration {
                 ->nullable()
                 ->constrained('legislators')
                 ->cascadeOnDelete();
+            $table->foreignId('attributor_particular_id')
+                ->nullable()
+                ->constrained('particulars')
+                ->cascadeOnDelete();
             $table->year('year');
             $table->timestamps();
             $table->softDeletes();

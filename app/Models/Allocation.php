@@ -17,6 +17,7 @@ class Allocation extends Model
         'legislator_id',
         'attributor_id',
         'particular_id',
+        'attributor_particular_id',
         'scholarship_program_id',
         'allocation',
         'admin_cost',
@@ -44,6 +45,11 @@ class Allocation extends Model
     public function particular()
     {
         return $this->belongsTo(Particular::class);
+    }
+
+    public function attributorParticular()
+    {
+        return $this->belongsTo(Particular::class, 'attributor_particular_id');
     }
 
     public function target()
