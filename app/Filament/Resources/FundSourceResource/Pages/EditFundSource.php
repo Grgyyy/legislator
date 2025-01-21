@@ -4,6 +4,7 @@ namespace App\Filament\Resources\FundSourceResource\Pages;
 
 use App\Models\FundSource;
 use App\Filament\Resources\FundSourceResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -20,7 +21,9 @@ class EditFundSource extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): FundSource
     {
-        $this->validateUniqueFundSource($data['name'], $record->id);
+        $this->validateUniqueFundSource($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -37,16 +40,16 @@ class EditFundSource extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueFundSource($name, $currentId)
+    protected function validateUniqueFundSource($data, $currentId)
     {
         $fundSource = FundSource::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->whereNot('id', $currentId)
             ->first();
 
         if ($fundSource) {
             $message = $fundSource->deleted_at 
-                ? 'This fund source has been deleted. Restoration is required before it can be reused.' 
+                ? 'This fund source has been deleted and must be restored before reuse.' 
                 : 'A fund source with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

@@ -25,7 +25,7 @@ class ListDistricts extends ListRecords
 
             Action::make('DistrictImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('attachment')
                         ->required()

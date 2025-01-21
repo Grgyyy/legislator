@@ -25,7 +25,7 @@ class ListMunicipalities extends ListRecords
 
             Action::make('MunicipalityImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('attachment')
                         ->required()
