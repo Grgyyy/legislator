@@ -703,6 +703,7 @@
 #84 {main}
 "} 
 <<<<<<< HEAD
+<<<<<<< HEAD
 [2025-01-20 08:40:05] local.ERROR: syntax error, unexpected token "<<", expecting "]" {"exception":"[object] (ParseError(code: 0): syntax error, unexpected token \"<<\", expecting \"]\" at C:\\laragon\\www\\legislator\\app\\Filament\\Resources\\AllocationResource\\Widgets\\StatsOverview.php:28)
 [stacktrace]
 #0 C:\\laragon\\www\\legislator\\vendor\\composer\\ClassLoader.php(428): Composer\\Autoload\\includeFile('C:\\\\laragon\\\\www\\\\...')
@@ -2434,6 +2435,9 @@
 [2025-01-20 05:56:30] local.ERROR: Failed to import particular: Caloocan City  
 [2025-01-20 06:02:53] local.ERROR: Failed to import particular: District 1  
 [2025-01-20 06:23:05] local.ERROR: Route [login] not defined. {"exception":"[object] (Symfony\\Component\\Routing\\Exception\\RouteNotFoundException(code: 0): Route [login] not defined. at C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\UrlGenerator.php:477)
+=======
+[2025-01-21 01:03:28] local.ERROR: Route [login] not defined. {"exception":"[object] (Symfony\\Component\\Routing\\Exception\\RouteNotFoundException(code: 0): Route [login] not defined. at C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Routing\\UrlGenerator.php:477)
+>>>>>>> 4463f22 (modify: Readjust the allocation table removing the attribution send/receive and add the attributor_id column)
 [stacktrace]
 #0 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\helpers.php(811): Illuminate\\Routing\\UrlGenerator->route('login', Array, true)
 #1 C:\\laragon\\www\\legislator\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions\\Handler.php(570): route('login')
@@ -2485,6 +2489,7 @@
 #47 C:\\laragon\\www\\legislator\\public\\index.php(51): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
 #48 {main}
 "} 
+<<<<<<< HEAD
 [2025-01-20 06:24:12] local.ERROR: Failed to import municipality: District with the name 'District 1' under the province of 'Bataan' does not exist.  
 [2025-01-20 06:28:24] local.ERROR: Failed to import particular: The Municipality named 'Caloocan City' is not existing.  
 [2025-01-20 06:28:49] local.ERROR: Failed to import particular: The Municipality named 'Caloocan City' is not existing.  
@@ -2543,3 +2548,54 @@
 >>>>>>> b43ac14 (modify: Adjust Allocation Import)
 =======
 >>>>>>> 825b3ee (fix: Resolve View Institution Qualification Title Issue)
+=======
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:04:49] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:05:22] local.INFO: Searching for region: Name = Region III  
+[2025-01-21 01:06:15] local.ERROR: Failed to import legislators: The Particular named 'District' is not existing.  
+>>>>>>> 4463f22 (modify: Readjust the allocation table removing the attribution send/receive and add the attributor_id column)

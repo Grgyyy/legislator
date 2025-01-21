@@ -30,6 +30,11 @@ class Allocation extends Model
         return $this->belongsTo(Legislator::class);
     }
 
+    public function attributor()
+    {
+        return $this->belongsTo(Legislator::class, 'attributor_id');
+    }
+
     public function scholarship_program()
     {
         return $this->belongsTo(ScholarshipProgram::class);
