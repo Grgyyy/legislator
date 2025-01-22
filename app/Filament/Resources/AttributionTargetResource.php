@@ -1049,7 +1049,7 @@ class AttributionTargetResource extends Resource
                     }),
 
                 TextColumn::make('attributionAllocation.legislator.particular.subParticular')
-                    ->label('Attributor AParticular')
+                    ->label('Attributor Particular')
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
@@ -1666,6 +1666,10 @@ class AttributionTargetResource extends Resource
                 ->where('target_status_id', '=', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
                     $subQuery->where('soc', 1);
+                })
+                ->whereHas('allocation', function ($subQuery) {
+                    $subQuery->whereNotNull('attributor_id')
+                        ->where('soft_or_commitment', 'Commitment');
                 });
                 
             if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {

@@ -1508,9 +1508,12 @@ class TargetResource extends Resource
             $query->withoutGlobalScopes([SoftDeletingScope::class])
                 ->where('target_status_id', '=', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
-                    $subQuery->where('soc', 1); // Assuming 'qualificationTitle' is the relationship name
+                    $subQuery->where('soc', 1); // Assuming 'qualification_title' is the correct relationship name
+                })
+                ->whereHas('allocation', function ($subQuery) {
+                    $subQuery->whereNull('attributor_id')
+                        ->where('soft_or_commitment', 'Soft');
                 });
-                // ->whereNull('attribution_allocation_id');
 
             // Add region filter if valid route parameter
             if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
