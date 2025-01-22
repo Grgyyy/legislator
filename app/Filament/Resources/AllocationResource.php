@@ -62,6 +62,16 @@ class AllocationResource extends Resource
                 Select::make('attributor_id')
                     ->label('Attributor')
                     ->searchable()
+                    ->required(function ($get) {
+                        $soft_or_commitment = $get('soft_or_commitment');
+
+                        if ($soft_or_commitment === 'Commitment') {
+                            return true;
+                        }
+                        else {
+                            return false;
+                        }
+                    })
                     ->preload()
                     ->native(false)
                     ->options(function () {

@@ -279,11 +279,11 @@ class TargetResource extends Resource
                                         return Legislator::where('status_id', 1)
                                             ->whereNull('deleted_at')
                                             ->whereHas('allocation', function ($query) {
-                                                $query->where('balance', '>', 0)
-                                                ->where('soft_or_commitment', 'Soft');
+                                                $query->where('soft_or_commitment', 'Soft')
+                                                      ->whereNull('attributor_id');
                                             })
                                             ->pluck('name', 'id')
-                                            ->toArray() ?: ['no_legislator' => 'No legislator available'];
+                                            ->toArray() ?: ['no_legislators' => 'No legislator available'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_legislators')
                                     ->afterStateUpdated(function ($state, callable $set) {
