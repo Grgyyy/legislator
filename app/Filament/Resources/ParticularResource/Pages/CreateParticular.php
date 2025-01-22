@@ -6,10 +6,10 @@ use App\Models\Particular;
 use App\Models\SubParticular;
 use App\Models\Partylist;
 use App\Models\District;
-use App\Models\Municipality;
 use App\Models\Province;
 use App\Models\Region;
 use App\Filament\Resources\ParticularResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -107,7 +107,7 @@ class CreateParticular extends CreateRecord
         if ($existingParticular) {
             $message = $existingParticular->deleted_at 
                 ? 'This particular has been deleted and must be restored before reuse.' 
-                : 'A particular with the specified type, party list, and district already exists.';
+                : 'A particular with the specified type, party-list, and district already exists.';
 
             NotificationHandler::handleValidationException('Validation Error', $message);
         }
