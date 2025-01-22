@@ -72,6 +72,7 @@ class AllocationResource extends Resource
                             return false;
                         }
                     })
+                    ->markAsRequired(false)
                     ->preload()
                     ->native(false)
                     ->options(function () {
@@ -81,13 +82,15 @@ class AllocationResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                     ->afterStateUpdated(function (callable $set, $state) {
-                        $set('attributor_particular_id', null);
-
+                        if (!$state) {
+                            $set('attributor_particular_id', null);
+                        }
+                        
                         $particulars = self::getParticularOptions($state);
 
                         $set('particularOptions', $particulars);
 
-                        if (count($particulars) === 1) {
+                        if ($particulars && count($particulars) === 1) {
                             $set('attributor_particular_id', key($particulars));
                         }
                     })
@@ -96,6 +99,11 @@ class AllocationResource extends Resource
 
                 Select::make('attributor_particular_id')
                     ->label('Attributor Particular')
+                    ->required(function ($get) {
+                        $attributor = $get('attributor_id');
+                        $attributor ? true : false;
+                    })
+                    ->markAsRequired(false)
                     ->searchable()
                     ->preload()
                     ->native(false)
@@ -104,9 +112,9 @@ class AllocationResource extends Resource
 
                         return $legislatorId
                             ? self::getParticularOptions($legislatorId)
-                            : ['no_particular' => 'No particulars available. Select a legislator first.'];
+                            : ['' => 'No particulars available. Select a legislator first.'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_particular')
+                    ->disableOptionWhen(fn($value) => $value === '')
                     ->reactive()
                     ->live(),
 
@@ -664,13 +672,13 @@ class AllocationResource extends Resource
     private static function getParticularOptions($legislatorId)
     {
         if (!$legislatorId) {
-            return ['no_legislator' => 'No legislators available'];
+            return;
         }
 
         $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
 
         if (!$legislator) {
-            return ['no_legislator' => 'No legislators available'];
+            return;
         }
 
         return $legislator->particular->mapWithKeys(function ($particular) {

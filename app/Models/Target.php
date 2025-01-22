@@ -41,7 +41,6 @@ class Target extends Model
         'total_amount',
         'appropriation_type',
         'target_status_id',
-        'attribution_allocation_id',
     ];
 
     public function allocation()

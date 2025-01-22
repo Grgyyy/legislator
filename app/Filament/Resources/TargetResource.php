@@ -167,7 +167,17 @@ class TargetResource extends Resource
                                     })
                                     ->toArray() ?: ['no_tvi' => 'No institution available'];
                             })
-                            ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
+                            ->disableOptionWhen(fn($value) => $value === 'no_tvi')
+                            ->afterStateUpdated(function (callable $set, $state) {
+                                if (!$state) {
+                                    $set('qualification_title_id', null);
+                                }
+
+                                $set('qualification_title_id', null);
+                                
+                            })
+                            ->reactive()
+                            ->live(),
 
                         Select::make('qualification_title_id')
                             ->label('Qualification Title')
@@ -555,7 +565,17 @@ class TargetResource extends Resource
                                             })
                                             ->toArray() ?: ['no_tvi' => 'No institution available'];
                                     })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
+                                    ->disableOptionWhen(fn($value) => $value === 'no_tvi')
+                                    ->afterStateUpdated(function (callable $set, $state) {
+                                        if (!$state) {
+                                            $set('qualification_title_id', null);
+                                        }
+
+                                        $set('qualification_title_id', null);
+                                        
+                                    })
+                                    ->reactive()
+                                    ->live(),
 
                                 Select::make('qualification_title_id')
                                     ->label('Qualification Title')
