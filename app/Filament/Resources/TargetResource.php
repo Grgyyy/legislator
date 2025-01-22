@@ -689,10 +689,10 @@ class TargetResource extends Resource
         return $table
             ->emptyStateHeading('No targets available')
             ->columns([
-                TextColumn::make('abscap_id')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
+                // TextColumn::make('abscap_id')
+                //     ->sortable()
+                //     ->searchable()
+                //     ->toggleable(),
 
                 TextColumn::make('fund_source')
                     ->label('Fund Source')
@@ -1489,8 +1489,8 @@ class TargetResource extends Resource
                 ->where('target_status_id', '=', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
                     $subQuery->where('soc', 1); // Assuming 'qualificationTitle' is the relationship name
-                })
-                ->whereNull('attribution_allocation_id');
+                });
+                // ->whereNull('attribution_allocation_id');
 
             // Add region filter if valid route parameter
             if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {

@@ -45,7 +45,6 @@ class TargetImport implements ToModel, WithHeadingRow
                 $region = $this->getRegion($row['region']);
                 $province = $this->getProvince($row['province'], $region->id);
                 $district = $this->getDistrict($row['district'], $province->id);
-                $municipality = $this->getMunicipality($row['municipality'],  $province->id);
                 $partylist = $this->getPartylist($row['partylist']);
                 $sub_particular = $this->getSubParticular($row['particular']);
                 $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
@@ -126,7 +125,6 @@ class TargetImport implements ToModel, WithHeadingRow
             'particular',
             'scholarship_program',
             'district',
-            'municipality',
             'province',
             'region',
             'partylist',
@@ -217,20 +215,6 @@ class TargetImport implements ToModel, WithHeadingRow
         }
 
         return $district;
-    }
-
-    protected function getMunicipality(string $municipalityName, int $provinceId)
-    {
-        $municipality = Municipality::where('name', $municipalityName)
-            ->where('province_id', $provinceId)
-            ->whereNull('deleted_at')
-            ->first();
-    
-        if (!$municipality) {
-            throw new \Exception("Municipality with name '{$municipalityName}' not found.");
-        }
-
-        return $municipality;
     }
 
     protected function getPartylist(string $partylistName)
@@ -447,7 +431,6 @@ class TargetImport implements ToModel, WithHeadingRow
             'delivery_mode_id' => $target['delivery_mode_id'],
             'learning_mode_id' => $target['learning_mode_id'],
             'number_of_slots' => $target['number_of_slots'],
-            'attribution_allocation_id' => $target['attribution_allocation_id'] ?? null,
             'total_training_cost_pcc' => $totals['total_training_cost_pcc'],
             'total_cost_of_toolkit_pcc' => $totals['total_cost_of_toolkit_pcc'],
             'total_training_support_fund' => $totals['total_training_support_fund'],
