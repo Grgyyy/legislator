@@ -234,8 +234,8 @@ class TargetResource extends Resource
 
                         Select::make('learning_mode_id')
                             ->label('Learning Mode')
-                            ->required()
-                            ->markAsRequired(false)
+                            // ->required()
+                            // ->markAsRequired(false)
                             ->searchable()
                             ->preload()
                             ->options(function ($get) {
@@ -636,8 +636,8 @@ class TargetResource extends Resource
 
                                 Select::make('learning_mode_id')
                                     ->label('Learning Mode')
-                                    ->required()
-                                    ->markAsRequired(false)
+                                    // ->required()
+                                    // ->markAsRequired(false)
                                     ->searchable()
                                     ->preload()
                                     ->options(function ($get) {

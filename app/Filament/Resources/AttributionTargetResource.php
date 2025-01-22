@@ -486,16 +486,16 @@ class AttributionTargetResource extends Resource
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_delivery_mode'),
 
-                                        Select::make('learning_mode_id')
-                                            ->label('Learning Mode')
-                                            ->required()
-                                            ->markAsRequired(false)
-                                            ->searchable()
-                                            ->preload()
-                                            ->native(false)
-                                            ->options(function ($get) {
-                                                $deliveryModeId = $get('delivery_mode_id');
-                                                $learningModes = [];
+                                Select::make('learning_mode_id')
+                                    ->label('Learning Mode')
+                                    // ->required()
+                                    // ->markAsRequired(false)
+                                    ->searchable()
+                                    ->preload()
+                                    ->native(false)
+                                    ->options(function ($get) {
+                                        $deliveryModeId = $get('delivery_mode_id');
+                                        $learningModes = [];
 
                                                 if ($deliveryModeId) {
                                                     $learningModes = DeliveryMode::find($deliveryModeId)
@@ -955,8 +955,8 @@ class AttributionTargetResource extends Resource
 
                                         Select::make('learning_mode_id')
                                             ->label('Learning Mode')
-                                            ->required()
-                                            ->markAsRequired(false)
+                                            // ->required()
+                                            // ->markAsRequired(false)
                                             ->searchable()
                                             ->preload()
                                             ->native(false)
