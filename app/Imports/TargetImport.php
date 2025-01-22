@@ -8,6 +8,7 @@ use App\Models\Particular;
 use App\Models\SkillPriority;
 use App\Models\SubParticular;
 use App\Models\TargetStatus;
+use Auth;
 use Throwable;
 use App\Models\Tvi;
 use App\Models\Abdd;
@@ -76,6 +77,7 @@ class TargetImport implements ToModel, WithHeadingRow
                     'tvi_name' => $tvi->name,
                     'abdd_id' => $abddSector->id,
                     'qualification_title_id' => $qualificationTitle->id,
+                    'qualification_title_soc_code' => $qualificationTitle->trainingProgram->soc_code,
                     'qualification_title_code' => $qualificationTitle->trainingProgram->code,
                     'qualification_title_name' => $qualificationTitle->trainingProgram->title,
                     'delivery_mode_id' => $delivery_mode->id,
@@ -440,6 +442,7 @@ class TargetImport implements ToModel, WithHeadingRow
             'total_amount' => $totals['total_amount'],
             'appropriation_type' => $target['appropriation_type'],
             'description' => 'Target Created',
+            'user_id' => Auth::user()->id,
         ]);
     }
 }

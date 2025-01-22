@@ -71,12 +71,12 @@ class TargetResource extends Resource
             ->schema(function ($record) {
                 if ($record) {
                     return [
-                        TextInput::make('abscap_id')
-                            ->label('Absorptive Capacity ID')
-                            ->placeholder('Enter an Absorbative capacity ID')
-                            ->required()
-                            ->markAsRequired(false)
-                            ->numeric(),
+                        // TextInput::make('abscap_id')
+                        //     ->label('Absorptive Capacity ID')
+                        //     ->placeholder('Enter an Absorbative capacity ID')
+                        //     ->required()
+                        //     ->markAsRequired(false)
+                        //     ->numeric(),
 
                         Select::make('legislator_id')
                             ->label('Legislator')
@@ -759,7 +759,8 @@ class TargetResource extends Resource
                         $municipality = $district ? $district->underMunicipality : null;
 
                         $districtName = $district ? $district->name : 'Unknown District';
-                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                        $provinceName = $district ? $district->province->name : 'Unknown District';
+                        $municipalityName = $municipality ? $municipality->name : '';
 
                         if ($districtName === 'Not Applicable') {
                             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
@@ -768,7 +769,12 @@ class TargetResource extends Resource
                                 return $particular->subParticular->name ?? 'Unknown SubParticular';
                             }
                         } else {
-                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                            if ($municipality === '') {
+                                return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
+                            }
+                            else {
+                                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
+                            }
                         }
                     }),
 
@@ -1280,7 +1286,12 @@ class TargetResource extends Resource
                         return [$particular->id => $particular->subParticular->name];
                     }
                 } else {
-                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
+                    if ($particular->district->underMunicipality) {
+                        return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
+                    }
+                    else {
+                        return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->province->name];
+                    }
                 }
 
             })
