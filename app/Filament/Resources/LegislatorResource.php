@@ -30,7 +30,6 @@ use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -194,8 +193,7 @@ class LegislatorResource extends Resource
 
                                             return $record->particular->map(function ($particular) {
                                                 $district = $particular->district;
-                                                $municipality = $district ? $district->municipality()->first() : null; // Ensure it gets a single model
-                                
+                                                $municipality = $district ? $district->municipality()->first() : null;
                                                 $subParticular = $particular->subParticular ? $particular->subParticular->name : null;
                                                 $formattedName = '';
 
@@ -216,7 +214,7 @@ class LegislatorResource extends Resource
                                             })->implode(', ');
                                         })
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Legislator'),
+                                ->withFilename(date('m-d-Y') . ' - Legislators'),
                         ])
                 ]),
             ]);
@@ -299,8 +297,7 @@ class LegislatorResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNotIn('name', ['Regional Office', 'Central Office'])
-            ->orderBy('name');
+            ->whereNotIn('name', ['Regional Office', 'Central Office']);
     }
 
     public static function getPages(): array
