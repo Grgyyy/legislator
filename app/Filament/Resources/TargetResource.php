@@ -262,12 +262,11 @@ class TargetResource extends Resource
                     return [
                         Repeater::make('targets')
                             ->schema([
-                                TextInput::make('abscap_id')
-                                    ->label('Absorptive Capacity ID')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->placeholder('Enter an Absorbative capacity ID')
-                                    ->numeric(),
+                                // TextInput::make('abscap_id')
+                                //     ->label('Absorptive Capacity ID')
+                                    
+                                //     ->placeholder('Enter an Absorbative capacity ID')
+                                //     ->numeric(),
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()

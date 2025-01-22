@@ -41,6 +41,7 @@ class TargetHistory extends Model
         'appropriation_type',
         'description',
         'attribution_allocation_id',
+        'user_id'
     ];
 
     public function target()
@@ -90,5 +91,9 @@ class TargetHistory extends Model
 
     public function abdd() {
         return $this->belongsTo(Abdd::class);
+    }
+
+    public function user() {
+        return $this->belongsTo(User::class);
     }
 }
