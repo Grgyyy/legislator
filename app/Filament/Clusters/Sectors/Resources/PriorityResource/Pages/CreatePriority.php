@@ -4,6 +4,7 @@ namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
 use App\Models\Priority;
 use App\Filament\Clusters\Sectors\Resources\PriorityResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -12,7 +13,7 @@ class CreatePriority extends CreateRecord
 {
     protected static string $resource = PriorityResource::class;
 
-    protected static ?string $title = 'Create Top Ten Priority Sectors';
+    protected static ?string $title = 'Create Priority Sectors';
 
     public function getBreadcrumbs(): array
     {
@@ -29,7 +30,9 @@ class CreatePriority extends CreateRecord
 
     protected function handleRecordCreation(array $data): Priority
     {
-        $this->validateUniquePriority($data['name']);
+        $this->validateUniquePriority($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $priority = DB::transaction(fn () => Priority::create([
             'name' => $data['name'],
@@ -40,10 +43,10 @@ class CreatePriority extends CreateRecord
         return $priority;
     }
 
-    protected function validateUniquePriority($name)
+    protected function validateUniquePriority($data)
     {
         $priority = Priority::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->first();
 
         if ($priority) {

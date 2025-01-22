@@ -3,6 +3,7 @@ namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
 use App\Models\Priority;
 use App\Filament\Clusters\Sectors\Resources\PriorityResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -12,7 +13,7 @@ class EditPriority extends EditRecord
 {
     protected static string $resource = PriorityResource::class;
 
-    protected static ?string $title = 'Edit Top Ten Priority Sectors';
+    protected static ?string $title = 'Edit Priority Sectors';
 
     public function getBreadcrumbs(): array
     {
@@ -29,7 +30,9 @@ class EditPriority extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Priority
     {
-        $this->validateUniquePriority($data['name'], $record->id);
+        $this->validateUniquePriority($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -46,16 +49,16 @@ class EditPriority extends EditRecord
         return $record;
     }
 
-    protected function validateUniquePriority($name, $currentId)
+    protected function validateUniquePriority($data, $currentId)
     {
         $priority = Priority::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->whereNot('id', $currentId)
             ->first();
 
         if ($priority) {
             $message = $priority->deleted_at 
-                ? 'This priority sector has been deleted. Restoration is required before it can be reused.' 
+                ? 'This priority sector has been deleted and must be restored before reuse.'
                 : 'A priority sector with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

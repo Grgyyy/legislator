@@ -129,8 +129,7 @@ class PriorityResource extends Resource
         $query = parent::getEloquentQuery();
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable')
-            ->orderBy('name');
+            ->whereNot('name', 'Not Applicable');
 
         return $query;
     }
