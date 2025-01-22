@@ -58,7 +58,7 @@ class TargetImport implements ToModel, WithHeadingRow
                 $numberOfSlots = $row['number_of_slots'];
 
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $scholarship_program->id);
-                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
+                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $row['appropriation_year']);
 
                 $skillPriority = $this->getSkillPriority(
                     $qualificationTitle->training_program_id,
@@ -375,11 +375,30 @@ class TargetImport implements ToModel, WithHeadingRow
         return $qualificationTitle;
     }    
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots): array
+    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, int $year): array
     {
+
+        $quali = QualificationTitle::find($qualificationTitle->id);
+        $costOfToolkitPcc = $quali->toolkits()->where('year', $year)->first();
+
+
+        if (!$quali) {
+            throw new \Exception("Qualification Title with name '{$qualificationTitle->trainingProgram->title}' not found.");
+        }
+
+        $step = ScholarshipProgram::where('name', 'STEP')->first();
+
+        $totalCostOfToolkit = 0;
+        $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
+        if ($quali->scholarship_program_id === $step->id) {
+            $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
+            $totalAmount += $totalCostOfToolkit;
+        }
+
+
         return [
             'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
-            'total_cost_of_toolkit_pcc' => $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots,
+            'total_cost_of_toolkit_pcc' => $totalCostOfToolkit,
             'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
             'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
             'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
@@ -388,7 +407,7 @@ class TargetImport implements ToModel, WithHeadingRow
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
+            'total_amount' => $totalAmount,
         ];
     }
 
