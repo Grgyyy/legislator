@@ -79,6 +79,8 @@ return new class extends Migration
                 ->default(0);
             $table->string('appropriation_type');
             $table->string('description');
+            $table->foreignId('user_id')
+                ->constrained();
             $table->timestamps();
             $table->softDeletes();
         });
