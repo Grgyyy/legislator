@@ -74,8 +74,8 @@ class ScholarshipProgramResource extends Resource
                 TextColumn::make("code")
                     ->sortable()
                     ->searchable()
-                    ->toggleable()
-                    ->url(fn($record) => route('filament.admin.resources.scholarship-programs.showTrainingPrograms', ['record' => $record->id])),
+                    ->toggleable(),
+                    // ->url(fn($record) => route('filament.admin.resources.scholarship-programs.showTrainingPrograms', ['record' => $record->id])),
 
                 TextColumn::make("name")
                     ->label("Scholarship Program")
@@ -147,7 +147,7 @@ class ScholarshipProgramResource extends Resource
                                     Column::make('desc')
                                         ->heading('Description'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Scholarship Program')
+                                ->withFilename(date('m-d-Y') . ' - Scholarship Programs')
                         ]),
 
                 ]),

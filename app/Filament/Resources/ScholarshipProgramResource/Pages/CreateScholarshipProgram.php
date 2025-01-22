@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ScholarshipProgramResource\Pages;
 
 use App\Models\ScholarshipProgram;
 use App\Filament\Resources\ScholarshipProgramResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,9 @@ class CreateScholarshipProgram extends CreateRecord
     {
         $this->validateUniqueScholarshipProgram($data);
 
+        $data['name'] = Helper::capitalizeWords($data['name']);
+        $data['desc'] = Helper::capitalizeWords($data['desc']);
+
         $schoPro = DB::transaction(fn () => ScholarshipProgram::create([
                 'code' => $data['code'],
                 'name' => $data['name'],
@@ -36,11 +40,22 @@ class CreateScholarshipProgram extends CreateRecord
     {
         $schoPro = ScholarshipProgram::withTrashed()
             ->where('name', $data['name'])
-            ->where('desc', $data['desc'])
             ->first();
 
         if ($schoPro) {
-            $message = $schoPro->deleted_at
+            $message = $schoPro->deleted_at 
+                ? 'This scholarship program has been deleted and must be restored before reuse.' 
+                : 'A scholarship program with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        $desc = ScholarshipProgram::withTrashed()
+            ->where('desc', $data['desc'])
+            ->first();
+
+        if ($desc) {
+            $message = $desc->deleted_at
                 ? 'This scholarship program with the provided details has been deleted and must be restored before reuse.'
                 : 'A scholarship program with the provided details already exists.';
 
@@ -53,8 +68,8 @@ class CreateScholarshipProgram extends CreateRecord
 
         if ($code) {
             $message = $code->deleted_at 
-                ? 'A Scholarship Program with this code already exists and has been deleted.' 
-                : 'A Scholarship Program with this code already exists.';
+                ? 'A scholarship program with this code already exists and has been deleted.' 
+                : 'A scholarship program with this code already exists.';
         
             NotificationHandler::handleValidationException('Invalid Code', $message);
         }

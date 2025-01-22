@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ScholarshipProgramResource\Pages;
 
 use App\Models\ScholarshipProgram;
 use App\Filament\Resources\ScholarshipProgramResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -21,6 +22,9 @@ class EditScholarshipProgram extends EditRecord
     protected function handleRecordUpdate($record, array $data): ScholarshipProgram
     {
         $this->validateUniqueScholarshipProgram($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
+        $data['desc'] = Helper::capitalizeWords($data['desc']);
 
         try {
             $record->update($data);
@@ -41,27 +45,39 @@ class EditScholarshipProgram extends EditRecord
     {
         $schoPro = ScholarshipProgram::withTrashed()
             ->where('name', $data['name'])
-            ->where('desc', $data['desc'])
             ->whereNot('id', $currentId)
             ->first();
 
         if ($schoPro) {
-            $message = $schoPro->deleted_at
-                ? 'This scholarship program with the provided details has been deleted. Restoration is required before it can be reused.'
+            $message = $schoPro->deleted_at 
+                ? 'This scholarship program has been deleted and must be restored before reuse.' 
+                : 'A scholarship program with this name already exists.';
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        $desc = ScholarshipProgram::withTrashed()
+            ->where('desc', $data['desc'])
+            ->whereNot('id', $currentId)
+            ->first();
+
+        if ($desc) {
+            $message = $desc->deleted_at
+                ? 'This scholarship program with the provided details has been deleted and must be restored before reuse.'
                 : 'A scholarship program with the provided details already exists.';
 
                 NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         $code = ScholarshipProgram::withTrashed()
-            ->where('code', $data['code'])
+            ->where('code', $data)
             ->whereNot('id', $currentId)
             ->first();
 
         if ($code) {
             $message = $code->deleted_at 
-                ? 'A Scholarship Program with this code already exists and has been deleted.' 
-                : 'A Scholarship Program with this code already exists.';
+                ? 'A scholarship program with this code already exists and has been deleted.' 
+                : 'A scholarship program with this code already exists.';
         
             NotificationHandler::handleValidationException('Invalid Code', $message);
         }
