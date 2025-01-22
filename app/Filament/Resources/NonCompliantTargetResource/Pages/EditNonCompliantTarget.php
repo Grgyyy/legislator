@@ -12,6 +12,7 @@ use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
 use App\Models\Tvi;
+use Auth;
 use DB;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -47,8 +48,8 @@ class EditNonCompliantTarget extends EditRecord
     {
         $record = $this->record;
 
-        $data['sender_legislator_id'] = $record->attributionAllocation->legislator_id ?? null;
-        $data['sender_particular_id'] = $record->attributionAllocation->particular_id ?? null;
+        $data['sender_legislator_id'] = $record->allocation->attributor_id ?? null;
+        $data['sender_particular_id'] = $record->allocation->attributor_particular_id ?? null;
 
         $data['receiver_legislator_id'] = $record->allocation->legislator_id ?? null;
         $data['receiver_particular_id'] = $record->allocation->particular_id;
@@ -64,8 +65,8 @@ class EditNonCompliantTarget extends EditRecord
     {
         try {
             return DB::transaction(function () use ($record, $data) {
-                $senderLegislatorId = $data['sender_legislator_id'];
-                $senderParticularId = $data['sender_particular_id'];
+                $senderLegislatorId = $record->allocation->attributor_id ?? null;
+                $senderParticularId = $record->allocation->attributor_particular_id ?? null;
                 $receiverLegislatorId = $record->allocation->legislator_id;
                 $receiverParticularId = $record->allocation->particular_id;
 
@@ -73,26 +74,35 @@ class EditNonCompliantTarget extends EditRecord
                     throw new \Exception('Receiver Particular ID cannot be null');
                 }
 
-                $receiverAllocation = Allocation::where('legislator_id', $receiverLegislatorId)
-                    ->where('particular_id', $receiverParticularId)
-                    ->where('scholarship_program_id', $data['scholarship_program_id'] ?? null)
-                    ->where('year', $data['allocation_year'] ?? null)
-                    ->first();
+                // $receiverAllocation = Allocation::where('legislator_id', $receiverLegislatorId)
+                //     ->where('particular_id', $receiverParticularId)
+                //     ->where('scholarship_program_id', $data['scholarship_program_id'] ?? null)
+                //     ->where('year', $data['allocation_year'] ?? null)
+                //     ->first();
 
-                if (!$receiverAllocation) {
-                    throw new \Exception('Receiver Particular ID cannot be null');
-                }
+                // if (!$receiverAllocation) {
+                //     throw new \Exception('Receiver Particular ID cannot be null');
+                // }
 
-                $senderAllocation = Allocation::where('legislator_id', $senderLegislatorId)
-                    ->where('particular_id', $senderParticularId)
-                    ->where('scholarship_program_id', $data['scholarship_program_id'] ?? null)
-                    ->where('year', $data['allocation_year'] ?? null)
-                    ->first();
+                // $senderAllocation = Allocation::where('legislator_id', $senderLegislatorId)
+                //     ->where('particular_id', $senderParticularId)
+                //     ->where('scholarship_program_id', $data['scholarship_program_id'] ?? null)
+                //     ->where('year', $data['allocation_year'] ?? null)
+                //     ->first();
 
                 $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
                 if (!$qualificationTitle) {
                     throw new \Exception('Qualification Title not found');
                 }
+
+                $allocation = Allocation::where('legislator_id', $receiverLegislatorId)
+                ->where('attributor_id', $senderLegislatorId)
+                ->where('particular_id', $receiverParticularId)
+                ->where('attributor_particular_id', $senderParticularId)
+                ->where('scholarship_program_id', $data['scholarship_program_id'])
+                ->where('year', $data['allocation_year'])
+                ->whereNull('deleted_at')
+                ->first();
 
                 $institution = Tvi::find($data['tvi_id']);
                 if (!$institution) {
@@ -121,23 +131,11 @@ class EditNonCompliantTarget extends EditRecord
                 $numberOfSlots = $data['number_of_slots'] ?? 0;
                 $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
 
-                if ($senderAllocation) {
-                    if ($senderAllocation->balance < $totalAmount) {
-                        throw new \Exception('Insufficient balance to process the transfer.');
-                    }
-                    $senderAllocation->balance -= $totalAmount;
-                    $senderAllocation->attribution_sent += $totalAmount;
-                    $senderAllocation->save();
-
-                    $receiverAllocation->attribution_received += $totalAmount;
-                    $receiverAllocation->save();
-                } else {
-                    if ($receiverAllocation->balance < $totalAmount) {
-                        throw new \Exception('Insufficient balance to process the transfer.');
-                    }
-                    $receiverAllocation->balance -= $totalAmount;
-                    $receiverAllocation->save();
+                if ($allocation->balance < $totalAmount) {
+                    throw new \Exception('Insufficient balance to process the transfer.');
                 }
+                $allocation->balance -= $totalAmount;
+                $allocation->save();  
 
                 // $provinceAbdd->available_slots -= $numberOfSlots;
                 // $provinceAbdd->save();
@@ -146,9 +144,7 @@ class EditNonCompliantTarget extends EditRecord
                 $skillPriority->save();
 
                 $record->update([
-                    'abscap_id' => $data['abscap_id'],
-                    'allocation_id' => $receiverAllocation->id,
-                    'attribution_allocation_id' => $senderAllocation ? $senderAllocation->id : null,
+                    'allocation_id' => $allocation->id,
                     'tvi_id' => $institution->id,
                     'tvi_name' => $institution->name,
                     'municipality_id' => $institution->municipality_id,
@@ -176,12 +172,10 @@ class EditNonCompliantTarget extends EditRecord
                 ]);
 
                 TargetHistory::create([
-                    'abscap_id' => $data['abscap_id'] ?? null,
                     'target_id' => $record->id,
                     'allocation_id' => $record->allocation->id,
                     'district_id' => $institution->district_id,
                     'municipality_id' => $institution->municipality_id,
-                    'attribution_allocation_id' => $record->attribution_allocation_id,
                     'tvi_id' => $institution->id,
                     'tvi_name' => $institution->name,
                     'qualification_title_id' => $qualificationTitle->id,
@@ -203,7 +197,8 @@ class EditNonCompliantTarget extends EditRecord
                     'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
                     'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
                     'appropriation_type' => $data['appropriation_type'],
-                    'description' => 'Target Modified'
+                    'description' => 'Target Modified',
+                    'user_id' => Auth::user()->id,
                 ]);
 
                 return $record;

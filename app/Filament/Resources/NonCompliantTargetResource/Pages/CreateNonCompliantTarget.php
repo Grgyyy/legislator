@@ -11,6 +11,7 @@ use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
+use Auth;
 use DB;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
@@ -42,34 +43,28 @@ class CreateNonCompliantTarget extends CreateRecord
     {
         try {
             return DB::transaction(function () use ($data) {
-                // Validate and find target record
+
                 $targetRecord = Target::find($data['target_id']);
                 if (!$targetRecord) {
                     throw new \Exception('Target not found.');
                 }
 
-                // Find the "Non-Compliant" status record
                 $nonCompliantRecord = TargetStatus::where('desc', self::COMPLIANT_STATUS_DESC)->first();
                 if (!$nonCompliantRecord) {
                     throw new \Exception('Compliant status not found.');
                 }
 
-                // Ensure the target has not already been marked as Non-Compliant
                 if ($targetRecord->targetStatus->desc === 'Non-Compliant') {
                     throw new \Exception('Target already marked as Non-Compliant.');
                 }
 
-                // Handle resource adjustments
                 $this->adjustResources($targetRecord, $data);
 
-                // Update target status to Non-Compliant
                 $targetRecord->target_status_id = $nonCompliantRecord->id;
                 $targetRecord->save();
 
-                // Log target history
                 $this->logTargetHistory($targetRecord, $data);
 
-                // Save non-compliant remarks
                 NonCompliantRemark::updateOrCreate(
                     [
                         'target_id' => $targetRecord->id,
@@ -89,13 +84,7 @@ class CreateNonCompliantTarget extends CreateRecord
 
     private function adjustResources(Target $targetRecord, array $data): void
     {
-        $senderAllocation = Allocation::find($targetRecord->attribution_allocation_id);
-        $receiverAllocation = Allocation::find($targetRecord->allocation->id);
-        
-        // $provinceAbdd = ProvinceAbdd::where('province_id', $targetRecord->district->province_id)
-        //     ->where('abdd_id', $targetRecord->abdd_id)
-        //     ->where('year', $data['allocation_year'])
-        //     ->first();
+        $allocation = Allocation::find($targetRecord->allocation_id);
 
         $previousSkillPrio = SkillPriority::where([
             'training_program_id' => $targetRecord->qualification_title->training_program_id,
@@ -103,8 +92,8 @@ class CreateNonCompliantTarget extends CreateRecord
             'year' => $targetRecord->allocation->year,
         ]);
 
-        if (!$receiverAllocation) {
-            throw new \Exception('Receiver Allocation/Allocation Not Found.');
+        if (!$allocation) {
+            throw new \Exception('Allocation Not Found.');
         }
 
         $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
@@ -116,26 +105,10 @@ class CreateNonCompliantTarget extends CreateRecord
             throw new \Exception('Skills Priority not found');
         }
 
-        // if (!$provinceAbdd) {
-        //     throw new \Exception('Province ABDD Slots not found');
-        // }
-
         $numberOfSlots = $targetRecord['number_of_slots'];
 
-        if ($senderAllocation) {
-            // Revert sender allocation balances
-            $senderAllocation->balance += $targetRecord->total_amount;
-            $senderAllocation->attribution_sent -= $targetRecord->total_amount;
-            $senderAllocation->save();
-
-            // Adjust receiver allocation
-            $receiverAllocation->attribution_received -= $targetRecord->total_amount;
-            $receiverAllocation->save();
-        } else {
-            // Adjust receiver allocation if no sender allocation exists
-            $receiverAllocation->balance += $targetRecord->total_amount;
-            $receiverAllocation->save();
-        }
+        $allocation->balance += $targetRecord->total_amount;
+        $allocation->save();
 
         $previousSkillPrio->increment('available_slots', $targetRecord->number_of_slots);
     }
@@ -143,12 +116,10 @@ class CreateNonCompliantTarget extends CreateRecord
     private function logTargetHistory(Target $targetRecord, array $data): void
     {
         TargetHistory::create([
-            'abscap_id' => $targetRecord['abscap_id'],
             'target_id' => $targetRecord->id,
             'allocation_id' => $targetRecord['allocation_id'],
             'district_id' => $targetRecord['district_id'],
             'municipality_id' => $targetRecord['municipality_id'],
-            'attribution_allocation_id' => $targetRecord['attribution_allocation_id'],
             'tvi_id' => $targetRecord['tvi_id'],
             'tvi_name' => $targetRecord['tvi_name'],
             'qualification_title_id' => $targetRecord['qualification_title_id'],
@@ -170,7 +141,8 @@ class CreateNonCompliantTarget extends CreateRecord
             'total_misc_fee' => $targetRecord['total_misc_fee'],
             'total_amount' => $targetRecord['total_amount'],
             'appropriation_type' => $targetRecord['appropriation_type'],
-            'description' => 'Marked as Non-Compliant'
+            'description' => 'Marked as Non-Compliant',
+            'user_id' => Auth::user()->id,
         ]);
     }
 }

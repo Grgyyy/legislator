@@ -6,6 +6,7 @@ use App\Filament\Resources\AllocationResource\Pages;
 use App\Models\Allocation;
 use App\Models\Legislator;
 use App\Models\ScholarshipProgram;
+use App\Models\TargetStatus;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -365,7 +366,8 @@ class AllocationResource extends Resource
                     ->toggleable()
                     ->prefix('₱')
                     ->getStateUsing(function ($record) {
-                        $fundsExpended = $record->target->sum('total_amount');
+                        $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
+                        $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
                 
                         return number_format($fundsExpended, 2);
                     }),
