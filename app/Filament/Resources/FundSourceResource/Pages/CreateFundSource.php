@@ -6,6 +6,7 @@ use App\Models\FundSource;
 use App\Filament\Resources\FundSourceResource;
 use App\Helpers\Helper;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -16,6 +17,15 @@ class CreateFundSource extends CreateRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     protected function handleRecordCreation(array $data): FundSource

@@ -1,11 +1,12 @@
 <?php
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
-use App\Models\District;
-use App\Models\Municipality;
 use App\Filament\Resources\MunicipalityResource;
 use App\Helpers\Helper;
+use App\Models\District;
+use App\Models\Municipality;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -18,6 +19,15 @@ class CreateMunicipality extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+    
     protected function handleRecordCreation(array $data): Municipality
     {
         $this->validateUniqueMunicipality($data);

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Filament\Resources\Pages\CreateRecord;
 use App\Filament\Resources\DistrictResource;
 use App\Helpers\Helper;
+use Filament\Actions\Action;
 
 class CreateDistrict extends CreateRecord
 {
@@ -16,6 +17,15 @@ class CreateDistrict extends CreateRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     protected function handleRecordCreation(array $data): District

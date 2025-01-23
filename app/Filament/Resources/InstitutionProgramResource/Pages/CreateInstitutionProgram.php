@@ -5,9 +5,10 @@ namespace App\Filament\Resources\InstitutionProgramResource\Pages;
 use App\Filament\Resources\InstitutionProgramResource;
 use App\Models\InstitutionProgram;
 use App\Services\NotificationHandler;
-use DB;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class CreateInstitutionProgram extends CreateRecord
@@ -21,6 +22,15 @@ class CreateInstitutionProgram extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+    
     public function getBreadcrumbs(): array
     {
         return [

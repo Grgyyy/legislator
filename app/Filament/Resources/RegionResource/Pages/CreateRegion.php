@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\RegionResource\Pages;
 
-use App\Models\Region;
 use App\Filament\Resources\RegionResource;
 use App\Helpers\Helper;
+use App\Models\Region;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -32,6 +33,15 @@ class CreateRegion extends CreateRecord
         NotificationHandler::sendSuccessNotification('Created', 'Region has been created successfully.');
 
         return $region;
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     protected function validateUniqueRegion($data)

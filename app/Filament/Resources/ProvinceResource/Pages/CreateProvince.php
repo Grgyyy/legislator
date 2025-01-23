@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
-use App\Models\Province;
 use App\Filament\Resources\ProvinceResource;
 use App\Helpers\Helper;
+use App\Models\Province;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -24,6 +25,15 @@ class CreateProvince extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+    
     protected function handleRecordCreation(array $data): Province
     {
         $this->validateUniqueProvince($data);

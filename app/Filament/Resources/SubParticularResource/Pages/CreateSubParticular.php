@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\SubParticularResource\Pages;
 
-use App\Models\SubParticular;
 use App\Filament\Resources\SubParticularResource;
 use App\Helpers\Helper;
+use App\Models\SubParticular;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -20,6 +21,15 @@ class CreateSubParticular extends CreateRecord
         return [
             '/particular-types' => 'Particular Types',
             'Create'
+        ];
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
         ];
     }
 

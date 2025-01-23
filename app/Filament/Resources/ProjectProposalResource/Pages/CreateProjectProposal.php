@@ -4,13 +4,14 @@ namespace App\Filament\Resources\ProjectProposalResource\Pages;
 
 use App\Filament\Resources\ProjectProposalResource;
 use App\Models\Priority;
+use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
-use App\Models\QualificationTitle;
 use App\Models\Tvet;
 use App\Services\NotificationHandler;
-use DB;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
 
 class CreateProjectProposal extends CreateRecord
 {
@@ -21,6 +22,15 @@ class CreateProjectProposal extends CreateRecord
         return [
             route('filament.admin.resources.project-proposals.index') => 'Project Proposal Programs',
             'Create',
+        ];
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
         ];
     }
 

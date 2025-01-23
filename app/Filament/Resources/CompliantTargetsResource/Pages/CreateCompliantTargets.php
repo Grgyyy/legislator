@@ -12,6 +12,7 @@ use App\Models\TargetStatus;
 use App\Services\NotificationHandler;
 use Auth;
 use Exception;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +30,15 @@ class CreateCompliantTargets extends CreateRecord
     protected function getRedirectUrl(): string
     {
         return route('filament.admin.resources.compliant-targets.index');
+    }
+    
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     public function getBreadcrumbs(): array

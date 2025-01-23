@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\LegislatorResource\Pages;
 
-use App\Models\Legislator;
 use App\Filament\Resources\LegislatorResource;
 use App\Helpers\Helper;
+use App\Models\Legislator;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -16,6 +17,15 @@ class CreateLegislator extends CreateRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     protected function handleRecordCreation(array $data): Legislator

@@ -6,8 +6,8 @@ use App\Filament\Resources\ToolkitResource;
 use App\Models\QualificationTitle;
 use App\Models\Toolkit;
 use App\Services\NotificationHandler;
-use DB;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CreateToolkit extends CreateRecord
@@ -17,6 +17,15 @@ class CreateToolkit extends CreateRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     public function isEdit(): bool

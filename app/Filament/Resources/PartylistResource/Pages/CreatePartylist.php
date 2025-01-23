@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\PartylistResource\Pages;
 
-use App\Models\Partylist;
 use App\Filament\Resources\PartylistResource;
 use App\Helpers\Helper;
+use App\Models\Partylist;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -22,7 +23,15 @@ class CreatePartylist extends CreateRecord
             'Create'
         ];
     }
-
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+    
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

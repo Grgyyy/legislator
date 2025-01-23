@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\InstitutionRecognitionResource\Pages;
 
 use App\Filament\Resources\InstitutionRecognitionResource;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,6 +18,15 @@ class CreateInstitutionRecognition extends CreateRecord
         $this->data['record_id'] = $record->tvi_id;
 
         return $record;
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     protected function getRedirectUrl(): string

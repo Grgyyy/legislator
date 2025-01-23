@@ -5,9 +5,11 @@ namespace App\Filament\Resources\SkillPriorityResource\Pages;
 use App\Filament\Resources\SkillPriorityResource;
 use App\Models\SkillPriority;
 use App\Services\NotificationHandler;
-use DB;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class CreateSkillPriority extends CreateRecord
@@ -17,6 +19,15 @@ class CreateSkillPriority extends CreateRecord
     public function isEdit(): bool
     {
         return false; // Edit mode
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     protected function getRedirectUrl(): string
@@ -69,7 +80,7 @@ class CreateSkillPriority extends CreateRecord
      */
     protected function validateCreateData(array $data): void
     {
-        $validator = \Validator::make($data, [
+        $validator = Validator::make($data, [
             'province_id' => ['required', 'integer', 'exists:provinces,id'],
             'training_program_id' => ['required', 'integer', 'exists:training_programs,id'],
             'year' => ['required', 'numeric', 'min:' . date('Y'), 'digits:4'],

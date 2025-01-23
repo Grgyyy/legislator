@@ -4,15 +4,15 @@ namespace App\Filament\Resources\ProjectProposalResource\Pages;
 
 use App\Filament\Resources\ProjectProposalResource;
 use App\Models\Priority;
+use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
 use App\Models\Tvet;
-use App\Models\QualificationTitle;
 use App\Services\NotificationHandler;
-use DB;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class ConvertProjectProposal extends EditRecord
 {

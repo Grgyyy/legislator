@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources\ScholarshipProgramResource\Pages;
 
-use App\Models\ScholarshipProgram;
 use App\Filament\Resources\ScholarshipProgramResource;
 use App\Helpers\Helper;
+use App\Models\ScholarshipProgram;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -16,6 +17,15 @@ class CreateScholarshipProgram extends CreateRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     protected function handleRecordCreation(array $data): ScholarshipProgram

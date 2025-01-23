@@ -18,30 +18,13 @@ class CreateAllocation extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
-
-    protected function getCreateFormAction(): Action
+    protected function getFormActions(): array
     {
-        return Action::make('create')
-            ->label('Save & Exit')
-            ->submit('create')
-            ->keyBindings(['mod+s']);
-    }
-
-    protected function getCreateAnotherFormAction(): Action
-    {
-        return Action::make('createAnother')
-            ->label('Save & Create Another')
-            ->action('createAnother')
-            ->keyBindings(['mod+shift+s'])
-            ->color('gray');
-    }
-
-    protected function getCancelFormAction(): Action
-    {
-        return Action::make('cancel')
-            ->label('Exit')
-            ->url($this->previousUrl ?? static::getResource()::getUrl())
-            ->color('gray');
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     public function isEdit(): bool
