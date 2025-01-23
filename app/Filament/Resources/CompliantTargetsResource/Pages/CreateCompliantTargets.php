@@ -10,12 +10,12 @@ use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
 use App\Services\NotificationHandler;
-use Auth;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class CreateCompliantTargets extends CreateRecord
