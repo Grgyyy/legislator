@@ -6,6 +6,7 @@ use App\Models\Allocation;
 use App\Filament\Resources\AllocationResource;
 use App\Models\Particular;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -13,33 +14,41 @@ class CreateAllocation extends CreateRecord
 {
     protected static string $resource = AllocationResource::class;
 
-    /**
-     * Get the URL to redirect to after creating a record.
-     *
-     * @return string
-     */
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
     }
 
-    /**
-     * Indicates if the current operation is in edit mode.
-     *
-     * @return bool
-     */
+    protected function getCreateFormAction(): Action
+    {
+        return Action::make('create')
+            ->label('Save & Exit')
+            ->submit('create')
+            ->keyBindings(['mod+s']);
+    }
+
+    protected function getCreateAnotherFormAction(): Action
+    {
+        return Action::make('createAnother')
+            ->label('Save & Create Another')
+            ->action('createAnother')
+            ->keyBindings(['mod+shift+s'])
+            ->color('gray');
+    }
+
+    protected function getCancelFormAction(): Action
+    {
+        return Action::make('cancel')
+            ->label('Exit')
+            ->url($this->previousUrl ?? static::getResource()::getUrl())
+            ->color('gray');
+    }
+
     public function isEdit(): bool
     {
         return false;
     }
 
-    /**
-     * Handle the creation of a new allocation record.
-     *
-     * @param array $data
-     * @return Allocation
-     * @throws \Throwable
-     */
     protected function handleRecordCreation(array $data): Allocation
     {
         $this->validateUniqueAllocation($data);
