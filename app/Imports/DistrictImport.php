@@ -42,7 +42,7 @@ class DistrictImport implements ToModel, WithHeadingRow
                 // Check if the district already exists
                 $districtIsExist = District::where('name', $row['district'])
                     ->where('code', $row['code'])
-                    ->where('municipality_id', $municipality_id)
+                    ->where('province_id', $province_id)
                     ->exists();
 
                 if (!$districtIsExist) {

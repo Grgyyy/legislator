@@ -15,19 +15,24 @@ class Allocation extends Model
     protected $fillable = [
         'soft_or_commitment',
         'legislator_id',
+        'attributor_id',
         'particular_id',
+        'attributor_particular_id',
         'scholarship_program_id',
         'allocation',
         'admin_cost',
         'balance',
-        'attribution_sent',
-        'attribution_received',
         'year'
     ];
 
     public function legislator()
     {
         return $this->belongsTo(Legislator::class);
+    }
+
+    public function attributor()
+    {
+        return $this->belongsTo(Legislator::class, 'attributor_id');
     }
 
     public function scholarship_program()
@@ -38,6 +43,11 @@ class Allocation extends Model
     public function particular()
     {
         return $this->belongsTo(Particular::class);
+    }
+
+    public function attributorParticular()
+    {
+        return $this->belongsTo(Particular::class, 'attributor_particular_id');
     }
 
     public function target()

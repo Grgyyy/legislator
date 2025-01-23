@@ -10,6 +10,7 @@ use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
+use Auth;
 use DB;
 use Exception;
 use Filament\Actions;
@@ -27,7 +28,7 @@ class EditProjectProposalTarget extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected ?string $heading = 'Edit Target';
+    protected ?string $heading = 'Edit Project Proposal';
 
     public function getBreadcrumbs(): array
     {
@@ -61,7 +62,6 @@ class EditProjectProposalTarget extends EditRecord
             $allocation = $this->getAllocation($data);
             $institution = $this->getInstitution($data['tvi_id']);
             $qualificationTitle = $this->getQualificationTitle($data['qualification_title_id']);
-            $allocationYear = $allocation->year;
 
             $skillPriority = $this->getSkillPriority(
                 $qualificationTitle->training_program_id,
@@ -87,7 +87,7 @@ class EditProjectProposalTarget extends EditRecord
             $allocation->increment('balance', $record->total_amount);
             $previousSkillPrio->increment('available_slots', $previousSlots);
 
-            if ($allocation->balance < round($totals['total_amount'], 2)) {
+            if ($allocation->balance <= $totals['total_amount']) {
                 $this->sendErrorNotification('Insufficient allocation balance.');
                 throw new Exception('Insufficient allocation balance.');
             }
@@ -98,7 +98,6 @@ class EditProjectProposalTarget extends EditRecord
             }
 
             $record->update(array_merge($totals, [
-                'abscap_id' => $data['abscap_id'],
                 'allocation_id' => $allocation->id,
                 'district_id' => $institution->district_id,
                 'municipality_id' => $institution->municipality_id,
@@ -139,7 +138,6 @@ class EditProjectProposalTarget extends EditRecord
     private function validateTargetData(array $data): void
     {
         $requiredFields = [
-            'abscap_id',
             'legislator_id', 'particular_id', 'scholarship_program_id',
             'qualification_title_id', 'number_of_slots', 'tvi_id',
             'appropriation_type', 'abdd_id', 'learning_mode_id',
@@ -159,8 +157,11 @@ class EditProjectProposalTarget extends EditRecord
             'legislator_id' => $data['legislator_id'],
             'particular_id' => $data['particular_id'],
             'scholarship_program_id' => $data['scholarship_program_id'],
+            'soft_or_commitment' => 'Soft',
             'year' => $data['allocation_year']
-        ])->first();
+        ])
+        ->whereNull('attributor_id')
+        ->first();
 
         if (!$allocation) {
             $this->sendErrorNotification('Allocation not found.');
@@ -253,7 +254,6 @@ class EditProjectProposalTarget extends EditRecord
     private function logTargetHistory(array $targetData, Target $target, Allocation $allocation, array $totals): void
     {
         TargetHistory::create([
-            'abscap_id' => $targetData['abscap_id'],
             'target_id' => $target->id,
             'allocation_id' => $allocation->id,
             'district_id' => $target->district_id,
@@ -268,7 +268,6 @@ class EditProjectProposalTarget extends EditRecord
             'delivery_mode_id' => $targetData['delivery_mode_id'],
             'learning_mode_id' => $targetData['learning_mode_id'],
             'number_of_slots' => $targetData['number_of_slots'],
-            'attribution_allocation_id' => $targetData['attribution_allocation_id'] ?? null,
             'total_training_cost_pcc' => $totals['total_training_cost_pcc'],
             'total_cost_of_toolkit_pcc' => $totals['total_cost_of_toolkit_pcc'],
             'total_training_support_fund' => $totals['total_training_support_fund'],
@@ -282,6 +281,7 @@ class EditProjectProposalTarget extends EditRecord
             'total_amount' => $totals['total_amount'],
             'appropriation_type' => $targetData['appropriation_type'],
             'description' => 'Target Modified',
+            'user_id' => Auth::user()->id,
         ]);
     }
 }

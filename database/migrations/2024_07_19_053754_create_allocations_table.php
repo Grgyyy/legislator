@@ -27,8 +27,14 @@ return new class extends Migration {
             $table->decimal('balance', 15, 2)->default(0);
             $table->decimal('accumulated_balance', 15, 2)
                 ->default(0);
-            $table->decimal('attribution_sent', 15, 2)->default(0);
-            $table->decimal('attribution_received', 15, 2)->default(0);
+            $table->foreignId('attributor_id')
+                ->nullable()
+                ->constrained('legislators')
+                ->cascadeOnDelete();
+            $table->foreignId('attributor_particular_id')
+                ->nullable()
+                ->constrained('particulars')
+                ->cascadeOnDelete();
             $table->year('year');
             $table->timestamps();
             $table->softDeletes();

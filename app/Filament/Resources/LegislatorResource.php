@@ -242,7 +242,7 @@ class LegislatorResource extends Resource
             $formattedName = "{$subParticular} - {$partylistName}";
         } elseif ($subParticular === 'District') {
             $districtName = $item->district->name ?? 'Unknown District';
-            $municipality = $item->district->underMunicipality->name;
+            $municipality = $item->district->underMunicipality->name ?? '' ;
             $provinceName = $item->district->province->name ?? 'Unknown Province';
 
             if ($municipality) {

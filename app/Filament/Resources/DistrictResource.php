@@ -148,13 +148,14 @@ class DistrictResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('municipality.name')
+                TextColumn::make('underMunicipality.name')
                     ->label('Municipality')
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
-                        return $record->municipality->isNotEmpty()
-                            ? $record->municipality->pluck('name')->join(', ')
+                        return $record->underMunicipality 
+                            ? $record->underMunicipality->name
+                            // ->pluck('name')->join(', ')
                             : '-';
                     }),
 

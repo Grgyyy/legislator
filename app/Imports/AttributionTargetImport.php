@@ -8,6 +8,7 @@ use App\Models\Particular;
 use App\Models\SkillPriority;
 use App\Models\SubParticular;
 use App\Models\TargetStatus;
+use Auth;
 use Throwable;
 use App\Models\Tvi;
 use App\Models\Abdd;
@@ -46,24 +47,23 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
                 $attribution_region = $this->getRegion('Not Applicable');
                 $attribution_province = $this->getProvince('Not Applicable', $attribution_region->id);
                 $attribution_district = $this->getDistrict('Not Applicable', $attribution_province->id);
-                $attribution_municipality = $this->getMunicipality('Not Applicable', $attribution_province->id);
                 $attribution_partylist = $this->getPartylist('Not Applicable');
                 $attribution_sub_particular = $this->getSubParticular($row['attributor_particular']);
                 $attribution_particular = $this->getParticular($attribution_sub_particular->id, $attribution_partylist->id, $attribution_district->id);
-                $scholarship_program = $this->getScholarshipProgram($row['scholarship_program']);
-                $attributor_allocation = $this->getAllocation($attributor->id, $attribution_particular->id, $scholarship_program->id,  $row['appropriation_year']);
-
 
                 // Receiver
                 $legislator = $this->getLegislatorId($row['legislator']);
                 $region = $this->getRegion($row['region']);
                 $province = $this->getProvince($row['province'], $region->id);
                 $district = $this->getDistrict($row['district'], $province->id);
-                $municipality = $this->getMunicipality($row['municipality'],  $province->id);
                 $partylist = $this->getPartylist($row['partylist']);
                 $sub_particular = $this->getSubParticular($row['particular']);
                 $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
-                $allocation = $this->getAllocation($legislator->id, $particular->id, $scholarship_program->id, $row['appropriation_year']);
+
+                $scholarship_program = $this->getScholarshipProgram($row['scholarship_program']);
+
+
+                $allocation = $this->getAllocation($attributor->id, $attribution_particular->id, $legislator->id, $particular->id, $scholarship_program->id, $row['appropriation_year']);
 
                 $abddSector = $this->getAbddSector($row['abdd_sector']);
                 $delivery_mode = $this->getDeliveryMode($row['delivery_mode']);
@@ -83,8 +83,6 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
                 $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
                 $targetData = [
-                    'abscap_id' => $row['abscap_id'],
-                    'attribution_allocation_id' => $attributor_allocation->id,
                     'allocation_id' => $allocation->id,
                     'district_id' => $tvi->district_id,
                     'municipality_id' => $tvi->municipality_id,
@@ -124,10 +122,7 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
                 $target = Target::create($targetData);
 
                 $skillPriority->decrement('available_slots', $numberOfSlots);
-                $attributor_allocation->decrement('balance', $totals['total_amount']);
-                $attributor_allocation->increment('attribution_sent', $totals['total_amount']);
-
-                $allocation->increment('attribution_received', $totals['total_amount']);
+                $allocation->decrement('balance', $totals['total_amount']);
 
                 $this->logTargetHistory($target, $allocation, $totals);
              
@@ -150,7 +145,6 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
             'legislator',
             'particular',
             'district',
-            'municipality',
             'province',
             'region',
             'partylist',
@@ -310,10 +304,12 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
         return $scholarshipProgram;
     }
 
-    protected function getAllocation(int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
+    protected function getAllocation(int $attributorId, int $attributorParticularId, int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
     {
         $allocation = Allocation::where('legislator_id', $legislatorId)
+            ->where('attributor_id', $attributorId)
             ->where('particular_id', $particularId)
+            ->where('attributor_particular_id', $attributorParticularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('year', $appropriationYear)
             ->whereNull('deleted_at')
@@ -436,7 +432,6 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
     private function logTargetHistory(Target $target, Allocation $allocation, array $totals): void
     {
         TargetHistory::create([
-            'abscap_id' => $target['abscap_id'],
             'target_id' => $target->id,
             'allocation_id' => $allocation->id,
             'district_id' => $target->district_id,
@@ -450,7 +445,6 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
             'delivery_mode_id' => $target['delivery_mode_id'],
             'learning_mode_id' => $target['learning_mode_id'],
             'number_of_slots' => $target['number_of_slots'],
-            'attribution_allocation_id' => $target['attribution_allocation_id'] ?? null,
             'total_training_cost_pcc' => $totals['total_training_cost_pcc'],
             'total_cost_of_toolkit_pcc' => $totals['total_cost_of_toolkit_pcc'],
             'total_training_support_fund' => $totals['total_training_support_fund'],
@@ -464,6 +458,7 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
             'total_amount' => $totals['total_amount'],
             'appropriation_type' => $target['appropriation_type'],
             'description' => 'Target Created',
+            'user_id' => Auth::user()->id,
         ]);
     }
 }

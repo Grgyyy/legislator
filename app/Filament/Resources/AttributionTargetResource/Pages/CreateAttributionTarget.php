@@ -11,6 +11,7 @@ use App\Models\QualificationTitle;
 use App\Filament\Resources\AttributionTargetResource;
 use App\Models\Tvi;
 use App\Models\ProvinceAbdd;
+use Auth;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
@@ -64,34 +65,46 @@ class CreateAttributionTarget extends CreateRecord
                 }
             }
 
-            // Fetch sender allocation
-            $senderAllocation = Allocation::where('legislator_id', $targetData['attribution_sender'])
-                ->where('particular_id', $targetData['attribution_sender_particular'])
+            // // Fetch sender allocation
+            // $senderAllocation = Allocation::where('legislator_id', $targetData['attribution_sender'])
+            //     ->where('particular_id', $targetData['attribution_sender_particular'])
+            //     ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
+            //     ->where('year', $targetData['allocation_year'])
+            //     ->first();
+
+            // if (!$senderAllocation) {
+            //     throw new Exception('Attribution Sender Allocation not found');
+            // }
+
+            // // Fetch or create receiver allocation
+            // $receiverAllocation = Allocation::where('legislator_id', $targetData['attribution_receiver'])
+            //     ->where('particular_id', $targetData['attribution_receiver_particular']) // FIXED FIELD
+            //     ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
+            //     ->where('year', $targetData['allocation_year'])
+            //     ->first();
+
+            // if (!$receiverAllocation) {
+            //     $receiverAllocation = Allocation::create([
+            //         'soft_or_commitment' => 'Soft',
+            //         'legislator_id' => $targetData['attribution_receiver'],
+            //         'particular_id' => $targetData['attribution_receiver_particular'], // FIXED FIELD
+            //         'scholarship_program_id' => $targetData['attribution_scholarship_program'],
+            //         'allocation' => 0,
+            //         'balance' => 0,
+            //         'year' => $targetData['allocation_year'],
+            //     ]);
+            // }
+
+            $allocation = Allocation::where('attributor_id', $targetData['attribution_sender'])
+                ->where('legislator_id', $targetData['attribution_receiver'])
+                ->where('attributor_particular_id', $targetData['attribution_sender_particular'])
+                ->where('particular_id', $targetData['attribution_receiver_particular'])
                 ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
                 ->where('year', $targetData['allocation_year'])
                 ->first();
-
-            if (!$senderAllocation) {
-                throw new Exception('Attribution Sender Allocation not found');
-            }
-
-            // Fetch or create receiver allocation
-            $receiverAllocation = Allocation::where('legislator_id', $targetData['attribution_receiver'])
-                ->where('particular_id', $targetData['attribution_receiver_particular']) // FIXED FIELD
-                ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
-                ->where('year', $targetData['allocation_year'])
-                ->first();
-
-            if (!$receiverAllocation) {
-                $receiverAllocation = Allocation::create([
-                    'soft_or_commitment' => 'Soft',
-                    'legislator_id' => $targetData['attribution_receiver'],
-                    'particular_id' => $targetData['attribution_receiver_particular'], // FIXED FIELD
-                    'scholarship_program_id' => $targetData['attribution_scholarship_program'],
-                    'allocation' => 0,
-                    'balance' => 0,
-                    'year' => $targetData['allocation_year'],
-                ]);
+            
+            if (!$allocation) {
+                throw new Exception('Allocation not found');
             }
 
             $qualificationTitle = QualificationTitle::find($targetData['qualification_title_id']);
@@ -133,7 +146,7 @@ class CreateAttributionTarget extends CreateRecord
             }
 
             // Check for sufficient balance in the sender's allocation
-            if ($senderAllocation->balance < $total_amount) {
+            if ($allocation->balance < $total_amount) {
                 throw new Exception('Insufficient funds in sender allocation');
             }
 
@@ -164,9 +177,7 @@ class CreateAttributionTarget extends CreateRecord
 
             // If both conditions are met, proceed with creation
             $target = Target::create([
-                'abscap_id' => $targetData['abscap_id'],
-                'allocation_id' => $receiverAllocation->id,
-                'attribution_allocation_id' => $senderAllocation->id,
+                'allocation_id' => $allocation->id,
                 'tvi_id' => $institution->id,
                 'tvi_name' => $institution->name,
                 'municipality_id' => $institution->municipality_id,
@@ -195,25 +206,18 @@ class CreateAttributionTarget extends CreateRecord
             ]);
 
             // Update sender and receiver balances
-            $senderAllocation->balance -= $total_amount;
-            $senderAllocation->attribution_sent += $total_amount;
-            $senderAllocation->save();
+            $allocation->balance -= $total_amount;
+            $allocation->save();
 
-            $receiverAllocation->attribution_received += $total_amount;
-            $receiverAllocation->save();
 
-            // Decrement available slots in ProvinceAbdd
             // $provinceAbdd->decrement('available_slots', $numberOfSlots);
-
             $skillPriority->decrement('available_slots', $numberOfSlots);
 
 
             // Log the creation in TargetHistory
             TargetHistory::create([
-                'abscap_id' => $targetData['abscap_id'],
                 'target_id' => $target->id,
-                'allocation_id' => $receiverAllocation->id,
-                'attribution_allocation_id' => $senderAllocation->id,
+                'allocation_id' => $allocation->id,
                 'tvi_id' => $targetData['tvi_id'],
                 'tvi_name' => $institution->name,
                 'municipality_id' => $institution->municipality_id,
@@ -239,6 +243,7 @@ class CreateAttributionTarget extends CreateRecord
                 'total_amount' => $total_amount, // Removed admin_cost
                 'appropriation_type' => $targetData['attribution_appropriation_type'],
                 'description' => 'Target Created',
+                'user_id' => Auth::user()->id,
             ]);
 
             return $target;

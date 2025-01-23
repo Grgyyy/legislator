@@ -6,6 +6,7 @@ use App\Models\ProvinceAbdd;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
 use App\Models\Tvi;
+use Auth;
 use Exception;
 use App\Models\Target;
 use App\Models\Allocation;
@@ -96,7 +97,7 @@ class EditTarget extends EditRecord
             }
 
             $record->update(array_merge($totals, [
-                'abscap_id' => $data['abscap_id'],
+                'abscap_id' => $data['abscap_id'] ?? null,
                 'allocation_id' => $allocation->id,
                 'district_id' => $institution->district_id,
                 'municipality_id' => $institution->municipality_id,
@@ -116,7 +117,7 @@ class EditTarget extends EditRecord
 
             $this->logTargetHistory($data, $record, $allocation, $totals);
 
-            $this->sendSuccessNotification('Target updated successfully.');
+            // $this->sendSuccessNotification('Target updated successfully.');
 
             // dd($data, $qualificationTitle->trainingProgram->title);
 
@@ -137,7 +138,6 @@ class EditTarget extends EditRecord
     private function validateTargetData(array $data): void
     {
         $requiredFields = [
-            'abscap_id',
             'legislator_id', 'particular_id', 'scholarship_program_id',
             'qualification_title_id', 'number_of_slots', 'tvi_id',
             'appropriation_type', 'abdd_id', 'learning_mode_id',
@@ -250,7 +250,7 @@ class EditTarget extends EditRecord
     private function logTargetHistory(array $targetData, Target $target, Allocation $allocation, array $totals): void
     {
         TargetHistory::create([
-            'abscap_id' => $targetData['abscap_id'],
+            'abscap_id' => $targetData['abscap_id'] ?? null,
             'target_id' => $target->id,
             'allocation_id' => $allocation->id,
             'district_id' => $target->district_id,
@@ -265,7 +265,6 @@ class EditTarget extends EditRecord
             'delivery_mode_id' => $targetData['delivery_mode_id'],
             'learning_mode_id' => $targetData['learning_mode_id'],
             'number_of_slots' => $targetData['number_of_slots'],
-            'attribution_allocation_id' => $targetData['attribution_allocation_id'] ?? null,
             'total_training_cost_pcc' => $totals['total_training_cost_pcc'],
             'total_cost_of_toolkit_pcc' => $totals['total_cost_of_toolkit_pcc'],
             'total_training_support_fund' => $totals['total_training_support_fund'],
@@ -279,6 +278,7 @@ class EditTarget extends EditRecord
             'total_amount' => $totals['total_amount'],
             'appropriation_type' => $targetData['appropriation_type'],
             'description' => 'Target Modified',
+            'user_id' => Auth::user()->id,
         ]);
     }
 }

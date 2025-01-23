@@ -17,6 +17,7 @@ use Filament\Notifications\Notification;
 use App\Filament\Resources\TargetResource;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
+use Auth;
 
 class CreateTarget extends CreateRecord
 {
@@ -262,7 +263,7 @@ class CreateTarget extends CreateRecord
     private function createTarget(array $targetData, Allocation $allocation, Tvi $institution, QualificationTitle $qualificationTitle, array $totals): Target
     {
         return Target::create(array_merge($targetData, [
-            'abscap_id' => $targetData['abscap_id'],
+            'abscap_id' => $targetData['abscap_id'] ??  null,
             'allocation_id' => $allocation->id,
             'district_id' => $institution->district_id,
             'municipality_id' => $institution->municipality_id,
@@ -296,7 +297,6 @@ class CreateTarget extends CreateRecord
             'delivery_mode_id' => $targetData['delivery_mode_id'],
             'learning_mode_id' => $targetData['learning_mode_id'],
             'number_of_slots' => $targetData['number_of_slots'],
-            'attribution_allocation_id' => $targetData['attribution_allocation_id'] ?? null,
             'total_training_cost_pcc' => $totals['total_training_cost_pcc'],
             'total_cost_of_toolkit_pcc' => $totals['total_cost_of_toolkit_pcc'],
             'total_training_support_fund' => $totals['total_training_support_fund'],
@@ -310,6 +310,7 @@ class CreateTarget extends CreateRecord
             'total_amount' => $totals['total_amount'],
             'appropriation_type' => $targetData['appropriation_type'],
             'description' => 'Target Created',
+            'user_id' => Auth::user()->id,
         ]);
     }
 

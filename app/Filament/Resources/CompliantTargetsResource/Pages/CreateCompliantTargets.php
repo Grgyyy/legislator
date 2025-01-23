@@ -10,6 +10,7 @@ use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
 use App\Services\NotificationHandler;
+use Auth;
 use Exception;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -49,9 +50,6 @@ class CreateCompliantTargets extends CreateRecord
             $numberOfSlots = $data['number_of_slots'] ?? self::DEFAULT_NUMBER_OF_SLOTS;
             $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $data['allocation_year']);
 
-            $this->logTargetHistory($target);
-            $this->updateTarget($target, $allocation->id, $data, $totals, $compliantStatus->id);
-
             $step = ScholarshipProgram::where('name', 'STEP')->first();
 
             if ($qualificationTitle->scholarship_program_id === $step->id) {
@@ -70,6 +68,9 @@ class CreateCompliantTargets extends CreateRecord
                 }
             }
 
+            $this->logTargetHistory($target);
+            $this->updateTarget($target, $allocation->id, $data, $totals, $compliantStatus->id);
+
             return $target;
         });
     }
@@ -81,11 +82,15 @@ class CreateCompliantTargets extends CreateRecord
 
     private function findAllocation(array $data): Allocation
     {
-        return Allocation::where('legislator_id', $data['legislator_id'])
-            ->where('particular_id', $data['particular_id'])
-            ->where('scholarship_program_id', $data['scholarship_program_id'])
-            ->where('year', $data['allocation_year'])
-            ->firstOrFail();
+        $allocation = Allocation::where('attributor_id', $data['sender_legislator_id'])
+                ->where('legislator_id', $data['legislator_id'])
+                ->where('attributor_particular_id', $data['sender_particular_id'])
+                ->where('particular_id', $data['particular_id'])
+                ->where('scholarship_program_id', $data['scholarship_program_id'])
+                ->where('year', $data['allocation_year'])
+                ->first();
+    
+        return $allocation;
     }
 
     private function findCompliantStatus(): TargetStatus
@@ -136,12 +141,10 @@ class CreateCompliantTargets extends CreateRecord
     private function logTargetHistory(Target $target): void
     {
         TargetHistory::create([
-            'abscap_id' => $target['abscap_id'],
             'target_id' => $target->id,
             'allocation_id' => $target['allocation_id'],
             'district_id' => $target['district_id'],
             'municipality_id' => $target['municipality_id'],
-            'attribution_allocation_id' => $target['attribution_allocation_id'],
             'tvi_id' => $target['tvi_id'],
             'tvi_name' => $target['tvi_name'],
             'qualification_title_id' => $target['qualification_title_id'],
@@ -165,6 +168,7 @@ class CreateCompliantTargets extends CreateRecord
             'total_amount' => $target['total_amount'],
             'appropriation_type' => $target['appropriation_type'],
             'description' => 'Marked as Compliant',
+            'user_id' => Auth::user()->id,
         ]);
     }
 

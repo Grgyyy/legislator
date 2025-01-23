@@ -17,43 +17,36 @@ class MunicipalityImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    public function model(array $row)
+    public function model(array $row) 
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $region_id = $this->getRegionId($row['region']);
-                $province_id = $this->getProvinceId($region_id, $row['province']);
+                $regionId = $this->getRegionId($row['region']);
+                $provinceId = $this->getProvinceId($row['province'], $regionId);
+                $districtId = $this->getDistrictId($row['district'], $provinceId);
 
-                $this->validateDistrictColumn($row['region'], $row['province'], $row['district'] ?? null);
+                $municipalityRecord = Municipality::where('code', $row['code'])
+                    ->where('name', $row['municipality'])
+                    ->where('province_id', $provinceId)
+                    ->first();
 
-                $municipality = Municipality::updateOrCreate(
-                    [
-                        'name' => $row['municipality'],
+                if (!$municipalityRecord) { 
+                    $municipalityRecord = Municipality::create([
                         'code' => $row['code'],
+                        'name' => $row['municipality'],
                         'class' => $row['class'],
-                        'province_id' => $province_id,
-                    ],
-                );
+                        'province_id' => $provinceId
+                    ]);
 
-                if (isset($row['district'])) {
-                    $district = District::firstOrCreate(
-                        [
-                            'name' => $row['district'],
-                            'province_id' => $province_id,
-                        ],
-                        [
-                            'municipality_id' => $municipality->id,
-                        ]
-                    );
-
-                    $municipality->district()->syncWithoutDetaching($district->id);
+                    $municipalityRecord->district()->attach($districtId);
                 }
 
-                return $municipality;
+                return $municipalityRecord;
 
-            } catch (Throwable $e) {
+            }
+            catch (Throwable $e) {
                 Log::error('Failed to import municipality: ' . $e->getMessage());
                 throw $e;
             }
@@ -62,7 +55,7 @@ class MunicipalityImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['municipality', 'region', 'province', 'class'];
+        $requiredFields = ['municipality', 'region', 'province', 'class', 'code'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
@@ -71,55 +64,146 @@ class MunicipalityImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function validateDistrictColumn(string $regionName, string $provinceName, ?string $districtName)
-    {
-        $isNcrRegion = strtolower(trim($regionName)) === 'ncr';
-        $isProvinceUnderNcr = $this->isProvinceUnderNcr($provinceName);
-
-        if ($isNcrRegion && $isProvinceUnderNcr && empty($districtName)) {
-            throw new \Exception("The District column is required for municipalities in NCR.");
+    protected function getRegionId(string $region) {
+        $regionRecord = Region::where("name", $region)->first();
+        
+        if (!$regionRecord) {
+            throw new \Exception("Region with the name '{$region}' does not exist.");
         }
-
-        if ((!$isNcrRegion || !$isProvinceUnderNcr) && !empty($districtName)) {
-            throw new \Exception("The District column must be empty for municipalities outside NCR.");
-        }
+    
+        return $regionRecord->id;
     }
 
-    protected function isProvinceUnderNcr(string $provinceName): bool
-    {
-        $province = Province::where('name', $provinceName)
-            ->whereHas('region', function ($query) {
-                $query->where('name', 'NCR');
-            })
+    protected function getProvinceId(string $province, int $regionId) {
+        $provinceRecord = Province::where("name", $province)
+            ->where("region_id", $regionId)
+            ->first();
+        
+        if (!$provinceRecord) {
+            throw new \Exception("Province with the name '{$province}' does not exist.");
+        }
+    
+        return $provinceRecord->id;
+    }
+
+    protected function getDistrictId(string $district, int $provinceId) {
+        $districtRecord = District::where("name", $district)
+            ->where("province_id", $provinceId)
             ->first();
 
-        return $province !== null;
-    }
-
-    protected function getRegionId(string $regionName)
-    {
-        $region = Region::where('name', $regionName)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if (!$region) {
-            throw new \Exception("Region with name '{$regionName}' not found. No changes were saved.");
+        $province = Province::find($provinceId);
+        
+        if (!$districtRecord) {
+            throw new \Exception("District with the name '{$district}' under the province of '{$province->name}' does not exist.");
         }
-
-        return $region->id;
+    
+        return $districtRecord->id;
     }
+    
 
-    protected function getProvinceId(int $regionId, string $provinceName)
-    {
-        $province = Province::where('name', $provinceName)
-            ->where('region_id', $regionId)
-            ->whereNull('deleted_at')
-            ->first();
+    // public function model(array $row)
+    // {
+    //     $this->validateRow($row);
 
-        if (!$province) {
-            throw new \Exception("Province with name '{$provinceName}' in region ID '{$regionId}' not found. No changes were saved.");
-        }
+    //     return DB::transaction(function () use ($row) {
+    //         try {
+    //             $region_id = $this->getRegionId($row['region']);
+    //             $province_id = $this->getProvinceId($region_id, $row['province']);
 
-        return $province->id;
-    }
+    //             $this->validateDistrictColumn($row['region'], $row['province'], $row['district'] ?? null);
+
+    //             $municipality = Municipality::updateOrCreate(
+    //                 [
+    //                     'name' => $row['municipality'],
+    //                     'code' => $row['code'],
+    //                     'class' => $row['class'],
+    //                     'province_id' => $province_id,
+    //                 ],
+    //             );
+
+    //             if (isset($row['district'])) {
+    //                 $district = District::firstOrCreate(
+    //                     [
+    //                         'name' => $row['district'],
+    //                         'province_id' => $province_id,
+    //                     ],
+    //                     [
+    //                         'municipality_id' => $municipality->id,
+    //                     ]
+    //                 );
+
+    //                 $municipality->district()->syncWithoutDetaching($district->id);
+    //             }
+
+    //             return $municipality;
+
+    //         } catch (Throwable $e) {
+    //             Log::error('Failed to import municipality: ' . $e->getMessage());
+    //             throw $e;
+    //         }
+    //     });
+    // }
+
+    // protected function validateRow(array $row)
+    // {
+    //     $requiredFields = ['municipality', 'region', 'province', 'class'];
+
+    //     foreach ($requiredFields as $field) {
+    //         if (empty($row[$field])) {
+    //             throw new \Exception("The field '{$field}' is required and cannot be null or empty. No changes were saved.");
+    //         }
+    //     }
+    // }
+
+    // protected function validateDistrictColumn(string $regionName, string $provinceName, ?string $districtName)
+    // {
+    //     $isNcrRegion = strtolower(trim($regionName)) === 'ncr';
+    //     $isProvinceUnderNcr = $this->isProvinceUnderNcr($provinceName);
+
+    //     if ($isNcrRegion && $isProvinceUnderNcr && empty($districtName)) {
+    //         throw new \Exception("The District column is required for municipalities in NCR.");
+    //     }
+
+    //     if ((!$isNcrRegion || !$isProvinceUnderNcr) && !empty($districtName)) {
+    //         throw new \Exception("The District column must be empty for municipalities outside NCR.");
+    //     }
+    // }
+
+    // protected function isProvinceUnderNcr(string $provinceName): bool
+    // {
+    //     $province = Province::where('name', $provinceName)
+    //         ->whereHas('region', function ($query) {
+    //             $query->where('name', 'NCR');
+    //         })
+    //         ->first();
+
+    //     return $province !== null;
+    // }
+
+    // protected function getRegionId(string $regionName)
+    // {
+    //     $region = Region::where('name', $regionName)
+    //         ->whereNull('deleted_at')
+    //         ->first();
+
+    //     if (!$region) {
+    //         throw new \Exception("Region with name '{$regionName}' not found. No changes were saved.");
+    //     }
+
+    //     return $region->id;
+    // }
+
+    // protected function getProvinceId(int $regionId, string $provinceName)
+    // {
+    //     $province = Province::where('name', $provinceName)
+    //         ->where('region_id', $regionId)
+    //         ->whereNull('deleted_at')
+    //         ->first();
+
+    //     if (!$province) {
+    //         throw new \Exception("Province with name '{$provinceName}' in region ID '{$regionId}' not found. No changes were saved.");
+    //     }
+
+    //     return $province->id;
+    // }
 }

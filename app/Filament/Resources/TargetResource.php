@@ -71,12 +71,12 @@ class TargetResource extends Resource
             ->schema(function ($record) {
                 if ($record) {
                     return [
-                        TextInput::make('abscap_id')
-                            ->label('Absorbative Capacity ID')
-                            ->placeholder('Enter an Absorbative capacity ID')
-                            ->required()
-                            ->markAsRequired(false)
-                            ->numeric(),
+                        // TextInput::make('abscap_id')
+                        //     ->label('Absorptive Capacity ID')
+                        //     ->placeholder('Enter an Absorbative capacity ID')
+                        //     ->required()
+                        //     ->markAsRequired(false)
+                        //     ->numeric(),
 
                         Select::make('legislator_id')
                             ->label('Legislator')
@@ -167,7 +167,17 @@ class TargetResource extends Resource
                                     })
                                     ->toArray() ?: ['no_tvi' => 'No institution available'];
                             })
-                            ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
+                            ->disableOptionWhen(fn($value) => $value === 'no_tvi')
+                            ->afterStateUpdated(function (callable $set, $state) {
+                                if (!$state) {
+                                    $set('qualification_title_id', null);
+                                }
+
+                                $set('qualification_title_id', null);
+                                
+                            })
+                            ->reactive()
+                            ->live(),
 
                         Select::make('qualification_title_id')
                             ->label('Qualification Title')
@@ -262,12 +272,11 @@ class TargetResource extends Resource
                     return [
                         Repeater::make('targets')
                             ->schema([
-                                TextInput::make('abscap_id')
-                                    ->label('Absorbative Capacity ID')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->placeholder('Enter an Absorbative capacity ID')
-                                    ->numeric(),
+                                // TextInput::make('abscap_id')
+                                //     ->label('Absorptive Capacity ID')
+                                    
+                                //     ->placeholder('Enter an Absorbative capacity ID')
+                                //     ->numeric(),
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -279,13 +288,16 @@ class TargetResource extends Resource
                                         return Legislator::where('status_id', 1)
                                             ->whereNull('deleted_at')
                                             ->whereHas('allocation', function ($query) {
-                                                $query->where('balance', '>', 0);
+                                                $query->where('soft_or_commitment', 'Soft')
+                                                      ->where('balance', '>', 0)
+                                                      ->whereNull('attributor_id');
                                             })
                                             ->pluck('name', 'id')
-                                            ->toArray() ?: ['no_legislator' => 'No legislator available'];
+                                            ->toArray() ?: ['no_legislators' => 'No legislator available'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_legislators')
                                     ->afterStateUpdated(function ($state, callable $set) {
+                                        // Reset dependent fields
                                         if (!$state) {
                                             $set('particular_id', null);
                                             $set('scholarship_program_id', null);
@@ -293,36 +305,42 @@ class TargetResource extends Resource
                                             $set('appropriation_type', null);
                                             return;
                                         }
-
+                                
+                                        // Fetch allocations based on the selected legislator
                                         $allocations = Allocation::where('legislator_id', $state)
+                                            ->where('soft_or_commitment', 'Soft')
+                                            ->where('balance', '>', 0)
+                                            ->whereNull('attributor_id')
                                             ->with('particular', 'scholarship_program')
                                             ->get();
-
+                                
+                                        // Prepare options for the particular, scholarship programs, and allocation year
                                         $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                         $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-
-                                        $currentYear = now()->year;
-
+                                
+                                        // Set particular_id, scholarship_program_id, and allocation_year based on the allocations available
                                         if (count($particularOptions) === 1) {
                                             $set('particular_id', key($particularOptions));
                                         } else {
                                             $set('particular_id', null);
                                         }
-
+                                
                                         if (count($scholarshipProgramOptions) === 1) {
                                             $set('scholarship_program_id', key($scholarshipProgramOptions));
                                         } else {
                                             $set('scholarship_program_id', null);
                                         }
-
+                                
                                         $particularId = $particularOptions ? key($particularOptions) : null;
                                         $scholarshipProgramId = $scholarshipProgramOptions ? key($scholarshipProgramOptions) : null;
-
+                                
+                                        // Set allocation year and appropriation type if both particular and scholarship_program are set
                                         if ($particularId && $scholarshipProgramId) {
                                             if (count($allocations) === 1) {
                                                 $set('allocation_year', key($appropriationYearOptions));
-
+                                
+                                                $currentYear = now()->year;
                                                 if (key($appropriationYearOptions) == $currentYear) {
                                                     $set('appropriation_type', 'Current');
                                                 }
@@ -337,7 +355,7 @@ class TargetResource extends Resource
                                     })
                                     ->reactive()
                                     ->live(),
-
+                                
                                 Select::make('particular_id')
                                     ->label('Particular')
                                     ->required()
@@ -348,11 +366,11 @@ class TargetResource extends Resource
                                     ->options(function ($get) {
                                         $legislator_id = $get('legislator_id');
                                         $legislatorRecords = Legislator::find($legislator_id);
-
+                                
                                         if ($legislatorRecords) {
                                             // Get particulars with subParticular names
                                             $particulars = $legislatorRecords->particular()->with(['subParticular', 'district.province.region'])->get();
-
+                                
                                             if ($particulars->isNotEmpty()) {
                                                 // Prepare options array
                                                 $options = $particulars->mapWithKeys(function ($particular) {
@@ -363,8 +381,7 @@ class TargetResource extends Resource
                                                     $provinceName = $particular->district && $particular->district && $particular->district->province ? $particular->district->province->name : 'No Province';
                                                     $regionName = $particular->district && $particular->district && $particular->district->province && $particular->district->province->region ? $particular->district->province->region->name : 'No Region';
                                                     $partylistName = $particular->partylist ? $particular->partylist->name : 'No Partylist';
-
-
+                                
                                                     if ($fundSourceName === 'CO Legislator Funds') {
                                                         if ($subParticularName === 'Senator') {
                                                             return [$particular->id => "{$subParticularName}"];
@@ -386,44 +403,49 @@ class TargetResource extends Resource
                                                         $regionName = $particular->district?->province?->region ?? 'No Region';
                                                         return [$particular->id => "{$subParticularName} - {$regionName->name}"];
                                                     }
-
+                                
                                                     return [];
                                                 })->toArray();
-
+                                
                                                 return $options ?: ['no_particular' => 'No particular available'];
                                             }
                                         }
-
+                                
                                         return ['no_particular' => 'No particular available. Select a legislator first.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_particular')
                                     ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                        // If particular is cleared, reset dependent fields
                                         if (!$state) {
                                             $set('scholarship_program_id', null);
                                             $set('allocation_year', null);
                                             $set('appropriation_type', null);
                                             return;
                                         }
-
+                                
                                         $legislator_id = $get('legislator_id');
                                         $allocations = Allocation::where('legislator_id', $legislator_id)
                                             ->where('particular_id', $state)
+                                            ->where('soft_or_commitment', 'Soft')
                                             ->with('particular', 'scholarship_program')
                                             ->get();
-
+                                
                                         $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-
+                                
                                         $currentYear = now()->year;
-
+                                
                                         if (count($allocations) === 1) {
+                                            // If only one allocation exists, set values automatically
                                             $set('scholarship_program_id', key($scholarshipProgramOptions));
                                             $set('allocation_year', key($appropriationYearOptions));
-
+                                
+                                            // If the allocation year matches the current year, set the appropriation type as 'Current'
                                             if (key($appropriationYearOptions) == $currentYear) {
                                                 $set('appropriation_type', 'Current');
                                             }
                                         } else {
+                                            // If multiple allocations exist, clear the related fields
                                             $set('scholarship_program_id', null);
                                             $set('allocation_year', null);
                                             $set('appropriation_type', null);
@@ -489,7 +511,7 @@ class TargetResource extends Resource
                                     ->searchable()
                                     ->native(false)
                                     ->options(function ($get) {
-                                        $legislatorId = $get('allocation_legislator_id');
+                                        $legislatorId = $get('legislator_id');
                                         $particularId = $get('particular_id');
                                         $scholarshipProgramId = $get('scholarship_program_id');
 
@@ -546,7 +568,17 @@ class TargetResource extends Resource
                                             })
                                             ->toArray() ?: ['no_tvi' => 'No institution available'];
                                     })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
+                                    ->disableOptionWhen(fn($value) => $value === 'no_tvi')
+                                    ->afterStateUpdated(function (callable $set, $state) {
+                                        if (!$state) {
+                                            $set('qualification_title_id', null);
+                                        }
+
+                                        $set('qualification_title_id', null);
+                                        
+                                    })
+                                    ->reactive()
+                                    ->live(),
 
                                 Select::make('qualification_title_id')
                                     ->label('Qualification Title')
@@ -680,10 +712,10 @@ class TargetResource extends Resource
         return $table
             ->emptyStateHeading('No targets available')
             ->columns([
-                TextColumn::make('abscap_id')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
+                // TextColumn::make('abscap_id')
+                //     ->sortable()
+                //     ->searchable()
+                //     ->toggleable(),
 
                 TextColumn::make('fund_source')
                     ->label('Fund Source')
@@ -750,7 +782,8 @@ class TargetResource extends Resource
                         $municipality = $district ? $district->underMunicipality : null;
 
                         $districtName = $district ? $district->name : 'Unknown District';
-                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                        $provinceName = $district ? $district->province->name : 'Unknown District';
+                        $municipalityName = $municipality ? $municipality->name : '';
 
                         if ($districtName === 'Not Applicable') {
                             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
@@ -759,7 +792,12 @@ class TargetResource extends Resource
                                 return $particular->subParticular->name ?? 'Unknown SubParticular';
                             }
                         } else {
-                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                            if ($municipality === '') {
+                                return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
+                            }
+                            else {
+                                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
+                            }
                         }
                     }),
 
@@ -1271,7 +1309,12 @@ class TargetResource extends Resource
                         return [$particular->id => $particular->subParticular->name];
                     }
                 } else {
-                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
+                    if ($particular->district->underMunicipality) {
+                        return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
+                    }
+                    else {
+                        return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->province->name];
+                    }
                 }
 
             })
@@ -1468,9 +1511,12 @@ class TargetResource extends Resource
             $query->withoutGlobalScopes([SoftDeletingScope::class])
                 ->where('target_status_id', '=', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
-                    $subQuery->where('soc', 1); // Assuming 'qualificationTitle' is the relationship name
+                    $subQuery->where('soc', 1); // Assuming 'qualification_title' is the correct relationship name
                 })
-                ->whereNull('attribution_allocation_id');
+                ->whereHas('allocation', function ($subQuery) {
+                    $subQuery->whereNull('attributor_id')
+                        ->where('soft_or_commitment', 'Soft');
+                });
 
             // Add region filter if valid route parameter
             if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {

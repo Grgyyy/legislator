@@ -230,6 +230,11 @@ class TargetHistoryResource extends Resource
                     ->label('Description')
                     ->searchable()
                     ->toggleable(),
+
+                TextColumn::make('user.name')
+                    ->label("Processor's Name")
+                    ->searchable()
+                    ->toggleable(),
             ])
             ->filters([
                 //

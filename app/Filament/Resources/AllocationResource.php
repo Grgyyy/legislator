@@ -6,6 +6,7 @@ use App\Filament\Resources\AllocationResource\Pages;
 use App\Models\Allocation;
 use App\Models\Legislator;
 use App\Models\ScholarshipProgram;
+use App\Models\TargetStatus;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -59,16 +60,76 @@ class AllocationResource extends Resource
                         'Commitment' => 'Commitment'
                     ]),
 
+                Select::make('attributor_id')
+                    ->label('Attributor')
+                    ->searchable()
+                    ->required(function ($get) {
+                        $soft_or_commitment = $get('soft_or_commitment');
+
+                        if ($soft_or_commitment === 'Commitment') {
+                            return true;
+                        }
+                        else {
+                            return false;
+                        }
+                    })
+                    ->markAsRequired(false)
+                    ->preload()
+                    ->native(false)
+                    ->options(function () {
+                        return Legislator::all()->mapWithKeys(function ($record) {
+                            return [$record->id => $record->name];
+                        })->toArray() ?: ['no_legislator' => 'No legislators available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_legislator')
+                    ->afterStateUpdated(function (callable $set, $state) {
+                        if (!$state) {
+                            $set('attributor_particular_id', null);
+                        }
+                        
+                        $particulars = self::getParticularOptions($state);
+
+                        $set('particularOptions', $particulars);
+
+                        if ($particulars && count($particulars) === 1) {
+                            $set('attributor_particular_id', key($particulars));
+                        }
+                    })
+                    ->reactive()
+                    ->live(),
+
+                Select::make('attributor_particular_id')
+                    ->label('Attributor Particular')
+                    ->required(function ($get) {
+                        $attributor = $get('attributor_id');
+                        $attributor ? true : false;
+                    })
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function ($get) {
+                        $legislatorId = $get('attributor_id');
+
+                        return $legislatorId
+                            ? self::getParticularOptions($legislatorId)
+                            : ['' => 'No particulars available. Select a legislator first.'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === '')
+                    ->reactive()
+                    ->live(),
+
                 Select::make('legislator_id')
                     ->label('Legislator')
-                    ->relationship('legislator', 'name')
                     ->required()
                     ->markAsRequired(false)
                     ->searchable()
                     ->preload()
                     ->native(false)
-                    ->options(function () {
-                        return Legislator::all()
+                    ->options(function ($get) {
+                        $attributor_id = $get('attributor_id');
+
+                        return Legislator::whereNot('id', $attributor_id)
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_legislator' => 'No legislators available'];
                     })
@@ -133,7 +194,7 @@ class AllocationResource extends Resource
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                     ->reactive()
                     ->live()
-                    ->disabled(fn($livewire) => $livewire->isEdit())
+                    // ->disabled(fn($livewire) => $livewire->isEdit())
                     ->dehydrated()
                     ->validationAttribute('Allocation')
                     ->validationMessages([
@@ -179,6 +240,34 @@ class AllocationResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
+                TextColumn::make('attributor.name')
+                    ->label('Attributor')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $attributor = $record->attributor->name ?? "-";
+
+                        return $attributor;
+                    }),
+
+                TextColumn::make('attributorParticular.subParticular.name')
+                    ->label('Attributor Particular')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $particularName = $record->attributorParticular->subParticular->name ?? "-";
+                        $regionName = $record->attributorParticular->district->province->region->name ??"-";
+
+                        if ($particularName === 'RO Regular' || $particularName === 'CO Regular') {
+                            return $particularName . ' - ' . $regionName;
+                        }
+                        else {
+                            return $particularName;
+                        }
+                    }),
+
                 TextColumn::make("legislator.name")
                     ->sortable()
                     ->searchable()
@@ -196,7 +285,7 @@ class AllocationResource extends Resource
                         $district = $particular->district;
                         $municipality = $district ? $district->underMunicipality : null;
                         $districtName = $district ? $district->name : 'Unknown District';
-                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                        $municipalityName = $municipality ? $municipality->name : '';
                         $provinceName = $district ? $district->province->name : 'Unknown Province';
                         $regionName = $district ? $district->province->region->name : 'Unknown Region';
 
@@ -257,19 +346,19 @@ class AllocationResource extends Resource
                         return number_format($difference, 2);
                     }),
 
-                TextColumn::make("attribution_sent")
-                    ->label('Attribution Sent')
-                    ->sortable()
-                    ->toggleable()
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                // TextColumn::make("attribution_sent")
+                //     ->label('Attribution Sent')
+                //     ->sortable()
+                //     ->toggleable()
+                //     ->prefix('₱')
+                //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                TextColumn::make("attribution_received")
-                    ->label('Attribution Received')
-                    ->sortable()
-                    ->toggleable()
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                // TextColumn::make("attribution_received")
+                //     ->label('Attribution Received')
+                //     ->sortable()
+                //     ->toggleable()
+                //     ->prefix('₱')
+                //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
                 TextColumn::make("expended_funds")
                     ->label('Funds Expended')
@@ -277,7 +366,8 @@ class AllocationResource extends Resource
                     ->toggleable()
                     ->prefix('₱')
                     ->getStateUsing(function ($record) {
-                        $fundsExpended = $record->target->sum('total_amount');
+                        $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
+                        $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
                 
                         return number_format($fundsExpended, 2);
                     }),
@@ -505,6 +595,8 @@ class AllocationResource extends Resource
                                 ->withColumns([
                                     Column::make('soft_or_commitment')
                                         ->heading('Soft of Commitment'),
+                                    Column::make('attributor.name')
+                                        ->heading('Attributor'),
                                     Column::make('legislator.name')
                                         ->heading('Legislator'),
                                     Column::make('particular.name')
@@ -557,12 +649,19 @@ class AllocationResource extends Resource
                                     Column::make('balance')
                                         ->heading('Balance')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                    Column::make('attribution_sent')
-                                        ->heading('Attribution Sent')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                    Column::make('attribution_received')
-                                        ->heading('Attribution Received')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    // Column::make('attribution_sent')
+                                    //     ->heading('Attribution Sent')
+                                    //     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    // Column::make('attribution_received')
+                                    //     ->heading('Attribution Received')
+                                    //     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('expended_funds')
+                                        ->heading('Funds Expended')
+                                        ->getStateUsing(function ($record) {
+                                            $fundsExpended = $record->target->sum('total_amount');
+                                    
+                                            return '₱ ' . number_format($fundsExpended, 2, '.', ',');
+                                        }),
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
@@ -575,13 +674,13 @@ class AllocationResource extends Resource
     private static function getParticularOptions($legislatorId)
     {
         if (!$legislatorId) {
-            return ['no_legislator' => 'No legislators available'];
+            return;
         }
 
         $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
 
         if (!$legislator) {
-            return ['no_legislator' => 'No legislators available'];
+            return;
         }
 
         return $legislator->particular->mapWithKeys(function ($particular) {

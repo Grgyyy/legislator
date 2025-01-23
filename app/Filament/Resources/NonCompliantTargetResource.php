@@ -59,14 +59,6 @@ class NonCompliantTargetResource extends Resource
         return $form->schema(function ($record) {
             $createCommonFields = function ($record, $isDisabled = true) {
                 return [
-                    TextInput::make('abscap_id')
-                        ->label('Absorbative Capacity ID')
-                        ->placeholder('Enter an Absorbative capacity ID')
-                        ->default($record ? $record->abscap_id : null)
-                        ->numeric()
-                        ->disabled($isDisabled)
-                        ->dehydrated(),
-
                     Select::make('sender_legislator_id')
                         ->label('Attribution Sender')
                         ->searchable()
@@ -255,11 +247,22 @@ class NonCompliantTargetResource extends Resource
                                     return [$id => $formattedName];
                                 })
                                 ->toArray() ?: ['no_tvi' => 'No institution available'];
-                        }),
+                        })
+                       ->afterStateUpdated(function (callable $set, $state) {
+                                                if (!$state) {
+                                                    $set('qualification_title_id', null);
+                                                }
+
+                                                $set('qualification_title_id', null);
+                                                
+                                            })
+                                            ->reactive()
+                                            ->live(),
 
                     Select::make('qualification_title_id')
                         ->label('Qualification Title')
                         ->required()
+                        ->markAsRequired(false)
                         ->searchable()
                         ->default($record ? $record->qualification_title_id : null)
                         ->options(function ($get) {
@@ -340,6 +343,7 @@ class NonCompliantTargetResource extends Resource
                         ->default($record ? $record->number_of_slots : null)
                         ->required()
                         ->numeric()
+                        ->markAsRequired(false)
                         ->disabled($isDisabled)
                         ->dehydrated(),
 

@@ -8,6 +8,7 @@ use App\Models\Particular;
 use App\Models\SkillPriority;
 use App\Models\SubParticular;
 use App\Models\TargetStatus;
+use Auth;
 use Throwable;
 use App\Models\Tvi;
 use App\Models\Abdd;
@@ -44,7 +45,6 @@ class TargetImport implements ToModel, WithHeadingRow
                 $region = $this->getRegion($row['region']);
                 $province = $this->getProvince($row['province'], $region->id);
                 $district = $this->getDistrict($row['district'], $province->id);
-                $municipality = $this->getMunicipality($row['municipality'],  $province->id);
                 $partylist = $this->getPartylist($row['partylist']);
                 $sub_particular = $this->getSubParticular($row['particular']);
                 $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
@@ -57,7 +57,7 @@ class TargetImport implements ToModel, WithHeadingRow
                 $numberOfSlots = $row['number_of_slots'];
 
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $scholarship_program->id);
-                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
+                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $row['appropriation_year']);
 
                 $skillPriority = $this->getSkillPriority(
                     $qualificationTitle->training_program_id,
@@ -76,6 +76,7 @@ class TargetImport implements ToModel, WithHeadingRow
                     'tvi_name' => $tvi->name,
                     'abdd_id' => $abddSector->id,
                     'qualification_title_id' => $qualificationTitle->id,
+                    'qualification_title_soc_code' => $qualificationTitle->trainingProgram->soc_code,
                     'qualification_title_code' => $qualificationTitle->trainingProgram->code,
                     'qualification_title_name' => $qualificationTitle->trainingProgram->title,
                     'delivery_mode_id' => $delivery_mode->id,
@@ -124,7 +125,6 @@ class TargetImport implements ToModel, WithHeadingRow
             'particular',
             'scholarship_program',
             'district',
-            'municipality',
             'province',
             'region',
             'partylist',
@@ -215,20 +215,6 @@ class TargetImport implements ToModel, WithHeadingRow
         }
 
         return $district;
-    }
-
-    protected function getMunicipality(string $municipalityName, int $provinceId)
-    {
-        $municipality = Municipality::where('name', $municipalityName)
-            ->where('province_id', $provinceId)
-            ->whereNull('deleted_at')
-            ->first();
-    
-        if (!$municipality) {
-            throw new \Exception("Municipality with name '{$municipalityName}' not found.");
-        }
-
-        return $municipality;
     }
 
     protected function getPartylist(string $partylistName)
@@ -373,11 +359,30 @@ class TargetImport implements ToModel, WithHeadingRow
         return $qualificationTitle;
     }    
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots): array
+    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, int $year): array
     {
+
+        $quali = QualificationTitle::find($qualificationTitle->id);
+        $costOfToolkitPcc = $quali->toolkits()->where('year', $year)->first();
+
+
+        if (!$quali) {
+            throw new \Exception("Qualification Title with name '{$qualificationTitle->trainingProgram->title}' not found.");
+        }
+
+        $step = ScholarshipProgram::where('name', 'STEP')->first();
+
+        $totalCostOfToolkit = 0;
+        $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
+        if ($quali->scholarship_program_id === $step->id) {
+            $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
+            $totalAmount += $totalCostOfToolkit;
+        }
+
+
         return [
             'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
-            'total_cost_of_toolkit_pcc' => $qualificationTitle->cost_of_toolkit_pcc * $numberOfSlots,
+            'total_cost_of_toolkit_pcc' => $totalCostOfToolkit,
             'total_training_support_fund' => $qualificationTitle->training_support_fund * $numberOfSlots,
             'total_assessment_fee' => $qualificationTitle->assessment_fee * $numberOfSlots,
             'total_entrepreneurship_fee' => $qualificationTitle->entrepreneurship_fee * $numberOfSlots,
@@ -386,7 +391,7 @@ class TargetImport implements ToModel, WithHeadingRow
             'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
             'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
             'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-            'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
+            'total_amount' => $totalAmount,
         ];
     }
 
@@ -426,7 +431,6 @@ class TargetImport implements ToModel, WithHeadingRow
             'delivery_mode_id' => $target['delivery_mode_id'],
             'learning_mode_id' => $target['learning_mode_id'],
             'number_of_slots' => $target['number_of_slots'],
-            'attribution_allocation_id' => $target['attribution_allocation_id'] ?? null,
             'total_training_cost_pcc' => $totals['total_training_cost_pcc'],
             'total_cost_of_toolkit_pcc' => $totals['total_cost_of_toolkit_pcc'],
             'total_training_support_fund' => $totals['total_training_support_fund'],
@@ -440,6 +444,7 @@ class TargetImport implements ToModel, WithHeadingRow
             'total_amount' => $totals['total_amount'],
             'appropriation_type' => $target['appropriation_type'],
             'description' => 'Target Created',
+            'user_id' => Auth::user()->id,
         ]);
     }
 }
