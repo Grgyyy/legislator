@@ -289,6 +289,7 @@ class TargetResource extends Resource
                                             ->whereNull('deleted_at')
                                             ->whereHas('allocation', function ($query) {
                                                 $query->where('soft_or_commitment', 'Soft')
+                                                      ->where('balance', '>', 0)
                                                       ->whereNull('attributor_id');
                                             })
                                             ->pluck('name', 'id')
@@ -308,6 +309,8 @@ class TargetResource extends Resource
                                         // Fetch allocations based on the selected legislator
                                         $allocations = Allocation::where('legislator_id', $state)
                                             ->where('soft_or_commitment', 'Soft')
+                                            ->where('balance', '>', 0)
+                                            ->whereNull('attributor_id')
                                             ->with('particular', 'scholarship_program')
                                             ->get();
                                 

@@ -64,12 +64,6 @@ class ProjectProposalTargetResource extends Resource
         ->schema(function ($record) {
             if ($record) {
                 return [
-                    TextInput::make('abscap_id')
-                                ->label('Absorbative Capacity ID')
-                                ->required()
-                                ->markAsRequired(false)
-                                ->placeholder('Enter an Absorbative capacity ID')
-                                ->numeric(),
                             Select::make('legislator_id')
                                 ->label('Legislator')
                                 ->required()
@@ -81,10 +75,12 @@ class ProjectProposalTargetResource extends Resource
                                     return Legislator::where('status_id', 1)
                                         ->whereNull('deleted_at')
                                         ->whereHas('allocation', function ($query) {
-                                            $query->where('balance', '>', 0);
+                                            $query->where('soft_or_commitment', 'Soft')
+                                                  ->where('balance', '>', 0)
+                                                  ->whereNull('attributor_id');
                                         })
                                         ->pluck('name', 'id')
-                                        ->toArray() ?: ['no_legislator' => 'No legislator available'];
+                                        ->toArray() ?: ['no_legislators' => 'No legislator available'];
                                 })
                                 ->disableOptionWhen(fn($value) => $value === 'no_legislators')
                                 ->afterStateUpdated(function ($state, callable $set) {
@@ -97,8 +93,11 @@ class ProjectProposalTargetResource extends Resource
                                     }
 
                                     $allocations = Allocation::where('legislator_id', $state)
-                                        ->with('particular', 'scholarship_program')
-                                        ->get();
+                                            ->where('soft_or_commitment', 'Soft')
+                                            ->where('balance', '>', 0)
+                                            ->whereNull('attributor_id')
+                                            ->with('particular', 'scholarship_program')
+                                            ->get();
 
                                     $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                     $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
@@ -137,6 +136,8 @@ class ProjectProposalTargetResource extends Resource
                                         $set('appropriation_type', null);
                                     }
                                 })
+                                ->disabled()
+                                ->dehydrated()
                                 ->reactive()
                                 ->live(),
 
@@ -231,6 +232,8 @@ class ProjectProposalTargetResource extends Resource
                                         $set('appropriation_type', null);
                                     }
                                 })
+                                ->disabled()
+                                ->dehydrated()
                                 ->reactive()
                                 ->live(),
 
@@ -280,6 +283,8 @@ class ProjectProposalTargetResource extends Resource
                                         $set('appropriation_type', null);
                                     }
                                 })
+                                ->disabled()
+                                ->dehydrated()
                                 ->reactive()
                                 ->live(),
 
@@ -311,6 +316,8 @@ class ProjectProposalTargetResource extends Resource
                                         $set('appropriation_type', key($appropriationType));
                                     }
                                 })
+                                ->disabled()
+                                ->dehydrated()
                                 ->reactive()
                                 ->live(),
 
@@ -326,6 +333,8 @@ class ProjectProposalTargetResource extends Resource
                                         : ['no_allocation' => 'No appropriation type available. Select an appropriation year first.'];
                                 })
                                 ->disableOptionWhen(fn($value) => $value === 'no_allocation')
+                                ->disabled()
+                                ->dehydrated()
                                 ->reactive()
                                 ->live(),
 
@@ -453,12 +462,6 @@ class ProjectProposalTargetResource extends Resource
                 return [
                     Repeater::make('targets')
                         ->schema([
-                            TextInput::make('abscap_id')
-                                ->label('Absorbative Capacity ID')
-                                ->required()
-                                ->markAsRequired(false)
-                                ->placeholder('Enter an Absorbative capacity ID')
-                                ->numeric(),
                             Select::make('legislator_id')
                                 ->label('Legislator')
                                 ->required()
@@ -470,10 +473,12 @@ class ProjectProposalTargetResource extends Resource
                                     return Legislator::where('status_id', 1)
                                         ->whereNull('deleted_at')
                                         ->whereHas('allocation', function ($query) {
-                                            $query->where('balance', '>', 0);
+                                            $query->where('soft_or_commitment', 'Soft')
+                                                  ->where('balance', '>', 0)
+                                                  ->whereNull('attributor_id');
                                         })
                                         ->pluck('name', 'id')
-                                        ->toArray() ?: ['no_legislator' => 'No legislator available'];
+                                        ->toArray() ?: ['no_legislators' => 'No legislator available'];
                                 })
                                 ->disableOptionWhen(fn($value) => $value === 'no_legislators')
                                 ->afterStateUpdated(function ($state, callable $set) {
@@ -486,8 +491,11 @@ class ProjectProposalTargetResource extends Resource
                                     }
 
                                     $allocations = Allocation::where('legislator_id', $state)
-                                        ->with('particular', 'scholarship_program')
-                                        ->get();
+                                            ->where('soft_or_commitment', 'Soft')
+                                            ->where('balance', '>', 0)
+                                            ->whereNull('attributor_id')
+                                            ->with('particular', 'scholarship_program')
+                                            ->get();
 
                                     $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                     $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
@@ -880,10 +888,6 @@ class ProjectProposalTargetResource extends Resource
         return $table
             ->emptyStateHeading('No targets available')
             ->columns([
-                TextColumn::make('abscap_id')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
 
                 TextColumn::make('fund_source')
                     ->label('Fund Source')
@@ -1449,8 +1453,7 @@ class ProjectProposalTargetResource extends Resource
                 ->where('target_status_id', '=', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
                     $subQuery->where('soc', 0); // Assuming 'qualificationTitle' is the relationship name
-                })
-                ->whereNull('attribution_allocation_id');
+                });
 
             // Add region filter if valid route parameter
             if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
@@ -1528,7 +1531,9 @@ class ProjectProposalTargetResource extends Resource
         return Allocation::where('legislator_id', $legislatorId)
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
+            ->where('soft_or_commitment', 'Soft')
             ->where('year', '>=', $yearNow - 1)
+            ->whereNull('attributor_id')
             ->pluck('year', 'year')
             ->toArray() ?: ['no_allocation' => 'No allocation available'];
     }
