@@ -2,17 +2,19 @@
 
 namespace App\Filament\Resources\AllocationResource\Pages;
 
-use App\Filament\Resources\AllocationResource;
-use App\Filament\Resources\AllocationResource\Widgets\StatsOverview;
-use App\Imports\AllocationImport;
-use App\Services\NotificationHandler;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Pages\Concerns\ExposesTableToWidgets;
-use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
-use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use Filament\Actions\Action;
+use App\Exports\AllocationExport;
+use App\Imports\AllocationImport;
+use Filament\Actions\CreateAction;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\AllocationResource;
+use Filament\Pages\Concerns\ExposesTableToWidgets;
+use Maatwebsite\Excel\Validators\ValidationException;
+use App\Filament\Resources\AllocationResource\Widgets\StatsOverview;
 
 class ListAllocations extends ListRecords
 {
@@ -44,6 +46,23 @@ class ListAllocations extends ListRecords
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the allocations: ' . $e->getMessage());
                     }
                 }),
+
+
+            Action::make('AllocationExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new AllocationExport, 'allocation_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
+
         ];
 
     }

@@ -110,27 +110,17 @@ class TargetReportExport implements FromCollection, WithStyles
 
         if ($fundSourceName === "CO Regular" || $fundSourceName === "RO Regular") {
             return "$subParticularName - $regionName";
-        }
-
-        if ($fundSourceName === "CO Legislator Funds" && $subParticularName === "District") {
+        } elseif ($fundSourceName === "CO Legislator Funds" && $subParticularName === "District") {
             return $regionName === "NCR"
                 ? "$districtName - $underMunicipalityName"
                 : $provinceName;
-        }
-
-        if ($subParticularName === "Party-list") {
+        } elseif ($subParticularName === "Party-list") {
             return $partyListName;
-        }
-
-        if (in_array($subParticularName, ["Senator", "House Speaker", "House Speaker (LAKAS)"], true)) {
+        } elseif (in_array($subParticularName, ["Senator", "House Speaker", "House Speaker (LAKAS)"], true)) {
             return $subParticularName;
         }
         return "N/A";
     }
-
-
-
-
 
 
     private function targetData($id)
