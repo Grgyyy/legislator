@@ -84,6 +84,7 @@ class LegislatorResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('name')
             ->emptyStateHeading('No legislators available')
             ->columns([
                 TextColumn::make("name")

@@ -710,6 +710,7 @@ class TargetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No targets available')
             ->columns([
                 // TextColumn::make('abscap_id')

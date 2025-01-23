@@ -144,6 +144,7 @@ class ToolkitResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('lot_name')
             ->columns([
                 TextColumn::make('qualificationTitles')
                     ->label('Qualification Titles')

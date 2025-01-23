@@ -233,6 +233,7 @@ class AllocationResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No allocations available')
             ->columns([
                 TextColumn::make('soft_or_commitment')

@@ -56,6 +56,7 @@ class PriorityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('name')
             ->emptyStateHeading('No sectors available')
             ->columns([
                 TextColumn::make('name')

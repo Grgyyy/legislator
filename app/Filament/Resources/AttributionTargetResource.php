@@ -1019,6 +1019,7 @@ class AttributionTargetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No attribution targets available')
             ->columns([
                 TextColumn::make('fund_source')
