@@ -44,18 +44,20 @@ class ProvinceResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label('Province')
-                    ->placeholder(placeholder: 'Enter province name')
+                    ->placeholder('Enter province name')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Province'),
                 
                 TextInput::make('code')
-                    ->label('UACS Code')
-                    ->placeholder('Enter UACS code')
+                    ->label('PSG Code')
+                    ->placeholder('Enter PSG code')
                     ->autocomplete(false)
-                    ->integer()
-                    ->validationAttribute('UACS Code'),
+                    ->numeric()
+                    ->minLength(4)
+                    ->maxLength(4)
+                    ->validationAttribute('PSG Code'),
 
                 Select::make('region_id')
                     ->relationship('region', 'name')
@@ -80,7 +82,7 @@ class ProvinceResource extends Resource
             ->emptyStateHeading('No provinces available')
             ->columns([
                 TextColumn::make('code')
-                    ->label('UACS Code')
+                    ->label('PSG Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
@@ -152,7 +154,7 @@ class ProvinceResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('region.code')
-                                        ->heading('UACS Code')
+                                        ->heading('PSG Code')
                                         ->getStateUsing(function ($record) {
                                             return $record->code ?: '-';
                                         }),
@@ -161,7 +163,7 @@ class ProvinceResource extends Resource
                                     Column::make('region.name')
                                         ->heading('Region'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Province')
+                                ->withFilename(date('m-d-Y') . ' - Provinces')
                         ]),
                 ]),
             ]);
@@ -173,9 +175,7 @@ class ProvinceResource extends Resource
         $routeParameter = request()->route('record');
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable')
-            ->orderBy('region_id')
-            ->orderBy('name');
+            ->whereNot('name', 'Not Applicable');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('region_id', (int) $routeParameter);

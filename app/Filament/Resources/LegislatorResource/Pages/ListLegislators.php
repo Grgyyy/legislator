@@ -25,10 +25,11 @@ class ListLegislators extends ListRecords
 
             Action::make('LegislatorImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('attachment')
-                        ->required(),
+                        ->required()
+                        ->markAsRequired(false),
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);

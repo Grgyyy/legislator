@@ -11,11 +11,12 @@ use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
-use Auth;
-use DB;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Log;
 
 class CreateNonCompliantTarget extends CreateRecord
@@ -26,6 +27,15 @@ class CreateNonCompliantTarget extends CreateRecord
 
     private const COMPLIANT_STATUS_DESC = 'Non-Compliant';
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+    
     public function getBreadcrumbs(): array
     {
         return [

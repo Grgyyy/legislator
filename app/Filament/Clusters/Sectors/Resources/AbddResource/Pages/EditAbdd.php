@@ -4,6 +4,7 @@ namespace App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
 
 use App\Models\Abdd;
 use App\Filament\Clusters\Sectors\Resources\AbddResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -30,7 +31,9 @@ class EditAbdd extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Abdd
     {
-        $this->validateUniqueAbdd($data['name'], $record->id);
+        $this->validateUniqueAbdd($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -47,16 +50,16 @@ class EditAbdd extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueAbdd($name, $currentId)
+    protected function validateUniqueAbdd($data, $currentId)
     {
         $abdd = Abdd::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->whereNot('id', $currentId)
             ->first();
 
         if ($abdd) {
             $message = $abdd->deleted_at 
-                ? 'This ABDD sector has been deleted. Restoration is required before it can be reused.' 
+                ? 'This ABDD sector has been deleted and must be restored before reuse.'
                 : 'An ABDD sector with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

@@ -25,6 +25,4 @@ class Priority extends Model
     {
         return $this->hasMany(TrainingProgram::class);
     }
-
-
 }

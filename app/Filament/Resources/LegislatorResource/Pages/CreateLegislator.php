@@ -2,9 +2,11 @@
 
 namespace App\Filament\Resources\LegislatorResource\Pages;
 
-use App\Models\Legislator;
 use App\Filament\Resources\LegislatorResource;
+use App\Helpers\Helper;
+use App\Models\Legislator;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -17,9 +19,20 @@ class CreateLegislator extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     protected function handleRecordCreation(array $data): Legislator
     {
-        $this->validateUniqueLegislator($data['name']);
+        $this->validateUniqueLegislator($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $legislator = DB::transaction(fn() => Legislator::create([
             'name' => $data['name'],
@@ -30,10 +43,10 @@ class CreateLegislator extends CreateRecord
         return $legislator;
     }
 
-    protected function validateUniqueLegislator($name)
+    protected function validateUniqueLegislator($data)
     {
         $legislator = Legislator::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->first();
 
         if ($legislator) {

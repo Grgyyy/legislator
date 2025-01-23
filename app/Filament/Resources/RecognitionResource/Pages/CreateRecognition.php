@@ -5,9 +5,10 @@ namespace App\Filament\Resources\RecognitionResource\Pages;
 use App\Filament\Resources\RecognitionResource;
 use App\Models\Recognition;
 use App\Services\NotificationHandler;
-use DB;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
 
 class CreateRecognition extends CreateRecord
 {
@@ -18,6 +19,15 @@ class CreateRecognition extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+    
     protected function handleRecordCreation(array $data): Recognition
     {
         $this->validateUniqueAbdd($data['name']);

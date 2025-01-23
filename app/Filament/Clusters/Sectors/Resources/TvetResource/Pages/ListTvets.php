@@ -35,9 +35,11 @@ class ListTvets extends ListRecords
 
             Action::make('TvetImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
-                    FileUpload::make('attachment'),
+                    FileUpload::make('attachment')
+                        ->required()
+                        ->markAsRequired(false),
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);

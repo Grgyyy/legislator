@@ -27,6 +27,15 @@ class CreateTrainingProgram extends CreateRecord
         ];
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     protected function handleRecordCreation(array $data): TrainingProgram
     {
         $this->validateUniqueTrainingProgram($data);

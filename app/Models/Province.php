@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Filament\Notifications\Notification;
-use Illuminate\Validation\ValidationException;
-
 
 class Province extends Model
 {
@@ -34,12 +31,6 @@ class Province extends Model
         return $this->hasMany(Municipality::class);
     }
 
-    // public function abdds()
-    // {
-    //     return $this->belongsToMany(ABDD::class, 'province_abdds')
-    //         ->withTimestamps();
-    // }
-
     public function skillPriorities()
     {
         return $this->belongsToMany(TrainingProgram::class, 'skill_priorities')
@@ -50,7 +41,4 @@ class Province extends Model
     {
         return $this->belongsTo(User::class);
     }
-
-
-
 }

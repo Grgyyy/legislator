@@ -3,6 +3,7 @@ namespace App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
 
 use App\Models\Tvet;
 use App\Filament\Clusters\Sectors\Resources\TvetResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -29,7 +30,9 @@ class EditTvet extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Tvet
     {
-        $this->validateUniqueTvet($data['name'], $record->id);
+        $this->validateUniqueTvet($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -46,16 +49,16 @@ class EditTvet extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueTvet($name, $currentId)
+    protected function validateUniqueTvet($data, $currentId)
     {
         $tvet = Tvet::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->whereNot('id', $currentId)
             ->first();
 
         if ($tvet) {
             $message = $tvet->deleted_at 
-                ? 'This TVET sector has been deleted. Restoration is required before it can be reused.' 
+                ? 'This TVET sector has been deleted and must be restored before reuse.'
                 : 'A TVET sector with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

@@ -12,9 +12,9 @@ use App\Models\TargetHistory;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Filament\Notifications\Notification;
-use DB;
 use Exception;
-use Filament\Actions;
+use Illuminate\Support\Facades\DB;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateAttributionProjectProposal extends CreateRecord

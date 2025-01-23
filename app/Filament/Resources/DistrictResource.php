@@ -52,11 +52,11 @@ class DistrictResource extends Resource
                     ->validationAttribute('District'),
 
                 TextInput::make("code")
-                    ->label('UACS Code')
-                    ->placeholder('Enter UACS code')
+                    ->label('PSG Code')
+                    ->placeholder('Enter PSG code')
                     ->autocomplete(false)
-                    ->integer()
-                    ->validationAttribute('UACS Code'),
+                    ->numeric()
+                    ->validationAttribute('PSG Code'),
 
                 Select::make('province_id')
                     ->label('Province')
@@ -64,6 +64,7 @@ class DistrictResource extends Resource
                     ->markAsRequired(false)
                     ->searchable()
                     ->preload()
+                    ->default(fn($get) => request()->get('province_id'))
                     ->native(false)
                     ->options(function () {
                         return Province::whereNot('name', 'Not Applicable')
@@ -137,7 +138,7 @@ class DistrictResource extends Resource
             ->emptyStateHeading('No districts available')
             ->columns([
                 TextColumn::make('code')
-                    ->label('UACS Code')
+                    ->label('PSG Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
@@ -224,7 +225,7 @@ class DistrictResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('code')
-                                        ->heading('UACS Code')
+                                        ->heading('PSG Code')
                                         ->getStateUsing(function ($record) {
                                             return $record->code ?: '-';
                                         }),
@@ -242,7 +243,7 @@ class DistrictResource extends Resource
                                     Column::make('province.region.name')
                                         ->heading('Region')
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - District')
+                                ->withFilename(date('m-d-Y') . ' - Districts')
                         ])
                 ]),
             ]);
@@ -254,10 +255,7 @@ class DistrictResource extends Resource
         $routeParameter = request()->route('record');
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable')
-            ->orderBy('province_id')
-            ->orderBy('municipality_id')
-            ->orderBy('name');
+            ->whereNot('name', 'Not Applicable');
 
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('province_id', (int) $routeParameter);

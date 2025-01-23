@@ -52,11 +52,11 @@ class MunicipalityResource extends Resource
                     ->validationAttribute('Municipality'),
 
                 TextInput::make("code")
-                    ->label('UACS Code')
-                    ->placeholder('Enter UACS code')
+                    ->label('PSG Code')
+                    ->placeholder('Enter PSG code')
                     ->autocomplete(false)
                     ->integer()
-                    ->validationAttribute('UACS Code'),
+                    ->validationAttribute('PSG Code'),
 
                 TextInput::make('class')
                     ->label('Municipality Class')
@@ -72,6 +72,7 @@ class MunicipalityResource extends Resource
                     ->markAsRequired(false)
                     ->searchable()
                     ->preload()
+                    ->default(fn($get) => request()->get('province_id'))
                     ->native(false)
                     ->options(function () {
                         return Province::whereNot('name', 'Not Applicable')
@@ -93,6 +94,11 @@ class MunicipalityResource extends Resource
                     ->searchable()
                     ->preload()
                     ->multiple()
+                    ->default(function ($get) {
+                        // Default to district_id based on selected province, if any
+                        $provinceId = $get('province_id');
+                        return $provinceId ? District::where('province_id', $provinceId)->pluck('id')->toArray() : [];
+                    })
                     ->native(false)
                     ->options(function (callable $get) {
                         $selectedProvince = $get('province_id');
@@ -128,7 +134,7 @@ class MunicipalityResource extends Resource
             ->emptyStateHeading('No municipalities available')
             ->columns([
                 TextColumn::make('code')
-                    ->label('UACS Code')
+                    ->label('PSG Code')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
@@ -239,7 +245,7 @@ class MunicipalityResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('code')
-                                        ->heading('UACS Code')
+                                        ->heading('PSG Code')
                                         ->getStateUsing(function ($record) {
                                             return $record->code ?: '-';
                                         }),
@@ -254,7 +260,7 @@ class MunicipalityResource extends Resource
                                     Column::make('province.region.name')
                                         ->heading('Region'),
                                 ])
-                                ->withFilename(now()->format('m-d-Y') . ' - Municipality'),
+                                ->withFilename(now()->format('m-d-Y') . ' - Municipalities'),
                         ]),
                 ]),
             ]);
@@ -271,9 +277,7 @@ class MunicipalityResource extends Resource
                 $query->whereHas('district', function (Builder $subQuery) use ($districtId) {
                     $subQuery->where('districts.id', $districtId);
                 });
-            })
-            ->orderBy('province_id')
-            ->orderBy('name');
+            });
     }
 
     public static function getPages(): array

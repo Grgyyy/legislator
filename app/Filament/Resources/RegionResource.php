@@ -49,11 +49,13 @@ class RegionResource extends Resource
                     ->validationAttribute('Region'),
 
                 TextInput::make("code")
-                    ->label('UACS Code')
-                    ->placeholder('Enter UACS code')
+                    ->label('PSG Code')
+                    ->placeholder('Enter PSG code')
                     ->autocomplete(false)
-                    ->integer()
-                    ->validationAttribute('UACS Code'),
+                    ->numeric()
+                    ->minLength(2)
+                    ->maxLength(2)
+                    ->validationAttribute('PSG Code'),
             ]);
     }
 
@@ -63,7 +65,7 @@ class RegionResource extends Resource
             ->emptyStateHeading('No regions available')
             ->columns([
                 TextColumn::make("code")
-                    ->label("UACS Code")
+                    ->label("PSG Code")
                     ->sortable()
                     ->searchable()
                     ->toggleable()
@@ -131,14 +133,14 @@ class RegionResource extends Resource
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('code')
-                                        ->heading('UACS Code')
+                                        ->heading('PSG Code')
                                         ->getStateUsing(function ($record) {
                                             return $record->code ?: '-';
                                         }),
                                     Column::make('name')
                                         ->heading('Region'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Region'),
+                                ->withFilename(date('m-d-Y') . ' - Regions'),
                         ]),
                 ]),
             ]);
@@ -148,8 +150,7 @@ class RegionResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable')
-            ->orderBy('code');
+            ->whereNot('name', 'Not Applicable');
     }
 
     public static function getPages(): array

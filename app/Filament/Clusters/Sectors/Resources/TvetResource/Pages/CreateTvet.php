@@ -4,6 +4,7 @@ namespace App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
 
 use App\Models\Tvet;
 use App\Filament\Clusters\Sectors\Resources\TvetResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +30,9 @@ class CreateTvet extends CreateRecord
 
     protected function handleRecordCreation(array $data): Tvet
     {
-        $this->validateUniqueTvet($data['name']);
+        $this->validateUniqueTvet($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $tvet = DB::transaction(fn () => Tvet::create([
             'name' => $data['name'],
@@ -40,10 +43,10 @@ class CreateTvet extends CreateRecord
         return $tvet;
     }
 
-    protected function validateUniqueTvet($name)
+    protected function validateUniqueTvet($data)
     {
         $tvet = Tvet::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->first();
 
         if ($tvet) {

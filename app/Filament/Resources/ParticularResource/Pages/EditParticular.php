@@ -29,7 +29,6 @@ class EditParticular extends EditRecord
         $record = $this->record;
 
         $notApplicablePartylist = Partylist::where('name', 'Not Applicable')->first();
-        $notApplicableDistrict = District::where('name', 'Not Applicable')->first();
 
         if ($record->partylist_id === $notApplicablePartylist?->id) {
             $data['administrative_area'] = $record->district_id;
@@ -116,7 +115,7 @@ class EditParticular extends EditRecord
         if ($existingParticular) {
             $message = $existingParticular->deleted_at 
                 ? 'This particular has been deleted and must be restored before reuse.' 
-                : 'A particular with the specified type, party list, and district already exists.';
+                : 'A particular with the specified type, party-list, and district already exists.';
 
             NotificationHandler::handleValidationException('Validation Error', $message);
         }

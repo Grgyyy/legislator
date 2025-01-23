@@ -5,6 +5,7 @@ use App\Models\Municipality;
 use App\Filament\Resources\MunicipalityResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;
+use Illuminate\Database\Eloquent\Builder;
 
 class ShowMunicipalities extends ListRecords
 {
@@ -13,39 +14,22 @@ class ShowMunicipalities extends ListRecords
     public function getBreadcrumbs(): array
     {
         $municipalityId = $this->getMunicipalityId();
-        $municipality = Municipality::with('district.province.region')->find($municipalityId);
+        $municipality = Municipality::with('district.province.region')->findOrFail($municipalityId);
 
-        // Handle case where municipality or district is not found
-        if (!$municipality || $municipality->district->isEmpty()) {
-            return [
-                'Regions',
-                'Provinces',
-                'Districts',
-                'Municipalities',
-                'List',
-            ];
-        }
+        $district = $municipality->district->first();
+        $province = $district->province;
+        $region = $province->region;
 
-        $breadcrumbs = [];
-
-        // Loop through districts, assuming the municipality has multiple districts
-        $district = $municipality->district->first(); // Get the first district from the collection
-        if ($district) {
-            $province = $district->province;
-            $region = $province->region;
-
-            // Breadcrumbs structure
-            $breadcrumbs[route('filament.admin.resources.regions.index', ['record' => $region->id])] = $region->name;
-            $breadcrumbs[route('filament.admin.resources.provinces.showProvince', ['record' => $province->id])] = $province->name;
-            $breadcrumbs[route('filament.admin.resources.districts.showDistricts', ['record' => $district->id])] = $district->name;
-        }
-
-        $breadcrumbs['Municipalities'] = 'Municipalities';
-        $breadcrumbs['List'] = 'List';
+        $breadcrumbs = [
+            route('filament.admin.resources.regions.index', ['record' => $region->id]) => $region ? $region->name : 'Regions',
+            route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $province ? $province->name : 'Provinces',
+            route('filament.admin.resources.districts.showDistricts', ['record' => $district->id]) => $district ? $district->name : 'Districts',
+            'Municipalities' => 'Municipalities',
+            'List' => 'List',
+        ];
 
         return $breadcrumbs;
     }
-
 
     protected function getHeaderActions(): array
     {
@@ -61,6 +45,31 @@ class ShowMunicipalities extends ListRecords
 
     protected function getMunicipalityId(): ?int
     {
-        return (int) request()->route('record');
+        $municipalityId = request()->route('record') ?? session('municipality_id');
+
+        if ($municipalityId) {
+            session(['municipality_id' => $municipalityId]);
+        }
+
+        return (int) $municipalityId;
+    }
+
+    protected function getTableQuery(): Builder|null
+    {
+        $districtId = $this->getDistrictId();
+        return parent::getTableQuery()->whereHas('district', function (Builder $query) use ($districtId) {
+            $query->where('district_id', $districtId);
+        });
+    }
+    
+    protected function getDistrictId(): ?int
+    {
+        $districtId = request()->route('record') ?? session('district_id');
+    
+        if ($districtId) {
+            session(['district_id' => $districtId]);
+        }
+    
+        return (int) $districtId;
     }
 }

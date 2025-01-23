@@ -10,12 +10,13 @@ use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
-use Auth;
-use DB;
 use Exception;
 use Filament\Actions;
-use Filament\Resources\Pages\CreateRecord;
+use Filament\Actions\Action;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CreateProjectProposalTarget extends CreateRecord
 {
@@ -29,6 +30,15 @@ class CreateProjectProposalTarget extends CreateRecord
         ];
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+    
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

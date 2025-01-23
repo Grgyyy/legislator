@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ProvinceResource\Pages;
 
 use App\Models\Province;
 use App\Filament\Resources\ProvinceResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -26,7 +27,9 @@ class EditProvince extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Province
     {
-        $this->validateUniqueProvince($data['name'], $data['region_id'], $record->id);
+        $this->validateUniqueProvince($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -43,11 +46,11 @@ class EditProvince extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueProvince($name, $regionId, $currentId)
+    protected function validateUniqueProvince($data, $currentId)
     {
         $province = Province::withTrashed()
-            ->where('name', $name)
-            ->where('region_id', $regionId)
+        ->where('name', $data['name'])
+            ->where('region_id', $data['region_id'])
             ->whereNot('id', $currentId)
             ->first();
 
@@ -57,6 +60,21 @@ class EditProvince extends EditRecord
                 : 'A province with this name already exists in the specified region.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        if (!empty($data['code'])) {
+            $code = Province::withTrashed()
+                ->whereRaw('CAST(code AS UNSIGNED) = ?', [(int)$data['code']])
+                ->whereNot('id', $currentId)
+                ->first();
+
+            if ($code) {
+                $message = $code->deleted_at 
+                    ? 'A province with this PSG code already exists and has been deleted.' 
+                    : 'A province with this PSG code already exists.';
+            
+                NotificationHandler::handleValidationException('Invalid Code', $message);
+            }
         }
     }
 }

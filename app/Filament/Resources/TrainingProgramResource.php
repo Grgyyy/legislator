@@ -156,6 +156,7 @@ class TrainingProgramResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('title')
             ->emptyStateHeading('No qualification titles available')
             ->columns([
                 TextColumn::make('code')

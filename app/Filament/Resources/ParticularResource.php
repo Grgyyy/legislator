@@ -197,15 +197,9 @@ class ParticularResource extends Resource
                         ExcelExport::make()
                             ->withColumns([
                                 Column::make('subParticular.name')
-                                    ->heading('Particular Type')
-                                    ->getStateUsing(function ($record) {
-                                        return $record->subParticular ? $record->subParticular->name : '-';
-                                    }),
+                                    ->heading('Particular Type'),
                                 Column::make('subParticular.fundSource.name')
-                                    ->heading('Fund Source')
-                                    ->getStateUsing(function ($record) {
-                                        return $record->subParticular->fundSource ? $record->subParticular->fundSource->name : '-';
-                                    }),
+                                    ->heading('Fund Source'),
                                 Column::make('partylist.name')
                                     ->heading('Party-list')
                                     ->getStateUsing(function ($record) {
@@ -232,7 +226,7 @@ class ParticularResource extends Resource
                                         return $record->district->province->region ? $record->district->province->region->name : '-';
                                     }),
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Particular')
+                            ->withFilename(date('m-d-Y') . ' - Particulars')
                     ]),
                 ]),
             ]);
@@ -243,7 +237,7 @@ class ParticularResource extends Resource
         $subParticular = SubParticular::find($subParticularId);
 
         if (!$subParticularId) {
-            return ['no_administrative_area' => 'No aministrative areas available'];
+            return ['no_administrative_area' => 'No administrative areas available'];
         }
 
         if ($subParticular->name === 'Party-list') {
@@ -252,7 +246,7 @@ class ParticularResource extends Resource
                 ->mapWithKeys(function (Partylist $partylist) {
                     return [$partylist->id => $partylist->name];
                 })
-                ->toArray() ?: ['no_administrative_area' => 'No aministrative areas available'];
+                ->toArray() ?: ['no_administrative_area' => 'No administrative areas available'];
         }
 
         if ($subParticular->fundSource->name === 'RO Regular') {
@@ -267,7 +261,7 @@ class ParticularResource extends Resource
                 ->mapWithKeys(function (District $district) {
                     return [$district->id => $district->province->region->name];
                 })
-                ->toArray() ?: ['no_administrative_area' => 'No aministrative areas available'];
+                ->toArray() ?: ['no_administrative_area' => 'No administrative areas available'];
         }
 
         if ($subParticular->fundSource->name === 'CO Regular') {
@@ -282,7 +276,7 @@ class ParticularResource extends Resource
                 ->mapWithKeys(function (District $district) {
                     return [$district->id => $district->province->region->name];
                 })
-                ->toArray() ?: ['no_administrative_area' => 'No aministrative areas available'];
+                ->toArray() ?: ['no_administrative_area' => 'No administrative areas available'];
         }
 
         if ($subParticular->name === 'Senator') {
@@ -297,7 +291,7 @@ class ParticularResource extends Resource
                 ->mapWithKeys(function (District $district) {
                     return [$district->id => $district->province->region->name];
                 })
-                ->toArray() ?: ['no_administrative_area' => 'No aministrative areas available'];
+                ->toArray() ?: ['no_administrative_area' => 'No administrative areas available'];
         }
 
         if ($subParticular->name === 'House Speaker' || $subParticular->name === 'House Speaker (LAKAS)') {
@@ -312,7 +306,7 @@ class ParticularResource extends Resource
                 ->mapWithKeys(function (District $district) {
                     return [$district->id => $district->province->region->name];
                 })
-                ->toArray() ?: ['no_administrative_area' => 'No aministrative areas available'];
+                ->toArray() ?: ['no_administrative_area' => 'No administrative areas available'];
         }
 
         if ($subParticular->name === 'District') {
@@ -338,10 +332,10 @@ class ParticularResource extends Resource
                         ];
                     }
                 })
-                ->toArray() ?: ['no_administrative_area' => 'No aministrative areas available'];
+                ->toArray() ?: ['no_administrative_area' => 'No administrative areas available'];
         }
 
-        return ['no_administrative_area' => 'No aministrative areas available'];
+        return ['no_administrative_area' => 'No administrative areas available'];
     }
 
     public static function getEloquentQuery(): Builder

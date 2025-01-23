@@ -56,6 +56,7 @@ class TvetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('name')
             ->emptyStateHeading('No sectors available')
             ->columns([
                 TextColumn::make('name')
@@ -118,7 +119,7 @@ class TvetResource extends Resource
                                     Column::make('name')
                                         ->heading('TVET Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - TVET Sector')
+                                ->withFilename(date('m-d-Y') . ' - TVET Sectors')
                         ]),
                 ]),
             ]);
@@ -129,8 +130,7 @@ class TvetResource extends Resource
         $query = parent::getEloquentQuery();
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable')
-            ->orderBy('name');
+            ->whereNot('name', 'Not Applicable');
 
         return $query;
     }

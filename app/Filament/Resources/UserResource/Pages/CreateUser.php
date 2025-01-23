@@ -17,6 +17,15 @@ class CreateUser extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     protected function handleRecordCreation(array $data): User
     {
         $this->validateUniqueUser($data);

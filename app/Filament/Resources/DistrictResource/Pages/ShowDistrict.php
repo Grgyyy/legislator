@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\DistrictResource\Pages;
 
-use App\Models\District;
 use App\Filament\Resources\DistrictResource;
 use App\Models\Province;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;
+use Illuminate\Database\Eloquent\Builder;
 
 class ShowDistrict extends ListRecords
 {
@@ -14,35 +14,14 @@ class ShowDistrict extends ListRecords
 
     public function getBreadcrumbs(): array
     {
+
         $provinceId = $this->getProvinceId();
-        
-        // Check if district ID is valid
-        if (!$provinceId) {
-            return [
-                'Province not found',
-            ];
-        }
 
         $province = Province::find($provinceId);
-
-        // Check if district is found
-        if (!$province) {
-            return [
-                'Province not found',
-            ];
-        }
-
-        // $province = $province->province;
-
-        // // Check if province is found
-        // if (!$province) {
-        //     return [
-        //         'Province not found',
-        //     ];
-        // }
-
+    
         return [
-            route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $province->name,
+            route('filament.admin.resources.regions.index', ['record' => $province->region->id]) => $province->region ? $province->region->name : 'Regions',
+            route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $province ? $province->name : 'Provinces',
             'Districts',
             'List'
         ];
@@ -52,22 +31,28 @@ class ShowDistrict extends ListRecords
     {
         $provinceId = $this->getProvinceId();
 
-        // Ensure districtId is valid before using it
-        if (!$provinceId) {
-            return [];
-        }
-
         return [
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus')
-                ->url(route('filament.admin.resources.districts.create', ['district_id' => $provinceId])),
+                ->url(route('filament.admin.resources.districts.create', ['province_id' => $provinceId])),
         ];
+    }
+
+    protected function getTableQuery(): Builder|null
+    {
+        $provinceId = $this->getProvinceId();
+        return parent::getTableQuery()->where('province_id', $provinceId);
     }
 
     protected function getProvinceId(): ?int
     {
-        // Safely return the district ID from the route, or null if not found
-        return request()->route('record') ? (int) request()->route('record') : null;
+        $provinceId = request()->route('record') ?? session('province_id');
+
+        if ($provinceId) {
+            session(['province_id' => $provinceId]);
+        }
+
+        return (int) $provinceId;
     }
 }

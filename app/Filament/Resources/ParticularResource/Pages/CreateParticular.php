@@ -2,19 +2,20 @@
 
 namespace App\Filament\Resources\ParticularResource\Pages;
 
-use App\Models\Particular;
-use App\Models\SubParticular;
-use App\Models\Partylist;
+use App\Filament\Resources\ParticularResource;
+use App\Helpers\Helper;
 use App\Models\District;
-use App\Models\Municipality;
+use App\Models\Particular;
+use App\Models\Partylist;
 use App\Models\Province;
 use App\Models\Region;
-use App\Filament\Resources\ParticularResource;
+use App\Models\SubParticular;
 use App\Services\NotificationHandler;
+use Exception;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Exception;
 
 class CreateParticular extends CreateRecord
 {
@@ -24,7 +25,15 @@ class CreateParticular extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
-
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+    
     protected function handleRecordCreation(array $data): Particular
     {
         return DB::transaction(function () use ($data) {
@@ -107,7 +116,7 @@ class CreateParticular extends CreateRecord
         if ($existingParticular) {
             $message = $existingParticular->deleted_at 
                 ? 'This particular has been deleted and must be restored before reuse.' 
-                : 'A particular with the specified type, party list, and district already exists.';
+                : 'A particular with the specified type, party-list, and district already exists.';
 
             NotificationHandler::handleValidationException('Validation Error', $message);
         }

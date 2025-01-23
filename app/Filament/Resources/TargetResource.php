@@ -234,8 +234,8 @@ class TargetResource extends Resource
 
                         Select::make('learning_mode_id')
                             ->label('Learning Mode')
-                            ->required()
-                            ->markAsRequired(false)
+                            // ->required()
+                            // ->markAsRequired(false)
                             ->searchable()
                             ->preload()
                             ->options(function ($get) {
@@ -636,8 +636,8 @@ class TargetResource extends Resource
 
                                 Select::make('learning_mode_id')
                                     ->label('Learning Mode')
-                                    ->required()
-                                    ->markAsRequired(false)
+                                    // ->required()
+                                    // ->markAsRequired(false)
                                     ->searchable()
                                     ->preload()
                                     ->options(function ($get) {
@@ -710,6 +710,7 @@ class TargetResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No targets available')
             ->columns([
                 // TextColumn::make('abscap_id')

@@ -251,6 +251,7 @@ class QualificationTitleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('trainingProgram.title')
             ->emptyStateHeading('No schedule of cost available')
             ->columns([
                 TextColumn::make('trainingProgram.code')

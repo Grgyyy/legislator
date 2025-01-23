@@ -4,7 +4,9 @@ namespace App\Filament\Resources\FundSourceResource\Pages;
 
 use App\Models\FundSource;
 use App\Filament\Resources\FundSourceResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -17,9 +19,20 @@ class CreateFundSource extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     protected function handleRecordCreation(array $data): FundSource
     {
-        $this->validateUniqueFundSource($data['name']);
+        $this->validateUniqueFundSource($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $fundSource = DB::transaction(fn() => FundSource::create([
             'name' => $data['name'],
@@ -30,10 +43,10 @@ class CreateFundSource extends CreateRecord
         return $fundSource;
     }
 
-    protected function validateUniqueFundSource($name)
+    protected function validateUniqueFundSource($data)
     {
         $fundSource = FundSource::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->first();
 
         if ($fundSource) {

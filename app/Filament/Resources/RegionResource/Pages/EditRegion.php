@@ -4,6 +4,7 @@ namespace App\Filament\Resources\RegionResource\Pages;
 
 use App\Models\Region;
 use App\Filament\Resources\RegionResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
@@ -20,7 +21,9 @@ class EditRegion extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): Region
     {
-        $this->validateUniqueRegion($data['name'], $record->id);
+        $this->validateUniqueRegion($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -37,19 +40,34 @@ class EditRegion extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueRegion($name, $currentId)
+    protected function validateUniqueRegion($data, $currentId)
     {
         $region = Region::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->whereNot('id', $currentId)
             ->first();
 
         if ($region) {
             $message = $region->deleted_at 
-                ? 'This region has been deleted. Restoration is required before it can be reused.' 
+                ? 'This region has been deleted and must be restored before reuse.' 
                 : 'A region with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        if (!empty($data['code'])) {
+            $code = Region::withTrashed()
+                ->whereRaw('CAST(code AS UNSIGNED) = ?', [(int)$data['code']])
+                ->whereNot('id', $currentId)
+                ->first();
+
+            if ($code) {
+                $message = $code->deleted_at 
+                    ? 'A region with this PSG code already exists and has been deleted.' 
+                    : 'A region with this PSG code already exists.';
+            
+                NotificationHandler::handleValidationException('Invalid Code', $message);
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ use App\Models\Region;
 use App\Filament\Resources\ProvinceResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;
+use Illuminate\Database\Eloquent\Builder;
 
 class ShowProvinces extends ListRecords
 {
@@ -35,8 +36,21 @@ class ShowProvinces extends ListRecords
         ];
     }
 
+    protected function getTableQuery(): Builder|null
+    {
+        $regionId = $this->getRegionId();
+        
+        return parent::getTableQuery()->where('region_id', $regionId);
+    }
+
     protected function getRegionId(): ?int
     {
-        return (int) request()->route('record');
+        $regionId = request()->route('record') ?? session('region_id');
+
+        if ($regionId) {
+            session(['region_id' => $regionId]);
+        }
+
+        return (int) $regionId;
     }
 }

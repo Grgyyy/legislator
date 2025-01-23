@@ -16,23 +16,23 @@ class RegionTableSeeder extends Seeder
     {
         $regions = [
             
+            ['name' => 'NCR', 'code' => '13'],
+            ['name' => 'CAR','code' => '14'],
             ['name' => 'Region I', 'code' => '01'],
             ['name' => 'Region II', 'code' => '02'],
             ['name' => 'Region III','code' => '03'],
             ['name' => 'Region IV-A','code' => '04'],
+            ['name' => 'Region IV-B','code' => '17'],
             ['name' => 'Region V','code' => '05'],
             ['name' => 'Region VI','code' => '06'],
+            ['name' => 'Negros Island Region','code' => '18'],
             ['name' => 'Region VII','code' => '07'],
             ['name' => 'Region VIII','code' => '08'],
             ['name' => 'Region IX','code' => '09'],
             ['name' => 'Region X','code' => '10'],
             ['name' => 'Region XI','code' => '11'],
             ['name' => 'Region XII','code' => '12'],
-            ['name' => 'NCR', 'code' => '13'],
-            ['name' => 'CAR','code' => '14'],
-            ['name' => 'CARAGA','code' => '16'],
-            ['name' => 'Region IV-B','code' => '17'],
-            ['name' => 'Negros Island Region','code' => '18'],
+            ['name' => 'Region XIII','code' => '16'],
             ['name' => 'BARMM','code' => '19'],
             ['name' => 'Not Applicable', 'code' => '00'],
         ];

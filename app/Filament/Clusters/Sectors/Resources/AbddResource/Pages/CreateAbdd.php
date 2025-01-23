@@ -4,6 +4,7 @@ namespace App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
 
 use App\Models\Abdd;
 use App\Filament\Clusters\Sectors\Resources\AbddResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +30,9 @@ class CreateAbdd extends CreateRecord
 
     protected function handleRecordCreation(array $data): Abdd
     {
-        $this->validateUniqueAbdd($data['name']);
+        $this->validateUniqueAbdd($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $abdd = DB::transaction(fn () => Abdd::create([
                 'name' => $data['name'],
@@ -40,10 +43,10 @@ class CreateAbdd extends CreateRecord
         return $abdd;
     }
 
-    protected function validateUniqueAbdd($name)
+    protected function validateUniqueAbdd($data)
     {
         $abdd = Abdd::withTrashed()
-            ->where('name', $name)
+            ->where('name', $data['name'])
             ->first();
 
         if ($abdd) {

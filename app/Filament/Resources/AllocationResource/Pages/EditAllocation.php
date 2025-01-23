@@ -6,6 +6,7 @@ use App\Models\Allocation;
 use App\Filament\Resources\AllocationResource;
 use App\Models\Particular;
 use App\Services\NotificationHandler;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +18,14 @@ class EditAllocation extends EditRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCancelFormAction(): Action
+    {
+        return Action::make('cancel')
+            ->label('Exit')
+            ->url($this->previousUrl ?? static::getResource()::getUrl())
+            ->color('gray');
     }
 
     public function isEdit(): bool

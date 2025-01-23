@@ -128,6 +128,7 @@ class ProjectProposalResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('title')
             ->emptyStateHeading('No project proposal programs available')
             ->columns([
                 TextColumn::make('soc_code')

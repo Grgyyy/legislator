@@ -21,7 +21,7 @@ class ListSubParticulars extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            '/sub-particulars' => 'Particular Types',
+            '/particular-types' => 'Particular Types',
             'List'
         ];
     }
@@ -35,10 +35,11 @@ class ListSubParticulars extends ListRecords
 
             Action::make('RegionImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('attachment')
-                        ->required(),
+                        ->required()
+                        ->markAsRequired(false),
                 ])
                 ->action(function (array $data) {
                     $file = public_path('storage/' . $data['attachment']);

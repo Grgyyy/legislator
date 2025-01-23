@@ -3,10 +3,11 @@ namespace App\Filament\Resources\TargetCommentResource\Pages;
 
 use App\Filament\Resources\TargetCommentResource;
 use App\Models\TargetComment;
-use DB;
 use Filament\Actions;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
-use Auth;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Request;  // Ensure this is imported
 
 class CreateTargetComment extends CreateRecord
@@ -22,6 +23,15 @@ class CreateTargetComment extends CreateRecord
         }
 
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction(),
+            $this->getCreateAnotherFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     protected function handleRecordCreation(array $data): TargetComment

@@ -5,8 +5,6 @@ namespace App\Filament\Resources\FundSourceResource\Pages;
 use Filament\Actions\Action;
 use App\Exports\FundSourceExport;
 use Filament\Actions\CreateAction;
-use Illuminate\Support\Facades\Log;
-use App\Exports\PendingTargetExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
 use PhpOffice\PhpSpreadsheet\Exception;
@@ -27,7 +25,7 @@ class ListFundSources extends ListRecords
 
             Action::make('FundSourceExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new FundSourceExport, 'fund_source_export.xlsx');
@@ -39,7 +37,6 @@ class ListFundSources extends ListRecords
                         NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
                     }
                 }),
-
         ];
     }
 }

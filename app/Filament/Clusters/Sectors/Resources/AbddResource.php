@@ -56,6 +56,7 @@ class AbddResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('name')
             ->emptyStateHeading('No sectors available')
             ->columns([
                 TextColumn::make('name')
@@ -118,7 +119,7 @@ class AbddResource extends Resource
                                     Column::make('name')
                                         ->heading('ABDD Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - ABDD Sector')
+                                ->withFilename(date('m-d-Y') . ' - ABDD Sectors')
                         ]),
                 ]),
             ]);
@@ -129,8 +130,7 @@ class AbddResource extends Resource
         $query = parent::getEloquentQuery();
 
         $query->withoutGlobalScopes([SoftDeletingScope::class])
-            ->whereNot('name', 'Not Applicable')
-            ->orderBy('name');
+            ->whereNot('name', 'Not Applicable');
 
         return $query;
     }
