@@ -58,23 +58,38 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
             $record->soft_or_commitment,
             $this->getParticularName($record),
             $record->scholarship_program->name ?? 'Unknown Scholarship Program',
-            $record->allocation,
-            $record->admin_cost,
-            $record->allocation - $record->admin_cost,
-            $record->attribution_sent,
-            $record->attribution_received,
-            $this->getExpenses($record),
-            $record->balance,
+            $this->formatCurrency($record->allocation),
+            $this->formatCurrency($record->admin_cost),
+            $this->formatCurrency($record->allocation - $record->admin_cost),
+            $this->formatCurrency($record->attribution_sent),
+            $this->formatCurrency($record->attribution_received),
+            $this->formatCurrency($this->getExpenses($record)),
+            $this->formatCurrency($record->balance),
             $record->year,
         ];
     }
 
+
+    protected function formatCurrency($value): string
+    {
+        $amount = is_numeric($value) ? (float) $value : 0;
+
+        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+
+        return $formatter->formatCurrency($amount, 'PHP');
+    }
+
+
+
     public function getExpenses($record)
     {
+        // Sum of 'total_amount' in the related 'target' records
         $fundsExpended = $record->target->sum('total_amount');
 
-        return number_format($fundsExpended, 2);
+        // Ensure it returns a float
+        return (float) $fundsExpended;
     }
+
 
     protected function getParticularName($record): string
     {
