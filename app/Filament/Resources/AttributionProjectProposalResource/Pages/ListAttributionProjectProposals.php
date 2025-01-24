@@ -16,4 +16,14 @@ class ListAttributionProjectProposals extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected static ?string $title = 'Attribution Project Proposals';
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/attribution-project-proposals' => 'Attribution Project Proposals',
+            'List'
+        ];
+    }
 }

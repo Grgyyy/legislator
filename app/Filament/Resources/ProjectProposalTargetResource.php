@@ -1454,6 +1454,10 @@ class ProjectProposalTargetResource extends Resource
                 ->where('target_status_id', '=', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
                     $subQuery->where('soc', 0); // Assuming 'qualificationTitle' is the relationship name
+                })
+                ->whereHas('allocation', function ($subQuery) {
+                    $subQuery->whereNull('attributor_id')
+                        ->where('soft_or_commitment', 'Soft');
                 });
 
             // Add region filter if valid route parameter

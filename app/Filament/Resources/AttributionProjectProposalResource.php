@@ -357,12 +357,15 @@ class AttributionProjectProposalResource extends Resource
                                             ->preload()
                                             ->native(false)
                                             ->options(function () {
-                                                $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
+                                                $houseSpeakerIds = SubParticular::whereNotIn('name', ['District', 'Party-list', 'Senator'])
                                                     ->pluck('id');
 
                                                 return Legislator::where('status_id', 1)
                                                     ->whereNull('deleted_at')
-                                                    ->has('allocation')
+                                                    ->whereHas('attributions', function ($query) {
+                                                        $query->where('soft_or_commitment', 'Commitment')
+                                                            ->whereNotNull('attributor_id');
+                                                    })
                                                     ->whereHas('particular', function ($query) use ($houseSpeakerIds) {
                                                         $query->whereIn('sub_particular_id', $houseSpeakerIds);
                                                     })
@@ -424,7 +427,7 @@ class AttributionProjectProposalResource extends Resource
                                             ->reactive()
                                             ->live(),
 
-                                        Select::make('attribution_sender_particular')
+                                            Select::make('attribution_sender_particular')
                                             ->label('Particular')
                                             ->required()
                                             ->markAsRequired(false)
@@ -809,17 +812,12 @@ class AttributionProjectProposalResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No attribution targets available')
             ->columns([
-                TextColumn::make('abscap_id')
-                    ->label('AbsCap ID')
-                    ->searchable()
-                    ->toggleable(),
-
                 TextColumn::make('fund_source')
                     ->label('Fund Source')
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
-                        $legislator = $record->attributionAllocation->legislator;
+                        $legislator = $record->allocation->legislator;
 
                         if (!$legislator) {
                             return 'No legislators available';
@@ -838,40 +836,35 @@ class AttributionProjectProposalResource extends Resource
                         return $fundSource ? $fundSource->name : 'No fund sources available';
                     }),
 
-                TextColumn::make('attributionAllocation.soft_or_commitment')
+                TextColumn::make('allocation.soft_or_commitment')
                     ->label('Source of Fund')
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('attributionAllocation.legislator.name')
+                TextColumn::make('allocation.attributor.name')
                     ->label('Attributor')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $attributor = $record->allocation->attributor;
+
+                        return $attributor ? $attributor->name : '-';
+                    }),
 
                 TextColumn::make('attributionAllocation.legislator.particular.subParticular')
-                    ->label('Particular')
+                    ->label('Attributor Particular')
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
-                        $legislator = $record->attributionAllocation->legislator;
+                        $particular = $record->allocation->attributorParticular;
 
-                        if (!$legislator) {
-                            return 'No legislators available';
+                        if (!$particular) {
+                            return '-';
                         }
 
-                        $particulars = $legislator->particular;
-
-                        if ($particulars->isEmpty()) {
-                            return 'No particulars available';
-                        }
-
-                        $particular = $particulars->first();
                         $district = $particular->district;
-                        $municipality = $district ? $district->underMunicipality : null;
-
                         $districtName = $district ? $district->name : 'Unknown District';
-                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
 
                         if ($districtName === 'Not Applicable') {
                             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
@@ -880,7 +873,12 @@ class AttributionProjectProposalResource extends Resource
                                 return $particular->subParticular->name ?? 'Unknown Particular Type';
                             }
                         } else {
-                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                                if ($particular->district->underMunicipality) {
+                                    return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+                                }
+                                else {
+                                    return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                                }
                         }
                     }),
 
@@ -894,24 +892,14 @@ class AttributionProjectProposalResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
-                        $legislator = $record->allocation->legislator;
+                        $particular = $record->allocation->particular;
 
-                        if (!$legislator) {
-                            return 'No legislators available';
+                        if (!$particular) {
+                            return '-';
                         }
 
-                        $particulars = $legislator->particular;
-
-                        if ($particulars->isEmpty()) {
-                            return 'No particulars available';
-                        }
-
-                        $particular = $particulars->first();
                         $district = $particular->district;
-                        $municipality = $district ? $district->underMunicipality : null;
-
                         $districtName = $district ? $district->name : 'Unknown District';
-                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
 
                         if ($districtName === 'Not Applicable') {
                             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
@@ -920,7 +908,12 @@ class AttributionProjectProposalResource extends Resource
                                 return $particular->subParticular->name ?? 'Unknown Particular Type';
                             }
                         } else {
-                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                                if ($particular->district->underMunicipality) {
+                                    return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+                                }
+                                else {
+                                    return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                                }
                         }
                     }),
 
@@ -929,7 +922,7 @@ class AttributionProjectProposalResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('attributionAllocation.year')
+                TextColumn::make('allocation.year')
                     ->label('Appropriation Year')
                     ->sortable()
                     ->searchable()
@@ -968,7 +961,7 @@ class AttributionProjectProposalResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($state, $record) {
-                        $qualificationCode = $record->qualification_title_code ?? '';
+                        $qualificationCode = $record->qualification_title_soc_code ?? '';
                         $qualificationName = $record->qualification_title_name ?? '';
 
                         if ($qualificationName) {
@@ -1332,9 +1325,12 @@ class AttributionProjectProposalResource extends Resource
             $query->withoutGlobalScopes([SoftDeletingScope::class])
                 ->where('target_status_id', '=', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
-                    $subQuery->where('soc', 0);
+                    $subQuery->where('soc', 0); 
+                })
+                ->whereHas('allocation', function ($subQuery) {
+                    $subQuery->whereNotNull('attributor_id')
+                        ->where('soft_or_commitment', 'Commitment');
                 });
-            // ->whereNot('attributor_particular_id', null);
 
             if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
                 $query->where('region_id', (int) $routeParameter);
