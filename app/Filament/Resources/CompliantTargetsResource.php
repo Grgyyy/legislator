@@ -679,7 +679,11 @@ class CompliantTargetsResource extends Resource
                         return [$particular->id => $particular->subParticular->name];
                     }
                 } else {
-                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
+                    if ($particular->district->province->region->name === "NCR") {
+                        return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
+                    } else {
+                        return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->name];
+                    }
                 }
 
             })
@@ -687,6 +691,7 @@ class CompliantTargetsResource extends Resource
 
         return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
     }
+
 
     protected static function getAppropriationTypeOptions($year)
     {
