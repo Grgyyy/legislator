@@ -197,8 +197,8 @@ class AllocationResource extends Resource
                     ->dehydrated()
                     ->validationAttribute('Allocation')
                     ->validationMessages([
-                            'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
-                        ]),
+                        'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                    ]),
 
                 TextInput::make('year')
                     ->label('Year')
@@ -210,8 +210,8 @@ class AllocationResource extends Resource
                     ->rules(['min:' . date('Y'), 'digits: 4'])
                     ->validationAttribute('year')
                     ->validationMessages([
-                            'min' => 'The allocation year must be at least ' . date('Y') . '.',
-                        ]),
+                        'min' => 'The allocation year must be at least ' . date('Y') . '.',
+                    ]),
             ]);
     }
 
@@ -221,153 +221,153 @@ class AllocationResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No allocations available')
             ->columns([
-                    TextColumn::make('soft_or_commitment')
-                        ->label('Source of Fund')
-                        ->searchable()
-                        ->toggleable(),
+                TextColumn::make('soft_or_commitment')
+                    ->label('Source of Fund')
+                    ->searchable()
+                    ->toggleable(),
 
-                    TextColumn::make('attributor.name')
-                        ->label('Attributor')
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable()
-                        ->getStateUsing(function ($record) {
-                            $attributor = $record->attributor->name ?? "-";
+                TextColumn::make('attributor.name')
+                    ->label('Attributor')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $attributor = $record->attributor->name ?? "-";
 
-                            return $attributor;
-                        }),
+                        return $attributor;
+                    }),
 
-                    TextColumn::make('attributorParticular.subParticular.name')
-                        ->label('Attributor Particular')
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable()
-                        ->getStateUsing(function ($record) {
-                            $particularName = $record->attributorParticular->subParticular->name ?? "-";
-                            $regionName = $record->attributorParticular->district->province->region->name ?? "-";
+                TextColumn::make('attributorParticular.subParticular.name')
+                    ->label('Attributor Particular')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $particularName = $record->attributorParticular->subParticular->name ?? "-";
+                        $regionName = $record->attributorParticular->district->province->region->name ?? "-";
 
-                            if ($particularName === 'RO Regular' || $particularName === 'CO Regular') {
-                                return $particularName . ' - ' . $regionName;
+                        if ($particularName === 'RO Regular' || $particularName === 'CO Regular') {
+                            return $particularName . ' - ' . $regionName;
+                        } else {
+                            return $particularName;
+                        }
+                    }),
+
+                TextColumn::make("legislator.name")
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make("particular.name")
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $particular = $record->particular;
+
+                        if (!$particular) {
+                            return ['no_particular' => 'No particulars available'];
+                        }
+
+                        $district = $particular->district;
+                        $municipality = $district ? $district->underMunicipality : null;
+                        $districtName = $district ? $district->name : 'Unknown District';
+                        $municipalityName = $municipality ? $municipality->name : '';
+                        $provinceName = $district ? $district->province->name : 'Unknown Province';
+                        $regionName = $district ? $district->province->region->name : 'Unknown Region';
+
+                        $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+
+                        $formattedName = '';
+
+                        if ($subParticular === 'Party-list') {
+                            $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                            $formattedName = "{$subParticular} - {$partylistName}";
+                        } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                            $formattedName = "{$subParticular}";
+                        } elseif ($subParticular === 'District') {
+                            if ($municipalityName) {
+                                $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
                             } else {
-                                return $particularName;
+                                $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
                             }
-                        }),
+                        } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                            $formattedName = "{$subParticular} - {$regionName}";
+                        } else {
+                            $formattedName = "{$subParticular} - {$regionName}";
+                        }
 
-                    TextColumn::make("legislator.name")
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable(),
+                        return $formattedName;
+                    }),
 
-                    TextColumn::make("particular.name")
-                        ->toggleable()
-                        ->getStateUsing(function ($record) {
-                            $particular = $record->particular;
+                TextColumn::make("scholarship_program.name")
+                    ->label('Scholarship Program')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
 
-                            if (!$particular) {
-                                return ['no_particular' => 'No particulars available'];
-                            }
+                TextColumn::make("allocation")
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                            $district = $particular->district;
-                            $municipality = $district ? $district->underMunicipality : null;
-                            $districtName = $district ? $district->name : 'Unknown District';
-                            $municipalityName = $municipality ? $municipality->name : '';
-                            $provinceName = $district ? $district->province->name : 'Unknown Province';
-                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
+                TextColumn::make("admin_cost")
+                    ->label('Admin Cost')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                            $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+                TextColumn::make('admin_cost_difference')
+                    ->label('Allocation - Admin Cost')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->getStateUsing(function ($record) {
+                        $allocation = $record->allocation ?? 0;
+                        $adminCost = $record->admin_cost ?? 0;
 
-                            $formattedName = '';
+                        $difference = $allocation - $adminCost;
 
-                            if ($subParticular === 'Party-list') {
-                                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
-                                $formattedName = "{$subParticular} - {$partylistName}";
-                            } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                                $formattedName = "{$subParticular}";
-                            } elseif ($subParticular === 'District') {
-                                if ($municipalityName) {
-                                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
-                                } else {
-                                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
-                                }
-                            } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
-                                $formattedName = "{$subParticular} - {$regionName}";
-                            } else {
-                                $formattedName = "{$subParticular} - {$regionName}";
-                            }
+                        return number_format($difference, 2);
+                    }),
 
-                            return $formattedName;
-                        }),
+                // TextColumn::make("attribution_sent")
+                //     ->label('Attribution Sent')
+                //     ->sortable()
+                //     ->toggleable()
+                //     ->prefix('₱')
+                //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                    TextColumn::make("scholarship_program.name")
-                        ->label('Scholarship Program')
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable(),
+                // TextColumn::make("attribution_received")
+                //     ->label('Attribution Received')
+                //     ->sortable()
+                //     ->toggleable()
+                //     ->prefix('₱')
+                //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                    TextColumn::make("allocation")
-                        ->sortable()
-                        ->toggleable()
-                        ->prefix('₱')
-                        ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                TextColumn::make("expended_funds")
+                    ->label('Funds Expended')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->getStateUsing(function ($record) {
+                        $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
+                        $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
 
-                    TextColumn::make("admin_cost")
-                        ->label('Admin Cost')
-                        ->sortable()
-                        ->toggleable()
-                        ->prefix('₱')
-                        ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                        return number_format($fundsExpended, 2);
+                    }),
 
-                    TextColumn::make('admin_cost_difference')
-                        ->label('Allocation - Admin Cost')
-                        ->sortable()
-                        ->toggleable()
-                        ->prefix('₱')
-                        ->getStateUsing(function ($record) {
-                            $allocation = $record->allocation ?? 0;
-                            $adminCost = $record->admin_cost ?? 0;
+                TextColumn::make("balance")
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                            $difference = $allocation - $adminCost;
-
-                            return number_format($difference, 2);
-                        }),
-
-                    // TextColumn::make("attribution_sent")
-                    //     ->label('Attribution Sent')
-                    //     ->sortable()
-                    //     ->toggleable()
-                    //     ->prefix('₱')
-                    //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-
-                    // TextColumn::make("attribution_received")
-                    //     ->label('Attribution Received')
-                    //     ->sortable()
-                    //     ->toggleable()
-                    //     ->prefix('₱')
-                    //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-
-                    TextColumn::make("expended_funds")
-                        ->label('Funds Expended')
-                        ->sortable()
-                        ->toggleable()
-                        ->prefix('₱')
-                        ->getStateUsing(function ($record) {
-                            $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
-                            $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
-
-                            return number_format($fundsExpended, 2);
-                        }),
-
-                    TextColumn::make("balance")
-                        ->sortable()
-                        ->toggleable()
-                        ->prefix('₱')
-                        ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-
-                    TextColumn::make("year")
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable(),
-                ])
+                TextColumn::make("year")
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+            ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
