@@ -10,12 +10,12 @@ use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
-use Auth;
-use DB;
 use Exception;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EditAttributionTarget extends EditRecord
 {
@@ -26,6 +26,14 @@ class EditAttributionTarget extends EditRecord
         return [
             route('filament.admin.resources.attribution-targets.edit', ['record' => $this->record->id]) => 'Attribution Target',
             'Edit'
+        ];
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
         ];
     }
 

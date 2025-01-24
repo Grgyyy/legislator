@@ -20,6 +20,14 @@ class EditDistrict extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     protected function handleRecordUpdate($record, array $data): District
     {
         if (empty($data['municipality_id']) && isset($data['province_id'])) {

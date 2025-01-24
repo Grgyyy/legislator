@@ -19,6 +19,14 @@ class EditLegislator extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     protected function handleRecordUpdate($record, array $data): Legislator
     {
         $this->validateUniqueLegislator($data, $record->id);

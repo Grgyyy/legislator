@@ -5,9 +5,9 @@ namespace App\Filament\Resources\ToolkitResource\Pages;
 use App\Filament\Resources\ToolkitResource;
 use App\Models\Toolkit;
 use App\Services\NotificationHandler;
-use DB;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\DB;
 
 class EditToolkit extends EditRecord
 {
@@ -20,6 +20,13 @@ class EditToolkit extends EditRecord
         ];
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
