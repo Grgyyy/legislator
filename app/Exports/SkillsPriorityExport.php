@@ -55,7 +55,7 @@ class SkillsPriorityExport implements FromQuery, WithMapping, WithStyles, WithHe
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['ALLOCATION EXPORT'],
+            ['SKILLS PRIORITY EXPORT'],
             [''],
         ];
 

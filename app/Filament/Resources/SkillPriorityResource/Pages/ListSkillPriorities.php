@@ -51,7 +51,7 @@ class ListSkillPriorities extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new SkillsPriorityExport, 'allocation_export.xlsx');
+                        return Excel::download(new SkillsPriorityExport, 'skills_priority_export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

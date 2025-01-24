@@ -4,7 +4,6 @@ use App\Models\Target;
 use App\Models\Allocation;
 use App\Exports\TargetReportExport;
 use App\Http\Controllers\RegionController;
-use App\Http\Controllers\RegionImportController;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
 
@@ -33,4 +32,4 @@ Route::get('/export-targets/{allocationId}', function ($allocationId) {
 })->name('export.targets');
 
 
-// Route::post('/regions/import', [RegionImportController::class, 'import'])->name('regions.import');
+Route::post('/regions/import', [RegionController::class, 'import'])->name('regions.import');

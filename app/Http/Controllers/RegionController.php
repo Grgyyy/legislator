@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Imports\RegionImport;
 use Maatwebsite\Excel\Facades\Excel;
 
-class RegionImportController extends Controller
+class RegionController extends Controller
 {
     public function import(Request $request)
     {
