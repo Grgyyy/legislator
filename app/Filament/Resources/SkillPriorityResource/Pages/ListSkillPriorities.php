@@ -2,16 +2,18 @@
 
 namespace App\Filament\Resources\SkillPriorityResource\Pages;
 
-use App\Filament\Resources\SkillPriorityResource;
-use App\Imports\SkillsPriorityImport;
-use Filament\Resources\Pages\ListRecords;
 use Exception;
 use Filament\Actions\Action;
 use App\Imports\TargetImport;
 use Filament\Actions\CreateAction;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SkillsPriorityExport;
+use App\Imports\SkillsPriorityImport;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\SkillPriorityResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListSkillPriorities extends ListRecords
 {
@@ -42,6 +44,24 @@ class ListSkillPriorities extends ListRecords
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Skill Priority data: ' . $e->getMessage());
                     }
                 }),
+
+
+            Action::make('SkillsPriorityExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new SkillsPriorityExport, 'allocation_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
+
         ];
     }
 }
