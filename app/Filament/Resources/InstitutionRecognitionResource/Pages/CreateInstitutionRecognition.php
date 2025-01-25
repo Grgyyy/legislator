@@ -23,9 +23,12 @@ class CreateInstitutionRecognition extends CreateRecord
     protected function getFormActions(): array
     {
         return [
-            $this->getCreateFormAction(),
-            $this->getCreateAnotherFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()
+                ->label('Save & Create Another'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
     }
 

@@ -30,9 +30,10 @@ class CreateNonCompliantTarget extends CreateRecord
     protected function getFormActions(): array
     {
         return [
-            $this->getCreateFormAction(),
-            $this->getCreateAnotherFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
     }
     

@@ -16,6 +16,17 @@ class ShowComments extends ListRecords
 
     protected ?string $heading = 'Target Comments';
 
+     protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()
+                ->label('Save & Create Another'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
+        ];
+    }
     // public function getBreadcrumbs(): array
     // {
     //     $regionId = $this->getRegionId();

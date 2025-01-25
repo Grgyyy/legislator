@@ -13,7 +13,17 @@ class ShowInstitutionProgram extends ListRecords
 
     protected static ?string $title = "Institution's Training Programs";
 
-
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()
+                ->label('Save & Create Another'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
+        ];
+    }
     public function getHeading(): string
     {
         $tvi = $this->getTvi();

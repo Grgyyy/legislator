@@ -26,8 +26,10 @@ class CreateTarget extends CreateRecord
     protected function getFormActions(): array
     {
         return [
-            $this->getCreateFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
     }
 
