@@ -34,7 +34,7 @@ class CreateQualificationTitle extends CreateRecord
                 ->label('Exit'),
         ];
     }
-    
+
     public function getBreadcrumbs(): array
     {
         return [
@@ -55,7 +55,7 @@ class CreateQualificationTitle extends CreateRecord
                 'training_support_fund',
                 'assessment_fee',
                 'entrepreneurship_fee',
-                'new_normal_assisstance',
+                'new_normal_assistance',
                 'accident_insurance',
                 'book_allowance',
                 'uniform_allowance',
