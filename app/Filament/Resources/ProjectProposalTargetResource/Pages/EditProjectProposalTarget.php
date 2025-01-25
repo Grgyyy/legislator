@@ -10,13 +10,13 @@ use App\Models\SkillPriority;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
-use Auth;
-use DB;
 use Exception;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 
 class EditProjectProposalTarget extends EditRecord
@@ -26,6 +26,14 @@ class EditProjectProposalTarget extends EditRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     protected ?string $heading = 'Edit Project Proposal';

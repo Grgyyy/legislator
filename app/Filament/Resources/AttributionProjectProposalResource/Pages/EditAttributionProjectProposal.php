@@ -9,11 +9,11 @@ use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
-use DB;
 use Exception;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class EditAttributionProjectProposal extends EditRecord
 {
@@ -21,6 +21,14 @@ class EditAttributionProjectProposal extends EditRecord
     protected static string $resource = AttributionProjectProposalResource::class;
 
     protected ?string $heading = 'Edit Attribution Project Proposal';
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
 
     public function getBreadcrumbs(): array
     {

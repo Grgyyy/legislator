@@ -17,6 +17,14 @@ class EditMunicipality extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $data['district_id'] = $this->record->district()->pluck('districts.id')->toArray() ?? [];

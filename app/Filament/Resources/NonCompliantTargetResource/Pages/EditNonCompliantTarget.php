@@ -12,10 +12,10 @@ use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
 use App\Models\Tvi;
-use Auth;
-use DB;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class EditNonCompliantTarget extends EditRecord
@@ -29,6 +29,14 @@ class EditNonCompliantTarget extends EditRecord
         return [
             route('filament.admin.resources.non-compliant-targets.index') => 'Non-Compliant Targets',
             'Edit'
+        ];
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
         ];
     }
 

@@ -19,6 +19,14 @@ class EditRegion extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     protected function handleRecordUpdate($record, array $data): Region
     {
         $this->validateUniqueRegion($data, $record->id);

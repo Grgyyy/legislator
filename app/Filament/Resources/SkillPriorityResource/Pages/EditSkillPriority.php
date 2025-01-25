@@ -5,9 +5,10 @@ namespace App\Filament\Resources\SkillPriorityResource\Pages;
 use App\Filament\Resources\SkillPriorityResource;
 use App\Models\SkillPriority;
 use App\Services\NotificationHandler;
-use DB;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class EditSkillPriority extends EditRecord
@@ -18,6 +19,14 @@ class EditSkillPriority extends EditRecord
     {
         return [
             Actions\DeleteAction::make(),
+        ];
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
         ];
     }
 
@@ -79,7 +88,7 @@ class EditSkillPriority extends EditRecord
      */
     protected function validateUpdateData(array $data): void
     {
-        $validator = \Validator::make($data, [
+        $validator = Validator::make($data, [
             'province_id' => ['required', 'integer'],
             'training_program_id' => ['required', 'integer'],
             'year' => ['required', 'numeric', 'min:' . date('Y')],

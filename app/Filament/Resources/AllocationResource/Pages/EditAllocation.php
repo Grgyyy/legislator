@@ -20,14 +20,13 @@ class EditAllocation extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    protected function getCancelFormAction(): Action
+    protected function getFormActions(): array
     {
-        return Action::make('cancel')
-            ->label('Exit')
-            ->url($this->previousUrl ?? static::getResource()::getUrl())
-            ->color('gray');
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
-
     public function isEdit(): bool
     {
         return true; // Edit mode

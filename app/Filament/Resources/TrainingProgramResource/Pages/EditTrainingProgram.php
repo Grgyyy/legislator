@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
-use App\Models\TrainingProgram;
 use App\Filament\Resources\TrainingProgramResource;
+use App\Models\TrainingProgram;
 use App\Services\NotificationHandler;
-use DB;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
+use Illuminate\Support\Facades\DB;
 
 class EditTrainingProgram extends EditRecord
 {
@@ -17,6 +17,14 @@ class EditTrainingProgram extends EditRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     public function getHeading(): string

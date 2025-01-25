@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\TviResource\Pages;
 
-use App\Models\Tvi;
 use App\Filament\Resources\TviResource;
+use App\Models\Tvi;
 use App\Services\NotificationHandler;
-use DB;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
+use Illuminate\Support\Facades\DB;
 
 class EditTvi extends EditRecord
 {
@@ -18,6 +18,14 @@ class EditTvi extends EditRecord
     {
         $record = $this->getRecord();
         return $record ? $record->name : 'Institution';
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
     
     public function getBreadcrumbs(): array

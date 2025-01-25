@@ -18,6 +18,14 @@ class EditQualificationTitle extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
+
     public function getHeading(): string
     {
         $record = $this->getRecord();

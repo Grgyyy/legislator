@@ -2,21 +2,21 @@
 
 namespace App\Filament\Resources\TargetResource\Pages;
 
+use App\Filament\Resources\TargetResource;
+use App\Models\Allocation;
 use App\Models\ProvinceAbdd;
+use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
-use App\Models\Tvi;
-use Auth;
-use Exception;
 use App\Models\Target;
-use App\Models\Allocation;
 use App\Models\TargetHistory;
-use App\Models\QualificationTitle;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use App\Models\Tvi;
+use Exception;
 use Filament\Notifications\Notification;
-use App\Filament\Resources\TargetResource;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class EditTarget extends EditRecord
 {
@@ -25,6 +25,14 @@ class EditTarget extends EditRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
     }
 
     protected ?string $heading = 'Edit Target';

@@ -6,10 +6,10 @@ use App\Filament\Resources\CompliantTargetsResource;
 use App\Models\Allocation;
 use App\Models\QualificationTitle;
 use App\Models\TargetHistory;
-use DB;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class EditCompliantTargets extends EditRecord
 {
@@ -22,6 +22,14 @@ class EditCompliantTargets extends EditRecord
         return [
             route('filament.admin.resources.compliant-targets.index') => 'Compliant Targets',
             'Edit'
+        ];
+    }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
         ];
     }
 

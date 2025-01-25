@@ -20,6 +20,14 @@ class EditInstitutionProgram extends EditRecord
         $record = $this->getRecord();
         return $record ? $record->tvi->name . "'s Qualification Title Association" : 'Edit Training Program Association with Institution';
     }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction(),
+        ];
+    }
     
     public function getBreadcrumbs(): array
     {
