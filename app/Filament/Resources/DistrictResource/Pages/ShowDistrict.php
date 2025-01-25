@@ -27,6 +27,23 @@ class ShowDistrict extends ListRecords
         ];
     }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()
+                ->label('Save & Create Another'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
+        ];
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getHeaderActions(): array
     {
         $provinceId = $this->getProvinceId();

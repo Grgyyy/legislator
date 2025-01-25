@@ -31,10 +31,16 @@ class EditTarget extends EditRecord
     {
         return [
             $this->getSaveFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected ?string $heading = 'Edit Target';
 
     public function getBreadcrumbs(): array

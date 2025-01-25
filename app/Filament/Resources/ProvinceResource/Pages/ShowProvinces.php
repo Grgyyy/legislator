@@ -11,6 +11,23 @@ class ShowProvinces extends ListRecords
 {
     protected static string $resource = ProvinceResource::class;
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()
+                ->label('Save & Create Another'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
+        ];
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     public function getBreadcrumbs(): array
     {
         $regionId = $this->getRegionId();

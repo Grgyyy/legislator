@@ -24,12 +24,20 @@ class CreateSubParticular extends CreateRecord
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected function getFormActions(): array
     {
         return [
-            $this->getCreateFormAction(),
-            $this->getCreateAnotherFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()
+                ->label('Save & Create Another'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
     }
 

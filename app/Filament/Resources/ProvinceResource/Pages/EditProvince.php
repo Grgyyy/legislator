@@ -29,9 +29,16 @@ class EditProvince extends EditRecord
     {
         return [
             $this->getSaveFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
     }
+    
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected function handleRecordUpdate($record, array $data): Province
     {
         $this->validateUniqueProvince($data, $record->id);

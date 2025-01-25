@@ -24,9 +24,16 @@ class CreateAttributionProjectProposal extends CreateRecord
     protected function getFormActions(): array
     {
         return [
-            $this->getCreateFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected static ?string $title = 'Create Attribution Project Proposal';

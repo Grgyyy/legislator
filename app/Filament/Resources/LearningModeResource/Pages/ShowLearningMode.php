@@ -17,4 +17,21 @@ class ShowLearningMode extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()
+                ->label('Save & Create Another'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
+        ];
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 }

@@ -27,12 +27,18 @@ class CreateNonCompliantTarget extends CreateRecord
 
     private const COMPLIANT_STATUS_DESC = 'Non-Compliant';
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected function getFormActions(): array
     {
         return [
-            $this->getCreateFormAction(),
-            $this->getCreateAnotherFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
     }
     

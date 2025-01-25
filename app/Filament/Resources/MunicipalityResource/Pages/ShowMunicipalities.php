@@ -11,6 +11,23 @@ class ShowMunicipalities extends ListRecords
 {
     protected static string $resource = MunicipalityResource::class;
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()
+                ->label('Save & Create Another'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
+        ];
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     public function getBreadcrumbs(): array
     {
         $municipalityId = $this->getMunicipalityId();

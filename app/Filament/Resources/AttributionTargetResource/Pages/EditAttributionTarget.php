@@ -33,8 +33,14 @@ class EditAttributionTarget extends EditRecord
     {
         return [
             $this->getSaveFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected ?string $heading = 'Edit Attribution Target';

@@ -9,6 +9,7 @@ use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
 use Exception;
+use Symfony\Component\Uid\NilUlid;
 
 class EditAbdd extends EditRecord
 {
@@ -22,6 +23,20 @@ class EditAbdd extends EditRecord
             '/sectors/abdds' => 'ABDD Sectors',
             'Edit'
         ];
+    }
+    
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction()
+                ->label('Exit'),
+        ];
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getRedirectUrl(): string
