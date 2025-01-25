@@ -76,37 +76,19 @@ class TargetReport extends ListRecords
         $subParticularName = $allocation->particular->subParticular->name;
 
 
-        if (in_array($subParticularName, ['RO Regular', 'CO Regular'])) {
-            return $subParticularName . ' ' . $allocation->particular->region->name;
-        } elseif ($subParticularName === "CO Legislator Funds") {
-            if ($subParticularName === 'District') {
-                if ($allocation->particular->district->province->region->name === 'NCR') {
-                    return $allocation->particular->district->name . ', ' . $allocation->particular->district->underMunicipality->name;
-                } else {
-                    return $allocation->particular->district->name . ', ' . $allocation->particular->district->province->name;
-                }
-            }
-        } elseif (in_array($subParticularName, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+        if (in_array($subParticularName, ['Senator', 'Party-list', 'House Speaker', 'House Speaker (LAKAS)'])) {
             return $subParticularName;
-        } elseif ($subParticularName === "Party-list") {
-            $subParticularName . '' . $allocation->particular->partylist->name;
+        } elseif (in_array($subParticularName, ['RO Regular', 'CO Regular'])) {
+            return $subParticularName . ' ' . $allocation->particular->region->name;
+        } elseif ($subParticularName === 'District') {
+            if ($allocation->particular->district->province->region->name === 'NCR') {
+                return $allocation->particular->district->name . ', ' . $allocation->particular->district->underMunicipality->name;
+            } else {
+                return $allocation->particular->district->name . ', ' . $allocation->particular->district->province->name;
+            }
         } else {
-            dd($subParticularName);
+            return $subParticularName;
         }
-
-        // if (in_array($subParticularName, ['Senator', 'Party-list', 'House Speaker', 'House Speaker (LAKAS)'])) {
-        //     return $subParticularName;
-        // } elseif (in_array($subParticularName, ['RO Regular', 'CO Regular'])) {
-        //     return $subParticularName . ' ' . $allocation->particular->region->name;
-        // } elseif ($subParticularName === 'District') {
-        //     if ($allocation->particular->district->province->region->name === 'NCR') {
-        //         return $allocation->particular->district->name . ', ' . $allocation->particular->district->underMunicipality->name;
-        //     } else {
-        //         return $allocation->particular->district->name . ', ' . $allocation->particular->district->province->name;
-        //     }
-        // } else {
-        //     return $subParticularName;
-        // }
     }
 
     /**

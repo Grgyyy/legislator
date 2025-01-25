@@ -49,40 +49,40 @@ class SkillPriorityResource extends Resource
     {
         return $form
             ->schema([
-                // Select::make('province_id')
-                //     ->label('Province')
-                //     ->required()
-                //     ->markAsRequired(false)
-                //     ->searchable()
-                //     ->preload()
-                //     ->native(false)
-                //     ->options(function () {
-                //         return Province::whereNot('name', 'Not Applicable')
-                //             ->pluck('name', 'id')
-                //             ->toArray() ?: ['no_province' => 'No provinces available'];
-                //     })
-                //     ->disableOptionWhen(fn($value) => $value === 'no_province'),
+                Select::make('province_id')
+                    ->label('Province')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function () {
+                        return Province::whereNot('name', 'Not Applicable')
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_province' => 'No provinces available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
 
-                // Select::make('training_program_id')
-                //     ->label('Training Program')
-                //     ->required()
-                //     ->markAsRequired(false)
-                //     ->searchable()
-                //     ->preload()
-                //     ->native(false)
-                //     ->options(function () {
-                //         return TrainingProgram::all()
-                //             ->pluck('title', 'id')
-                //             ->toArray() ?: ['no_training_program' => 'No training programs available'];
-                //     })
-                //     ->disableOptionWhen(fn($value) => $value === 'no_training_program'),
+                Select::make('training_program_id')
+                    ->label('Training Program')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function () {
+                        return TrainingProgram::all()
+                            ->pluck('title', 'id')
+                            ->toArray() ?: ['no_training_program' => 'No training programs available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_training_program'),
 
-                // TextInput::make('available_slots')
-                //     ->label('Available Slots')
-                //     ->required()
-                //     ->markAsRequired(false)
-                //     ->integer()
-                //     ->hidden(fn($livewire) => !$livewire->isEdit()),
+                TextInput::make('available_slots')
+                    ->label('Available Slots')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->integer()
+                    ->hidden(fn($livewire) => !$livewire->isEdit()),
 
                 TextInput::make('total_slots')
                     ->label('Slots')
@@ -93,18 +93,18 @@ class SkillPriorityResource extends Resource
                     ->disabled(fn($livewire) => $livewire->isEdit())
                     ->dehydrated(),
 
-                // TextInput::make('year')
-                //     ->label('Year')
-                //     ->required()
-                //     ->markAsRequired(false)
-                //     ->autocomplete(false)
-                //     ->numeric()
-                //     ->default(date('Y'))
-                //     ->rules(['min:' . date('Y'), 'digits:4'])
-                //     ->validationAttribute('year')
-                //     ->validationMessages([
-                //         'min' => 'The allocation year must be at least ' . date('Y') . '.',
-                //     ]),
+                TextInput::make('year')
+                    ->label('Year')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(date('Y'))
+                    ->rules(['min:' . date('Y'), 'digits:4'])
+                    ->validationAttribute('year')
+                    ->validationMessages([
+                        'min' => 'The allocation year must be at least ' . date('Y') . '.',
+                    ]),
             ]);
     }
 
