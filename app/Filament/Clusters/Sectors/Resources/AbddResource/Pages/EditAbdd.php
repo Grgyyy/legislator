@@ -23,7 +23,15 @@ class EditAbdd extends EditRecord
             'Edit'
         ];
     }
-
+    
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getSaveFormAction(),
+            $this->getCancelFormAction()
+                ->label('Exit'),
+        ];
+    }
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

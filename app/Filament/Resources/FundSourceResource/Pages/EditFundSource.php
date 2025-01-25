@@ -23,7 +23,8 @@ class EditFundSource extends EditRecord
     {
         return [
             $this->getSaveFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
     }
     protected function handleRecordUpdate($record, array $data): FundSource

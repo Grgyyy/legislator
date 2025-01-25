@@ -24,9 +24,11 @@ class EditAllocation extends EditRecord
     {
         return [
             $this->getSaveFormAction(),
-            $this->getCancelFormAction(),
+            $this->getCancelFormAction()
+                ->label('Exit'),
         ];
     }
+    
     public function isEdit(): bool
     {
         return true; // Edit mode

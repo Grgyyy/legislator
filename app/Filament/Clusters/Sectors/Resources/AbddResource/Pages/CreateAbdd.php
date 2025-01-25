@@ -22,6 +22,17 @@ class CreateAbdd extends CreateRecord
             'Create'
         ];
     }
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()
+                ->label('Save & Create Another'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
+        ];
+    }
 
     protected function getRedirectUrl(): string
     {
