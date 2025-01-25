@@ -31,6 +31,11 @@ class CreateAttributionProjectProposal extends CreateRecord
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected static ?string $title = 'Create Attribution Project Proposal';
 
     protected function getRedirectUrl(): string

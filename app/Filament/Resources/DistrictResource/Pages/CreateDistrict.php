@@ -31,6 +31,11 @@ class CreateDistrict extends CreateRecord
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function handleRecordCreation(array $data): District
     {
         return DB::transaction(function () use ($data) {

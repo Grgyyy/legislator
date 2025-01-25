@@ -47,6 +47,11 @@ class ShowQualificationTitles extends ListRecords
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getscholarshipProgramId(): ?int
     {
         return (int) request()->route('record');

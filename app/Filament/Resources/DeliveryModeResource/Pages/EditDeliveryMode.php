@@ -17,6 +17,11 @@ class EditDeliveryMode extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getFormActions(): array
     {
         return [

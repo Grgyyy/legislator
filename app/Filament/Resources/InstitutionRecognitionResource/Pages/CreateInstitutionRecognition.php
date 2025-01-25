@@ -19,6 +19,11 @@ class CreateInstitutionRecognition extends CreateRecord
 
         return $record;
     }
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected function getFormActions(): array
     {

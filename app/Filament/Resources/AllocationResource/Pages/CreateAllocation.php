@@ -30,6 +30,11 @@ class CreateAllocation extends CreateRecord
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     public function isEdit(): bool
     {
         return false;

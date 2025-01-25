@@ -26,6 +26,11 @@ class EditMunicipality extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $data['district_id'] = $this->record->district()->pluck('districts.id')->toArray() ?? [];

@@ -29,4 +29,9 @@ class ShowLearningMode extends ListRecords
                 ->label('Exit'),
         ];
     }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 }

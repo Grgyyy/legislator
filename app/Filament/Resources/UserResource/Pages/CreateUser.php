@@ -29,6 +29,11 @@ class CreateUser extends CreateRecord
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function handleRecordCreation(array $data): User
     {
         $this->validateUniqueUser($data);

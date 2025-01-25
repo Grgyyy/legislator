@@ -28,6 +28,11 @@ class EditUser extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function handleRecordUpdate($record, array $data): User
     {
         $this->validateUniqueUser($data, $record->id);

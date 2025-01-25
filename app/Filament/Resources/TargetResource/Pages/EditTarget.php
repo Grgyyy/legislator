@@ -36,6 +36,11 @@ class EditTarget extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected ?string $heading = 'Edit Target';
 
     public function getBreadcrumbs(): array

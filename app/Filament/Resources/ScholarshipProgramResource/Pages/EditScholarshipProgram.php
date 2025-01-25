@@ -28,6 +28,11 @@ class EditScholarshipProgram extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function handleRecordUpdate($record, array $data): ScholarshipProgram
     {
         $this->validateUniqueScholarshipProgram($data, $record->id);

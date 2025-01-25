@@ -22,6 +22,12 @@ class ShowMunicipalities extends ListRecords
                 ->label('Exit'),
         ];
     }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     public function getBreadcrumbs(): array
     {
         $municipalityId = $this->getMunicipalityId();

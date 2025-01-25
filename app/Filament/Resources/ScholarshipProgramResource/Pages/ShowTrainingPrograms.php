@@ -35,6 +35,11 @@ class ShowTrainingPrograms extends ListRecords
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getHeaderActions(): array
     {
         $scholarshipProgramId = $this->getScholarshipProgramId();

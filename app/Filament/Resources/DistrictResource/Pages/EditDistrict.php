@@ -29,6 +29,11 @@ class EditDistrict extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function handleRecordUpdate($record, array $data): District
     {
         if (empty($data['municipality_id']) && isset($data['province_id'])) {

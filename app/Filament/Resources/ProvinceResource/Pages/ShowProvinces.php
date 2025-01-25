@@ -22,6 +22,12 @@ class ShowProvinces extends ListRecords
                 ->label('Exit'),
         ];
     }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     public function getBreadcrumbs(): array
     {
         $regionId = $this->getRegionId();

@@ -27,6 +27,11 @@ class EditInstitutionClass extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function handleRecordUpdate($record, array $data): InstitutionClass
     {
         $this->validateUniqueInstitutionClass($data['name'], $record->id);

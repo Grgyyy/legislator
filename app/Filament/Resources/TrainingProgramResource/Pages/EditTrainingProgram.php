@@ -28,6 +28,11 @@ class EditTrainingProgram extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     public function getHeading(): string
     {
         $record = $this->getRecord();

@@ -9,6 +9,7 @@ use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
 use Exception;
+use Symfony\Component\Uid\NilUlid;
 
 class EditAbdd extends EditRecord
 {
@@ -32,6 +33,12 @@ class EditAbdd extends EditRecord
                 ->label('Exit'),
         ];
     }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

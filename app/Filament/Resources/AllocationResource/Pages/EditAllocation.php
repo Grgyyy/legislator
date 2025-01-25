@@ -28,6 +28,11 @@ class EditAllocation extends EditRecord
                 ->label('Exit'),
         ];
     }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
     
     public function isEdit(): bool
     {

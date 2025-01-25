@@ -31,6 +31,11 @@ class EditAttributionProjectProposal extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     public function getBreadcrumbs(): array
     {
         return [

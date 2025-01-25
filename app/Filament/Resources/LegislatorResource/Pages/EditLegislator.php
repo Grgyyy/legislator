@@ -28,6 +28,11 @@ class EditLegislator extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function handleRecordUpdate($record, array $data): Legislator
     {
         $this->validateUniqueLegislator($data, $record->id);

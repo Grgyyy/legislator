@@ -39,6 +39,11 @@ class ShowDistrict extends ListRecords
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getHeaderActions(): array
     {
         $provinceId = $this->getProvinceId();

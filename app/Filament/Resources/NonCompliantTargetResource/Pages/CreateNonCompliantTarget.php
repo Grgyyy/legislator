@@ -27,6 +27,11 @@ class CreateNonCompliantTarget extends CreateRecord
 
     private const COMPLIANT_STATUS_DESC = 'Non-Compliant';
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected function getFormActions(): array
     {
         return [

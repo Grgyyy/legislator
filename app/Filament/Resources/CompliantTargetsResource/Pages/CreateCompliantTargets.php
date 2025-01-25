@@ -42,6 +42,11 @@ class CreateCompliantTargets extends CreateRecord
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     public function getBreadcrumbs(): array
     {
         return [

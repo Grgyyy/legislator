@@ -33,6 +33,11 @@ class EditParticular extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $record = $this->record;

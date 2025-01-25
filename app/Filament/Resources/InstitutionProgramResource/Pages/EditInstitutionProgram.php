@@ -29,6 +29,11 @@ class EditInstitutionProgram extends EditRecord
                 ->label('Exit'),
         ];
     }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
     
     public function getBreadcrumbs(): array
     {

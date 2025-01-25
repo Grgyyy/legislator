@@ -31,6 +31,11 @@ class CreateAttributionTarget extends CreateRecord
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected static ?string $title = 'Create Attribution Target';
 
     protected function getRedirectUrl(): string

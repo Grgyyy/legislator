@@ -22,6 +22,11 @@ class CreateTviClass extends CreateRecord
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected function getFormActions(): array
     {
         return [

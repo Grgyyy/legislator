@@ -22,4 +22,9 @@ class CreateLegislativeTargets extends CreateRecord
                 ->label('Exit'),
         ];
     }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 }

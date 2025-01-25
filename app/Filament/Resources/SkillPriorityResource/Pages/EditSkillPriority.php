@@ -31,6 +31,11 @@ class EditSkillPriority extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     public function isEdit(): bool
     {
         return true; // Edit mode

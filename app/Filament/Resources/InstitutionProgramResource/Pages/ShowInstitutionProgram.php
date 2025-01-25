@@ -24,6 +24,12 @@ class ShowInstitutionProgram extends ListRecords
                 ->label('Exit'),
         ];
     }
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     public function getHeading(): string
     {
         $tvi = $this->getTvi();

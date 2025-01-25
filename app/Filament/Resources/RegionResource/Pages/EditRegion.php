@@ -28,6 +28,11 @@ class EditRegion extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function handleRecordUpdate($record, array $data): Region
     {
         $this->validateUniqueRegion($data, $record->id);

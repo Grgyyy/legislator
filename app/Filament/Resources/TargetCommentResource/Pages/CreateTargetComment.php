@@ -37,6 +37,11 @@ class CreateTargetComment extends CreateRecord
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function handleRecordCreation(array $data): TargetComment
     {
         return DB::transaction(function () use ($data) {

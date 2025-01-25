@@ -25,6 +25,11 @@ class EditTargetComment extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getRedirectUrl(): string
     {
         $targetId = $this->record->target_id;

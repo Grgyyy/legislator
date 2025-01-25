@@ -25,6 +25,11 @@ class EditLearningMode extends EditRecord
                 ->label('Exit'),
         ];
     }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
     
     protected function getRedirectUrl(): string
     {

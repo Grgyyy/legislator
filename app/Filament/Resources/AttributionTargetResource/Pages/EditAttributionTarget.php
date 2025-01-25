@@ -38,6 +38,11 @@ class EditAttributionTarget extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected ?string $heading = 'Edit Attribution Target';
 
     protected function getRedirectUrl(): string

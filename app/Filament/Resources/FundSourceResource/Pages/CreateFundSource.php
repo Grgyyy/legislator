@@ -31,6 +31,11 @@ class CreateFundSource extends CreateRecord
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function handleRecordCreation(array $data): FundSource
     {
         $this->validateUniqueFundSource($data);

@@ -27,6 +27,12 @@ class EditFundSource extends EditRecord
                 ->label('Exit'),
         ];
     }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected function handleRecordUpdate($record, array $data): FundSource
     {
         $this->validateUniqueFundSource($data, $record->id);

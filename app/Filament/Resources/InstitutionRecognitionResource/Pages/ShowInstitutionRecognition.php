@@ -37,6 +37,11 @@ class ShowInstitutionRecognition extends ListRecords
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getHeaderActions(): array
     {
         $tviId = $this->getTviId();

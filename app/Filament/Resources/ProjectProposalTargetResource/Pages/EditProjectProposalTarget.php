@@ -37,6 +37,11 @@ class EditProjectProposalTarget extends EditRecord
         ];
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected ?string $heading = 'Edit Project Proposal';
 
     public function getBreadcrumbs(): array
