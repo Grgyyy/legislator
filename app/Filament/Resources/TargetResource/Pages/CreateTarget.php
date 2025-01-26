@@ -155,6 +155,7 @@ class CreateTarget extends CreateRecord
             'legislator_id' => $targetData['legislator_id'],
             'particular_id' => $targetData['particular_id'],
             'scholarship_program_id' => $targetData['scholarship_program_id'],
+            'soft_or_commitment' => 'Soft',
             'year' => $targetData['allocation_year']
         ])->first();
 

@@ -73,11 +73,10 @@ class CreateAttributionProjectProposal extends CreateRecord
                 }
             }
 
-            if (Target::where('abscap_id', $targetData['abscap_id'])->exists()) {
-                NotificationHandler::handleValidationException('Something went wrong', "The abscap_id '{$targetData['abscap_id']}' already exists in the targets table.");
-            }
-            
-            
+            // if (Target::where('abscap_id', $targetData['abscap_id'])->exists()) {
+            //     NotificationHandler::handleValidationException('Something went wrong', "The abscap_id '{$targetData['abscap_id']}' already exists in the targets table.");
+            // }
+
 
             // // Fetch sender allocation
             // $senderAllocation = Allocation::where('legislator_id', $targetData['attribution_sender'])
@@ -250,16 +249,16 @@ class CreateAttributionProjectProposal extends CreateRecord
                 'total_book_allowance' => $total_book_allowance,
                 'total_uniform_allowance' => $total_uniform_allowance,
                 'total_misc_fee' => $total_misc_fee,
-                'total_amount' => $total_amount, 
+                'total_amount' => $total_amount,
                 'appropriation_type' => $targetData['attribution_appropriation_type'],
                 'description' => 'Target Created',
                 'user_id' => Auth::user()->id,
             ]);
-            
+
 
             return $target;
         });
-        
+
     }
 
     private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority

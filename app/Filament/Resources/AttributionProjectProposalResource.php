@@ -66,103 +66,263 @@ class AttributionProjectProposalResource extends Resource
                         Fieldset::make('Sender')
                             ->schema([
                                 Select::make('attribution_sender')
-                                    ->label('Attributor')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->options(function () {
-                                        $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
-                                            ->pluck('id');
+                                            ->label('Attributor')
+                                            ->required()
+                                            ->markAsRequired(false)
+                                            ->searchable()
+                                            ->preload()
+                                            ->native(false)
+                                            ->options(function () {
+                                                $houseSpeakerIds = SubParticular::whereNotIn('name', ['District', 'Party-list', 'Senator'])
+                                                    ->pluck('id');
 
-                                        return Legislator::where('status_id', 1)
-                                            ->whereNull('deleted_at')
-                                            ->has('allocation')
-                                            ->whereHas('particular', function ($query) use ($houseSpeakerIds) {
-                                                $query->whereIn('sub_particular_id', $houseSpeakerIds);
+                                                return Legislator::where('status_id', 1)
+                                                    ->whereNull('deleted_at')
+                                                    ->whereHas('attributions', function ($query) {
+                                                        $query->where('soft_or_commitment', 'Commitment')
+                                                            ->whereNotNull('attributor_id');
+                                                    })
+                                                    ->whereHas('particular', function ($query) use ($houseSpeakerIds) {
+                                                        $query->whereIn('sub_particular_id', $houseSpeakerIds);
+                                                    })
+                                                    ->pluck('name', 'id')
+                                                    ->toArray() ?: ['no_legislator' => 'No attributors available'];
                                             })
-                                            ->pluck('name', 'id')
-                                            ->toArray() ?: ['no_legislator' => 'No attributors available'];
-                                    })
-                                    ->disabled()
-                                    ->dehydrated(),
+                                            ->disableOptionWhen(fn($value) => $value === 'no_legislator')
+                                            ->afterStateUpdated(function ($state, callable $set) {
+                                                if (!$state) {
+                                                    $set('attribution_sender_particular', null);
+                                                    $set('attribution_scholarship_program', null);
+                                                    $set('allocation_year', null);
+                                                    $set('attribution_appropriation_type', null);
 
-                                Select::make('attribution_sender_particular')
-                                    ->label('Particular')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->options(function ($get) {
-                                        $legislatorId = $get('attribution_sender');
+                                                    return;
+                                                }
 
-                                        if ($legislatorId) {
-                                            return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
-                                                $query->where('legislator_particular.legislator_id', $legislatorId);
+                                                $allocations = Allocation::where('attributor_id', $state)
+                                                    ->with('particular', 'scholarship_program')
+                                                    ->get();
+
+                                                $particularOptions = $allocations->pluck('attributorParticular.name', 'attributorParticular.id')->toArray();
+                                                $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
+                                                $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
+
+                                                $currentYear = now()->year;
+
+                                                if (count($particularOptions) === 1) {
+                                                    $set('attribution_sender_particular', key($particularOptions));
+                                                } else {
+                                                    $set('attribution_sender_particular', null);
+                                                }
+
+                                                if (count($scholarshipProgramOptions) === 1) {
+                                                    $set('attribution_scholarship_program', key($scholarshipProgramOptions));
+                                                } else {
+                                                    $set('attribution_scholarship_program', null);
+                                                }
+
+                                                $particularId = $particularOptions ? key($particularOptions) : null;
+                                                $scholarshipProgramId = $scholarshipProgramOptions ? key($scholarshipProgramOptions) : null;
+
+                                                if ($particularId && $scholarshipProgramId) {
+                                                    if (count($allocations) === 1) {
+                                                        $set('allocation_year', key($appropriationYearOptions));
+
+                                                        if (key($appropriationYearOptions) == $currentYear) {
+                                                            $set('attribution_appropriation_type', 'Current');
+                                                        }
+                                                    } else {
+                                                        $set('allocation_year', null);
+                                                        $set('attribution_appropriation_type', null);
+                                                    }
+                                                } else {
+                                                    $set('allocation_year', null);
+                                                    $set('attribution_appropriation_type', null);
+                                                }
                                             })
-                                                ->with('subParticular')
-                                                ->get()
-                                                ->pluck('subParticular.name', 'id')
-                                                ->toArray() ?: ['no_particular' => 'No particulars available'];
-                                        }
+                                            ->reactive()
+                                            ->live()
+                                            ->disabled()
+                                            ->dehydrated(),
 
-                                        return ['no_particular' => 'No particulars available. Select an attributor first.'];
-                                    })
-                                    ->disabled()
-                                    ->dehydrated(),
 
-                                Select::make('attribution_scholarship_program')
-                                    ->label('Scholarship Program')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->options(function ($get) {
-                                        $legislatorId = $get('attribution_sender');
-                                        $particularId = $get('attribution_sender_particular');
+                                            Select::make('attribution_sender_particular')
+                                            ->label('Particular')
+                                            ->required()
+                                            ->markAsRequired(false)
+                                            ->searchable()
+                                            ->preload()
+                                            ->native(false)
+                                            ->options(function ($get) {
+                                                $legislatorId = $get('attribution_sender');
 
-                                        return $legislatorId
-                                            ? self::getScholarshipProgramsOptions($legislatorId, $particularId)
-                                            : ['no_scholarship_program' => 'No scholarship programs available. Select a particular first.'];
-                                    })
-                                    ->disabled()
-                                    ->dehydrated(),
+                                                if ($legislatorId) {
+                                                    $allocation = Allocation::whereHas('particular')
+                                                        ->where('attributor_id', $legislatorId)
+                                                        ->get();
 
-                                Select::make('allocation_year')
-                                    ->label('Appropriation Year')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->options(function ($get) {
-                                        $legislatorId = $get('attribution_sender');
-                                        $particularId = $get('attribution_sender_particular');
-                                        $scholarshipProgramId = $get('attribution_scholarship_program');
+                                                    return $allocation->pluck('attributorParticular.subParticular.name', 'attributorParticular.id')
+                                                        ->toArray() ?: ['no_particular' => 'No particulars available'];
+                                                }
+                                                return ['no_particular' => 'No particulars available. Select an attributor first.'];
+                                            })
+                                            ->disableOptionWhen(fn($value) => $value === 'no_particular')
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                if (!$state) {
+                                                    $set('attribution_scholarship_program', null);
+                                                    $set('allocation_year', null);
+                                                    $set('attribution_appropriation_type', null);
 
-                                        return $legislatorId
-                                            ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
-                                            : ['no_allocation' => 'No appropriation years available. Select a scholarship program first.'];
-                                    })
-                                    ->disabled()
-                                    ->dehydrated(),
+                                                    return;
+                                                }
 
-                                Select::make('attribution_appropriation_type')
-                                    ->label('Appropriation Type')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->options(function ($get) {
-                                        $year = $get('allocation_year');
+                                                $legislator_id = $get('legislator_id');
+                                                $allocations = Allocation::where('attributor_id', $legislator_id)
+                                                    ->where('attributor_particular_id', $state)
+                                                    ->with('attributorParticular', 'scholarship_program')
+                                                    ->get();
 
-                                        return $year
-                                            ? self::getAppropriationTypeOptions($year)
-                                            : ['no_allocation' => 'No appropriation types available. Select an appropriation year first.'];
-                                    })
-                                    ->disabled()
-                                    ->dehydrated(),
-                            ])
+                                                $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
+                                                $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
+
+                                                $currentYear = now()->year;
+
+                                                if (count($allocations) === 1) {
+                                                    $set('attribution_scholarship_program', key($scholarshipProgramOptions));
+                                                    $set('allocation_year', key($appropriationYearOptions));
+
+                                                    if (key($appropriationYearOptions) == $currentYear) {
+                                                        $set('attribution_appropriation_type', 'Current');
+                                                    }
+                                                } else {
+                                                    $set('attribution_scholarship_program', null);
+                                                    $set('allocation_year', null);
+                                                    $set('attribution_appropriation_type', null);
+                                                }
+                                            })
+                                            ->reactive()
+                                            ->live()
+                                            ->disabled()
+                                            ->dehydrated(),
+
+                                        Select::make('attribution_scholarship_program')
+                                            ->label('Scholarship Program')
+                                            ->required()
+                                            ->markAsRequired(false)
+                                            ->searchable()
+                                            ->preload()
+                                            ->native(false)
+                                            ->options(function ($get) {
+                                                // Fetching the legislator and particular IDs from the form inputs
+                                                $legislatorId = $get('attribution_sender');
+                                                $particularId = $get('attribution_sender_particular');
+
+                                                // Query the ScholarshipProgram model based on the provided legislator and particular IDs
+                                                return ScholarshipProgram::whereHas('allocation', function ($query) use ($legislatorId, $particularId) {
+                                                    $query->where('attributor_id', $legislatorId)
+                                                        ->where('attributor_particular_id', $particularId);
+                                                })
+                                                    ->pluck('name', 'id') // Retrieve the 'name' as value and 'id' as key
+                                                    ->toArray() ?: ['no_scholarship_program' => 'No scholarship program available'];
+                                            })
+                                            ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                if (!$state) {
+                                                    $set('allocation_year', null);
+                                                    $set('attribution_appropriation_type', null);
+
+                                                    return;
+                                                }
+
+                                                $legislator_id = $get('legislator_id');
+                                                $particular_id = $get('attribution_sender_particular');
+                                                $allocations = Allocation::where('legislator_id', $legislator_id)
+                                                    ->where('particular_id', $particular_id)
+                                                    ->where('scholarship_program_id', $state)
+                                                    ->with('particular', 'scholarship_program')
+                                                    ->get();
+
+                                                $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
+
+                                                $currentYear = now()->year;
+
+                                                if (count($allocations) === 1) {
+                                                    $set('allocation_year', key($appropriationYearOptions));
+
+                                                    if (key($appropriationYearOptions) == $currentYear) {
+                                                        $set('attribution_appropriation_type', 'Current');
+                                                    }
+                                                } else {
+                                                    $set('allocation_year', null);
+                                                    $set('attribution_appropriation_type', null);
+                                                }
+                                            })
+                                            ->reactive()
+                                            ->live()
+                                            ->disabled()
+                                            ->dehydrated(),
+
+
+                                            Select::make('allocation_year')
+                                            ->label('Appropriation Year')
+                                            ->required()
+                                            ->markAsRequired(false)
+                                            ->native(false)
+                                            ->options(function ($get) {
+                                                $legislatorId = $get('attribution_sender');
+                                                $particularId = $get('attribution_sender_particular');
+                                                $scholarshipProgramId = $get('attribution_scholarship_program');
+
+                                                return $legislatorId
+                                                    ? self::getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
+                                                    : ['no_allocation' => 'No appropriation years available. Select a scholarship program first.'];
+                                            })
+                                            ->disableOptionWhen(fn($value) => $value === 'no_allocation')
+                                            ->afterStateUpdated(function ($state, callable $set) {
+                                                $set('attribution_appropriation_type', null);
+
+                                                $appropriationType = self::getAppropriationTypeOptions($state);
+
+                                                $set('attribution_appropriation_type', $appropriationType);
+
+                                                if (count($appropriationType) === 1) {
+                                                    $set('attribution_appropriation_type', key($appropriationType));
+                                                }
+                                            })
+                                            ->reactive()
+                                            ->live()
+                                            ->disabled()
+                                            ->dehydrated(),
+
+                                        Select::make('attribution_appropriation_type')
+                                            ->label('Appropriation Type')
+                                            ->required()
+                                            ->markAsRequired(false)
+                                            ->native(false)
+                                            ->options(function ($get) {
+                                                $year = $get('allocation_year');
+
+                                                return $year
+                                                    ? self::getAppropriationTypeOptions($year)
+                                                    : ['no_allocation' => 'No appropriation types available. Select an appropriation year first.'];
+                                            })
+                                            ->disableOptionWhen(fn($value) => $value === 'no_allocation')
+                                            ->reactive()
+                                            ->live()
+                                            ->disabled()
+                                            ->dehydrated(),
+                        ])
                             ->columns(5),
 
                         Fieldset::make('Receiver')
                             ->schema([
-                                TextInput::make('abscap_id')
-                                    ->label('Absorbative Capacity ID')
-                                    ->placeholder('Enter AbsCap ID')
-                                    ->required()
-                                    ->markAsRequired(false)
-                                    ->autocomplete(false)
-                                    ->integer(),
+                                // TextInput::make('abscap_id')
+                                //     ->label('Absorbative Capacity ID')
+                                //     ->placeholder('Enter AbsCap ID')
+                                //     ->required()
+                                //     ->markAsRequired(false)
+                                //     ->autocomplete(false)
+                                //     ->integer(),
 
                                 Select::make('attribution_receiver')
                                     ->label('Legislator')
@@ -245,7 +405,17 @@ class AttributionProjectProposalResource extends Resource
                                             })
                                             ->toArray() ?: ['no_tvi' => 'No institution available'];
                                     })
-                                    ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
+                                    ->disableOptionWhen(fn($value) => $value === 'no_tvi')
+                                    ->afterStateUpdated(function (callable $set, $state) {
+                                        if (!$state) {
+                                            $set('qualification_title_id', null);
+                                        }
+
+                                        $set('qualification_title_id', null);
+
+                                    })
+                                    ->reactive()
+                                    ->live(),
 
                                 Select::make('qualification_title_id')
                                     ->label('Qualification Title')
@@ -383,11 +553,11 @@ class AttributionProjectProposalResource extends Resource
                                                     return;
                                                 }
 
-                                                $allocations = Allocation::where('legislator_id', $state)
+                                                $allocations = Allocation::where('attributor_id', $state)
                                                     ->with('particular', 'scholarship_program')
                                                     ->get();
 
-                                                $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
+                                                $particularOptions = $allocations->pluck('attributorParticular.name', 'attributorParticular.id')->toArray();
                                                 $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
 
@@ -427,6 +597,7 @@ class AttributionProjectProposalResource extends Resource
                                             ->reactive()
                                             ->live(),
 
+
                                             Select::make('attribution_sender_particular')
                                             ->label('Particular')
                                             ->required()
@@ -438,15 +609,13 @@ class AttributionProjectProposalResource extends Resource
                                                 $legislatorId = $get('attribution_sender');
 
                                                 if ($legislatorId) {
-                                                    return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
-                                                        $query->where('legislator_particular.legislator_id', $legislatorId);
-                                                    })
-                                                        ->with('subParticular')
-                                                        ->get()
-                                                        ->pluck('subParticular.name', 'id')
+                                                    $allocation = Allocation::whereHas('particular')
+                                                        ->where('attributor_id', $legislatorId)
+                                                        ->get();
+
+                                                    return $allocation->pluck('attributorParticular.subParticular.name', 'attributorParticular.id')
                                                         ->toArray() ?: ['no_particular' => 'No particulars available'];
                                                 }
-
                                                 return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_particular')
@@ -460,9 +629,9 @@ class AttributionProjectProposalResource extends Resource
                                                 }
 
                                                 $legislator_id = $get('legislator_id');
-                                                $allocations = Allocation::where('legislator_id', $legislator_id)
-                                                    ->where('particular_id', $state)
-                                                    ->with('particular', 'scholarship_program')
+                                                $allocations = Allocation::where('attributor_id', $legislator_id)
+                                                    ->where('attributor_particular_id', $state)
+                                                    ->with('attributorParticular', 'scholarship_program')
                                                     ->get();
 
                                                 $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
@@ -494,12 +663,17 @@ class AttributionProjectProposalResource extends Resource
                                             ->preload()
                                             ->native(false)
                                             ->options(function ($get) {
+                                                // Fetching the legislator and particular IDs from the form inputs
                                                 $legislatorId = $get('attribution_sender');
                                                 $particularId = $get('attribution_sender_particular');
 
-                                                return $legislatorId
-                                                    ? self::getScholarshipProgramsOptions($legislatorId, $particularId)
-                                                    : ['no_scholarship_program' => 'No scholarship programs available. Select a particular first.'];
+                                                // Query the ScholarshipProgram model based on the provided legislator and particular IDs
+                                                return ScholarshipProgram::whereHas('allocation', function ($query) use ($legislatorId, $particularId) {
+                                                    $query->where('attributor_id', $legislatorId)
+                                                        ->where('attributor_particular_id', $particularId);
+                                                })
+                                                    ->pluck('name', 'id') // Retrieve the 'name' as value and 'id' as key
+                                                    ->toArray() ?: ['no_scholarship_program' => 'No scholarship program available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
@@ -536,7 +710,8 @@ class AttributionProjectProposalResource extends Resource
                                             ->reactive()
                                             ->live(),
 
-                                        Select::make('allocation_year')
+
+                                            Select::make('allocation_year')
                                             ->label('Appropriation Year')
                                             ->required()
                                             ->markAsRequired(false)
@@ -585,14 +760,6 @@ class AttributionProjectProposalResource extends Resource
 
                                 Fieldset::make('Receiver')
                                     ->schema([
-                                        TextInput::make('abscap_id')
-                                            ->label('Absorbative Capacity ID')
-                                            ->placeholder('Enter AbsCap ID')
-                                            ->required()
-                                            ->markAsRequired(false)
-                                            ->autocomplete(false)
-                                            ->integer(),
-
                                         Select::make('attribution_receiver')
                                             ->label('Legislator')
                                             ->required()
@@ -601,13 +768,25 @@ class AttributionProjectProposalResource extends Resource
                                             ->preload()
                                             ->native(false)
                                             ->options(function ($get) {
-                                                $attributor_id = $get('attribution_sender');
+                                                // Get input values
+                                                $legislatorId = $get('attribution_sender');
+                                                $particularId = $get('attribution_sender_particular');
+                                                $scholarshipProgramId = $get('attribution_scholarship_program');
+                                                $year = $get('allocation_year');
 
-                                                return Legislator::where('status_id', 1)
-                                                    ->whereNot('id', $attributor_id)
+                                                $legislators = Legislator::where('status_id', 1)
                                                     ->whereNull('deleted_at')
+                                                    ->whereHas('allocation', function ($query) use ($legislatorId, $particularId, $scholarshipProgramId, $year) {
+                                                        $query->where('soft_or_commitment', 'Commitment')
+                                                            ->where('attributor_id', $legislatorId)
+                                                            ->where('attributor_particular_id', $particularId)
+                                                            ->where('scholarship_program_id', $scholarshipProgramId)
+                                                            ->where('year', $year);
+                                                    })
                                                     ->pluck('name', 'id')
-                                                    ->toArray() ?: ['no_legislator' => 'No legislators available'];
+                                                    ->toArray();
+
+                                                return $legislators ?: ['no_legislators' => 'No legislator available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                                             ->afterStateUpdated(function ($state, callable $set) {
@@ -679,7 +858,7 @@ class AttributionProjectProposalResource extends Resource
                                             ->reactive()
                                             ->live(),
 
-                                        Select::make('tvi_id')
+                                            Select::make('tvi_id')
                                             ->label('Institution')
                                             ->relationship('tvi', 'name')
                                             ->required()
@@ -698,7 +877,17 @@ class AttributionProjectProposalResource extends Resource
                                                     })
                                                     ->toArray() ?: ['no_tvi' => 'No institution available'];
                                             })
-                                            ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
+                                            ->disableOptionWhen(fn($value) => $value === 'no_tvi')
+                                            ->afterStateUpdated(function (callable $set, $state) {
+                                                if (!$state) {
+                                                    $set('qualification_title_id', null);
+                                                }
+
+                                                $set('qualification_title_id', null);
+
+                                            })
+                                            ->reactive()
+                                            ->live(),
 
                                         Select::make('qualification_title_id')
                                             ->label('Qualification Title')
@@ -1325,7 +1514,7 @@ class AttributionProjectProposalResource extends Resource
             $query->withoutGlobalScopes([SoftDeletingScope::class])
                 ->where('target_status_id', '=', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
-                    $subQuery->where('soc', 0); 
+                    $subQuery->where('soc', 0);
                 })
                 ->whereHas('allocation', function ($subQuery) {
                     $subQuery->whereNotNull('attributor_id')

@@ -9,6 +9,7 @@ use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
+use Auth;
 use Exception;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 
 class EditAttributionProjectProposal extends EditRecord
 {
-    
+
     protected static string $resource = AttributionProjectProposalResource::class;
 
     protected ?string $heading = 'Edit Attribution Project Proposal';
@@ -52,19 +53,19 @@ class EditAttributionProjectProposal extends EditRecord
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $record = $this->record;
-        $senderAllocation = $record->attributionAllocation;
-        $receiverAllocation = $record->allocation;
 
-        $data['attribution_sender'] = $senderAllocation->legislator_id ?? null;
-        $data['attribution_sender_particular'] = $senderAllocation->particular_id ?? null;
-        $data['attribution_scholarship_program'] = $senderAllocation->scholarship_program_id ?? null;
-        $data['allocation_year'] = $senderAllocation->year ?? null;
+        $data['attribution_sender'] = $record->allocation->attributor_id ?? null;
+        $data['attribution_sender_particular'] = $record->allocation->attributor_particular_id ?? null;
+        $data['attribution_scholarship_program'] = $record->allocation->scholarship_program_id ?? null;
+        $data['allocation_year'] = $record->allocation->year ?? null;
         $data['attribution_appropriation_type'] = $record['appropriation_type'];
-        $data['attribution_receiver'] = $receiverAllocation->legislator_id ?? null;
-        $data['attribution_receiver_particular'] = $receiverAllocation->particular_id ?? null;
+        $data['attribution_receiver'] = $record->allocation->legislator_id ?? null;
+        $data['attribution_receiver_particular'] = $record->allocation->particular_id ?? null;
+
         $data['per_capita_cost'] = $data['per_capita_cost'] ?? $record->total_amount / $record->number_of_slots ?? null;
 
         return $data;
+
     }
 
     protected function handleRecordUpdate(Model $record, array $data): Model
@@ -82,33 +83,42 @@ class EditAttributionProjectProposal extends EditRecord
                 }
             }
 
-            $senderAllocation = Allocation::where('legislator_id', $data['attribution_sender'])
-                ->where('particular_id', $data['attribution_sender_particular'])
-                ->where('scholarship_program_id', $data['attribution_scholarship_program'])
-                ->where('year', $data['allocation_year'])
-                ->first();
+            // $senderAllocation = Allocation::where('legislator_id', $data['attribution_sender'])
+            //     ->where('particular_id', $data['attribution_sender_particular'])
+            //     ->where('scholarship_program_id', $data['attribution_scholarship_program'])
+            //     ->where('year', $data['allocation_year'])
+            //     ->first();
 
-            if (!$senderAllocation) {
-                throw new Exception('Attribution Sender Allocation not found');
-            }
+            // if (!$senderAllocation) {
+            //     throw new Exception('Attribution Sender Allocation not found');
+            // }
 
-            $receiverAllocation = Allocation::where('legislator_id', $data['attribution_receiver'])
+            // $receiverAllocation = Allocation::where('legislator_id', $data['attribution_receiver'])
+            //     ->where('particular_id', $data['attribution_receiver_particular'])
+            //     ->where('scholarship_program_id', $data['attribution_scholarship_program'])
+            //     ->where('year', $data['allocation_year'])
+            //     ->first();
+
+            // if (!$receiverAllocation) {
+            //     $receiverAllocation = Allocation::create([
+            //         'soft_or_commitment' => 'Soft',
+            //         'legislator_id' => $data['attribution_receiver'],
+            //         'particular_id' => $data['attribution_receiver_particular'],
+            //         'scholarship_program_id' => $data['attribution_scholarship_program'],
+            //         'allocation' => 0,
+            //         'balance' => 0,
+            //         'year' => $data['allocation_year'],
+            //     ]);
+            // }
+
+            $allocation = Allocation::where('attributor_id', $data['attribution_sender'])
+                ->where('legislator_id', $data['attribution_receiver'])
+                ->where('attributor_particular_id', $data['attribution_sender_particular'])
                 ->where('particular_id', $data['attribution_receiver_particular'])
                 ->where('scholarship_program_id', $data['attribution_scholarship_program'])
+                ->where('soft_or_commitment', 'Commitment')
                 ->where('year', $data['allocation_year'])
                 ->first();
-
-            if (!$receiverAllocation) {
-                $receiverAllocation = Allocation::create([
-                    'soft_or_commitment' => 'Soft',
-                    'legislator_id' => $data['attribution_receiver'],
-                    'particular_id' => $data['attribution_receiver_particular'],
-                    'scholarship_program_id' => $data['attribution_scholarship_program'],
-                    'allocation' => 0,
-                    'balance' => 0,
-                    'year' => $data['allocation_year'],
-                ]);
-            }
 
             $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
             if (!$qualificationTitle) {
@@ -130,7 +140,7 @@ class EditAttributionProjectProposal extends EditRecord
                 $totalAmount += $totalCostOfToolkit;
             }
 
-            
+
             $total_training_cost_pcc = $qualificationTitle->training_cost_pcc * $numberOfSlots;
             $total_cost_of_toolkit_pcc = $totalCostOfToolkit;
             $total_training_support_fund = $qualificationTitle->training_support_fund * $numberOfSlots;
@@ -150,7 +160,7 @@ class EditAttributionProjectProposal extends EditRecord
                 throw new Exception('Institution not found');
             }
 
-            if ($senderAllocation->balance + $record->total_amount < $total_amount) {
+            if ($allocation->balance + $record->total_amount < $total_amount) {
                 throw new Exception('Insufficient funds in sender allocation');
             }
 
@@ -176,19 +186,13 @@ class EditAttributionProjectProposal extends EditRecord
                 throw new Exception('Skill Priority not found.');
             }
 
-            $senderAllocation->balance += $record->total_amount;
-            $senderAllocation->attribution_sent -= $record->total_amount;
-            $senderAllocation->save();
-
-            $receiverAllocation->attribution_received -= $record->total_amount;
-            $receiverAllocation->save();
+            $allocation->balance += $record->total_amount;
+            $allocation->save();
 
             $previousSkillPrio->increment('available_slots', $record->number_of_slots);
 
             $record->update([
-                'abscap_id' => $data['abscap_id'],
-                'allocation_id' => $receiverAllocation->id,
-                'attribution_allocation_id' => $senderAllocation->id,
+                'allocation_id' => $allocation->id,
                 'tvi_id' => $institution->id,
                 'tvi_name' => $institution->name,
                 'municipality_id' => $institution->municipality_id,
@@ -215,20 +219,14 @@ class EditAttributionProjectProposal extends EditRecord
                 'target_status_id' => 1,
             ]);
 
-            $senderAllocation->balance -= $total_amount;
-            $senderAllocation->attribution_sent += $total_amount;
-            $senderAllocation->save();
-
-            $receiverAllocation->attribution_received += $total_amount;
-            $receiverAllocation->save();
+            $allocation->balance -= $total_amount;
+            $allocation->save();
 
             $skillPriority->decrement('available_slots', $numberOfSlots);
 
             TargetHistory::create([
-                'abscap_id' => $data['abscap_id'],
                 'target_id' => $record->id,
-                'allocation_id' => $receiverAllocation->id,
-                'attribution_allocation_id' => $senderAllocation->id,
+                'allocation_id' => $allocation->id,
                 'tvi_id' => $data['tvi_id'],
                 'tvi_name' => $institution->name,
                 'municipality_id' => $institution->municipality_id,
@@ -254,6 +252,7 @@ class EditAttributionProjectProposal extends EditRecord
                 'total_amount' => $total_amount,
                 'appropriation_type' => $data['attribution_appropriation_type'],
                 'description' => 'Target Modified',
+                'user_id' => Auth::user()->id,
             ]);
 
 

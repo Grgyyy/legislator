@@ -1117,7 +1117,7 @@ class ProjectProposalTargetResource extends Resource
 
                             $qualificationTitleId = $record->qualification_title_id;
                             $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
-                           
+
                             $provinceId = $record->tvi->district->province_id;
 
                             $quali = QualificationTitle::find($qualificationTitleId);
@@ -1135,7 +1135,7 @@ class ProjectProposalTargetResource extends Resource
                                 $toolkit->available_number_of_toolkits += $slots;
                                 $toolkit->save();
                             }
-                           
+
                             $skillPriority = SkillPriority::where('province_id', $provinceId)
                                 ->where('training_program_id', $trainingProgramId)
                                 ->where('year', $allocation->year)
@@ -1158,7 +1158,7 @@ class ProjectProposalTargetResource extends Resource
 
                             $qualificationTitleId = $record->qualification_title_id;
                             $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
-                        
+
                             $provinceId = $record->tvi->district->province_id;
 
                             $quali = QualificationTitle::find($qualificationTitleId);
@@ -1176,7 +1176,7 @@ class ProjectProposalTargetResource extends Resource
                                 $toolkit->available_number_of_toolkits -= $slots;
                                 $toolkit->save();
                             }
-                        
+
                             $skillPriority = SkillPriority::where('province_id', $provinceId)
                                 ->where('training_program_id', $trainingProgramId)
                                 ->where('year', $allocation->year)
