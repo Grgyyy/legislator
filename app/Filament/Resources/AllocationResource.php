@@ -221,6 +221,10 @@ class AllocationResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No allocations available')
             ->columns([
+                TextColumn::make("id")
+                ->sortable()
+                ->searchable()
+                ->toggleable(),
                 TextColumn::make('soft_or_commitment')
                     ->label('Source of Fund')
                     ->searchable()
