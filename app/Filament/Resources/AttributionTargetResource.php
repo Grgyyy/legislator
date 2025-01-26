@@ -156,15 +156,13 @@ class AttributionTargetResource extends Resource
                                                 $legislatorId = $get('attribution_sender');
 
                                                 if ($legislatorId) {
-                                                    return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
-                                                        $query->where('legislator_particular.legislator_id', $legislatorId);
-                                                    })
-                                                        ->with('subParticular')
-                                                        ->get()
-                                                        ->pluck('subParticular.name', 'id')
+                                                    $allocation = Allocation::whereHas('particular')
+                                                        ->where('attributor_id', $legislatorId)
+                                                        ->get();
+
+                                                    return $allocation->pluck('attributorParticular.subParticular.name', 'attributorParticular.id')
                                                         ->toArray() ?: ['no_particular' => 'No particulars available'];
                                                 }
-
                                                 return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_particular')
@@ -332,7 +330,7 @@ class AttributionTargetResource extends Resource
                                                 $particularId = $get('attribution_sender_particular');
                                                 $scholarshipProgramId = $get('attribution_scholarship_program');
                                                 $year = $get('allocation_year');
-                                            
+
                                                 $legislators = Legislator::where('status_id', 1)
                                                     ->whereNull('deleted_at')
                                                     ->whereHas('allocation', function ($query) use ($legislatorId, $particularId, $scholarshipProgramId, $year) {
@@ -344,9 +342,9 @@ class AttributionTargetResource extends Resource
                                                     })
                                                     ->pluck('name', 'id')
                                                     ->toArray();
-                                            
+
                                                 return $legislators ?: ['no_legislators' => 'No legislator available'];
-                                            })                                            
+                                            })
                                             ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                                             ->afterStateUpdated(function ($state, callable $set) {
                                                 if (!$state) {
@@ -447,7 +445,7 @@ class AttributionTargetResource extends Resource
                                                 }
 
                                                 $set('qualification_title_id', null);
-                                                
+
                                             })
                                             ->reactive()
                                             ->live(),
@@ -580,11 +578,11 @@ class AttributionTargetResource extends Resource
                                                     return;
                                                 }
 
-                                                $allocations = Allocation::where('legislator_id', $state)
+                                                $allocations = Allocation::where('attributor_id', $state)
                                                     ->with('particular', 'scholarship_program')
                                                     ->get();
 
-                                                $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
+                                                $particularOptions = $allocations->pluck('attributorParticular.name', 'attributorParticular.id')->toArray();
                                                 $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
 
@@ -635,15 +633,13 @@ class AttributionTargetResource extends Resource
                                                 $legislatorId = $get('attribution_sender');
 
                                                 if ($legislatorId) {
-                                                    return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
-                                                        $query->where('legislator_particular.legislator_id', $legislatorId);
-                                                    })
-                                                        ->with('subParticular')
-                                                        ->get()
-                                                        ->pluck('subParticular.name', 'id')
+                                                    $allocation = Allocation::whereHas('particular')
+                                                        ->where('attributor_id', $legislatorId)
+                                                        ->get();
+
+                                                    return $allocation->pluck('attributorParticular.subParticular.name', 'attributorParticular.id')
                                                         ->toArray() ?: ['no_particular' => 'No particulars available'];
                                                 }
-
                                                 return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_particular')
@@ -657,9 +653,9 @@ class AttributionTargetResource extends Resource
                                                 }
 
                                                 $legislator_id = $get('legislator_id');
-                                                $allocations = Allocation::where('legislator_id', $legislator_id)
-                                                    ->where('particular_id', $state)
-                                                    ->with('particular', 'scholarship_program')
+                                                $allocations = Allocation::where('attributor_id', $legislator_id)
+                                                    ->where('attributor_particular_id', $state)
+                                                    ->with('attributorParticular', 'scholarship_program')
                                                     ->get();
 
                                                 $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
@@ -691,12 +687,17 @@ class AttributionTargetResource extends Resource
                                             ->preload()
                                             ->native(false)
                                             ->options(function ($get) {
+                                                // Fetching the legislator and particular IDs from the form inputs
                                                 $legislatorId = $get('attribution_sender');
                                                 $particularId = $get('attribution_sender_particular');
 
-                                                return $legislatorId
-                                                    ? self::getScholarshipProgramsOptions($legislatorId, $particularId)
-                                                    : ['no_scholarship_program' => 'No scholarship programs available. Select a particular first.'];
+                                                // Query the ScholarshipProgram model based on the provided legislator and particular IDs
+                                                return ScholarshipProgram::whereHas('allocation', function ($query) use ($legislatorId, $particularId) {
+                                                    $query->where('attributor_id', $legislatorId)
+                                                        ->where('attributor_particular_id', $particularId);
+                                                })
+                                                    ->pluck('name', 'id') // Retrieve the 'name' as value and 'id' as key
+                                                    ->toArray() ?: ['no_scholarship_program' => 'No scholarship program available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
@@ -803,7 +804,7 @@ class AttributionTargetResource extends Resource
                                                 $particularId = $get('attribution_sender_particular');
                                                 $scholarshipProgramId = $get('attribution_scholarship_program');
                                                 $year = $get('allocation_year');
-                                            
+
                                                 $legislators = Legislator::where('status_id', 1)
                                                     ->whereNull('deleted_at')
                                                     ->whereHas('allocation', function ($query) use ($legislatorId, $particularId, $scholarshipProgramId, $year) {
@@ -815,9 +816,9 @@ class AttributionTargetResource extends Resource
                                                     })
                                                     ->pluck('name', 'id')
                                                     ->toArray();
-                                            
+
                                                 return $legislators ?: ['no_legislators' => 'No legislator available'];
-                                            })                                            
+                                            })
                                             ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                                             ->afterStateUpdated(function ($state, callable $set) {
                                                 if (!$state) {
@@ -914,7 +915,7 @@ class AttributionTargetResource extends Resource
                                                 }
 
                                                 $set('qualification_title_id', null);
-                                                
+
                                             })
                                             ->reactive()
                                             ->live(),
@@ -1032,7 +1033,7 @@ class AttributionTargetResource extends Resource
                         $fundSource = $particular->subParticular ? $particular->subParticular->fundSource->name : '-';
 
                         return $fundSource;
-    
+
                     }),
 
                 TextColumn::make('allocation.soft_or_commitment')
@@ -1672,7 +1673,7 @@ class AttributionTargetResource extends Resource
                     $subQuery->whereNotNull('attributor_id')
                         ->where('soft_or_commitment', 'Commitment');
                 });
-                
+
             if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
                 $query->where('region_id', (int) $routeParameter);
             }
@@ -1707,31 +1708,50 @@ class AttributionTargetResource extends Resource
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
         return $formatter->formatCurrency($amount, 'PHP');
     }
-    protected static function getParticularOptions($legislatorId)
+    private static function getParticularOptions($legislatorId)
     {
-        return Particular::whereHas('allocation', function ($query) use ($legislatorId) {
-            $query->where('legislator_id', $legislatorId);
-        })
-            ->with('subParticular')
-            ->get()
-            ->mapWithKeys(function ($particular) {
+        if (!$legislatorId) {
+            return;
+        }
 
-                if ($particular->district->name === 'Not Applicable') {
-                    if ($particular->subParticular->name === 'Partylist') {
-                        return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
-                    } else if ($particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
-                        return [$particular->id => $particular->subParticular->name];
-                    } else {
-                        return [$particular->id => $particular->subParticular->name];
-                    }
+        $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
+
+        if (!$legislator) {
+            return;
+        }
+
+        return $legislator->particular->mapWithKeys(function ($particular) {
+            $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+            $formattedName = '';
+
+            if (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                $formattedName = $subParticular;
+            } elseif ($subParticular === 'Party-list') {
+                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                $formattedName = "{$subParticular} - {$partylistName}";
+            } elseif ($subParticular === 'District') {
+                $districtName = $particular->district->name ?? 'Unknown District';
+                $municipalityName = $particular->district->underMunicipality->name ?? 'Unknown Municipality';
+                $provinceName = $particular->district->province->name ?? 'Unknown Province';
+
+                if ($municipalityName) {
+                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
                 } else {
-                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
+                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}";
                 }
+            } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                $districtName = $particular->district->name ?? 'Unknown District';
+                $provinceName = $particular->district->province->name ?? 'Unknown Province';
+                $regionName = $particular->district->province->region->name ?? 'Unknown Region';
+                $formattedName = "{$subParticular} - {$regionName}";
+            } else {
+                $regionName = $particular->district->province->region->name ?? 'Unknown Region';
+                $formattedName = "{$subParticular} - {$regionName}";
+            }
 
-            })
-            ->toArray() ?: ['no_particular' => 'No particular available'];
+            return [$particular->id => $formattedName];
+        })->toArray() ?: ['no_particular' => 'No particulars available'];
     }
-
 
     public static function canViewAny(): bool
     {
