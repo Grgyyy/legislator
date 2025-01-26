@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use Filament\Resources\Pages\CreateRecord;
 use App\Filament\Resources\DistrictResource;
 use App\Helpers\Helper;
-use Filament\Actions\Action;
 
 class CreateDistrict extends CreateRecord
 {
@@ -17,6 +16,11 @@ class CreateDistrict extends CreateRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -29,11 +33,6 @@ class CreateDistrict extends CreateRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
-    }
-
-    protected function getCreatedNotificationTitle(): ?string
-    {
-        return null;
     }
 
     protected function handleRecordCreation(array $data): District

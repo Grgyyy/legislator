@@ -11,6 +11,11 @@ class ShowMunicipalities extends ListRecords
 {
     protected static string $resource = MunicipalityResource::class;
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected function getFormActions(): array
     {
         return [
@@ -22,31 +27,26 @@ class ShowMunicipalities extends ListRecords
                 ->label('Exit'),
         ];
     }
-
-    protected function getCreatedNotificationTitle(): ?string
-    {
-        return null;
-    }
     
-    public function getBreadcrumbs(): array
-    {
-        $municipalityId = $this->getMunicipalityId();
-        $municipality = Municipality::with('district.province.region')->findOrFail($municipalityId);
+    // public function getBreadcrumbs(): array
+    // {
+    //     $municipalityId = $this->getMunicipalityId();
+    //     $municipality = Municipality::with('district.province.region')->findOrFail($municipalityId);
 
-        $district = $municipality->district->first();
-        $province = $district->province;
-        $region = $province->region;
+    //     $district = $municipality->district->first();
+    //     $province = $district->province;
+    //     $region = $province->region;
 
-        $breadcrumbs = [
-            route('filament.admin.resources.regions.index', ['record' => $region->id]) => $region ? $region->name : 'Regions',
-            route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $province ? $province->name : 'Provinces',
-            route('filament.admin.resources.districts.showDistricts', ['record' => $district->id]) => $district ? $district->name : 'Districts',
-            'Municipalities' => 'Municipalities',
-            'List' => 'List',
-        ];
+    //     $breadcrumbs = [
+    //         route('filament.admin.resources.regions.index', ['record' => $region->id]) => $region ? $region->name : 'Regions',
+    //         route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $province ? $province->name : 'Provinces',
+    //         route('filament.admin.resources.districts.showDistricts', ['record' => $district->id]) => $district ? $district->name : 'Districts',
+    //         'Municipalities' => 'Municipalities',
+    //         'List' => 'List',
+    //     ];
 
-        return $breadcrumbs;
-    }
+    //     return $breadcrumbs;
+    // }
 
     protected function getHeaderActions(): array
     {

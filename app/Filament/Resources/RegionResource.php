@@ -62,6 +62,7 @@ class RegionResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No regions available')
             ->columns([
                 TextColumn::make("code")

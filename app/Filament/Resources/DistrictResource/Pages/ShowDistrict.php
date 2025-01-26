@@ -12,19 +12,9 @@ class ShowDistrict extends ListRecords
 {
     protected static string $resource = DistrictResource::class;
 
-    public function getBreadcrumbs(): array
+    protected function getCreatedNotificationTitle(): ?string
     {
-
-        $provinceId = $this->getProvinceId();
-
-        $province = Province::find($provinceId);
-    
-        return [
-            route('filament.admin.resources.regions.index', ['record' => $province->region->id]) => $province->region ? $province->region->name : 'Regions',
-            route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $province ? $province->name : 'Provinces',
-            'Districts',
-            'List'
-        ];
+        return null;
     }
 
     protected function getFormActions(): array
@@ -39,9 +29,18 @@ class ShowDistrict extends ListRecords
         ];
     }
 
-    protected function getCreatedNotificationTitle(): ?string
+    public function getBreadcrumbs(): array
     {
-        return null;
+        $provinceId = $this->getProvinceId();
+
+        $province = Province::find($provinceId);
+    
+        return [
+            route('filament.admin.resources.regions.index', ['record' => $province->region->id]) => $province->region ? $province->region->name : 'Regions',
+            route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $province ? $province->name : 'Provinces',
+            'Districts',
+            'List'
+        ];
     }
 
     protected function getHeaderActions(): array
