@@ -270,7 +270,7 @@ class CreateTarget extends CreateRecord
     private function createTarget(array $targetData, Allocation $allocation, Tvi $institution, QualificationTitle $qualificationTitle, array $totals): Target
     {
         return Target::create(array_merge($targetData, [
-            'abscap_id' => $targetData['abscap_id'] ??  null,
+            // 'abscap_id' => $targetData['abscap_id'] ??  null,
             'allocation_id' => $allocation->id,
             'district_id' => $institution->district_id,
             'municipality_id' => $institution->municipality_id,
@@ -289,7 +289,7 @@ class CreateTarget extends CreateRecord
     private function logTargetHistory(array $targetData, Target $target, Allocation $allocation, array $totals): void
     {
         TargetHistory::create([
-            'abscap_id' => $target->abscap_id,
+            // 'abscap_id' => $target->abscap_id,
             'target_id' => $target->id,
             'allocation_id' => $allocation->id,
             'district_id' => $target->district_id,
