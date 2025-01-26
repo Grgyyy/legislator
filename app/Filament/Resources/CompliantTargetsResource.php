@@ -52,18 +52,10 @@ class CompliantTargetsResource extends Resource
         $record = Target::find($urlParams);
 
         return $form->schema([
-            TextInput::make('abscap_id')
-                ->label('Absorbative Capacity ID')
-                ->placeholder('Enter an Absorbative capacity ID')
-                ->default($record ? $record->abscap_id : null)
-                ->disabled()
-                ->dehydrated()
-                ->numeric(),
-
             Select::make('sender_legislator_id')
                 ->label('Attribution Sender')
                 ->searchable()
-                ->default($record->attributionAllocation->legislator_id ?? null) // Simplified with null coalescing
+                ->default($record->allocation->attributor_id ?? null) // Simplified with null coalescing
                 ->options(function () {
                     $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
                         ->pluck('id');
@@ -89,7 +81,7 @@ class CompliantTargetsResource extends Resource
             Select::make('sender_particular_id')
                 ->label('Attributor Particular')
                 ->searchable()
-                ->default($record->attributionAllocation->particular_id ?? null)
+                ->default($record->allocation->attributor_particular_id ?? null)
                 ->options(function ($get) {
                     $legislatorId = $get('sender_legislator_id');
 
@@ -663,33 +655,49 @@ class CompliantTargetsResource extends Resource
         return $query;
     }
 
-    protected static function getParticularOptions($legislatorId)
+    private static function getParticularOptions($legislatorId)
     {
-        $particulars = Particular::whereHas('allocation', function ($query) use ($legislatorId) {
-            $query->where('legislator_id', $legislatorId);
-        })
-            ->with('subParticular')
-            ->get()
-            ->mapWithKeys(function ($particular) {
+        if (!$legislatorId) {
+            return;
+        }
 
-                if ($particular->district->name === 'Not Applicable') {
-                    if ($particular->subParticular->name === 'Partylist') {
-                        return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
-                    } else {
-                        return [$particular->id => $particular->subParticular->name];
-                    }
+        $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
+
+        if (!$legislator) {
+            return;
+        }
+
+        return $legislator->particular->mapWithKeys(function ($particular) {
+            $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+            $formattedName = '';
+
+            if (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                $formattedName = $subParticular;
+            } elseif ($subParticular === 'Party-list') {
+                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                $formattedName = "{$subParticular} - {$partylistName}";
+            } elseif ($subParticular === 'District') {
+                $districtName = $particular->district->name ?? 'Unknown District';
+                $municipalityName = $particular->district->underMunicipality->name ?? 'Unknown Municipality';
+                $provinceName = $particular->district->province->name ?? 'Unknown Province';
+
+                if ($municipalityName) {
+                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
                 } else {
-                    if ($particular->district->province->region->name === "NCR") {
-                        return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
-                    } else {
-                        return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->name];
-                    }
+                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}";
                 }
+            } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                $districtName = $particular->district->name ?? 'Unknown District';
+                $provinceName = $particular->district->province->name ?? 'Unknown Province';
+                $regionName = $particular->district->province->region->name ?? 'Unknown Region';
+                $formattedName = "{$subParticular} - {$regionName}";
+            } else {
+                $regionName = $particular->district->province->region->name ?? 'Unknown Region';
+                $formattedName = "{$subParticular} - {$regionName}";
+            }
 
-            })
-            ->toArray();
-
-        return empty($particulars) ? ['' => 'No Particular Available'] : $particulars;
+            return [$particular->id => $formattedName];
+        })->toArray() ?: ['no_particular' => 'No particulars available'];
     }
 
 

@@ -62,7 +62,7 @@ class NonCompliantTargetResource extends Resource
                     Select::make('sender_legislator_id')
                         ->label('Attribution Sender')
                         ->searchable()
-                        ->default($record->attributionAllocation->legislator_id ?? null)
+                        ->default($record->allocation->attributor_id ?? null)
                         ->options(function () {
                             $houseSpeakerIds = SubParticular::whereIn('name', ['House Speaker', 'House Speaker (LAKAS)'])
                                 ->pluck('id');
@@ -88,7 +88,7 @@ class NonCompliantTargetResource extends Resource
                     Select::make('sender_particular_id')
                         ->label('Particular')
                         ->searchable()
-                        ->default($record->attributionAllocation->particular_id ?? null)
+                        ->default($record->allocation->attributor_particular_id ?? null)
                         ->options(function ($get) {
                             $legislatorId = $get('sender_legislator_id');
 
@@ -254,7 +254,7 @@ class NonCompliantTargetResource extends Resource
                                                 }
 
                                                 $set('qualification_title_id', null);
-                                                
+
                                             })
                                             ->reactive()
                                             ->live(),
