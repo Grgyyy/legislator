@@ -1332,9 +1332,9 @@ class AttributionProjectProposalResource extends Resource
             $query->withoutGlobalScopes([SoftDeletingScope::class])
                 ->where('target_status_id', '=', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
-                    $subQuery->where('soc', 0); 
-                })
-                ->whereNot('attribution_allocation_id', null);
+                    $subQuery->where('soc', 0);
+                });
+            // ->whereNot('attributor_particular_id', null);
 
             if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
                 $query->where('region_id', (int) $routeParameter);
@@ -1393,27 +1393,27 @@ class AttributionProjectProposalResource extends Resource
 
         $qualificationTitles =
             QualificationTitle::whereIn('training_program_id', $skillPriorities)
-            ->whereIn('training_program_id', $institutionPrograms)
-            ->where('scholarship_program_id', $scholarshipProgramId)
-            ->where('status_id', 1)
-            ->where('soc', 0)
-            ->whereNull('deleted_at')
-            ->with('trainingProgram')
-            ->get()
-            ->mapWithKeys(function ($qualification) {
-                $title = $qualification->trainingProgram->title;
+                ->whereIn('training_program_id', $institutionPrograms)
+                ->where('scholarship_program_id', $scholarshipProgramId)
+                ->where('status_id', 1)
+                ->where('soc', 0)
+                ->whereNull('deleted_at')
+                ->with('trainingProgram')
+                ->get()
+                ->mapWithKeys(function ($qualification) {
+                    $title = $qualification->trainingProgram->title;
 
-                // Check for 'NC' pattern and capitalize it
-                if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
-                    $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                        return 'NC ' . strtoupper($matches[1]);
-                    }, $title);
-                }
+                    // Check for 'NC' pattern and capitalize it
+                    if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                        $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                            return 'NC ' . strtoupper($matches[1]);
+                        }, $title);
+                    }
 
-                return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+                    return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
 
-            })
-            ->toArray();
+                })
+                ->toArray();
 
         return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }

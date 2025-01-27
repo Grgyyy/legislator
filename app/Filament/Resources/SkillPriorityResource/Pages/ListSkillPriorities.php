@@ -6,6 +6,7 @@ use Exception;
 use Filament\Actions\Action;
 use App\Imports\TargetImport;
 use Filament\Actions\CreateAction;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SkillsPriorityExport;
 use App\Imports\SkillsPriorityImport;
@@ -43,7 +44,8 @@ class ListSkillPriorities extends ListRecords
                     } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Skill Priority data: ' . $e->getMessage());
                     }
-                }),
+                })
+                ->visible(fn() => !Auth::user()->hasRole('TESDO')),
 
 
             Action::make('SkillsPriorityExport')
@@ -60,6 +62,7 @@ class ListSkillPriorities extends ListRecords
                         NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
                     };
                 }),
+
 
 
         ];

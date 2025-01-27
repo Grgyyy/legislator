@@ -115,10 +115,10 @@ class TargetReportExport implements FromCollection, WithStyles
         if ($fundSourceName === "CO Regular" || $fundSourceName === "RO Regular") {
             return "$subParticularName - $regionName";
         } elseif ($subParticularName === 'District') {
-            if ($allocation->particular->district->province->region->name === 'NCR') {
-                return $districtName . ', ' . $underMunicipalityName;
+            if ($regionName === 'NCR') {
+                return "$districtName, $underMunicipalityName";
             } else {
-                return $allocation->particular->district->name . ', ' . $allocation->particular->district->province->name;
+                return "$districtName, $provinceName";
             }
         } elseif ($subParticularName === "Party-list") {
             return $partyListName;
@@ -144,6 +144,17 @@ class TargetReportExport implements FromCollection, WithStyles
             ->target()
             ->get() : collect();
     }
+
+    // private function targetData($id)
+    // {
+    //     $allocation = Allocation::find($id);
+
+    //     return $allocation ? $allocation
+    //         ->target()
+    //         ->with('targetStatus')
+    //         ->orderByRaw("FIELD(status, 'Pending', 'Compliant', 'Non-Compliant')")
+    //         ->get() : collect();
+    // }
 
 
     private function getAllocationYear($id)
@@ -363,11 +374,6 @@ class TargetReportExport implements FromCollection, WithStyles
 
         return $styles;
     }
-
-
-
-
-
 
     private function applyHeaderStyle(array $rows)
     {
