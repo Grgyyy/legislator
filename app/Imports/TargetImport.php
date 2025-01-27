@@ -278,6 +278,7 @@ class TargetImport implements ToModel, WithHeadingRow
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('year', $appropriationYear)
+            ->where('soft_or_commitment', 'Soft')
             ->whereNull('deleted_at')
             ->first();
 

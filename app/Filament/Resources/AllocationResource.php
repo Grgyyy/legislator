@@ -683,7 +683,7 @@ class AllocationResource extends Resource
                 $formattedName = "{$subParticular} - {$partylistName}";
             } elseif ($subParticular === 'District') {
                 $districtName = $particular->district->name ?? 'Unknown District';
-                $municipalityName = $particular->district->underMunicipality->name ?? 'Unknown Municipality';
+                $municipalityName = $particular->district->underMunicipality->name ?? '';
                 $provinceName = $particular->district->province->name ?? 'Unknown Province';
 
                 if ($municipalityName) {
