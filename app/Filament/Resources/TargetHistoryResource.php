@@ -241,14 +241,14 @@ class TargetHistoryResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    Action::make('restore')
-                        ->label('Restore')
-                        ->icon('heroicon-o-arrow-uturn-left')
-                        ->action(fn (TargetHistory $record) => self::restoreTarget($record)) // Call the separate function
-                        ->requiresConfirmation()
-                        ->modalHeading('Restore Target')
-                        ->modalSubheading('Are you sure you want to restore this target?')
-                        ->modalButton('Restore'),
+                    // Action::make('restore')
+                    //     ->label('Restore')
+                    //     ->icon('heroicon-o-arrow-uturn-left')
+                    //     ->action(fn (TargetHistory $record) => self::restoreTarget($record)) // Call the separate function
+                    //     ->requiresConfirmation()
+                    //     ->modalHeading('Restore Target')
+                    //     ->modalSubheading('Are you sure you want to restore this target?')
+                    //     ->modalButton('Restore'),
                 ]),
             ])
             ->bulkActions([
