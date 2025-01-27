@@ -21,7 +21,7 @@ use Maatwebsite\Excel\Validators\ValidationException;
 class ListAttributionTargets extends ListRecords
 {
     protected static string $resource = AttributionTargetResource::class;
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;

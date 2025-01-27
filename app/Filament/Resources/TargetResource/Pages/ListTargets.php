@@ -22,7 +22,7 @@ class ListTargets extends ListRecords
     protected static string $resource = TargetResource::class;
 
     protected ?string $heading = 'Pending Targets';
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
