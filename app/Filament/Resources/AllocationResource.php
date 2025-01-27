@@ -221,10 +221,6 @@ class AllocationResource extends Resource
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No allocations available')
             ->columns([
-                TextColumn::make("id")
-                ->sortable()
-                ->searchable()
-                ->toggleable(),
                 TextColumn::make('soft_or_commitment')
                     ->label('Source of Fund')
                     ->searchable()
@@ -586,6 +582,45 @@ class AllocationResource extends Resource
                                         ->heading('Soft of Commitment'),
                                     Column::make('attributor.name')
                                         ->heading('Attributor'),
+                                    Column::make('attributorParticular.name')
+                                        ->heading('Attributor')
+                                        ->getStateUsing(function ($record) {
+                                            $particular = $record->attributorParticular;
+
+                                            if (!$particular) {
+                                                return ['no_particular' => 'No particulars available'];
+                                            }
+
+                                            $district = $particular->district;
+                                            $municipality = $district ? $district->underMunicipality : null;
+                                            $districtName = $district ? $district->name : 'Unknown District';
+                                            $municipalityName = $municipality ? $municipality->name : '';
+                                            $provinceName = $district ? $district->province->name : 'Unknown Province';
+                                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
+
+                                            $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+
+                                            $formattedName = '';
+
+                                            if ($subParticular === 'Party-list') {
+                                                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                                                $formattedName = "{$subParticular} - {$partylistName}";
+                                            } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                                                $formattedName = "{$subParticular}";
+                                            } elseif ($subParticular === 'District') {
+                                                if ($municipalityName) {
+                                                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                                } else {
+                                                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
+                                                }
+                                            } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                                                $formattedName = "{$subParticular} - {$regionName}";
+                                            } else {
+                                                $formattedName = "{$subParticular} - {$regionName}";
+                                            }
+
+                                            return $formattedName;
+                                        }),
                                     Column::make('legislator.name')
                                         ->heading('Legislator'),
                                     Column::make('particular.name')
@@ -600,7 +635,7 @@ class AllocationResource extends Resource
                                             $district = $particular->district;
                                             $municipality = $district ? $district->underMunicipality : null;
                                             $districtName = $district ? $district->name : 'Unknown District';
-                                            $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                                            $municipalityName = $municipality ? $municipality->name : '';
                                             $provinceName = $district ? $district->province->name : 'Unknown Province';
                                             $regionName = $district ? $district->province->region->name : 'Unknown Region';
 

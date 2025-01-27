@@ -1159,7 +1159,7 @@ class AttributionTargetResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($state, $record) {
-                        $qualificationCode = $record->qualification_title_code ?? '';
+                        $qualificationCode = $record->qualification_title_soc_code ?? '';
                         $qualificationName = $record->qualification_title_name ?? '';
 
                         if ($qualificationName) {
@@ -1314,8 +1314,8 @@ class AttributionTargetResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
-                                    Column::make('abscap_id')
-                                        ->heading('Absorptive Capacity'),
+                                    // Column::make('abscap_id')
+                                    //     ->heading('Absorptive Capacity'),
                                     Column::make('fund_source')
                                         ->heading('Fund Source')
                                         ->getStateUsing(function ($record) {
@@ -1337,24 +1337,24 @@ class AttributionTargetResource extends Resource
 
                                             return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
-                                    Column::make('attributionAllocation.legislator.name')
+                                    Column::make('allocation.attributor.name')
                                         ->heading('Attribution Sender'),
                                     Column::make('attributionAllocation.legislator.particular.subParticular')
                                         ->heading('Attributor Particular')
                                         ->getStateUsing(function ($record) {
-                                            $legislator = $record->attributionAllocation->legislator;
+                                            // $legislator = $record->allocation->attributor;
 
-                                            if (!$legislator) {
-                                                return 'No legislator available';
-                                            }
+                                            // if (!$legislator) {
+                                            //     return 'No legislator available';
+                                            // }
 
-                                            $particulars = $legislator->particular;
+                                            // $particulars = $legislator->particular;
 
-                                            if ($particulars->isEmpty()) {
-                                                return 'No particular available';
-                                            }
+                                            // if ($particulars->isEmpty()) {
+                                            //     return 'No particular available';
+                                            // }
 
-                                            $particular = $particulars->first();
+                                            $particular = $record->allocation->attributorParticular;
                                             $district = $particular->district;
                                             $municipality = $district ? $district->underMunicipality : null;
 
@@ -1373,33 +1373,23 @@ class AttributionTargetResource extends Resource
                                         }),
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
-                                    Column::make('attributionAllocation.soft_or_commitment')
+                                    Column::make('allocation.soft_or_commitment')
                                         ->heading('Soft or Commitment'),
                                     Column::make('appropriation_type')
                                         ->heading('Appropriation Type'),
-                                    Column::make('attributionAllocation.year')
+                                    Column::make('allocation.year')
                                         ->heading('Appropriation Year'),
-                                    Column::make('allocation.legislator.particular.subParticular')
+                                    Column::make('allocation.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
-                                            $legislator = $record->allocation->legislator;
-
-                                            if (!$legislator) {
-                                                return 'No legislator available';
-                                            }
-
-                                            $particulars = $legislator->particular;
-
-                                            if ($particulars->isEmpty()) {
-                                                return 'No particular available';
-                                            }
-
-                                            $particular = $particulars->first();
+                                            $particular = $record->allocation->particular;
                                             $district = $particular->district;
                                             $municipality = $district ? $district->underMunicipality : null;
 
                                             $districtName = $district ? $district->name : 'Unknown District';
-                                            $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                                            $municipalityName = $municipality ? $municipality->name : '';
+                                            $provinceName = $district ? $district->province->name : 'Unknown Province';
+                                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
 
                                             if ($districtName === 'Not Applicable') {
                                                 if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
@@ -1408,7 +1398,12 @@ class AttributionTargetResource extends Resource
                                                     return $particular->subParticular->name ?? 'Unknown SubParticular';
                                                 }
                                             } else {
-                                                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                                                if ($municipality) {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
+                                                }
+                                                else {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$provinceName}, {$regionName}";
+                                                }
                                             }
                                         }),
 
@@ -1428,7 +1423,7 @@ class AttributionTargetResource extends Resource
                                         ->heading('Institution Class(A)'),
                                     Column::make('qualification_title_code')
                                         ->heading('Qualification Code'),
-                                    Column::make('qualification_title_soc_code')
+                                    Column::make('qualification_title_code')
                                         ->heading('Schedule of Cost Code'),
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
@@ -1449,80 +1444,168 @@ class AttributionTargetResource extends Resource
                                     Column::make('training_cost_per_slot')
                                         ->heading('Training Cost')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('cost_of_toolkit_per_slot')
                                         ->heading('Cost of Toolkit')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('training_support_fund_per_slot')
                                         ->heading('Training Support Fund')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_support_fund'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('assessment_fee_per_slot')
                                         ->heading('Assessment Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_assessment_fee'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('entrepreneurship_fee_per_slot')
                                         ->heading('Entrepreneurship Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_entrepreneurship_fee'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('new_normal_assistance_per_slot')
                                         ->heading('New Normal Assistance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_new_normal_assistance'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('accident_insurance_per_slot')
                                         ->heading('Accident Insurance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_accident_insurance'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('book_allowance_per_slot')
                                         ->heading('Book Allowance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_book_allowance'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('uniform_allowance_per_slot')
                                         ->heading('Uniform Allowance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_uniform_allowance'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('misc_fee_per_slot')
                                         ->heading('Miscellaneous Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_misc_fee'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_amount_per_slot')
                                         ->heading('PCC')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_amount'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_training_cost_pcc')
                                         ->heading('Total Training Cost')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_cost_of_toolkit_pcc')
                                         ->heading('Total Cost of Toolkit')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_training_support_fund')
                                         ->heading('Total Training Support Fund')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_assessment_fee')
                                         ->heading('Total Assessment Fee')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_entrepreneurship_fee')
                                         ->heading('Total Entrepreneurship Fee')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_new_normal_assisstance')
                                         ->heading('Total New Normal Assistance')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_accident_insurance')
                                         ->heading('Total Accident Insurance')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_book_allowance')
                                         ->heading('Total Book Allowance')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_uniform_allowance')
                                         ->heading('Total Uniform Allowance')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_misc_fee')
                                         ->heading('Total Miscellaneous Fee')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_amount')
                                         ->heading('Total PCC')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
