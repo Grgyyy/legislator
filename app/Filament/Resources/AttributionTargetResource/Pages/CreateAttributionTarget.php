@@ -107,9 +107,10 @@ class CreateAttributionTarget extends CreateRecord
                 ->where('attributor_particular_id', $targetData['attribution_sender_particular'])
                 ->where('particular_id', $targetData['attribution_receiver_particular'])
                 ->where('scholarship_program_id', $targetData['attribution_scholarship_program'])
+                ->where('soft_or_commitment', 'Commitment')
                 ->where('year', $targetData['allocation_year'])
                 ->first();
-            
+
             if (!$allocation) {
                 throw new Exception('Allocation not found');
             }

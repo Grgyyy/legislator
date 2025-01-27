@@ -156,15 +156,13 @@ class AttributionTargetResource extends Resource
                                                 $legislatorId = $get('attribution_sender');
 
                                                 if ($legislatorId) {
-                                                    return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
-                                                        $query->where('legislator_particular.legislator_id', $legislatorId);
-                                                    })
-                                                        ->with('subParticular')
-                                                        ->get()
-                                                        ->pluck('subParticular.name', 'id')
+                                                    $allocation = Allocation::whereHas('particular')
+                                                        ->where('attributor_id', $legislatorId)
+                                                        ->get();
+
+                                                    return $allocation->pluck('attributorParticular.subParticular.name', 'attributorParticular.id')
                                                         ->toArray() ?: ['no_particular' => 'No particulars available'];
                                                 }
-
                                                 return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_particular')
@@ -332,7 +330,7 @@ class AttributionTargetResource extends Resource
                                                 $particularId = $get('attribution_sender_particular');
                                                 $scholarshipProgramId = $get('attribution_scholarship_program');
                                                 $year = $get('allocation_year');
-                                            
+
                                                 $legislators = Legislator::where('status_id', 1)
                                                     ->whereNull('deleted_at')
                                                     ->whereHas('allocation', function ($query) use ($legislatorId, $particularId, $scholarshipProgramId, $year) {
@@ -344,9 +342,9 @@ class AttributionTargetResource extends Resource
                                                     })
                                                     ->pluck('name', 'id')
                                                     ->toArray();
-                                            
+
                                                 return $legislators ?: ['no_legislators' => 'No legislator available'];
-                                            })                                            
+                                            })
                                             ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                                             ->afterStateUpdated(function ($state, callable $set) {
                                                 if (!$state) {
@@ -447,7 +445,7 @@ class AttributionTargetResource extends Resource
                                                 }
 
                                                 $set('qualification_title_id', null);
-                                                
+
                                             })
                                             ->reactive()
                                             ->live(),
@@ -580,11 +578,11 @@ class AttributionTargetResource extends Resource
                                                     return;
                                                 }
 
-                                                $allocations = Allocation::where('legislator_id', $state)
+                                                $allocations = Allocation::where('attributor_id', $state)
                                                     ->with('particular', 'scholarship_program')
                                                     ->get();
 
-                                                $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
+                                                $particularOptions = $allocations->pluck('attributorParticular.name', 'attributorParticular.id')->toArray();
                                                 $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
 
@@ -635,15 +633,13 @@ class AttributionTargetResource extends Resource
                                                 $legislatorId = $get('attribution_sender');
 
                                                 if ($legislatorId) {
-                                                    return Particular::whereHas('legislator', function ($query) use ($legislatorId) {
-                                                        $query->where('legislator_particular.legislator_id', $legislatorId);
-                                                    })
-                                                        ->with('subParticular')
-                                                        ->get()
-                                                        ->pluck('subParticular.name', 'id')
+                                                    $allocation = Allocation::whereHas('particular')
+                                                        ->where('attributor_id', $legislatorId)
+                                                        ->get();
+
+                                                    return $allocation->pluck('attributorParticular.subParticular.name', 'attributorParticular.id')
                                                         ->toArray() ?: ['no_particular' => 'No particulars available'];
                                                 }
-
                                                 return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_particular')
@@ -657,9 +653,9 @@ class AttributionTargetResource extends Resource
                                                 }
 
                                                 $legislator_id = $get('legislator_id');
-                                                $allocations = Allocation::where('legislator_id', $legislator_id)
-                                                    ->where('particular_id', $state)
-                                                    ->with('particular', 'scholarship_program')
+                                                $allocations = Allocation::where('attributor_id', $legislator_id)
+                                                    ->where('attributor_particular_id', $state)
+                                                    ->with('attributorParticular', 'scholarship_program')
                                                     ->get();
 
                                                 $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
@@ -691,12 +687,17 @@ class AttributionTargetResource extends Resource
                                             ->preload()
                                             ->native(false)
                                             ->options(function ($get) {
+                                                // Fetching the legislator and particular IDs from the form inputs
                                                 $legislatorId = $get('attribution_sender');
                                                 $particularId = $get('attribution_sender_particular');
 
-                                                return $legislatorId
-                                                    ? self::getScholarshipProgramsOptions($legislatorId, $particularId)
-                                                    : ['no_scholarship_program' => 'No scholarship programs available. Select a particular first.'];
+                                                // Query the ScholarshipProgram model based on the provided legislator and particular IDs
+                                                return ScholarshipProgram::whereHas('allocation', function ($query) use ($legislatorId, $particularId) {
+                                                    $query->where('attributor_id', $legislatorId)
+                                                        ->where('attributor_particular_id', $particularId);
+                                                })
+                                                    ->pluck('name', 'id') // Retrieve the 'name' as value and 'id' as key
+                                                    ->toArray() ?: ['no_scholarship_program' => 'No scholarship program available'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                                             ->afterStateUpdated(function ($state, callable $set, callable $get) {
@@ -803,7 +804,7 @@ class AttributionTargetResource extends Resource
                                                 $particularId = $get('attribution_sender_particular');
                                                 $scholarshipProgramId = $get('attribution_scholarship_program');
                                                 $year = $get('allocation_year');
-                                            
+
                                                 $legislators = Legislator::where('status_id', 1)
                                                     ->whereNull('deleted_at')
                                                     ->whereHas('allocation', function ($query) use ($legislatorId, $particularId, $scholarshipProgramId, $year) {
@@ -815,9 +816,9 @@ class AttributionTargetResource extends Resource
                                                     })
                                                     ->pluck('name', 'id')
                                                     ->toArray();
-                                            
+
                                                 return $legislators ?: ['no_legislators' => 'No legislator available'];
-                                            })                                            
+                                            })
                                             ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                                             ->afterStateUpdated(function ($state, callable $set) {
                                                 if (!$state) {
@@ -914,7 +915,7 @@ class AttributionTargetResource extends Resource
                                                 }
 
                                                 $set('qualification_title_id', null);
-                                                
+
                                             })
                                             ->reactive()
                                             ->live(),
@@ -1032,7 +1033,7 @@ class AttributionTargetResource extends Resource
                         $fundSource = $particular->subParticular ? $particular->subParticular->fundSource->name : '-';
 
                         return $fundSource;
-    
+
                     }),
 
                 TextColumn::make('allocation.soft_or_commitment')
@@ -1158,7 +1159,7 @@ class AttributionTargetResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($state, $record) {
-                        $qualificationCode = $record->qualification_title_code ?? '';
+                        $qualificationCode = $record->qualification_title_soc_code ?? '';
                         $qualificationName = $record->qualification_title_name ?? '';
 
                         if ($qualificationName) {
@@ -1313,8 +1314,8 @@ class AttributionTargetResource extends Resource
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
-                                    Column::make('abscap_id')
-                                        ->heading('Absorptive Capacity'),
+                                    // Column::make('abscap_id')
+                                    //     ->heading('Absorptive Capacity'),
                                     Column::make('fund_source')
                                         ->heading('Fund Source')
                                         ->getStateUsing(function ($record) {
@@ -1336,24 +1337,24 @@ class AttributionTargetResource extends Resource
 
                                             return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
-                                    Column::make('attributionAllocation.legislator.name')
+                                    Column::make('allocation.attributor.name')
                                         ->heading('Attribution Sender'),
                                     Column::make('attributionAllocation.legislator.particular.subParticular')
                                         ->heading('Attributor Particular')
                                         ->getStateUsing(function ($record) {
-                                            $legislator = $record->attributionAllocation->legislator;
+                                            // $legislator = $record->allocation->attributor;
 
-                                            if (!$legislator) {
-                                                return 'No legislator available';
-                                            }
+                                            // if (!$legislator) {
+                                            //     return 'No legislator available';
+                                            // }
 
-                                            $particulars = $legislator->particular;
+                                            // $particulars = $legislator->particular;
 
-                                            if ($particulars->isEmpty()) {
-                                                return 'No particular available';
-                                            }
+                                            // if ($particulars->isEmpty()) {
+                                            //     return 'No particular available';
+                                            // }
 
-                                            $particular = $particulars->first();
+                                            $particular = $record->allocation->attributorParticular;
                                             $district = $particular->district;
                                             $municipality = $district ? $district->underMunicipality : null;
 
@@ -1372,33 +1373,23 @@ class AttributionTargetResource extends Resource
                                         }),
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
-                                    Column::make('attributionAllocation.soft_or_commitment')
+                                    Column::make('allocation.soft_or_commitment')
                                         ->heading('Soft or Commitment'),
                                     Column::make('appropriation_type')
                                         ->heading('Appropriation Type'),
-                                    Column::make('attributionAllocation.year')
+                                    Column::make('allocation.year')
                                         ->heading('Appropriation Year'),
-                                    Column::make('allocation.legislator.particular.subParticular')
+                                    Column::make('allocation.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
-                                            $legislator = $record->allocation->legislator;
-
-                                            if (!$legislator) {
-                                                return 'No legislator available';
-                                            }
-
-                                            $particulars = $legislator->particular;
-
-                                            if ($particulars->isEmpty()) {
-                                                return 'No particular available';
-                                            }
-
-                                            $particular = $particulars->first();
+                                            $particular = $record->allocation->particular;
                                             $district = $particular->district;
                                             $municipality = $district ? $district->underMunicipality : null;
 
                                             $districtName = $district ? $district->name : 'Unknown District';
-                                            $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                                            $municipalityName = $municipality ? $municipality->name : '';
+                                            $provinceName = $district ? $district->province->name : 'Unknown Province';
+                                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
 
                                             if ($districtName === 'Not Applicable') {
                                                 if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
@@ -1407,7 +1398,12 @@ class AttributionTargetResource extends Resource
                                                     return $particular->subParticular->name ?? 'Unknown SubParticular';
                                                 }
                                             } else {
-                                                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                                                if ($municipality) {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
+                                                }
+                                                else {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$provinceName}, {$regionName}";
+                                                }
                                             }
                                         }),
 
@@ -1427,7 +1423,7 @@ class AttributionTargetResource extends Resource
                                         ->heading('Institution Class(A)'),
                                     Column::make('qualification_title_code')
                                         ->heading('Qualification Code'),
-                                    Column::make('qualification_title_soc_code')
+                                    Column::make('qualification_title_code')
                                         ->heading('Schedule of Cost Code'),
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
@@ -1448,80 +1444,168 @@ class AttributionTargetResource extends Resource
                                     Column::make('training_cost_per_slot')
                                         ->heading('Training Cost')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('cost_of_toolkit_per_slot')
                                         ->heading('Cost of Toolkit')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('training_support_fund_per_slot')
                                         ->heading('Training Support Fund')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_support_fund'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('assessment_fee_per_slot')
                                         ->heading('Assessment Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_assessment_fee'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('entrepreneurship_fee_per_slot')
                                         ->heading('Entrepreneurship Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_entrepreneurship_fee'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('new_normal_assistance_per_slot')
                                         ->heading('New Normal Assistance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_new_normal_assistance'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('accident_insurance_per_slot')
                                         ->heading('Accident Insurance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_accident_insurance'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('book_allowance_per_slot')
                                         ->heading('Book Allowance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_book_allowance'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('uniform_allowance_per_slot')
                                         ->heading('Uniform Allowance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_uniform_allowance'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('misc_fee_per_slot')
                                         ->heading('Miscellaneous Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_misc_fee'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_amount_per_slot')
                                         ->heading('PCC')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_amount'))
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_training_cost_pcc')
                                         ->heading('Total Training Cost')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_cost_of_toolkit_pcc')
                                         ->heading('Total Cost of Toolkit')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_training_support_fund')
                                         ->heading('Total Training Support Fund')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_assessment_fee')
                                         ->heading('Total Assessment Fee')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_entrepreneurship_fee')
                                         ->heading('Total Entrepreneurship Fee')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_new_normal_assisstance')
                                         ->heading('Total New Normal Assistance')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_accident_insurance')
                                         ->heading('Total Accident Insurance')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_book_allowance')
                                         ->heading('Total Book Allowance')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_uniform_allowance')
                                         ->heading('Total Uniform Allowance')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_misc_fee')
                                         ->heading('Total Miscellaneous Fee')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('total_amount')
                                         ->heading('Total PCC')
-                                        ->formatStateUsing(fn($state) => self::formatCurrency($state)),
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
@@ -1672,7 +1756,7 @@ class AttributionTargetResource extends Resource
                     $subQuery->whereNotNull('attributor_id')
                         ->where('soft_or_commitment', 'Commitment');
                 });
-                
+
             if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
                 $query->where('region_id', (int) $routeParameter);
             }
@@ -1707,31 +1791,50 @@ class AttributionTargetResource extends Resource
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
         return $formatter->formatCurrency($amount, 'PHP');
     }
-    protected static function getParticularOptions($legislatorId)
+    private static function getParticularOptions($legislatorId)
     {
-        return Particular::whereHas('allocation', function ($query) use ($legislatorId) {
-            $query->where('legislator_id', $legislatorId);
-        })
-            ->with('subParticular')
-            ->get()
-            ->mapWithKeys(function ($particular) {
+        if (!$legislatorId) {
+            return;
+        }
 
-                if ($particular->district->name === 'Not Applicable') {
-                    if ($particular->subParticular->name === 'Partylist') {
-                        return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
-                    } else if ($particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
-                        return [$particular->id => $particular->subParticular->name];
-                    } else {
-                        return [$particular->id => $particular->subParticular->name];
-                    }
+        $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
+
+        if (!$legislator) {
+            return;
+        }
+
+        return $legislator->particular->mapWithKeys(function ($particular) {
+            $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+            $formattedName = '';
+
+            if (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                $formattedName = $subParticular;
+            } elseif ($subParticular === 'Party-list') {
+                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                $formattedName = "{$subParticular} - {$partylistName}";
+            } elseif ($subParticular === 'District') {
+                $districtName = $particular->district->name ?? 'Unknown District';
+                $municipalityName = $particular->district->underMunicipality->name ?? 'Unknown Municipality';
+                $provinceName = $particular->district->province->name ?? 'Unknown Province';
+
+                if ($municipalityName) {
+                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
                 } else {
-                    return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
+                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}";
                 }
+            } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                $districtName = $particular->district->name ?? 'Unknown District';
+                $provinceName = $particular->district->province->name ?? 'Unknown Province';
+                $regionName = $particular->district->province->region->name ?? 'Unknown Region';
+                $formattedName = "{$subParticular} - {$regionName}";
+            } else {
+                $regionName = $particular->district->province->region->name ?? 'Unknown Region';
+                $formattedName = "{$subParticular} - {$regionName}";
+            }
 
-            })
-            ->toArray() ?: ['no_particular' => 'No particular available'];
+            return [$particular->id => $formattedName];
+        })->toArray() ?: ['no_particular' => 'No particulars available'];
     }
-
 
     public static function canViewAny(): bool
     {

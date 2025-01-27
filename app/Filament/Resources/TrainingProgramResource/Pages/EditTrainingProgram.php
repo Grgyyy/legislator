@@ -38,14 +38,14 @@ class EditTrainingProgram extends EditRecord
         $record = $this->getRecord();
         return $record ? $record->title : 'Qualification Titles';
     }
-    
+
     public function getBreadcrumbs(): array
     {
 
         $record = $this->getRecord();
 
         return [
-            route('filament.admin.resources.training-programs.index') => $record ? $record->title : 'Qualification Titles',
+            route('filament.admin.resources.qualification-titles.index') => $record ? $record->title : 'Qualification Titles',
             'Edit'
         ];
     }
@@ -84,10 +84,10 @@ class EditTrainingProgram extends EditRecord
             ->first();
 
         if ($trainingProgram) {
-            $message = $trainingProgram->deleted_at 
-                ? 'This training program with the provided details has been deleted. Restoration is required before it can be reused.' 
+            $message = $trainingProgram->deleted_at
+                ? 'This training program with the provided details has been deleted. Restoration is required before it can be reused.'
                 : 'A training program with the provided details already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

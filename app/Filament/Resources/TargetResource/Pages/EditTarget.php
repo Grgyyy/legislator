@@ -40,7 +40,7 @@ class EditTarget extends EditRecord
     {
         return null;
     }
-    
+
     protected ?string $heading = 'Edit Target';
 
     public function getBreadcrumbs(): array
@@ -171,6 +171,7 @@ class EditTarget extends EditRecord
             'legislator_id' => $data['legislator_id'],
             'particular_id' => $data['particular_id'],
             'scholarship_program_id' => $data['scholarship_program_id'],
+            'soft_or_commitment' => 'Soft',
             'year' => $data['allocation_year']
         ])->first();
 

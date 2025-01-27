@@ -113,9 +113,10 @@ class EditAttributionTarget extends EditRecord
                 ->where('attributor_particular_id', $data['attribution_sender_particular'])
                 ->where('particular_id', $data['attribution_receiver_particular'])
                 ->where('scholarship_program_id', $data['attribution_scholarship_program'])
+                ->where('soft_or_commitment', 'Commitment')
                 ->where('year', $data['allocation_year'])
                 ->first();
-            
+
             if (!$allocation) {
                 throw new Exception('Allocation not found');
             }

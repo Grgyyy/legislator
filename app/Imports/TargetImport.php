@@ -68,7 +68,7 @@ class TargetImport implements ToModel, WithHeadingRow
                 $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
                 $targetData = [
-                    'abscap_id' => $row['abscap_id'],
+                    // 'abscap_id' => $row['abscap_id'],
                     'allocation_id' => $allocation->id,
                     'district_id' => $tvi->district_id,
                     'municipality_id' => $tvi->municipality_id,
@@ -166,9 +166,9 @@ class TargetImport implements ToModel, WithHeadingRow
     {
         $legislator = Legislator::where('name', $legislatorName)
             ->whereNull('deleted_at')
-            ->has('allocation') 
+            ->has('allocation')
             ->first();
-    
+
         if (!$legislator) {
             throw new \Exception("No active legislator with an allocation found for name: {$legislatorName}");
         }
@@ -181,7 +181,7 @@ class TargetImport implements ToModel, WithHeadingRow
         $region = Region::where('name', $regionName)
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$region) {
             throw new \Exception("Region with name '{$regionName}' not found.");
         }
@@ -195,7 +195,7 @@ class TargetImport implements ToModel, WithHeadingRow
             ->where('region_id', $regionId)
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$province) {
             throw new \Exception("Province with name '{$provinceName}' not found.");
         }
@@ -209,7 +209,7 @@ class TargetImport implements ToModel, WithHeadingRow
             ->where('province_id', $provinceId)
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$district) {
             throw new \Exception("District with name '{$districtName}' not found.");
         }
@@ -278,16 +278,17 @@ class TargetImport implements ToModel, WithHeadingRow
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('year', $appropriationYear)
+            ->where('soft_or_commitment', 'Soft')
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$allocation) {
             throw new \Exception("No allocation found matching the provided legislator, particular, scholarship program, and year.");
         }
-    
+
         return $allocation;
     }
-    
+
     protected function getAbddSector(string $abddSectorName)
     {
         $abddSector = Abdd::where('name', $abddSectorName)
@@ -351,13 +352,13 @@ class TargetImport implements ToModel, WithHeadingRow
             })
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$qualificationTitle) {
             throw new \Exception("Qualification Title with name '{$qualificationTitleName}' not found.");
         }
-    
+
         return $qualificationTitle;
-    }    
+    }
 
     private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, int $year): array
     {
@@ -395,7 +396,7 @@ class TargetImport implements ToModel, WithHeadingRow
         ];
     }
 
-    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority
     {
         $skillPriority = SkillPriority::where([
             'training_program_id' => $trainingProgram,
@@ -417,7 +418,7 @@ class TargetImport implements ToModel, WithHeadingRow
     private function logTargetHistory(Target $target, Allocation $allocation, array $totals): void
     {
         TargetHistory::create([
-            'abscap_id' => $target['abscap_id'],
+            // 'abscap_id' => $target['abscap_id'],
             'target_id' => $target->id,
             'allocation_id' => $allocation->id,
             'district_id' => $target->district_id,

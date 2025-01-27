@@ -38,20 +38,20 @@ class ListTargets extends ListRecords
                 ->icon('heroicon-m-plus')
                 ->label('New'),
 
-            Action::make('PendingTargetExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new PendingTargetExport, 'pending_target_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    }
-                }),
+            // Action::make('PendingTargetExport')
+            //     ->label('Export')
+            //     ->icon('heroicon-o-document-arrow-down')
+            //     ->action(function (array $data) {
+            //         try {
+            //             return Excel::download(new PendingTargetExport, 'pending_target_export.xlsx');
+            //         } catch (ValidationException $e) {
+            //             NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+            //         } catch (Exception $e) {
+            //             NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+            //         } catch (Exception $e) {
+            //             NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+            //         }
+            //     }),
 
 
 

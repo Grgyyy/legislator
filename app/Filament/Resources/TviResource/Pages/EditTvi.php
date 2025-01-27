@@ -28,14 +28,14 @@ class EditTvi extends EditRecord
                 ->label('Exit'),
         ];
     }
-    
+
     public function getBreadcrumbs(): array
     {
 
         $record = $this->getRecord();
 
         return [
-            route('filament.admin.resources.training-programs.index') => $record ? $record->name : 'Institution',
+            route('filament.admin.resources.tvis.index') => $record ? $record->name : 'Institution',
             'Edit'
         ];
     }
@@ -73,10 +73,10 @@ class EditTvi extends EditRecord
             ->first();
 
         if ($tvi) {
-            $message = $tvi->deleted_at 
-                ? 'This institution with the provided details has been deleted. Restoration is required before it can be reused.' 
+            $message = $tvi->deleted_at
+                ? 'This institution with the provided details has been deleted. Restoration is required before it can be reused.'
                 : 'An institution with the provided details already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
@@ -86,10 +86,10 @@ class EditTvi extends EditRecord
             ->first();
 
         if ($schoolId) {
-            $message = $schoolId->deleted_at 
-                ? 'An institution with this school ID already exists and has been deleted.' 
+            $message = $schoolId->deleted_at
+                ? 'An institution with this school ID already exists and has been deleted.'
                 : 'An institution with this school ID already exists.';
-            
+
             NotificationHandler::handleValidationException('Invalid School ID', $message);
         }
     }
