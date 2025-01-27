@@ -76,9 +76,7 @@ class TargetReport extends ListRecords
         $subParticularName = $allocation->particular->subParticular->name;
 
 
-        if (in_array($subParticularName, ['Senator', 'Party-list', 'House Speaker', 'House Speaker (LAKAS)'])) {
-            return $subParticularName;
-        } elseif (in_array($subParticularName, ['RO Regular', 'CO Regular'])) {
+        if (in_array($subParticularName, ['RO Regular', 'CO Regular'])) {
             return $subParticularName . ' ' . $allocation->particular->region->name;
         } elseif ($subParticularName === 'District') {
             if ($allocation->particular->district->province->region->name === 'NCR') {
