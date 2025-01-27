@@ -11,6 +11,7 @@ use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use Filament\Pages\Actions\ButtonAction;
 
 class ListRegions extends ListRecords
 {
@@ -41,6 +42,10 @@ class ListRegions extends ListRecords
                         NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the regions: ' . $e->getMessage());
                     }
                 }),
+            // ButtonAction::make('import')
+            //     ->label('Import Regions')
+            //     ->icon('heroicon-o-upload')
+            //     ->action(fn() => $this->dispatchBrowserEvent('open-region-import-modal')),
         ];
     }
 }

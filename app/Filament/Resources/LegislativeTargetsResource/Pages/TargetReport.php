@@ -75,9 +75,8 @@ class TargetReport extends ListRecords
 
         $subParticularName = $allocation->particular->subParticular->name;
 
-        if (in_array($subParticularName, ['Senator', 'Party-list', 'House Speaker', 'House Speaker (LAKAS)'])) {
-            return $subParticularName;
-        } elseif (in_array($subParticularName, ['RO Regular', 'CO Regular'])) {
+
+        if (in_array($subParticularName, ['RO Regular', 'CO Regular'])) {
             return $subParticularName . ' ' . $allocation->particular->region->name;
         } elseif ($subParticularName === 'District') {
             if ($allocation->particular->district->province->region->name === 'NCR') {
@@ -163,8 +162,8 @@ class TargetReport extends ListRecords
             ->join('qualification_titles', 'qualification_titles.id', '=', 'targets.qualification_title_id')
             ->join('training_programs', 'training_programs.id', '=', 'qualification_titles.training_program_id')
             ->where(function ($query) use ($allocationId) {
-                $query->where('allocation_id', $allocationId)
-                    ->orWhere('attribution_allocation_id', $allocationId);
+                $query->where('allocation_id', $allocationId);
+                // ->orWhere('attribution_allocation_id', $allocationId);
             })
             ->select(
                 'regions.name as region',

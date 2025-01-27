@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Models\Target;
 use App\Models\Allocation;
 use Illuminate\Support\Facades\DB;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -12,6 +13,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
 
 class TargetReportExport implements FromCollection, WithStyles
 {
@@ -52,7 +54,7 @@ class TargetReportExport implements FromCollection, WithStyles
             ['Sum of Total' => 'Total:', $this->formatCurrency($SumTotal)],
             ['Balance' => 'Balance:', $this->formatCurrency($balance)],
             [''],
-            ['Region', 'Province', 'Municipality', 'Name of Institution', 'Qualification Title', 'Number of Slots', 'Training Cost PCC', 'Cost of Toolkit PCC', 'Total Training Cost', 'Total Cost of Toolkit', 'Total Amount'],
+            ['Region', 'Province', 'Municipality', 'Name of Institution', 'Qualification Title', 'Number of Slots', 'Training Cost PCC', 'Cost of Toolkit PCC', 'Total Training Cost', 'Total Cost of Toolkit', 'Total Amount', 'Status'],
             [''],
         ];
 
@@ -77,6 +79,8 @@ class TargetReportExport implements FromCollection, WithStyles
                 ),
                 'Total Cost of Toolkits' => $this->formatCurrency($target->total_cost_of_toolkit_pcc ?? 0),
                 'Total Amount' => $this->formatCurrency($target->total_amount),
+
+                'Status' => $target->targetStatus->desc,
             ];
         }
 
@@ -110,27 +114,26 @@ class TargetReportExport implements FromCollection, WithStyles
 
         if ($fundSourceName === "CO Regular" || $fundSourceName === "RO Regular") {
             return "$subParticularName - $regionName";
-        }
-
-        if ($fundSourceName === "CO Legislator Funds" && $subParticularName === "District") {
-            return $regionName === "NCR"
-                ? "$districtName - $underMunicipalityName"
-                : $provinceName;
-        }
-
-        if ($subParticularName === "Party-list") {
+        } elseif ($subParticularName === 'District') {
+            if ($regionName === 'NCR') {
+                return "$districtName, $underMunicipalityName";
+            } else {
+                return "$districtName, $provinceName";
+            }
+        } elseif ($subParticularName === "Party-list") {
             return $partyListName;
-        }
-
-        if (in_array($subParticularName, ["Senator", "House Speaker", "House Speaker (LAKAS)"], true)) {
+        } elseif (in_array($subParticularName, ["Senator", "House Speaker", "House Speaker (LAKAS)"], true)) {
             return $subParticularName;
         }
         return "N/A";
     }
 
+    // private function targetData($id)
+    // {
+    //     $allocation = Allocation::with(['target', 'attributor', 'particular'])->find($id);
 
-
-
+    //     return $allocation ? $allocation : collect();
+    // }
 
 
     private function targetData($id)
@@ -141,6 +144,18 @@ class TargetReportExport implements FromCollection, WithStyles
             ->target()
             ->get() : collect();
     }
+
+    // private function targetData($id)
+    // {
+    //     $allocation = Allocation::find($id);
+
+    //     return $allocation ? $allocation
+    //         ->target()
+    //         ->with('targetStatus')
+    //         ->orderByRaw("FIELD(status, 'Pending', 'Compliant', 'Non-Compliant')")
+    //         ->get() : collect();
+    // }
+
 
     private function getAllocationYear($id)
     {
@@ -256,7 +271,8 @@ class TargetReportExport implements FromCollection, WithStyles
             'Cost of Toolkit PCC',
             'Total Training Cost',
             'Total Cost of Toolkit',
-            'Total Amount'
+            'Total Amount',
+            'Status',
         ];
 
         $columnCount = count($headerRow);
@@ -308,7 +324,11 @@ class TargetReportExport implements FromCollection, WithStyles
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
-            ]
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['argb' => 'D3D3D3'],
+            ],
         ];
 
         foreach (range(1, $columnCount) as $colIndex) {
@@ -316,9 +336,44 @@ class TargetReportExport implements FromCollection, WithStyles
             $sheet->getCell("{$columnLetter}14")->getStyle()->applyFromArray($mergedRowStyle);
         }
 
+        $rangeBorderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => '000000'],
+                ],
+            ],
+        ];
+        $sheet->getStyle('A4:B12')->applyFromArray($rangeBorderStyle);
+
+        $mergedRangeBorderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => '000000'],
+                ],
+            ],
+        ];
+        $sheet->getStyle('A14:L15')->applyFromArray($mergedRangeBorderStyle);
+
+
+        $dynamicBorderStyle = [
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => '000000'],
+                ],
+            ],
+        ];
+
+        $row = 16;
+        while ($sheet->getCell("A{$row}")->getValue() !== null || $sheet->getCell("B{$row}")->getValue() !== null || $sheet->getCell("C{$row}")->getValue() !== null || $sheet->getCell("D{$row}")->getValue() !== null || $sheet->getCell("E{$row}")->getValue() !== null || $sheet->getCell("F{$row}")->getValue() !== null || $sheet->getCell("G{$row}")->getValue() !== null || $sheet->getCell("H{$row}")->getValue() !== null || $sheet->getCell("I{$row}")->getValue() !== null || $sheet->getCell("J{$row}")->getValue() !== null || $sheet->getCell("K{$row}")->getValue() || $sheet->getCell("L{$row}")->getValue() !== null) {
+            $sheet->getStyle("A{$row}:L{$row}")->applyFromArray($dynamicBorderStyle);
+            $row++;
+        }
+
         return $styles;
     }
-
 
     private function applyHeaderStyle(array $rows)
     {

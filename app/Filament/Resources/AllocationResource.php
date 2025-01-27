@@ -68,8 +68,7 @@ class AllocationResource extends Resource
 
                         if ($soft_or_commitment === 'Commitment') {
                             return true;
-                        }
-                        else {
+                        } else {
                             return false;
                         }
                     })
@@ -86,7 +85,7 @@ class AllocationResource extends Resource
                         if (!$state) {
                             $set('attributor_particular_id', null);
                         }
-                        
+
                         $particulars = self::getParticularOptions($state);
 
                         $set('particularOptions', $particulars);
@@ -213,20 +212,6 @@ class AllocationResource extends Resource
                     ->validationMessages([
                         'min' => 'The allocation year must be at least ' . date('Y') . '.',
                     ]),
-
-                // TextInput::make('balance')
-                //     ->label('Balance')
-                //     ->required()
-                //     ->markAsRequired(false)
-                //     ->autocomplete(false)
-                //     ->hidden()
-                //     ->numeric()
-                //     ->default(0)
-                //     ->prefix('₱')
-                //     ->minValue(0)
-                //     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                //     ->reactive()
-                //     ->live(),
             ]);
     }
 
@@ -259,12 +244,11 @@ class AllocationResource extends Resource
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $particularName = $record->attributorParticular->subParticular->name ?? "-";
-                        $regionName = $record->attributorParticular->district->province->region->name ??"-";
+                        $regionName = $record->attributorParticular->district->province->region->name ?? "-";
 
                         if ($particularName === 'RO Regular' || $particularName === 'CO Regular') {
                             return $particularName . ' - ' . $regionName;
-                        }
-                        else {
+                        } else {
                             return $particularName;
                         }
                     }),
@@ -369,7 +353,7 @@ class AllocationResource extends Resource
                     ->getStateUsing(function ($record) {
                         $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
                         $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
-                
+
                         return number_format($fundsExpended, 2);
                     }),
 
@@ -527,7 +511,7 @@ class AllocationResource extends Resource
                                     <div style='font-weight: bold;'>Source of Fund:</div>
                                     <div>{$record->soft_or_commitment}</div>
                                 </div>
-                                
+
                             ");
                         })
                         ->modalHeading('Add Allocation')
@@ -565,7 +549,7 @@ class AllocationResource extends Resource
                         })
                         ->hidden(function (Allocation $record): bool {
                             $currentYear = Carbon::now()->year;
-                            
+
                             return $record->year < $currentYear;
                         })
                 ])
@@ -660,7 +644,7 @@ class AllocationResource extends Resource
                                         ->heading('Funds Expended')
                                         ->getStateUsing(function ($record) {
                                             $fundsExpended = $record->target->sum('total_amount');
-                                    
+
                                             return '₱ ' . number_format($fundsExpended, 2, '.', ',');
                                         }),
                                     Column::make('year')

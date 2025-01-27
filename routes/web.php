@@ -3,6 +3,7 @@
 use App\Models\Target;
 use App\Models\Allocation;
 use App\Exports\TargetReportExport;
+use App\Http\Controllers\RegionController;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Route;
 
@@ -29,3 +30,6 @@ Route::get('/export-targets/{allocationId}', function ($allocationId) {
 
     return Excel::download(new TargetReportExport($allocationId), 'pending_target_export.xlsx');
 })->name('export.targets');
+
+
+Route::post('/regions/import', [RegionController::class, 'import'])->name('regions.import');

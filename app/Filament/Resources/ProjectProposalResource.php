@@ -75,7 +75,7 @@ class ProjectProposalResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Qualification Title'),
-                
+
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Program')
                     ->relationship('scholarshipPrograms', 'name')
@@ -122,7 +122,7 @@ class ProjectProposalResource extends Resource
                             ->toArray() ?: ['no_priority' => 'No priority sectors available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_priority'),
-                ]);
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -143,7 +143,7 @@ class ProjectProposalResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->limit(50)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 50 ? $state : null),
+                    ->tooltip(fn($state): ?string => strlen($state) > 50 ? $state : null),
 
                 TextColumn::make('scholarshipPrograms.name')
                     ->label('Scholarship Program')
@@ -173,7 +173,7 @@ class ProjectProposalResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->limit(35)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 35 ? $state : null),
+                    ->tooltip(fn($state): ?string => strlen($state) > 35 ? $state : null),
 
                 TextColumn::make('priority.name')
                     ->label('Priority Sector')
@@ -181,12 +181,12 @@ class ProjectProposalResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->limit(35)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 35 ? $state : null),
+                    ->tooltip(fn($state): ?string => strlen($state) > 35 ? $state : null),
             ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
-                
+
                 Filter::make('filter')
                     ->form(function () {
                         return [
@@ -201,7 +201,7 @@ class ProjectProposalResource extends Resource
                                 })
                                 ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                                 ->reactive(),
-                                
+
                             Fieldset::make('Sectors')
                                 ->schema([
                                     Select::make('tvet')
@@ -276,12 +276,12 @@ class ProjectProposalResource extends Resource
                         ->action(function ($record, $data) {
                             // $record->soc = 1;
                             // $record->save();
-
+                
                             // NotificationHandler::sendSuccessNotification(
                             //     'Conversion Successful',
                             //     'The Project Proposal Program has been successfully converted into a Qualification Title and is now ready for costing in the Schedule of Cost.'
                             // );
-
+                
                             return redirect()->route('filament.admin.resources.project-proposals.convert', ['record' => $record]);
                         }),
                     DeleteAction::make()
@@ -338,9 +338,10 @@ class ProjectProposalResource extends Resource
                                         ->heading('Priority Sector'),
                                     Column::make('formatted_scholarship_programs')
                                         ->heading('Scholarship Programs')
-                                        ->getStateUsing(fn($record) => $record->scholarshipPrograms
-                                            ->pluck('name')
-                                            ->implode(', ')
+                                        ->getStateUsing(
+                                            fn($record) => $record->scholarshipPrograms
+                                                ->pluck('name')
+                                                ->implode(', ')
                                         ),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Project Proposal Programs')

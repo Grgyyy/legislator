@@ -15,9 +15,6 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
-    /**
-     * Column definitions for export with their headings.
-     */
     private $columns = [
         'abscap_id' => 'Absorptive Capacity',
         'fund_source' => 'Fund Source',
@@ -66,10 +63,6 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         'total_amount' => 'Total PCC',
         'status' => 'Status',
     ];
-
-    /**
-     * Define the query for retrieving pending targets.
-     */
     public function query()
     {
         return Target::query()
@@ -110,10 +103,6 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             ->where('target_status_id', 1)
             ->whereNull('attribution_allocation_id');
     }
-
-    /**
-     * Define the headings for the Excel export.
-     */
     public function headings(): array
     {
         $customHeadings = [
@@ -125,10 +114,6 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
 
         return array_merge($customHeadings, [array_values($this->columns)]);
     }
-
-    /**
-     * Map the data for each row in the export.
-     */
     public function map($record): array
     {
         return [
@@ -180,59 +165,34 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             $record->targetStatus->desc ?? '-',
         ];
     }
-
-    /**
-     * Retrieve the fund source from the record.
-     */
     private function getFundSource($record)
     {
         return $record->allocation->particular->subParticular->fundSource->name ?? '-';
     }
-
-    /**
-     * Retrieve the particular from the record.
-     */
     private function getParticular($record)
     {
         $particulars = $record->allocation->legislator->particular;
         return $particulars->isNotEmpty() ? ($particulars->first()->subParticular->name ?? '-') : '-';
     }
-
-    /**
-     * Format currency values with PHP locale settings.
-     */
     private function formatCurrency($amount)
     {
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
         return $formatter->formatCurrency($amount, 'PHP');
     }
-
-    /**
-     * Calculate the cost per slot based on the given property.
-     */
     private function calculateCostPerSlot($record, $costProperty)
     {
         return $record->number_of_slots > 0 ? $record->{$costProperty} / $record->number_of_slots : 0;
     }
-
-    /**
-     * Apply custom styles to the spreadsheet.
-     */
-
-
-
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
-        // Merge cells for the header
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");
         $sheet->mergeCells("A3:{$lastColumn}3");
         $sheet->mergeCells("A4:{$lastColumn}4");
 
-        // Define reusable style configurations
         $headerStyle = [
             'font' => ['bold' => true, 'size' => 14],
             'alignment' => [
@@ -256,12 +216,10 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             ],
         ];
 
-        // Apply styles
         $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
         $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($subHeaderStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
-        // Dynamically adjust the width of each column
         foreach (range(1, $columnCount) as $colIndex) {
             $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
             $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
