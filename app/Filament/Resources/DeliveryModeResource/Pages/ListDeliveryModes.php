@@ -16,6 +16,11 @@ use App\Filament\Resources\DeliveryModeResource;
 class ListDeliveryModes extends ListRecords
 {
     protected static string $resource = DeliveryModeResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected function getHeaderActions(): array
     {

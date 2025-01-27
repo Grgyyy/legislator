@@ -26,6 +26,11 @@ class ListPartylists extends ListRecords
         ];
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getHeaderActions(): array
     {
         return [

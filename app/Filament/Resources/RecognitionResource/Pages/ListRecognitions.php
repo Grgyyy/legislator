@@ -15,6 +15,11 @@ use Exception;
 class ListRecognitions extends ListRecords
 {
     protected static string $resource = RecognitionResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected function getHeaderActions(): array
     {

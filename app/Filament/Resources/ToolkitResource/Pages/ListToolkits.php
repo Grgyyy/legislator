@@ -16,6 +16,11 @@ use Filament\Forms\Components\FileUpload;
 class ListToolkits extends ListRecords
 {
     protected static string $resource = ToolkitResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected function getHeaderActions(): array
     {

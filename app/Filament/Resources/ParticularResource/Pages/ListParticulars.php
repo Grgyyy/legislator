@@ -18,6 +18,11 @@ use Exception;
 class ListParticulars extends ListRecords
 {
     protected static string $resource = ParticularResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected function getHeaderActions(): array
     {

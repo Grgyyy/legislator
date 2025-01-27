@@ -19,6 +19,11 @@ class ListInstitutionPrograms extends ListRecords
     protected static string $resource = InstitutionProgramResource::class;
 
     protected static ?string $title = "Institution's Qualification Titles";
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     public function getBreadcrumbs(): array
     {

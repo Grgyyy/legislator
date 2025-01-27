@@ -22,6 +22,11 @@ class ListAllocations extends ListRecords
 
     protected static string $resource = AllocationResource::class;
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getHeaderActions(): array
     {
         return [

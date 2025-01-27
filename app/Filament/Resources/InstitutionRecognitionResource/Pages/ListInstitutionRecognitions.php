@@ -16,6 +16,11 @@ class ListInstitutionRecognitions extends ListRecords
 {
     protected static string $resource = InstitutionRecognitionResource::class;
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getHeaderActions(): array
     {
         return [

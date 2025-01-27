@@ -17,6 +17,11 @@ class ListDistricts extends ListRecords
 {
     protected static string $resource = DistrictResource::class;
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected function getHeaderActions(): array
     {
         return [

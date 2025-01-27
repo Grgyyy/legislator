@@ -16,7 +16,13 @@ use Filament\Forms\Components\FileUpload;
 class ListProjectProposals extends ListRecords
 {
     protected static string $resource = ProjectProposalResource::class;
+
     protected ?string $heading = 'Project Proposal Programs';
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     public function getBreadcrumbs(): array
     {

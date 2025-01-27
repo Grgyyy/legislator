@@ -15,6 +15,11 @@ use Exception;
 class ListMunicipalities extends ListRecords
 {
     protected static string $resource = MunicipalityResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected function getHeaderActions(): array
     {
