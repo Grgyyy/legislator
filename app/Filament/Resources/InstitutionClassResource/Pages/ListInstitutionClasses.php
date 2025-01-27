@@ -15,6 +15,11 @@ use Exception;
 class ListInstitutionClasses extends ListRecords
 {
     protected static string $resource = InstitutionClassResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected function getHeaderActions(): array
     {

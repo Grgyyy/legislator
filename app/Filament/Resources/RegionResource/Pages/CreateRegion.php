@@ -6,7 +6,6 @@ use App\Filament\Resources\RegionResource;
 use App\Helpers\Helper;
 use App\Models\Region;
 use App\Services\NotificationHandler;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -17,22 +16,6 @@ class CreateRegion extends CreateRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
-    }
-
-    protected function handleRecordCreation(array $data): Region
-    {
-        $this->validateUniqueRegion($data);
-
-        $data['name'] = Helper::capitalizeWords($data['name']);
-
-        $region = DB::transaction(fn() => Region::create([
-            'name' => $data['name'],
-            'code' => $data['code']
-        ]));
-
-        NotificationHandler::sendSuccessNotification('Created', 'Region has been created successfully.');
-
-        return $region;
     }
 
     protected function getCreatedNotificationTitle(): ?string
@@ -50,6 +33,22 @@ class CreateRegion extends CreateRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
+    }
+
+    protected function handleRecordCreation(array $data): Region
+    {
+        $this->validateUniqueRegion($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
+
+        $region = DB::transaction(fn() => Region::create([
+            'name' => $data['name'],
+            'code' => $data['code']
+        ]));
+
+        NotificationHandler::sendSuccessNotification('Created', 'Region has been created successfully.');
+
+        return $region;
     }
 
     protected function validateUniqueRegion($data)

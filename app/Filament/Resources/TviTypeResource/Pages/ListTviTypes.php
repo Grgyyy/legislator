@@ -17,6 +17,11 @@ class ListTviTypes extends ListRecords
     protected static string $resource = TviTypeResource::class;
 
     protected static ?string $title = 'Institution Types';
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     public function getBreadcrumbs(): array
     {

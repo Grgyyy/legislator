@@ -18,6 +18,11 @@ class ListTvis extends ListRecords
     protected static string $resource = TviResource::class;
 
     protected static ?string $title = 'Institutions';
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     public function getBreadcrumbs(): array
     {

@@ -79,6 +79,11 @@ class ProvinceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort(function (Builder $query): Builder {
+                return $query
+                    ->orderBy('region_id')
+                    ->orderBy('name');
+            })
             ->emptyStateHeading('No provinces available')
             ->columns([
                 TextColumn::make('code')

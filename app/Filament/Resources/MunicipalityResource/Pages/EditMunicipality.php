@@ -17,6 +17,11 @@ class EditMunicipality extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -24,11 +29,6 @@ class EditMunicipality extends EditRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
-    }
-
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return null;
     }
 
     protected function mutateFormDataBeforeFill(array $data): array

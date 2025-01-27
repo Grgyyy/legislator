@@ -11,6 +11,11 @@ class ShowProvinces extends ListRecords
 {
     protected static string $resource = ProvinceResource::class;
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+    
     protected function getFormActions(): array
     {
         return [
@@ -21,11 +26,6 @@ class ShowProvinces extends ListRecords
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
-    }
-
-    protected function getCreatedNotificationTitle(): ?string
-    {
-        return null;
     }
     
     public function getBreadcrumbs(): array

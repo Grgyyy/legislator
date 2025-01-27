@@ -24,6 +24,11 @@ class EditProvince extends EditRecord
 
         return $this->getResource()::getUrl('index');
     }
+    
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected function getFormActions(): array
     {
@@ -32,11 +37,6 @@ class EditProvince extends EditRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
-    }
-    
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return null;
     }
     
     protected function handleRecordUpdate($record, array $data): Province

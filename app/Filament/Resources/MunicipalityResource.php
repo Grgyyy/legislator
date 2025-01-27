@@ -131,6 +131,12 @@ class MunicipalityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('created_at', 'desc')
+            // ->defaultSort(function (Builder $query): Builder {
+            //     return $query
+            //         ->orderBy('province_id')
+            //         ->orderBy('name');
+            // })
             ->emptyStateHeading('No municipalities available')
             ->columns([
                 TextColumn::make('code')

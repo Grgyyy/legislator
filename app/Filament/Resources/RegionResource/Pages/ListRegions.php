@@ -17,6 +17,11 @@ class ListRegions extends ListRecords
 {
     protected static string $resource = RegionResource::class;
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getHeaderActions(): array
     {
         return [

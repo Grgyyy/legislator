@@ -15,6 +15,11 @@ use Maatwebsite\Excel\Validators\ValidationException;
 class ListFundSources extends ListRecords
 {
     protected static string $resource = FundSourceResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected function getHeaderActions(): array
     {

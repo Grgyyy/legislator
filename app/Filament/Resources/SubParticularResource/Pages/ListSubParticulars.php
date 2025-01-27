@@ -15,6 +15,11 @@ use Exception;
 class ListSubParticulars extends ListRecords
 {
     protected static string $resource = SubParticularResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected static ?string $title = 'Particular Types';
 

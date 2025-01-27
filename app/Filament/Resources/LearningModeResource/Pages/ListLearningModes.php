@@ -16,6 +16,11 @@ use Exception;
 class ListLearningModes extends ListRecords
 {
     protected static string $resource = LearningModeResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     protected function getHeaderActions(): array
     {

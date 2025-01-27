@@ -15,6 +15,11 @@ use Exception;
 class ListQualificationTitles extends ListRecords
 {
     protected static string $resource = QualificationTitleResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
     public function getBreadcrumbs(): array
     {
