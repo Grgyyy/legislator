@@ -19,19 +19,22 @@ use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use App\Filament\Resources\SkillPriorityResource\Pages;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
-use App\Filament\Resources\SkillPriorityResource\Pages;
+use Filament\Tables\Actions\RestoreBulkAction;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class SkillPriorityResource extends Resource
 {
@@ -90,6 +93,9 @@ class SkillPriorityResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->numeric()
+                    ->default(0)
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
                     ->disabled(fn($livewire) => $livewire->isEdit())
                     ->dehydrated(),
 
@@ -140,6 +146,10 @@ class SkillPriorityResource extends Resource
                 TextColumn::make('year')
                     ->label('Year'),
             ])
+            ->filters([
+                TrashedFilter::make()
+                    ->label('Records'),
+            ])
             ->actions([
                 ActionGroup::make([
                     // Action::make('addSlots')
@@ -177,21 +187,26 @@ class SkillPriorityResource extends Resource
                     //         $record->save();
                     //         NotificationHandler::sendSuccessNotification('Saved', 'Skill priority slots have been added successfully.');
                     //     }),
-                    // DeleteAction::make()
-                    //     ->action(function ($record, $data) {
-                    //         $record->delete();
-                    //         NotificationHandler::sendSuccessNotification('Deleted', 'Training program has been deleted successfully.');
-                    //     }),
-                    // RestoreAction::make()
-                    //     ->action(function ($record, $data) {
-                    //         $record->restore();
-                    //         NotificationHandler::sendSuccessNotification('Restored', 'Training program has been restored successfully.');
-                    //     }),
-                    // ForceDeleteAction::make()
-                    //     ->action(function ($record, $data) {
-                    //         $record->forceDelete();
-                    //         NotificationHandler::sendSuccessNotification('Force Deleted', 'Training program has been deleted permanently.');
-                    //     }),
+                    EditAction::make()
+                        ->hidden(fn($record) => $record->trashed()),
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Allocation has been deleted successfully.');
+                        }),
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $record->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Allocation has been restored successfully.');
+                        }),
+                    ForceDeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Allocation has been deleted permanently.');
+                        }),
                 ])
             ])
             ->bulkActions([
@@ -232,6 +247,12 @@ class SkillPriorityResource extends Resource
                         ])
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array
