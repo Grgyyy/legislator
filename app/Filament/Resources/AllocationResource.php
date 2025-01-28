@@ -450,108 +450,109 @@ class AllocationResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Allocation has been deleted permanently.');
                         }),
-                    Action::make('addAllocation')
-                        ->modalContent(function (Allocation $record): HtmlString {
-                            $particular = $record->particular;
+                    // WAG TANGGALIN, FOR REFERENCE KASIIIII
+                    // Action::make('addAllocation')
+                    //     ->modalContent(function (Allocation $record): HtmlString {
+                    //         $particular = $record->particular;
 
-                            if (!$particular) {
-                                $formattedName = 'No particulars available';
-                            } else {
-                                $district = $particular->district;
-                                $municipality = $district ? $district->underMunicipality : null;
-                                $districtName = $district ? $district->name : 'Unknown District';
-                                $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-                                $provinceName = $district ? $district->province->name : 'Unknown Province';
-                                $regionName = $district ? $district->province->region->name : 'Unknown Region';
+                    //         if (!$particular) {
+                    //             $formattedName = 'No particulars available';
+                    //         } else {
+                    //             $district = $particular->district;
+                    //             $municipality = $district ? $district->underMunicipality : null;
+                    //             $districtName = $district ? $district->name : 'Unknown District';
+                    //             $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                    //             $provinceName = $district ? $district->province->name : 'Unknown Province';
+                    //             $regionName = $district ? $district->province->region->name : 'Unknown Region';
 
-                                $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+                    //             $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
 
-                                if ($subParticular === 'Party-list') {
-                                    $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
-                                    $formattedName = "{$subParticular} - {$partylistName}";
-                                } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                                    $formattedName = "{$subParticular}";
-                                } elseif ($subParticular === 'District') {
-                                    if ($municipalityName) {
-                                        $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
-                                    } else {
-                                        $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
-                                    }
-                                } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
-                                    $formattedName = "{$subParticular} - {$regionName}";
-                                } else {
-                                    $formattedName = "{$subParticular} - {$regionName}";
-                                }
-                            }
+                    //             if ($subParticular === 'Party-list') {
+                    //                 $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                    //                 $formattedName = "{$subParticular} - {$partylistName}";
+                    //             } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                    //                 $formattedName = "{$subParticular}";
+                    //             } elseif ($subParticular === 'District') {
+                    //                 if ($municipalityName) {
+                    //                     $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                    //                 } else {
+                    //                     $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
+                    //                 }
+                    //             } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                    //                 $formattedName = "{$subParticular} - {$regionName}";
+                    //             } else {
+                    //                 $formattedName = "{$subParticular} - {$regionName}";
+                    //             }
+                    //         }
 
-                            $allocationFormatted = '₱ ' . number_format($record->allocation, 2, '.', ',');
-                            $adminCostFormatted = '₱ ' . number_format($record->admin_cost, 2, '.', ',');
-                            $balanceFormatted = '₱' . number_format($record->balance, 2, '.', ',');
+                    //         $allocationFormatted = '₱ ' . number_format($record->allocation, 2, '.', ',');
+                    //         $adminCostFormatted = '₱ ' . number_format($record->admin_cost, 2, '.', ',');
+                    //         $balanceFormatted = '₱' . number_format($record->balance, 2, '.', ',');
 
-                            return new HtmlString("
-                                <div style='margin-bottom: 1rem; margin-top: 1rem; font-size: .9rem; display: grid; grid-template-columns: 1fr 2fr; gap: 10px;'>
-                                    <div style='font-weight: bold;'>Legislator:</div>
-                                    <div>{$record->legislator->name} <em>({$formattedName})</em></div>
+                    //         return new HtmlString("
+                    //             <div style='margin-bottom: 1rem; margin-top: 1rem; font-size: .9rem; display: grid; grid-template-columns: 1fr 2fr; gap: 10px;'>
+                    //                 <div style='font-weight: bold;'>Legislator:</div>
+                    //                 <div>{$record->legislator->name} <em>({$formattedName})</em></div>
 
-                                    <div style='font-weight: bold;'>Balance:</div>
-                                    <div>{$balanceFormatted}</div>
+                    //                 <div style='font-weight: bold;'>Balance:</div>
+                    //                 <div>{$balanceFormatted}</div>
 
-                                    <div style='font-weight: bold;'>Allocation:</div>
-                                    <div>{$allocationFormatted}</div>
+                    //                 <div style='font-weight: bold;'>Allocation:</div>
+                    //                 <div>{$allocationFormatted}</div>
 
-                                    <div style='font-weight: bold;'>Admin Cost:</div>
-                                    <div>{$adminCostFormatted}</div>
+                    //                 <div style='font-weight: bold;'>Admin Cost:</div>
+                    //                 <div>{$adminCostFormatted}</div>
 
-                                    <div style='font-weight: bold;'>Allocation Year:</div>
-                                    <div>{$record->year}</div>
+                    //                 <div style='font-weight: bold;'>Allocation Year:</div>
+                    //                 <div>{$record->year}</div>
 
-                                    <div style='font-weight: bold;'>Scholarship Program:</div>
-                                    <div>{$record->scholarship_program->name}</div>
+                    //                 <div style='font-weight: bold;'>Scholarship Program:</div>
+                    //                 <div>{$record->scholarship_program->name}</div>
 
-                                    <div style='font-weight: bold;'>Source of Fund:</div>
-                                    <div>{$record->soft_or_commitment}</div>
-                                </div>
+                    //                 <div style='font-weight: bold;'>Source of Fund:</div>
+                    //                 <div>{$record->soft_or_commitment}</div>
+                    //             </div>
 
-                            ");
-                        })
-                        ->modalHeading('Add Allocation')
-                        ->modalWidth(MaxWidth::TwoExtraLarge)
-                        ->icon('heroicon-o-plus')
-                        ->label('Add Allocation')
-                        ->form([
-                            TextInput::make('allocation')
-                                ->label('Add Allocation')
-                                ->autocomplete(false)
-                                ->numeric()
-                                ->prefix('₱')
-                                ->default(0)
-                                ->minValue(0)
-                                ->maxValue(function (Allocation $record) {
-                                    return 999999999999.99 - $record->allocation;
-                                })
-                                ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                                ->validationMessages([
-                                    'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
-                                ]),
-                        ])
-                        ->action(function (array $data, Allocation $record): void {
-                            $record->allocation += $data['allocation'];
+                    //         ");
+                    //     })
+                    //     ->modalHeading('Add Allocation')
+                    //     ->modalWidth(MaxWidth::TwoExtraLarge)
+                    //     ->icon('heroicon-o-plus')
+                    //     ->label('Add Allocation')
+                    //     ->form([
+                    //         TextInput::make('allocation')
+                    //             ->label('Add Allocation')
+                    //             ->autocomplete(false)
+                    //             ->numeric()
+                    //             ->prefix('₱')
+                    //             ->default(0)
+                    //             ->minValue(0)
+                    //             ->maxValue(function (Allocation $record) {
+                    //                 return 999999999999.99 - $record->allocation;
+                    //             })
+                    //             ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                    //             ->validationMessages([
+                    //                 'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                    //             ]),
+                    //     ])
+                    //     ->action(function (array $data, Allocation $record): void {
+                    //         $record->allocation += $data['allocation'];
 
-                            $adminCost = $record->allocation * 0.02;
+                    //         $adminCost = $record->allocation * 0.02;
 
-                            $record->admin_cost = $adminCost;
+                    //         $record->admin_cost = $adminCost;
 
-                            $record->balance = $record->allocation - $record->admin_cost;
+                    //         $record->balance = $record->allocation - $record->admin_cost;
 
-                            $record->save();
+                    //         $record->save();
 
-                            NotificationHandler::sendSuccessNotification('Saved', 'Allocation has been added successfully.');
-                        })
-                        ->hidden(function (Allocation $record): bool {
-                            $currentYear = Carbon::now()->year;
+                    //         NotificationHandler::sendSuccessNotification('Saved', 'Allocation has been added successfully.');
+                    //     })
+                    //     ->hidden(function (Allocation $record): bool {
+                    //         $currentYear = Carbon::now()->year;
 
-                            return $record->year < $currentYear;
-                        })
+                    //         return $record->year < $currentYear;
+                    //     })
                 ])
             ])
             ->bulkActions([
