@@ -16,13 +16,14 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
 {
     private array $columns = [
         'soft_or_commitment' => 'Source of Fund',
-        'particular.name' => 'Legislator',
+        'attributor.name' => 'Attributor',
+        'attributorParticular.SubParticular.name' => 'Attributor Particular',
+        'legislator.name' => 'Legislator',
+        'particular.SubParticular.name' => 'Particular',
         'scholarship_program.name' => 'Scholarship Program',
         'allocation' => 'Allocation',
         'admin_cost' => 'Admin Cost',
         'admin_cost_difference' => 'Allocation - Admin Cost',
-        'attribution_sent' => 'Attribution Sent',
-        'attribution_received' => 'Attribution Received',
         'expended_funds' => 'Funds Expended',
         'balance' => 'Balance',
         'year' => 'Year',
@@ -32,11 +33,14 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
     {
         return Allocation::query()
             ->with([
-                'particular.subParticular.fundSource',
-                'particular.district.province.region',
-                'particular.district.underMunicipality',
-                'particular.partylist',
-                'scholarship_program'
+                'attributor', // Load the attributor relationship
+                'attributorParticular.subParticular', // Fix nested subParticular
+                'legislator', // Load legislator
+                'particular.subParticular.fundSource', // Nested relationships
+                'particular.district.province.region', // Nested relationships
+                'particular.district.underMunicipality', // Nested municipality
+                'particular.partylist', // Partylist relationship
+                'scholarship_program' // Scholarship program
             ])
             ->select([
                 'id',
@@ -46,23 +50,26 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
                 'allocation',
                 'admin_cost',
                 'balance',
-                'attribution_sent',
-                'attribution_received',
+                'attributor_id',
+                'attributor_particular_id',
+                'legislator_id',
                 'year'
             ]);
     }
+
 
     public function map($record): array
     {
         return [
             $record->soft_or_commitment,
+            $record->attributor->name ?? '-',
+            $record->attributorParticular->subParticular->name ?? '-',
+            $record->legislator->name ?? '-',
             $this->getParticularName($record),
-            $record->scholarship_program->name ?? 'Unknown Scholarship Program',
+            $record->scholarship_program->name ?? '-',
             $this->formatCurrency($record->allocation),
             $this->formatCurrency($record->admin_cost),
             $this->formatCurrency($record->allocation - $record->admin_cost),
-            $this->formatCurrency($record->attribution_sent),
-            $this->formatCurrency($record->attribution_received),
             $this->formatCurrency($this->getExpenses($record)),
             $this->formatCurrency($record->balance),
             $record->year,
@@ -79,46 +86,68 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
         return $formatter->formatCurrency($amount, 'PHP');
     }
 
-
-
     public function getExpenses($record)
     {
-        // Sum of 'total_amount' in the related 'target' records
         $fundsExpended = $record->target->sum('total_amount');
 
-        // Ensure it returns a float
         return (float) $fundsExpended;
     }
-
-
     protected function getParticularName($record): string
     {
         $particular = $record->particular;
 
         if (!$particular) {
-            return 'Unknown Particular Name';
+            return '-';
         }
 
-        $subParticularName = $particular->subParticular->name ?? 'Unknown Sub-Particular Name';
-        $fundSourceName = $particular->subParticular->fundSource->name ?? 'Unknown Fund Source Name';
-        $regionName = $particular->district->province->region->name ?? 'Unknown Region Name';
-        $underMunicipalityName = $particular->district->underMunicipality->name ?? 'Unknown Municipality Name';
-        $provinceName = $particular->province->name ?? 'Unknown Province Name';
-        $partyListName = $particular->partylist->name ?? 'Unknown Party-list Name';
-        $districtName = $particular->district->name ?? 'Unknown District Name';
+        $subParticularName = $particular->subParticular->name ?? '-';
+        $fundSourceName = $particular->subParticular->fundSource->name ?? '-';
+        $regionName = $particular->district->province->region->name ?? '-';
+        $underMunicipalityName = $particular->district->underMunicipality->name ?? '-';
+        $provinceName = $particular->province->name ?? '-';
+        $partyListName = $particular->partylist->name ?? '-';
+        $districtName = $particular->district->name ?? '-';
+
+        // if ($fundSourceName === "CO Regular" || $fundSourceName === "RO Regular") {
+        //     return "$subParticularName - $regionName";
+        // } elseif ($subParticularName === 'District') {
+        //     if ($regionName === 'NCR') {
+        //         return "$districtName -  $underMunicipalityName";
+        //     } else {
+        //         return "$districtName - $provinceName";
+        //     }
+        // }
+        // // else {
+        // //     return $subParticularName;
+        // // }
+
+        // // elseif ($fundSourceName === "CO Legislator Funds" && $subParticularName === "District") {
+        // //     return $regionName === "NCR"
+        // //         ? "$districtName - $underMunicipalityName"
+        // //         : $provinceName;
+        // // }
+        // elseif ($subParticularName === "Party-list") {
+        //     return $partyListName;
+        // } elseif (in_array($subParticularName, ["Senator", "House Speaker", "House Speaker (LAKAS)"], true)) {
+        //     return $subParticularName;
+        // }
+
+        // return "N/A";
+
 
         if ($fundSourceName === "CO Regular" || $fundSourceName === "RO Regular") {
             return "$subParticularName - $regionName";
-        } elseif ($fundSourceName === "CO Legislator Funds" && $subParticularName === "District") {
-            return $regionName === "NCR"
-                ? "$districtName - $underMunicipalityName"
-                : $provinceName;
+        } elseif ($subParticularName === 'District') {
+            if ($regionName === 'NCR') {
+                return "$districtName - $underMunicipalityName";
+            } else {
+                return "$districtName - $provinceName";
+            }
         } elseif ($subParticularName === "Party-list") {
             return $partyListName;
         } elseif (in_array($subParticularName, ["Senator", "House Speaker", "House Speaker (LAKAS)"], true)) {
             return $subParticularName;
         }
-
         return "N/A";
     }
     public function headings(): array
