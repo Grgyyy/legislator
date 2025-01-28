@@ -58,19 +58,15 @@ class AllocationResource extends Resource
                     ->options([
                         'Soft' => 'Soft',
                         'Commitment' => 'Commitment'
-                    ]),
+                    ])
+                    ->reactive()
+                    ->live(),
 
                 Select::make('attributor_id')
                     ->label('Attributor')
                     ->searchable()
                     ->required(function ($get) {
-                        $soft_or_commitment = $get('soft_or_commitment');
-
-                        if ($soft_or_commitment === 'Commitment') {
-                            return true;
-                        } else {
-                            return false;
-                        }
+                        return $get('soft_or_commitment') === 'Commitment';
                     })
                     ->markAsRequired(false)
                     ->preload()
@@ -95,13 +91,15 @@ class AllocationResource extends Resource
                         }
                     })
                     ->reactive()
-                    ->live(),
+                    ->live()
+                    ->visible(function ($get) {
+                        return $get('soft_or_commitment') === 'Commitment';
+                    }),
 
                 Select::make('attributor_particular_id')
                     ->label('Attributor Particular')
                     ->required(function ($get) {
-                        $attributor = $get('attributor_id');
-                        $attributor ? true : false;
+                        return $get('attributor_id') ? true : false;
                     })
                     ->markAsRequired(false)
                     ->searchable()
@@ -116,7 +114,10 @@ class AllocationResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === '')
                     ->reactive()
-                    ->live(),
+                    ->live()
+                    ->visible(function ($get) {
+                        return $get('soft_or_commitment') === 'Commitment';
+                    }),
 
                 Select::make('legislator_id')
                     ->label('Legislator')
