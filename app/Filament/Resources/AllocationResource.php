@@ -2,39 +2,40 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AllocationResource\Pages;
+use Filament\Forms\Form;
 use App\Models\Allocation;
 use App\Models\Legislator;
-use App\Models\ScholarshipProgram;
+use Filament\Tables\Table;
 use App\Models\TargetStatus;
+use Illuminate\Support\Carbon;
+use Filament\Resources\Resource;
+use App\Models\ScholarshipProgram;
+use Illuminate\Support\HtmlString;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Log;
+use Filament\Support\Enums\MaxWidth;
+use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Support\Enums\MaxWidth;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\HtmlString;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\AllocationResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class AllocationResource extends Resource
 {
@@ -562,8 +563,13 @@ class AllocationResource extends Resource
                         ->action(function ($records) {
                             $records->each->delete();
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected allocations have been deleted successfully.');
-                        }),
+                            NotificationHandler::sendSuccessNotification(
+                                'Deleted',
+                                'Selected allocations have been deleted successfully.'
+                            );
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
