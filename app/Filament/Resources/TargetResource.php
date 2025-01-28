@@ -968,7 +968,6 @@ class TargetResource extends Resource
 
                             $totalCostOfToolkit = 0;
                             if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
-                                $totalCostOfToolkit = $toolkit->price_per_toolkit * $slots;
 
                                 $toolkit->available_number_of_toolkits += $slots;
                                 $toolkit->save();
@@ -1006,10 +1005,9 @@ class TargetResource extends Resource
                             $compliant = TargetStatus::where("desc", "Compliant")->first();
 
                             $slots = $record->number_of_slots;
-
                             $totalCostOfToolkit = 0;
+                            
                             if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
-                                $totalCostOfToolkit = $toolkit->price_per_toolkit * $slots;
 
                                 $toolkit->available_number_of_toolkits -= $slots;
                                 $toolkit->save();
@@ -1056,10 +1054,9 @@ class TargetResource extends Resource
                                 $compliant = TargetStatus::where("desc", "Compliant")->first();
     
                                 $slots = $record->number_of_slots;
-    
                                 $totalCostOfToolkit = 0;
+    
                                 if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
-                                    $totalCostOfToolkit = $toolkit->price_per_toolkit * $slots;
     
                                     $toolkit->available_number_of_toolkits += $slots;
                                     $toolkit->save();
@@ -1102,8 +1099,7 @@ class TargetResource extends Resource
 
                                 $totalCostOfToolkit = 0;
                                 if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
-                                    $totalCostOfToolkit = $toolkit->price_per_toolkit * $slots;
-
+                                    
                                     $toolkit->available_number_of_toolkits -= $slots;
                                     $toolkit->save();
                                 }
