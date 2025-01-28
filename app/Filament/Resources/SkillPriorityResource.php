@@ -89,7 +89,7 @@ class SkillPriorityResource extends Resource
                     ->placeholder('Enter number of slots')
                     ->required()
                     ->markAsRequired(false)
-                    ->integer()
+                    ->numeric()
                     ->disabled(fn($livewire) => $livewire->isEdit())
                     ->dehydrated(),
 
