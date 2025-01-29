@@ -32,7 +32,3 @@ Route::get('/export-targets/{allocationId}', function ($allocationId) {
     return Excel::download(new TargetReportExport($allocationId), 'pending_target_export.xlsx');
 })->name('export.targets');
 
-
-Route::post('/regions/import', [RegionController::class, 'import'])->name('regions.import');
-
-Route::post('/regions/import', [ImportController::class, 'regionImport'])->name('import.regions');
