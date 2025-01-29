@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ImportController;
 use App\Models\Target;
 use App\Models\Allocation;
 use App\Exports\TargetReportExport;
@@ -33,3 +34,5 @@ Route::get('/export-targets/{allocationId}', function ($allocationId) {
 
 
 Route::post('/regions/import', [RegionController::class, 'import'])->name('regions.import');
+
+Route::post('/regions/import', [ImportController::class, 'regionImport'])->name('import.regions');
