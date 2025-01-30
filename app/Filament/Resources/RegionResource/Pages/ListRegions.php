@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\RegionResource\Pages;
 
 use App\Filament\Resources\RegionResource;
+use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -11,6 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\RegionImport;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
+use Notification;
 
 class ListRegions extends ListRecords
 {
@@ -33,8 +36,9 @@ class ListRegions extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Upload Excel File')
+                        ->label('Import Regions')
                         ->required()
+                        ->markAsRequired(false)
                         ->disk('local') // Ensure it uses local disk
                         ->directory('imports') // Save files in storage/app/imports/
                         ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
@@ -43,14 +47,16 @@ class ListRegions extends ListRecords
                     if (isset($data['file']) && is_string($data['file'])) {
                         $filePath = storage_path('app/' . $data['file']); // Get the full file path
 
-                        if (file_exists($filePath)) {
+                        try {
                             Excel::import(new RegionImport, $filePath);
-                            session()->flash('success', 'Regions imported successfully!');
-                        } else {
-                            session()->flash('error', 'File not found.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The provinces have been successfully imported from the file.');
+                        } catch (Exception $e) {
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
+                        } finally {
+                            if (file_exists($filePath)) {
+                                unlink($filePath);
+                            }
                         }
-                    } else {
-                        session()->flash('error', 'Invalid file upload.');
                     }
                 }),
         ];
