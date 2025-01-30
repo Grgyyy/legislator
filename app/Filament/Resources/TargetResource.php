@@ -949,7 +949,7 @@ class TargetResource extends Resource
                         ->visible(fn() => !Auth::user()->hasRole('TESDO')),
 
                     DeleteAction::make()
-                        ->action(function ($record, $data) {
+                        ->action(function ($record) {
                             $allocation = $record->allocation;
                             $totalAmount = $record->total_amount;
 
@@ -962,13 +962,12 @@ class TargetResource extends Resource
                             $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
 
                             $stepId = ScholarshipProgram::where('name', 'STEP')->first();
-                            $compliant = TargetStatus::where("desc", "Conpliant")->first();
+                            $compliant = TargetStatus::where("desc", "Compliant")->first();
 
                             $slots = $record->number_of_slots;
 
                             $totalCostOfToolkit = 0;
                             if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
-                                $totalCostOfToolkit = $toolkit->price_per_toolkit * $slots;
 
                                 $toolkit->available_number_of_toolkits += $slots;
                                 $toolkit->save();
@@ -990,7 +989,7 @@ class TargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         }),
                     RestoreAction::make()
-                        ->action(function ($record, $data) {
+                        ->action(function ($record) {
                             $allocation = $record->allocation;
                             $totalAmount = $record->total_amount;
 
@@ -1003,13 +1002,12 @@ class TargetResource extends Resource
                             $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
 
                             $stepId = ScholarshipProgram::where('name', 'STEP')->first();
-                            $compliant = TargetStatus::where("desc", "Conpliant")->first();
+                            $compliant = TargetStatus::where("desc", "Compliant")->first();
 
                             $slots = $record->number_of_slots;
-
                             $totalCostOfToolkit = 0;
+                            
                             if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
-                                $totalCostOfToolkit = $toolkit->price_per_toolkit * $slots;
 
                                 $toolkit->available_number_of_toolkits -= $slots;
                                 $toolkit->save();
@@ -1029,7 +1027,7 @@ class TargetResource extends Resource
                             $record->deleted_at = null;
                             $record->save();
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
+                            NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         }),
 
                     ForceDeleteAction::make()
@@ -1038,9 +1036,90 @@ class TargetResource extends Resource
 
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each(function ($record) {
+                                $allocation = $record->allocation;
+                                $totalAmount = $record->total_amount;
+    
+                                $qualificationTitleId = $record->qualification_title_id;
+                                $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+    
+                                $provinceId = $record->tvi->district->province_id;
+    
+                                $quali = QualificationTitle::find($qualificationTitleId);
+                                $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+    
+                                $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                                $compliant = TargetStatus::where("desc", "Compliant")->first();
+    
+                                $slots = $record->number_of_slots;
+                                $totalCostOfToolkit = 0;
+    
+                                if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+    
+                                    $toolkit->available_number_of_toolkits += $slots;
+                                    $toolkit->save();
+                                }
+    
+                                $skillPriority = SkillPriority::where('province_id', $provinceId)
+                                    ->where('training_program_id', $trainingProgramId)
+                                    ->where('year', $allocation->year)
+                                    ->first();
+    
+                                $skillPriority->available_slots += $slots;
+                                $skillPriority->save();
+    
+                                $allocation->balance += $totalAmount + $totalCostOfToolkit;
+                                $allocation->save();
+    
+                                $record->delete();
+                            });
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
+                        }),
                     ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    RestoreBulkAction::make()
+                        ->action(function ($records){
+                            $records->each(function ($record) {
+                                $allocation = $record->allocation;
+                                $totalAmount = $record->total_amount;
+
+                                $qualificationTitleId = $record->qualification_title_id;
+                                $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+
+                                $provinceId = $record->tvi->district->province_id;
+
+                                $quali = QualificationTitle::find($qualificationTitleId);
+                                $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                                $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                                $compliant = TargetStatus::where("desc", "Compliant")->first();
+
+                                $slots = $record->number_of_slots;
+
+                                $totalCostOfToolkit = 0;
+                                if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+                                    
+                                    $toolkit->available_number_of_toolkits -= $slots;
+                                    $toolkit->save();
+                                }
+
+                                $skillPriority = SkillPriority::where('province_id', $provinceId)
+                                    ->where('training_program_id', $trainingProgramId)
+                                    ->where('year', $allocation->year)
+                                    ->first();
+
+                                $skillPriority->available_slots -= $slots;
+                                $skillPriority->save();
+
+                                $allocation->balance -= $totalAmount + $totalCostOfToolkit;
+                                $allocation->save();
+
+                                $record->deleted_at = null;
+                                $record->save();
+                            });
+                            NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
+                        }),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

@@ -274,15 +274,15 @@ class MunicipalityResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $districtId = request()->route('record');
-
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery();
+    
+        $routeParameter = request()->route('record');
+    
+        return $query
             ->withoutGlobalScopes([SoftDeletingScope::class])
             ->whereNot('name', 'Not Applicable')
-            ->when($districtId, function (Builder $query) use ($districtId) {
-                $query->whereHas('district', function (Builder $subQuery) use ($districtId) {
-                    $subQuery->where('districts.id', $districtId);
-                });
+            ->when(!request()->is('*/edit') && $routeParameter, function ($query) use ($routeParameter) {
+                $query->whereHas('district', fn (Builder $q) => $q->where('districts.id', (int) $routeParameter));
             });
     }
 
