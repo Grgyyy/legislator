@@ -150,7 +150,6 @@ class ScholarshipProgramResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Scholarship Programs')
                         ]),
-
                 ]),
             ]);
     }

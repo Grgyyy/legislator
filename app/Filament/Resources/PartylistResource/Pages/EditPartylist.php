@@ -14,14 +14,11 @@ class EditPartylist extends EditRecord
 {
     protected static string $resource = PartylistResource::class;
 
-    protected static ?string $title = 'Edit Party-list';
+    protected static ?string $title = 'Edit Party-list';    
 
-    public function getBreadcrumbs(): array
+    protected function getRedirectUrl(): string
     {
-        return [
-            '/party-lists' => 'Party-lists',
-            'Edit'
-        ];
+        return $this->getResource()::getUrl('index');
     }
 
     protected function getSavedNotificationTitle(): ?string
@@ -38,9 +35,12 @@ class EditPartylist extends EditRecord
         ];
     }
 
-    protected function getRedirectUrl(): string
+    public function getBreadcrumbs(): array
     {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/party-lists' => 'Party-lists',
+            'Edit'
+        ];
     }
 
     protected function handleRecordUpdate($record, array $data): Partylist
@@ -73,7 +73,7 @@ class EditPartylist extends EditRecord
 
         if ($partyList) {
             $message = $partyList->deleted_at
-                ? 'This party-list has been deleted and must be restored before reuse.'
+                ? 'A party-list with this name has been deleted and must be restored before reuse.'
                 : 'A party-list with this name already exists.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);

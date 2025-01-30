@@ -4,6 +4,7 @@ namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
 use App\Models\TrainingProgram;
 use App\Filament\Resources\TrainingProgramResource;
+use App\Helpers\Helper;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -12,19 +13,16 @@ class CreateTrainingProgram extends CreateRecord
 {
     protected static string $resource = TrainingProgramResource::class;
 
+    protected ?string $heading = 'Create Qualification Title';
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
     }
 
-    protected ?string $heading = 'Create a Qualification Title';
-
-    public function getBreadcrumbs(): array
+    protected function getCreatedNotificationTitle(): ?string
     {
-        return [
-            '/qualification-titles'=> 'Qualification Titles',
-            'Create'
-        ];
+        return null;
     }
 
     protected function getFormActions(): array
@@ -39,14 +37,19 @@ class CreateTrainingProgram extends CreateRecord
         ];
     }
 
-    protected function getCreatedNotificationTitle(): ?string
+    public function getBreadcrumbs(): array
     {
-        return null;
+        return [
+            '/qualification-titles'=> 'Qualification Titles',
+            'Create'
+        ];
     }
 
     protected function handleRecordCreation(array $data): TrainingProgram
     {
         $this->validateUniqueTrainingProgram($data);
+
+        $data['title'] = Helper::capitalizeWords($data['title']);
 
         $trainingProgram = DB::transaction(fn () => TrainingProgram::create([
                 'code' => $data['code'],
@@ -58,7 +61,7 @@ class CreateTrainingProgram extends CreateRecord
                 'tvet_id' => $data['tvet_id'],
         ]));
 
-        NotificationHandler::sendSuccessNotification('Created', 'Training program has been created successfully.');
+        NotificationHandler::sendSuccessNotification('Created', 'Qualification title has been created successfully.');
 
         return $trainingProgram;
     }
@@ -67,13 +70,12 @@ class CreateTrainingProgram extends CreateRecord
     {
         $trainingProgram = TrainingProgram::withTrashed()
             ->where('soc_code', $data['soc_code'])
-            ->where(DB::raw('LOWER(title)'), strtolower($data['title']))
             ->first();
 
         if ($trainingProgram) {
             $message = $trainingProgram->deleted_at
-                ? 'This training program with the provided details has been deleted and must be restored before reuse.'
-                : 'A training program with the provided details already exists.';
+                ? 'A qualification title with the provided SoC code has been deleted and must be restored before reuse.'
+                : 'A qualification title with the provided SoC code already exists.';
 
                 NotificationHandler::handleValidationException('Something went wrong', $message);
         }

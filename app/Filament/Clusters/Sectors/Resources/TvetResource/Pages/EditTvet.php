@@ -14,13 +14,15 @@ class EditTvet extends EditRecord
     protected static string $resource = TvetResource::class;
 
     protected static ?string $title = 'Edit TVET Sectors';
-
-    public function getBreadcrumbs(): array
+    
+    protected function getRedirectUrl(): string
     {
-        return [
-            '/sectors/tvets' => 'TVET Sectors',
-            'Edit'
-        ];
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -32,14 +34,12 @@ class EditTvet extends EditRecord
         ];
     }
 
-    protected function getSavedNotificationTitle(): ?string
+    public function getBreadcrumbs(): array
     {
-        return null;
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/sectors/tvets' => 'TVET Sectors',
+            'Edit'
+        ];
     }
 
     protected function handleRecordUpdate($record, array $data): Tvet
@@ -72,7 +72,7 @@ class EditTvet extends EditRecord
 
         if ($tvet) {
             $message = $tvet->deleted_at 
-                ? 'This TVET sector has been deleted and must be restored before reuse.'
+                ? 'A TVET sector with this name has been deleted and must be restored before reuse.'
                 : 'A TVET sector with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

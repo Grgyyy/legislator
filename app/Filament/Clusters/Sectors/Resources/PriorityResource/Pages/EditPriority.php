@@ -15,12 +15,14 @@ class EditPriority extends EditRecord
 
     protected static ?string $title = 'Edit Priority Sectors';
 
-    public function getBreadcrumbs(): array
+    protected function getRedirectUrl(): string
     {
-        return [
-            '/sectors/priorities' => 'Top Ten Priority Sectors',
-            'Edit'
-        ];
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -32,14 +34,12 @@ class EditPriority extends EditRecord
         ];
     }
 
-    protected function getSavedNotificationTitle(): ?string
+    public function getBreadcrumbs(): array
     {
-        return null;
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/sectors/priorities' => 'Top Ten Priority Sectors',
+            'Edit'
+        ];
     }
 
     protected function handleRecordUpdate($record, array $data): Priority
@@ -72,7 +72,7 @@ class EditPriority extends EditRecord
 
         if ($priority) {
             $message = $priority->deleted_at 
-                ? 'This priority sector has been deleted and must be restored before reuse.'
+                ? 'A priority sector with this name has been deleted and must be restored before reuse.'
                 : 'A priority sector with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

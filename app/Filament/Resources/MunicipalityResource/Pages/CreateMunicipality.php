@@ -72,7 +72,7 @@ class CreateMunicipality extends CreateRecord
 
         if ($municipality) {
             $message = $municipality->deleted_at
-                ? 'This municipality exists in the province but has been deleted; it must be restored before reuse.'
+                ? 'A municipality with this name already exists in the province but has been deleted; it must be restored before reuse.'
                 : 'A municipality with this name already exists in the specified province.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);
@@ -85,8 +85,8 @@ class CreateMunicipality extends CreateRecord
 
             if ($code) {
                 $message = $code->deleted_at 
-                    ? 'A municipality with this PSG code already exists and has been deleted.' 
-                    : 'A municipality with this PSG code already exists.';
+                    ? 'A municipality with the provided PSG code already exists and has been deleted.' 
+                    : 'A municipality with the provided PSG code already exists.';
             
                 NotificationHandler::handleValidationException('Invalid Code', $message);
             }

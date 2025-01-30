@@ -15,12 +15,14 @@ class CreateTvet extends CreateRecord
 
     protected static ?string $title = 'Create TVET Sectors';
 
-    public function getBreadcrumbs(): array
+    protected function getRedirectUrl(): string
     {
-        return [
-            '/sectors/tvets' => 'TVET Sectors',
-            'Create'
-        ];
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -35,14 +37,12 @@ class CreateTvet extends CreateRecord
         ];
     }
 
-    protected function getCreatedNotificationTitle(): ?string
+    public function getBreadcrumbs(): array
     {
-        return null;
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/sectors/tvets' => 'TVET Sectors',
+            'Create'
+        ];
     }
 
     protected function handleRecordCreation(array $data): Tvet
@@ -68,7 +68,7 @@ class CreateTvet extends CreateRecord
 
         if ($tvet) {
             $message = $tvet->deleted_at 
-                ? 'This TVET sector has been deleted and must be restored before reuse.'
+                ? 'A TVET sector with this name has been deleted and must be restored before reuse.'
                 : 'A TVET sector with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

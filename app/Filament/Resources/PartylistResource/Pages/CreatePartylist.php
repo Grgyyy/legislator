@@ -15,13 +15,10 @@ class CreatePartylist extends CreateRecord
     protected static string $resource = PartylistResource::class;
 
     protected static ?string $title = 'Create Party-list';
-
-    public function getBreadcrumbs(): array
+    
+    protected function getRedirectUrl(): string
     {
-        return [
-            '/party-lists' => 'Party-lists',
-            'Create'
-        ];
+        return $this->getResource()::getUrl('index');
     }
 
     protected function getCreatedNotificationTitle(): ?string
@@ -41,9 +38,12 @@ class CreatePartylist extends CreateRecord
         ];
     }
     
-    protected function getRedirectUrl(): string
+    public function getBreadcrumbs(): array
     {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/party-lists' => 'Party-lists',
+            'Create'
+        ];
     }
 
     protected function handleRecordCreation(array $data): Partylist
@@ -69,7 +69,7 @@ class CreatePartylist extends CreateRecord
 
         if ($partyList) {
             $message = $partyList->deleted_at
-                ? 'This party-list has been deleted and must be restored before reuse.'
+                ? 'A party-list with this name has been deleted and must be restored before reuse.'
                 : 'A party-list with this name already exists.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);

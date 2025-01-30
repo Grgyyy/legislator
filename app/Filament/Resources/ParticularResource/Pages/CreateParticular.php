@@ -69,13 +69,6 @@ class CreateParticular extends CreateRecord
                     NotificationHandler::handleValidationException('Unexpected Error', 'Province does not exist.');
                 }
 
-                // $municipality = Municipality::where('name', 'Not Applicable')
-                //     ->where('province_id', $province->id)
-                //     ->first();
-                // if (!$municipality) {
-                //     NotificationHandler::handleValidationException('Unexpected Error', 'Municipality does not exist.');
-                // }
-
                 $district = District::where('name', 'Not Applicable')
                     ->where('province_id', $province->id)
                     ->first();
@@ -124,7 +117,7 @@ class CreateParticular extends CreateRecord
 
         if ($existingParticular) {
             $message = $existingParticular->deleted_at 
-                ? 'This particular has been deleted and must be restored before reuse.' 
+                ? 'A particular with the specified type, party-list, and district has been deleted and must be restored before reuse.' 
                 : 'A particular with the specified type, party-list, and district already exists.';
 
             NotificationHandler::handleValidationException('Validation Error', $message);

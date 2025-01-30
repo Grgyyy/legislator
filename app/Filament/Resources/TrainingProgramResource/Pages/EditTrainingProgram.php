@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
 use App\Filament\Resources\TrainingProgramResource;
+use App\Helpers\Helper;
 use App\Models\TrainingProgram;
 use App\Services\NotificationHandler;
 use Exception;
@@ -14,9 +15,16 @@ class EditTrainingProgram extends EditRecord
 {
     protected static string $resource = TrainingProgramResource::class;
 
+    protected ?string $heading = 'Edit Qualification Title';
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -28,24 +36,10 @@ class EditTrainingProgram extends EditRecord
         ];
     }
 
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return null;
-    }
-
-    public function getHeading(): string
-    {
-        $record = $this->getRecord();
-        return $record ? $record->title : 'Qualification Titles';
-    }
-
     public function getBreadcrumbs(): array
     {
-
-        $record = $this->getRecord();
-
         return [
-            route('filament.admin.resources.qualification-titles.index') => $record ? $record->title : 'Qualification Titles',
+            '/qualification-titles'=> 'Qualification Titles',
             'Edit'
         ];
     }
@@ -53,6 +47,8 @@ class EditTrainingProgram extends EditRecord
     protected function handleRecordUpdate($record, array $data): TrainingProgram
     {
         $this->validateUniqueTrainingProgram($data, $record->id);
+
+        $data['title'] = Helper::capitalizeWords($data['title']);
 
         try {
 
@@ -62,13 +58,13 @@ class EditTrainingProgram extends EditRecord
 
             $record->update($data);
 
-            NotificationHandler::sendSuccessNotification('Saved', 'Training program has been updated successfully.');
+            NotificationHandler::sendSuccessNotification('Saved', 'Qualification Title has been updated successfully.');
 
             return $record;
         } catch (QueryException $e) {
-            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the training program: ' . $e->getMessage() . ' Please review the details and try again.');
+            NotificationHandler::sendErrorNotification('Database Error', 'A database error occurred while attempting to update the qualification title: ' . $e->getMessage() . ' Please review the details and try again.');
         } catch (Exception $e) {
-            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the training program update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the qualification title update: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
 
         return $record;
@@ -77,16 +73,14 @@ class EditTrainingProgram extends EditRecord
     protected function validateUniqueTrainingProgram(array $data, $currentId)
     {
         $trainingProgram = TrainingProgram::withTrashed()
-            ->where('code', $data['code'])
             ->where('soc_code', $data['soc_code'])
-            ->where(DB::raw('LOWER(title)'), strtolower($data['title']))
             ->whereNot('id', $currentId)
             ->first();
 
         if ($trainingProgram) {
             $message = $trainingProgram->deleted_at
-                ? 'This training program with the provided details has been deleted. Restoration is required before it can be reused.'
-                : 'A training program with the provided details already exists.';
+                ? 'A qualification title with the provided SoC code has been deleted and must be restored before reuse.'
+                : 'A qualification title with the provided SoC code already exists.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

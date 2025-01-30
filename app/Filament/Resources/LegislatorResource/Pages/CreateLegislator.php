@@ -59,7 +59,7 @@ class CreateLegislator extends CreateRecord
 
         if ($legislator) {
             $message = $legislator->deleted_at 
-                ? 'This legislator has been deleted and must be restored before reuse.'
+                ? 'A legislator with this name has been deleted and must be restored before reuse.'
                 : 'A legislator with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

@@ -18,6 +18,11 @@ class ListPriorities extends ListRecords
 
     protected static ?string $title = 'Top Ten Priority Sectors';
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     public function getBreadcrumbs(): array
     {
         return [

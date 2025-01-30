@@ -15,13 +15,16 @@ class CreateAbdd extends CreateRecord
 
     protected static ?string $title = 'Create ABDD Sectors';
 
-    public function getBreadcrumbs(): array
+    protected function getRedirectUrl(): string
     {
-        return [
-            '/sectors/abdds' => 'ABDD Sectors',
-            'Create'
-        ];
+        return $this->getResource()::getUrl('index');
     }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -34,14 +37,12 @@ class CreateAbdd extends CreateRecord
         ];
     }
 
-    protected function getCreatedNotificationTitle(): ?string
+    public function getBreadcrumbs(): array
     {
-        return null;
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/sectors/abdds' => 'ABDD Sectors',
+            'Create'
+        ];
     }
 
     protected function handleRecordCreation(array $data): Abdd
@@ -67,7 +68,7 @@ class CreateAbdd extends CreateRecord
 
         if ($abdd) {
             $message = $abdd->deleted_at 
-                ? 'This ABDD sector has been deleted and must be restored before reuse.'
+                ? 'An ABDD sector with this name has been deleted and must be restored before reuse.'
                 : 'An ABDD sector with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

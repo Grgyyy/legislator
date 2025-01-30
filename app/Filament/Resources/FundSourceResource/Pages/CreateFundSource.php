@@ -19,6 +19,11 @@ class CreateFundSource extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -29,11 +34,6 @@ class CreateFundSource extends CreateRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
-    }
-
-    protected function getCreatedNotificationTitle(): ?string
-    {
-        return null;
     }
 
     protected function handleRecordCreation(array $data): FundSource
@@ -59,7 +59,7 @@ class CreateFundSource extends CreateRecord
 
         if ($fundSource) {
             $message = $fundSource->deleted_at 
-                ? 'This fund source has been deleted and must be restored before reuse.' 
+                ? 'A fund source with this name deleted and must be restored before reuse.' 
                 : 'A fund source with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

@@ -17,14 +17,16 @@ class EditAbdd extends EditRecord
 
     protected static ?string $title = 'Edit ABDD Sectors';
 
-    public function getBreadcrumbs(): array
+    protected function getRedirectUrl(): string
     {
-        return [
-            '/sectors/abdds' => 'ABDD Sectors',
-            'Edit'
-        ];
+        return $this->getResource()::getUrl('index');
     }
-    
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -34,14 +36,12 @@ class EditAbdd extends EditRecord
         ];
     }
 
-    protected function getSavedNotificationTitle(): ?string
+    public function getBreadcrumbs(): array
     {
-        return null;
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/sectors/abdds' => 'ABDD Sectors',
+            'Edit'
+        ];
     }
 
     protected function handleRecordUpdate($record, array $data): Abdd
@@ -74,7 +74,7 @@ class EditAbdd extends EditRecord
 
         if ($abdd) {
             $message = $abdd->deleted_at 
-                ? 'This ABDD sector has been deleted and must be restored before reuse.'
+                ? 'An ABDD sector with this name has been deleted and must be restored before reuse.'
                 : 'An ABDD sector with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

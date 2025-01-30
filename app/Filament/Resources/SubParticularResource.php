@@ -75,6 +75,11 @@ class SubParticularResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort(function (Builder $query): Builder {
+                return $query
+                    ->orderBy('fund_source_id')
+                    ->orderBy('name');
+            })
             ->emptyStateHeading('No particular types available')
             ->columns([
                 TextColumn::make('name')

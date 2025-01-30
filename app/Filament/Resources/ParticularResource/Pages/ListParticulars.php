@@ -80,6 +80,7 @@ class ListParticulars extends ListRecords
                         $subQuery->where('fund_source_id', $regionalId);
                     })->count();
                 }),
+
             'Central' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
@@ -95,6 +96,7 @@ class ListParticulars extends ListRecords
                         $subQuery->where('fund_source_id', $centralId);
                     })->count();
                 }),
+
             'District' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
@@ -112,6 +114,7 @@ class ListParticulars extends ListRecords
                             ->where('name', 'District');
                     })->count();
                 }),
+
             'Party-list' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
@@ -129,6 +132,7 @@ class ListParticulars extends ListRecords
                             ->where('name', 'Party-list');
                     })->count();
                 }),
+
             'House Speaker' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {
@@ -146,6 +150,7 @@ class ListParticulars extends ListRecords
                             ->whereIn('name', ['House Speaker', 'House Speaker (LAKAS)']);
                     })->count();
                 }),
+
             'Senator' => Tab::make()
                 ->modifyQueryUsing(function ($query) {
                     $query->whereHas('subParticular', function ($subQuery) {

@@ -75,11 +75,11 @@ class CreateDistrict extends CreateRecord
         if ($district) {
             if (!empty($data['municipality_id'])) {
                 $message = $district->deleted_at
-                    ? 'This district exists in the municipality but has been deleted; it must be restored before reuse.'
+                    ? 'A district with this name already exists in the municipality but has been deleted; it must be restored before reuse.'
                     : 'A district with this name already exists in the specified municipality.';
             } else {
                 $message = $district->deleted_at
-                    ? 'This district exists in the province but has been deleted; it must be restored before reuse.'
+                    ? 'A district with this name already exists in the province but has been deleted; it must be restored before reuse.'
                     : 'A district with this name already exists in the specified province.';
             }
 
@@ -93,8 +93,8 @@ class CreateDistrict extends CreateRecord
 
             if ($code) {
                 $message = $code->deleted_at 
-                    ? 'A district with this PSG code already exists and has been deleted.' 
-                    : 'A district with this PSG code already exists.';
+                    ? 'A district with the provided PSG code already exists and has been deleted.' 
+                    : 'A district with the provided PSG code already exists.';
             
                 NotificationHandler::handleValidationException('Invalid Code', $message);
             }

@@ -70,7 +70,7 @@ class EditProvince extends EditRecord
 
         if ($province) {
             $message = $province->deleted_at 
-                ? 'This province exists in the region but has been deleted; it must be restored before reuse.' 
+                ? 'A province with this name already exists in the region but has been deleted; it must be restored before reuse.' 
                 : 'A province with this name already exists in the specified region.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);
@@ -84,8 +84,8 @@ class EditProvince extends EditRecord
 
             if ($code) {
                 $message = $code->deleted_at 
-                    ? 'A province with this PSG code already exists and has been deleted.' 
-                    : 'A province with this PSG code already exists.';
+                    ? 'A province with the provided PSG code already exists and has been deleted.' 
+                    : 'A province with the provided PSG code already exists.';
             
                 NotificationHandler::handleValidationException('Invalid Code', $message);
             }

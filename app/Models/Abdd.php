@@ -25,5 +25,4 @@ class Abdd extends Model
     {
         return $this->hasMany(targetHistory::class);
     }
-
 }
