@@ -64,17 +64,28 @@ class ListTargets extends ListRecords
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
-                    FileUpload::make('attachment')
-                        ->required(),
+                    FileUpload::make('file')
+                        ->label('Import Targets')
+                        ->required()
+                        ->markAsRequired(false)
+                        ->disk('local')
+                        ->directory('imports')
+                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
                 ])
                 ->action(function (array $data) {
-                    $file = public_path('storage/' . $data['attachment']);
+                    if (isset($data['file']) && is_string($data['file'])) {
+                        $filePath = storage_path('app/' . $data['file']);
 
-                    try {
-                        Excel::import(new TargetImport, $file);
-                        NotificationHandler::sendSuccessNotification('Import Successful', 'Target data have been successfully imported from the file.');
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
+                        try {
+                            Excel::import(new TargetImport, $filePath);
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Targets have been successfully imported from the file.');
+                        } catch (Exception $e) {
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the targets: ' . $e->getMessage());
+                        } finally {
+                            if (file_exists($filePath)) {
+                                unlink($filePath);
+                            }
+                        }
                     }
                 }),
 
@@ -82,20 +93,32 @@ class ListTargets extends ListRecords
                 ->label('Admin Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
-                    FileUpload::make('attachment')
-                        ->required(),
+                    FileUpload::make('file')
+                        ->label('Import Targets as Admin')
+                        ->required()
+                        ->markAsRequired(false)
+                        ->disk('local')
+                        ->directory('imports')
+                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
                 ])
                 ->action(function (array $data) {
-                    $file = public_path('storage/' . $data['attachment']);
+                    if (isset($data['file']) && is_string($data['file'])) {
+                        $filePath = storage_path('app/' . $data['file']);
 
-                    try {
-                        Excel::import(new AdminTargetImport, $file);
-                        NotificationHandler::sendSuccessNotification('Import Successful', 'Target data has been successfully imported from the file without impacting the allocation or skill priority slots.');
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
+                        try {
+                            Excel::import(new AdminTargetImport, $filePath);
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The district have been successfully imported from the file.');
+                        } catch (Exception $e) {
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
+                        } finally {
+                            if (file_exists($filePath)) {
+                                unlink($filePath);
+                            }
+                        }
                     }
                 })
-                ->visible(fn() => Auth::user()->hasRole('Super Admin')),
+                // ->visible(fn() => Auth::user()->hasRole('Super Admin')),
+                ->visible(false)
         ];
     }
 }

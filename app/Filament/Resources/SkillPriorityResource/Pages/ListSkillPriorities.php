@@ -37,17 +37,28 @@ class ListSkillPriorities extends ListRecords
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
-                    FileUpload::make('attachment')
-                        ->required(),
+                    FileUpload::make('file')
+                        ->label('Import Skill Priorities')
+                        ->required()
+                        ->markAsRequired(false)
+                        ->disk('local')
+                        ->directory('imports')
+                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
                 ])
                 ->action(function (array $data) {
-                    $file = public_path('storage/' . $data['attachment']);
+                    if (isset($data['file']) && is_string($data['file'])) {
+                        $filePath = storage_path('app/' . $data['file']);
 
-                    try {
-                        Excel::import(new SkillsPriorityImport, $file);
-                        NotificationHandler::sendSuccessNotification('Import Successful', 'Skill Priority data have been successfully imported from the file.');
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Skill Priority data: ' . $e->getMessage());
+                        try {
+                            Excel::import(new SkillsPriorityImport, $filePath);
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Skill Priorities have been successfully imported from the file.');
+                        } catch (Exception $e) {
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the skill priorities: ' . $e->getMessage());
+                        } finally {
+                            if (file_exists($filePath)) {
+                                unlink($filePath);
+                            }
+                        }
                     }
                 })
                 ->visible(fn() => !Auth::user()->hasRole('TESDO')),

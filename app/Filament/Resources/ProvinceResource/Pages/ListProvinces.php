@@ -11,6 +11,9 @@ use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use Notification;
 
 class ListProvinces extends ListRecords
 {
@@ -32,18 +35,28 @@ class ListProvinces extends ListRecords
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
-                    FileUpload::make('attachment')
+                    FileUpload::make('file')
+                        ->label('Import Provinces')
                         ->required()
-                        ->markAsRequired(false),
+                        ->markAsRequired(false)
+                        ->disk('local')
+                        ->directory('imports')
+                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
                 ])
                 ->action(function (array $data) {
-                    $file = public_path('storage/' . $data['attachment']);
+                    if (isset($data['file']) && is_string($data['file'])) {
+                        $filePath = storage_path('app/' . $data['file']);
 
-                    try {
-                        Excel::import(new ProvinceImport, $file);
-                        NotificationHandler::sendSuccessNotification('Import Successful', 'The provinces have been successfully imported from the file.');
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
+                        try {
+                            Excel::import(new ProvinceImport, $filePath);
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The provinces have been successfully imported from the file.');
+                        } catch (Exception $e) {
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
+                        } finally {
+                            if (file_exists($filePath)) {
+                                unlink($filePath);
+                            }
+                        }
                     }
                 }),
         ];

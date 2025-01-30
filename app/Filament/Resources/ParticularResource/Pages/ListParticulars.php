@@ -35,18 +35,28 @@ class ListParticulars extends ListRecords
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
-                    FileUpload::make('attachment')
+                    FileUpload::make('file')
+                        ->label('Import District')
                         ->required()
-                        ->markAsRequired(false),
+                        ->markAsRequired(false)
+                        ->disk('local')
+                        ->directory('imports')
+                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
                 ])
                 ->action(function (array $data) {
-                    $file = public_path('storage/' . $data['attachment']);
+                    if (isset($data['file']) && is_string($data['file'])) {
+                        $filePath = storage_path('app/' . $data['file']);
 
-                    try {
-                        Excel::import(new ParticularImport, $file);
-                        NotificationHandler::sendSuccessNotification('Import Successful', 'The particulars have been successfully imported from the file.');
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the particulars: ' . $e->getMessage());
+                        try {
+                            Excel::import(new ParticularImport, $filePath);
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Particulars have been successfully imported from the file.');
+                        } catch (Exception $e) {
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the particulars: ' . $e->getMessage());
+                        } finally {
+                            if (file_exists($filePath)) {
+                                unlink($filePath);
+                            }
+                        }
                     }
                 }),
         ];

@@ -72,12 +72,18 @@ class MunicipalityResource extends Resource
                     ->markAsRequired(false)
                     ->searchable()
                     ->preload()
-                    ->default(fn($get) => request()->get('province_id'))
                     ->native(false)
                     ->options(function () {
                         return Province::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_province' => 'No provinces available'];
+                    })
+                    // ->default(fn($get) => request()->get('district_id'))
+                    ->default(function ($get) {
+                        $districtId = request()->get('district_id');
+                        $district = District::find($districtId);
+
+                        return $district->province_id;
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_province')
                     ->afterStateUpdated(function (callable $set) {
@@ -93,12 +99,6 @@ class MunicipalityResource extends Resource
                     ->markAsRequired(false)
                     ->searchable()
                     ->preload()
-                    ->multiple()
-                    ->default(function ($get) {
-                        // Default to district_id based on selected province, if any
-                        $provinceId = $get('province_id');
-                        return $provinceId ? District::where('province_id', $provinceId)->pluck('id')->toArray() : [];
-                    })
                     ->native(false)
                     ->options(function (callable $get) {
                         $selectedProvince = $get('province_id');
@@ -122,6 +122,7 @@ class MunicipalityResource extends Resource
                             })
                             ->toArray() ?: ['no_district' => 'No districts available'];
                     })
+                    ->default(fn($get) => request()->get('district_id'))
                     ->disableOptionWhen(fn($value) => $value === 'no_district')
                     ->reactive()
                     ->live(),
