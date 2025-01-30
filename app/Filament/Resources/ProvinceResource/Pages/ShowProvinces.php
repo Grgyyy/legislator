@@ -35,7 +35,7 @@ class ShowProvinces extends ListRecords
         $region = Region::find($regionId);
 
         return [
-            route('filament.admin.resources.regions.index', ['record' => $region->id]) => $region ? $region->name : 'Regions',
+            route('filament.admin.resources.provinces.showProvince', ['record' => $region->id]) => $region ? $region->name : 'Regions',
             'Provinces',
             'List'
         ];
