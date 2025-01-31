@@ -53,22 +53,21 @@ class ListRegions extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import Regions')
                         ->required()
                         ->markAsRequired(false)
-                        ->disk('local') // Ensure it uses local disk
-                        ->directory('imports') // Save files in storage/app/imports/
+                        ->disk('local')
+                        ->directory('imports')
                         ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
                 ])
                 ->action(function (array $data) {
                     if (isset($data['file']) && is_string($data['file'])) {
-                        $filePath = storage_path('app/' . $data['file']); // Get the full file path
-        
+                        $filePath = storage_path('app/' . $data['file']);
+
                         try {
                             Excel::import(new RegionImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The provinces have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The regions have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the regions: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);

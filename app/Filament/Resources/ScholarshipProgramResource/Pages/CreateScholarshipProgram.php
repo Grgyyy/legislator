@@ -43,9 +43,9 @@ class CreateScholarshipProgram extends CreateRecord
         $data['desc'] = Helper::capitalizeWords($data['desc']);
 
         $schoPro = DB::transaction(fn () => ScholarshipProgram::create([
-                'code' => $data['code'],
-                'name' => $data['name'],
-                'desc' => $data['desc'],
+            'code' => $data['code'],
+            'name' => $data['name'],
+            'desc' => $data['desc'],
         ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'Scholarship program has been created successfully.');

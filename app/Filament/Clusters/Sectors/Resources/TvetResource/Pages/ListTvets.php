@@ -73,9 +73,9 @@ class ListTvets extends ListRecords
 
                         try {
                             Excel::import(new TvetImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The TVET Sector have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The TVET sectors have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the TVET Sector: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the TVET sectors: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);

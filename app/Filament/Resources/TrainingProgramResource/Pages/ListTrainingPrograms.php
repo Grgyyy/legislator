@@ -72,9 +72,9 @@ class ListTrainingPrograms extends ListRecords
 
                         try {
                             Excel::import(new TrainingProgramsImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The district have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The qualification titles have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the qualification titles: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);

@@ -66,7 +66,7 @@ class ListParticulars extends ListRecords
 
                         try {
                             Excel::import(new ParticularImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Particulars have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The particulars have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the particulars: ' . $e->getMessage());
                         } finally {

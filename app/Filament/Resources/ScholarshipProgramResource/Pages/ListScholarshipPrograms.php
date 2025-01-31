@@ -62,7 +62,7 @@ class ListScholarshipPrograms extends ListRecords
 
                         try {
                             Excel::import(new ScholarshipProgramImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Scholarship Program have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The scholarship programs have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the scholarship programs: ' . $e->getMessage());
                         } finally {

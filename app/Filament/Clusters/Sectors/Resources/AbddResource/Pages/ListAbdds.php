@@ -73,9 +73,9 @@ class ListAbdds extends ListRecords
 
                         try {
                             Excel::import(new AbddImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The ABDD Sectors have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The ABDD sectors have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the ABDD Sectors: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the ABDD sectors: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);

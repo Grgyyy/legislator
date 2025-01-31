@@ -53,7 +53,6 @@ class ListProvinces extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import Provinces')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')

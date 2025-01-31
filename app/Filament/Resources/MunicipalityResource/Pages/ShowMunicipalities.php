@@ -2,7 +2,6 @@
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
 use App\Models\District;
-use App\Models\Municipality;
 use App\Filament\Resources\MunicipalityResource;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;

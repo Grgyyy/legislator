@@ -73,9 +73,9 @@ class ListSubParticulars extends ListRecords
 
                         try {
                             Excel::import(new ParticularTypesImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Particular Types have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The particular types have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Particular Types: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the particular types: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);
