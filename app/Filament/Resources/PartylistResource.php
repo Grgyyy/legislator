@@ -57,6 +57,7 @@ class PartylistResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('name')
             ->emptyStateHeading('No party-lists available')
             ->columns([
                 TextColumn::make('name')

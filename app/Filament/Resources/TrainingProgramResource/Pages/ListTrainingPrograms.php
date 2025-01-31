@@ -16,8 +16,8 @@ class ListTrainingPrograms extends ListRecords
 {
     protected static string $resource = TrainingProgramResource::class;
 
-    protected ?string $heading = 'Qualification Titles';
-    
+    protected static ?string $title = "Qualification Titles";
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -40,7 +40,7 @@ class ListTrainingPrograms extends ListRecords
 
             Action::make('TrainingProgramsImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
                         ->label('Import District')

@@ -41,7 +41,8 @@ class ListTargets extends ListRecords
         return [
             CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New'),
+                ->label('New')
+                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
 
             // Action::make('PendingTargetExport')
             //     ->label('Export')

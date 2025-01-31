@@ -6,7 +6,6 @@ use App\Filament\Resources\ScholarshipProgramResource;
 use App\Helpers\Helper;
 use App\Models\ScholarshipProgram;
 use App\Services\NotificationHandler;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -62,7 +61,7 @@ class CreateScholarshipProgram extends CreateRecord
 
         if ($schoPro) {
             $message = $schoPro->deleted_at 
-                ? 'This scholarship program has been deleted and must be restored before reuse.' 
+                ? 'A scholarship program with this name has been deleted and must be restored before reuse.' 
                 : 'A scholarship program with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);
@@ -74,22 +73,10 @@ class CreateScholarshipProgram extends CreateRecord
 
         if ($desc) {
             $message = $desc->deleted_at
-                ? 'This scholarship program with the provided details has been deleted and must be restored before reuse.'
+                ? 'A scholarship program with the provided details has been deleted and must be restored before reuse.'
                 : 'A scholarship program with the provided details already exists.';
 
                 NotificationHandler::handleValidationException('Something went wrong', $message);
-        }
-
-        $code = ScholarshipProgram::withTrashed()
-            ->where('code', $data)
-            ->first();
-
-        if ($code) {
-            $message = $code->deleted_at 
-                ? 'A scholarship program with this code already exists and has been deleted.' 
-                : 'A scholarship program with this code already exists.';
-        
-            NotificationHandler::handleValidationException('Invalid Code', $message);
         }
     }
 }

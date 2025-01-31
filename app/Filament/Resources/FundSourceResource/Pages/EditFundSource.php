@@ -19,6 +19,11 @@ class EditFundSource extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -26,11 +31,6 @@ class EditFundSource extends EditRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
-    }
-
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return null;
     }
     
     protected function handleRecordUpdate($record, array $data): FundSource
@@ -63,7 +63,7 @@ class EditFundSource extends EditRecord
 
         if ($fundSource) {
             $message = $fundSource->deleted_at 
-                ? 'This fund source has been deleted and must be restored before reuse.' 
+                ? 'A fund source with this name and must be restored before reuse.' 
                 : 'A fund source with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

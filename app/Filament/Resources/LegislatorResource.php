@@ -232,17 +232,17 @@ class LegislatorResource extends Resource
 
     protected static function formatParticular($item): array
     {
-        $subParticular = $item->subParticular->name ?? 'Unknown SubParticular';
+        $subParticular = $item->subParticular->name ?? '-';
 
         if (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
             $formattedName = $subParticular;
         } elseif ($subParticular === 'Party-list') {
-            $partylistName = $item->partylist->name ?? 'Unknown Party-list';
+            $partylistName = $item->partylist->name ?? '-';
             $formattedName = "{$subParticular} - {$partylistName}";
         } elseif ($subParticular === 'District') {
-            $districtName = $item->district->name ?? 'Unknown District';
+            $districtName = $item->district->name ?? '-';
             $municipality = $item->district->underMunicipality->name ?? '' ;
-            $provinceName = $item->district->province->name ?? 'Unknown Province';
+            $provinceName = $item->district->province->name ?? '-';
 
             if ($municipality) {
                 $formattedName = "{$subParticular} - {$districtName}, {$municipality}, {$provinceName}";
@@ -250,12 +250,12 @@ class LegislatorResource extends Resource
                 $formattedName = "{$subParticular} - {$districtName}, {$provinceName}";
             }
         } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
-            $districtName = $item->district->name ?? 'Unknown District';
-            $provinceName = $item->district->province->name ?? 'Unknown Province';
-            $regionName = $item->district->province->region->name ?? 'Unknown Province';
+            $districtName = $item->district->name ?? '-';
+            $provinceName = $item->district->province->name ?? '-';
+            $regionName = $item->district->province->region->name ?? '-';
             $formattedName = "{$subParticular} - {$regionName}";
         } else {
-            $regionName = $item->district->province->region->name ?? 'Unknown Province';
+            $regionName = $item->district->province->region->name ?? '-';
             $formattedName = "{$subParticular} - {$regionName}";
         }
 
@@ -265,9 +265,9 @@ class LegislatorResource extends Resource
     protected static function getParticularNames($record): string
     {
         return $record->particular->map(function ($particular, $index) use ($record) {
-            $districtName = $particular->district->name ?? 'Unknown District';
-            $provinceName = $particular->district->province->name ?? 'Unknown Province';
-            $regionName = $particular->district->province->region->name ?? 'Unknown Region';
+            $districtName = $particular->district->name ?? '-';
+            $provinceName = $particular->district->province->name ?? '-';
+            $regionName = $particular->district->province->region->name ?? '-';
 
             $municipalityName = $particular->district->underMunicipality->name ?? null;
 
@@ -275,7 +275,7 @@ class LegislatorResource extends Resource
             $comma = ($index < $record->particular->count() - 1) ? ',' : '';
 
             if ($particular->subParticular->name === 'Party-list') {
-                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                $partylistName = $particular->partylist->name ?? '-';
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $partylistName . $comma . '</div>';
             } elseif (in_array($particular->subParticular->name, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . $comma . '</div>';

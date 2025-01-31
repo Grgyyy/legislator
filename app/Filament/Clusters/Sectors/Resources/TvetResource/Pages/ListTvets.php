@@ -18,6 +18,11 @@ class ListTvets extends ListRecords
 
     protected static ?string $title = 'TVET Sectors';
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     public function getBreadcrumbs(): array
     {
         return [

@@ -16,14 +16,11 @@ class CreateSubParticular extends CreateRecord
 
     protected static ?string $title = 'Create Particular Type';
 
-    public function getBreadcrumbs(): array
+    protected function getRedirectUrl(): string
     {
-        return [
-            '/particular-types' => 'Particular Types',
-            'Create'
-        ];
+        return $this->getResource()::getUrl('index');
     }
-
+    
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -41,9 +38,12 @@ class CreateSubParticular extends CreateRecord
         ];
     }
 
-    protected function getRedirectUrl(): string
+    public function getBreadcrumbs(): array
     {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/particular-types' => 'Particular Types',
+            'Create'
+        ];
     }
 
     protected function handleRecordCreation(array $data): SubParticular
@@ -71,7 +71,7 @@ class CreateSubParticular extends CreateRecord
 
         if ($subParticular) {
             $message = $subParticular->deleted_at 
-                ? 'This particular type for the selected fund source has been deleted and must be restored before reuse.' 
+                ? 'A particular type for the selected fund source has been deleted and must be restored before reuse.' 
                 : 'A particular type for the selected fund source already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

@@ -9,7 +9,6 @@ use App\Models\TrainingProgram;
 use App\Models\Tvet;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -25,7 +24,6 @@ use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -58,7 +56,7 @@ class TrainingProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Qualification Code'),
+                    ->validationAttribute('qualification code'),
 
                 TextInput::make('soc_code')
                     ->label('Schedule of Cost Code')
@@ -66,22 +64,28 @@ class TrainingProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Schedule of Cost Code'),
+                    ->validationAttribute('SoC code'),
                 
                 Select::make('full_coc_ele')
-                    ->label('Full/COC/ELE')
+                    ->label('Qualification Type')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
                     ->options([
                         'Full' => 'Full',
                         'COC' => 'COC',
                         'ELE' => 'ELE',
                         'NTR/CS' => 'NTR/CS',
                     ])
-                    ->required()
-                    ->markAsRequired(false)
-                    ->reactive(),
-                
+                    ->reactive()
+                    ->live()
+                    ->validationAttribute('qualification type'),
+
                 Select::make('nc_level')
                     ->label('NC Level')
+                    ->required(fn ($get) => $get('full_coc_ele') === 'Full')
+                    ->markAsRequired(false)
+                    ->native(false)
                     ->options([
                         'NC I' => 'NC I',
                         'NC II' => 'NC II',
@@ -90,19 +94,18 @@ class TrainingProgramResource extends Resource
                         'NC V' => 'NC V',
                         'NC VI' => 'NC VI',
                     ])
-                    ->reactive() // Ensure the field reacts to changes in other fields
-                    ->hidden(fn ($get) => $get('full_coc_ele') !== 'Full') // Hide the field unless full_coc_ele is 'Full'
-                    ->required(fn ($get) => $get('full_coc_ele') === 'Full')
-                    ->markAsRequired(false),
+                    ->reactive()
+                    ->live()
+                    ->hidden(fn ($get) => $get('full_coc_ele') !== 'Full')
+                    ->validationAttribute('NC level'),
                     
-
                 TextInput::make('title')
                     ->label('Qualification Title')
                     ->placeholder('Enter qualification title')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Qualification Title'),
+                    ->validationAttribute('qualification title'),
 
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Program')
@@ -119,7 +122,8 @@ class TrainingProgramResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
+                    ->validationAttribute('scholarship program'),
 
                 Select::make('tvet_id')
                     ->label('TVET Sector')
@@ -134,7 +138,8 @@ class TrainingProgramResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_tvet' => 'No TVET sectors available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_tvet'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_tvet')
+                    ->validationAttribute('TVET sector'),
 
                 Select::make('priority_id')
                     ->label('Priority Sector')
@@ -149,7 +154,8 @@ class TrainingProgramResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_priority' => 'No priority sectors available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_priority'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_priority')
+                    ->validationAttribute('priority sector'),
             ]);
     }
 
@@ -171,20 +177,18 @@ class TrainingProgramResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                
                 TextColumn::make('full_coc_ele')
-                    ->label('Full/COC/ELE')
+                    ->label('Qualification Type')
                     ->sortable()
                     ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state ?: '-'),
+                    ->toggleable(),
 
                 TextColumn::make('nc_level')
                     ->label('NC Level')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn ($state) => $state ?: '-'),
+                    ->getStateUsing(fn ($record) => empty($record->nc_level) ? '-' : $record->nc_level),
 
                 TextColumn::make('title')
                     ->label('Qualification Title')
@@ -195,8 +199,7 @@ class TrainingProgramResource extends Resource
                     ->tooltip(fn ($state): ?string => strlen($state) > 50 ? $state : null),
                 
                 TextColumn::make('scholarshipPrograms.name')
-                    ->label('Scholarship Program')
-                    ->sortable()
+                    ->label('Scholarship Programs')
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($record) {
@@ -250,6 +253,37 @@ class TrainingProgramResource extends Resource
                                 })
                                 ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                                 ->reactive(),
+                            
+                            Fieldset::make('')
+                                ->schema([
+                                    Select::make('full_coc_ele')
+                                        ->label("Qualification Type")
+                                        ->placeholder('All')
+                                        ->options([
+                                            'Full' => 'Full',
+                                            'COC' => 'COC',
+                                            'ELE' => 'ELE',
+                                            'NTR/CS' => 'NTR/CS',
+                                        ])
+                                        ->reactive()
+                                        ->live(),
+
+                                    Select::make('nc_level')
+                                        ->label("NC Level")
+                                        ->placeholder('All')
+                                        ->options([
+                                            'NC I' => 'NC I',
+                                            'NC II' => 'NC II',
+                                            'NC III' => 'NC III',
+                                            'NC IV' => 'NC IV',
+                                            'NC V' => 'NC V',
+                                            'NC VI' => 'NC VI',
+                                        ])
+                                        ->hidden(fn ($get) => $get('full_coc_ele') !== 'Full')
+                                        ->reactive()
+                                        ->live(),
+                                ])
+                                ->columns(1),
 
                             Fieldset::make('Sectors')
                                 ->schema([
@@ -276,7 +310,8 @@ class TrainingProgramResource extends Resource
                                         })
                                         ->disableOptionWhen(fn($value) => $value === 'no_priority')
                                         ->reactive(),
-                                ]),
+                                ])
+                                ->columns(1),
                         ];
                     })
                     ->query(function (Builder $query, array $data): Builder {
@@ -287,12 +322,18 @@ class TrainingProgramResource extends Resource
                                     $query->where('scholarship_program_id', $scholarshipProgramId);
                                 })
                             )
-
+                            ->when(
+                                $data['full_coc_ele'] ?? null,
+                                fn(Builder $query, $fullCocEle) => $query->where('full_coc_ele', $fullCocEle)
+                            )
+                            ->when(
+                                $data['nc_level'] ?? null,
+                                fn(Builder $query, $ncLevel) => $query->where('nc_level', $ncLevel)
+                            )
                             ->when(
                                 $data['tvet'] ?? null,
                                 fn(Builder $query, $tvetId) => $query->where('tvet_id', $tvetId)
                             )
-
                             ->when(
                                 $data['priority'] ?? null,
                                 fn(Builder $query, $priorityId) => $query->where('priority_id', $priorityId)
@@ -303,6 +344,14 @@ class TrainingProgramResource extends Resource
 
                         if (!empty($data['scholarship_program'])) {
                             $indicators[] = 'Scholarship Program: ' . Optional(ScholarshipProgram::find($data['scholarship_program']))->name;
+                        }
+                        
+                        if (!empty($data['full_coc_ele'])) {
+                            $indicators[] = 'Qualification Type: ' . $data['full_coc_ele'];
+                        }
+                        
+                        if (!empty($data['nc_level'])) {
+                            $indicators[] = 'NC Level: ' . $data['nc_level'];
                         }
 
                         if (!empty($data['tvet'])) {
@@ -324,19 +373,19 @@ class TrainingProgramResource extends Resource
                         ->action(function ($record, $data) {
                             $record->delete();
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Training program has been deleted successfully.');
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Qualification title has been deleted successfully.');
                         }),
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Training program has been restored successfully.');
+                            NotificationHandler::sendSuccessNotification('Restored', 'Qualification title has been restored successfully.');
                         }),
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
 
-                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Training program has been deleted permanently.');
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Qualification title has been deleted permanently.');
                         }),
                 ])
             ])
@@ -346,19 +395,19 @@ class TrainingProgramResource extends Resource
                         ->action(function ($records) {
                             $records->each->delete();
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected training programs have been deleted successfully.');
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected qualification titles have been deleted successfully.');
                         }),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Selected training programs have been restored successfully.');
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected qualification titles have been restored successfully.');
                         }),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
-                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected training programs have been deleted permanently.');
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected qualification titles have been deleted permanently.');
                         }),
                     ExportBulkAction::make()
                         ->exports([
@@ -367,23 +416,26 @@ class TrainingProgramResource extends Resource
                                     Column::make('code')
                                         ->heading('Qualification Code'),
                                     Column::make('soc_code')
-                                        ->heading('Full/COC/Ele'),
-                                    Column::make('full_coc_ele')
-                                        ->heading('NC Level'),
-                                    Column::make('nc_level')
                                         ->heading('Schedule of Cost Code'),
+                                    Column::make('full_coc_ele')
+                                        ->heading('Qualification Type'),
+                                    Column::make('nc_level')
+                                        ->heading('NC Level')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->nc_level ?: '-';
+                                        }),
                                     Column::make('title')
                                         ->heading('Qualification Title'),
-                                    Column::make('tvet.name')
-                                        ->heading('TVET Sector'),
-                                    Column::make('priority.name')
-                                        ->heading('Priority Sector'),
                                     Column::make('formatted_scholarship_programs')
                                         ->heading('Scholarship Programs')
                                         ->getStateUsing(fn($record) => $record->scholarshipPrograms
                                             ->pluck('name')
                                             ->implode(', ')
                                         ),
+                                    Column::make('tvet.name')
+                                        ->heading('TVET Sector'),
+                                    Column::make('priority.name')
+                                        ->heading('Priority Sector'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Qualification Titles')
                         ]),
@@ -394,12 +446,9 @@ class TrainingProgramResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        $routeParameter = request()->route('id');
     
         $query->withoutGlobalScopes([SoftDeletingScope::class])
             ->where('soc', 1);
-    
-
     
         return $query;
     }

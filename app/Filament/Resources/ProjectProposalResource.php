@@ -10,7 +10,6 @@ use App\Models\Tvet;
 use App\Services\NotificationHandler;
 use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -49,32 +48,67 @@ class ProjectProposalResource extends Resource
     {
         return $form
             ->schema([
-
                 TextInput::make('code')
                     ->label("Qualification Code")
                     ->placeholder('Enter qualification code')
                     ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
                     ->hidden(fn($livewire) => $livewire->noQualiCode())
-                    ->markAsRequired(false),
+                    ->validationAttribute('qualification code'),
 
                 TextInput::make('soc_code')
                     ->label("Schedule of Cost Code")
-                    ->placeholder('Enter SOC code')
+                    ->placeholder('Enter soc code')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->hidden(fn($livewire) => $livewire->noSocCode())
                     ->disabled(fn($livewire) => $livewire->disabledSoc())
                     ->dehydrated()
-                    ->validationAttribute('Schedule of Cost Code'),
+                    ->validationAttribute('SoC code'),
 
+                Select::make('full_coc_ele')
+                    ->label('Qualification Type')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->options([
+                        'Full' => 'Full',
+                        'COC' => 'COC',
+                        'ELE' => 'ELE',
+                        'NTR/CS' => 'NTR/CS',
+                    ])
+                    ->reactive()
+                    ->live()
+                    ->hidden(fn($livewire) => $livewire->noQualiCode())
+                    ->validationAttribute('qualification type'),
+                    
+                Select::make('nc_level')
+                    ->label('NC Level')
+                    ->required(fn ($get) => $get('full_coc_ele') === 'Full')
+                    ->markAsRequired(false)
+                    ->native(false)
+                    ->options([
+                        'NC I' => 'NC I',
+                        'NC II' => 'NC II',
+                        'NC III' => 'NC III',
+                        'NC IV' => 'NC IV',
+                        'NC V' => 'NC V',
+                        'NC VI' => 'NC VI',
+                    ])
+                    ->reactive()
+                    ->live()
+                    ->hidden(fn ($get) => $get('full_coc_ele') !== 'Full')
+                    ->validationAttribute('NC level'),
+                    
                 TextInput::make('title')
                     ->label("Qualification Title")
                     ->placeholder('Enter qualification title')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Qualification Title'),
+                    ->validationAttribute('qualification title'),
 
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Program')
@@ -91,7 +125,8 @@ class ProjectProposalResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
+                    ->validationAttribute('scholarship program'),
 
                 Select::make('tvet_id')
                     ->label('TVET Sector')
@@ -106,7 +141,8 @@ class ProjectProposalResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_tvet' => 'No TVET sectors available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_tvet'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_tvet')
+                    ->validationAttribute('TVET sector'),
 
                 Select::make('priority_id')
                     ->label('Priority Sector')
@@ -121,7 +157,8 @@ class ProjectProposalResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_priority' => 'No priority sectors available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_priority'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_priority')
+                    ->validationAttribute('priority sector'),
             ]);
     }
 
@@ -227,7 +264,8 @@ class ProjectProposalResource extends Resource
                                         })
                                         ->disableOptionWhen(fn($value) => $value === 'no_priority')
                                         ->reactive(),
-                                ]),
+                                ])
+                                ->columns(1),
                         ];
                     })
                     ->query(function (Builder $query, array $data): Builder {
@@ -238,12 +276,10 @@ class ProjectProposalResource extends Resource
                                     $query->where('scholarship_program_id', $scholarshipProgramId);
                                 })
                             )
-
                             ->when(
                                 $data['tvet'] ?? null,
                                 fn(Builder $query, $tvetId) => $query->where('tvet_id', $tvetId)
                             )
-
                             ->when(
                                 $data['priority'] ?? null,
                                 fn(Builder $query, $priorityId) => $query->where('priority_id', $priorityId)
@@ -254,6 +290,14 @@ class ProjectProposalResource extends Resource
 
                         if (!empty($data['scholarship_program'])) {
                             $indicators[] = 'Scholarship Program: ' . Optional(ScholarshipProgram::find($data['scholarship_program']))->name;
+                        }
+                        
+                        if (!empty($data['full_coc_ele'])) {
+                            $indicators[] = 'Qualification Type: ' . $data['full_coc_ele'];
+                        }
+                        
+                        if (!empty($data['nc_level'])) {
+                            $indicators[] = 'NC Level: ' . $data['nc_level'];
                         }
 
                         if (!empty($data['tvet'])) {
@@ -273,17 +317,7 @@ class ProjectProposalResource extends Resource
                         ->hidden(fn($record) => $record->trashed()),
                     Action::make('Convert')
                         ->icon('heroicon-o-arrows-right-left')
-                        ->action(function ($record, $data) {
-                            // $record->soc = 1;
-                            // $record->save();
-                
-                            // NotificationHandler::sendSuccessNotification(
-                            //     'Conversion Successful',
-                            //     'The Project Proposal Program has been successfully converted into a Qualification Title and is now ready for costing in the Schedule of Cost.'
-                            // );
-                
-                            return redirect()->route('filament.admin.resources.project-proposals.convert', ['record' => $record]);
-                        }),
+                        ->url(fn($record) => route('filament.admin.resources.project-proposals.convert', ['record' => $record])),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
@@ -332,17 +366,16 @@ class ProjectProposalResource extends Resource
                                         ->heading('Schedule of Cost Code'),
                                     Column::make('title')
                                         ->heading('Qualification Title'),
+                                    Column::make('formatted_scholarship_programs')
+                                        ->heading('Scholarship Programs')
+                                        ->getStateUsing(fn($record) => $record->scholarshipPrograms
+                                            ->pluck('name')
+                                            ->implode(', ')
+                                        ),
                                     Column::make('tvet.name')
                                         ->heading('TVET Sector'),
                                     Column::make('priority.name')
                                         ->heading('Priority Sector'),
-                                    Column::make('formatted_scholarship_programs')
-                                        ->heading('Scholarship Programs')
-                                        ->getStateUsing(
-                                            fn($record) => $record->scholarshipPrograms
-                                                ->pluck('name')
-                                                ->implode(', ')
-                                        ),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Project Proposal Programs')
                         ]),

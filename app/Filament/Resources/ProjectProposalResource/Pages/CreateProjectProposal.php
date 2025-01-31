@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ProjectProposalResource\Pages;
 
 use App\Filament\Resources\ProjectProposalResource;
+use App\Helpers\Helper;
 use App\Models\Priority;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
@@ -17,12 +18,11 @@ class CreateProjectProposal extends CreateRecord
 {
     protected static string $resource = ProjectProposalResource::class;
 
-    public function getBreadcrumbs(): array
+    protected static ?string $title = 'Create Project Proposal Program';
+
+    protected function getRedirectUrl(): string
     {
-        return [
-            route('filament.admin.resources.project-proposals.index') => 'Project Proposal Programs',
-            'Create',
-        ];
+        return $this->getResource()::getUrl('index');
     }
 
     protected function getCreatedNotificationTitle(): ?string
@@ -41,13 +41,13 @@ class CreateProjectProposal extends CreateRecord
                 ->label('Exit'),
         ];
     }
-
-    protected function getRedirectUrl(): string
+    public function getBreadcrumbs(): array
     {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/project-proposals' => 'Project Proposal Programs',
+            'Create',
+        ];
     }
-
-    protected ?string $heading = 'Create Project Proposal Program';
 
     public function disabledSoc(): bool
     {
@@ -64,77 +64,69 @@ class CreateProjectProposal extends CreateRecord
         return true;
     }
 
-    public function noSchoPro(): bool
+    protected function handleRecordCreation(array $data): TrainingProgram
     {
-        return false;
-    }
+        $this->validateUniqueProjectProposal($data);
 
-    protected function handleRecordCreation(array $data): \Illuminate\Database\Eloquent\Model
-    {
-        return DB::transaction(function () use ($data) {
-            $trainingProgram = TrainingProgram::withTrashed()
-                ->where(DB::raw('LOWER(title)'), strtolower($data['title']))
-                ->where('tvet_id', $data['tvet_id'])
-                ->where('priority_id', $data['priority_id'])
-                ->first();
+        $data['title'] = Helper::capitalizeWords($data['title']);
+        
+        $formattedSocCode = $this->generateSocCode();
+        
+        $projectProposalProgram = DB::transaction(fn () => TrainingProgram::create([
+            'soc_code'   => $formattedSocCode,
+            'title'      => $data['title'],
+            'priority_id' => $data['priority_id'],
+            'tvet_id'    => $data['tvet_id'],
+            'soc' => 0
+        ]));
 
-            if ($trainingProgram) {
-                NotificationHandler::handleValidationException(
-                    'Training Program Exists',
-                    "The Training Program '{$trainingProgram->title}' already exists and cannot be added to the program proposal."
-                );
+        if (!empty($data['scholarshipPrograms'])) {
+            $projectProposalProgram->scholarshipPrograms()->sync($data['scholarshipPrograms']);
+
+            foreach ($data['scholarshipPrograms'] as $scholarshipProgramId) {
+                $scholarshipProgram = ScholarshipProgram::find($scholarshipProgramId);
+
+                QualificationTitle::create([
+                    'training_program_id' => $projectProposalProgram->id,
+                    'scholarship_program_id' => $scholarshipProgram->id,
+                    'status_id' => 1,
+                    'soc' => 0
+                ]);
             }
-
-            // Get the last record where soc_code starts with 'PROP'
-            $lastTrainingProgram = TrainingProgram::where('soc_code', 'like', 'PROP%')
-                ->orderByDesc('soc_code') // Get the most recent soc_code
-                ->first();
-
-            // Extract the number part from the soc_code, remove 'PROP' and leading zeros
-            $lastSocCode = $lastTrainingProgram ? substr($lastTrainingProgram->soc_code, 4) : 0;
-            $lastSocCode = ltrim($lastSocCode, '0'); // Remove leading zeros
-            $newSocCode = (int)$lastSocCode + 1; // Increment by 1
-
-            // Generate the formatted SOC code for the new record
-            $formattedSocCode = $this->formatSocCode($newSocCode);
-
-            // Create the project proposal program
-            $projectProposalProgram = TrainingProgram::create([
-                'soc_code'   => $formattedSocCode,
-                'title'      => $data['title'],
-                'priority_id' => $data['priority_id'],
-                'tvet_id'    => $data['tvet_id'],
-                'soc' => 0
-            ]);
-
-            if (!empty($data['scholarshipPrograms'])) {
-                $projectProposalProgram->scholarshipPrograms()->sync($data['scholarshipPrograms']);
-
-                foreach ($data['scholarshipPrograms'] as $scholarshipProgramId) {
-                    $scholarshipProgram = ScholarshipProgram::find($scholarshipProgramId);
-
-                    QualificationTitle::create([
-                        'training_program_id' => $projectProposalProgram->id,
-                        'scholarship_program_id' => $scholarshipProgram->id,
-                        'status_id' => 1,
-                        'soc' => 0
-                    ]);
-                }
-            }
-
-            NotificationHandler::sendSuccessNotification('Created', 'The training program has been created successfully.');
-
-            return $projectProposalProgram;
-        });
-    }
-
-
-    private function formatSocCode($currentSocCode)
-    {
-        if ($currentSocCode > 99999) {
-            return 'PROP' . $currentSocCode;
         }
 
-        return sprintf('PROP%06d', $currentSocCode);
+        NotificationHandler::sendSuccessNotification('Created', 'Qualification title has been created successfully.');
+
+        return $projectProposalProgram;
+    }
+
+    private function generateSocCode(): string
+    {
+        $lastTrainingProgram = TrainingProgram::where('soc_code', 'like', 'PROP%')
+            ->orderByDesc('soc_code')
+            ->first();
+
+        $lastSocCode = $lastTrainingProgram ? substr($lastTrainingProgram->soc_code, 4) : 0;
+        $lastSocCode = ltrim($lastSocCode, '0');
+        $newSocCode = (int)$lastSocCode + 1;
+
+        return sprintf('PROP%06d', $newSocCode);
+    }
+
+    private function validateUniqueProjectProposal($data)
+    {
+        $trainingProgram = TrainingProgram::withTrashed()
+            ->where('title', $data['title'])
+            ->where('tvet_id', $data['tvet_id'])
+            ->where('priority_id', $data['priority_id'])
+            ->first();
+
+        if ($trainingProgram) {
+            $message = $trainingProgram->deleted_at
+                ? 'A qualification title with the provided details has been deleted and must be restored before reuse.'
+                : 'A qualification title with the provided details already exists.';
+
+                NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
     }
 }

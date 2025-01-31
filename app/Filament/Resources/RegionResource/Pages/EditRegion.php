@@ -63,7 +63,7 @@ class EditRegion extends EditRecord
 
         if ($region) {
             $message = $region->deleted_at 
-                ? 'This region has been deleted and must be restored before reuse.' 
+                ? 'A region with this name has been deleted and must be restored before reuse.' 
                 : 'A region with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);
@@ -77,8 +77,8 @@ class EditRegion extends EditRecord
 
             if ($code) {
                 $message = $code->deleted_at 
-                    ? 'A region with this PSG code already exists and has been deleted.' 
-                    : 'A region with this PSG code already exists.';
+                    ? 'A region with the provided PSG code already exists and has been deleted.' 
+                    : 'A region with the provided PSG code already exists.';
             
                 NotificationHandler::handleValidationException('Invalid Code', $message);
             }

@@ -18,17 +18,17 @@ class ListPartylists extends ListRecords
 
     protected static ?string $title = 'Party-list';
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     public function getBreadcrumbs(): array
     {
         return [
             '/party-lists' => 'Party-lists',
             'List'
         ];
-    }
-
-    protected function getCreatedNotificationTitle(): ?string
-    {
-        return null;
     }
 
     protected function getHeaderActions(): array
@@ -38,7 +38,7 @@ class ListPartylists extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('RegionImport')
+            Action::make('PartylistImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([

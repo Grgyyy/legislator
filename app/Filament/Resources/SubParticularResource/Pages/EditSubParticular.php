@@ -15,13 +15,15 @@ class EditSubParticular extends EditRecord
     protected static string $resource = SubParticularResource::class;
 
     protected static ?string $title = 'Edit Particular Type';
-
-    public function getBreadcrumbs(): array
+    
+    protected function getRedirectUrl(): string
     {
-        return [
-            '/particular-types' => 'Particular Types',
-            'Edit'
-        ];
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -33,14 +35,12 @@ class EditSubParticular extends EditRecord
         ];
     }
 
-    protected function getSavedNotificationTitle(): ?string
+    public function getBreadcrumbs(): array
     {
-        return null;
-    }
-    
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/particular-types' => 'Particular Types',
+            'Edit'
+        ];
     }
 
     protected function handleRecordUpdate($record, array $data): SubParticular
@@ -74,7 +74,7 @@ class EditSubParticular extends EditRecord
 
         if ($subParticular) {
             $message = $subParticular->deleted_at 
-                ? 'This particular type for the selected fund source has been deleted and must be restored before reuse.' 
+                ? 'A particular type for the selected fund source has been deleted and must be restored before reuse.' 
                 : 'A particular type for the selected fund source already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

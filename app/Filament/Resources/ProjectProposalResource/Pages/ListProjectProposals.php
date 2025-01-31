@@ -17,7 +17,7 @@ class ListProjectProposals extends ListRecords
 {
     protected static string $resource = ProjectProposalResource::class;
 
-    protected ?string $heading = 'Project Proposal Programs';
+    protected static ?string $title = 'Project Proposal Program';
     
     protected function getCreatedNotificationTitle(): ?string
     {
@@ -26,9 +26,8 @@ class ListProjectProposals extends ListRecords
 
     public function getBreadcrumbs(): array
     {
-
         return [
-            route('filament.admin.resources.project-proposals.index') => 'Project Proposal Programs',
+            '/project-proposals' => 'Project Proposal Programs',
             'List'
         ];
     }
@@ -39,9 +38,10 @@ class ListProjectProposals extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
+
             Action::make('TargetImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
                         ->label('Import Targets')

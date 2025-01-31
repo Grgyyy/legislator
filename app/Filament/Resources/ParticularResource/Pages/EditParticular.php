@@ -24,6 +24,11 @@ class EditParticular extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -31,11 +36,6 @@ class EditParticular extends EditRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
-    }
-
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return null;
     }
 
     protected function mutateFormDataBeforeFill(array $data): array
@@ -128,7 +128,7 @@ class EditParticular extends EditRecord
 
         if ($existingParticular) {
             $message = $existingParticular->deleted_at 
-                ? 'This particular has been deleted and must be restored before reuse.' 
+                ? 'A particular with the specified type, party-list, and district has been deleted and must be restored before reuse.' 
                 : 'A particular with the specified type, party-list, and district already exists.';
 
             NotificationHandler::handleValidationException('Validation Error', $message);

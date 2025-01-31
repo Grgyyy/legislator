@@ -99,6 +99,7 @@ class ParticularResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('district.province.region.name')
             ->emptyStateHeading('No particulars available')
             ->columns([
                 TextColumn::make("subParticular.name")
@@ -131,7 +132,11 @@ class ParticularResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn($state) => $state === 'Not Applicable' || $state === null ? '-' : $state),
+                    ->getStateUsing(function ($record) {
+                        return $record->district->underMunicipality 
+                            ? $record->district->underMunicipality->name
+                            : '-';
+                    }),
 
                 TextColumn::make("district.province.name")
                     ->sortable()

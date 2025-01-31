@@ -15,12 +15,14 @@ class CreatePriority extends CreateRecord
 
     protected static ?string $title = 'Create Priority Sectors';
 
-    public function getBreadcrumbs(): array
+    protected function getRedirectUrl(): string
     {
-        return [
-            '/sectors/priorities' => 'Top Ten Priority Sectors',
-            'Create'
-        ];
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -35,14 +37,12 @@ class CreatePriority extends CreateRecord
         ];
     }
 
-    protected function getCreatedNotificationTitle(): ?string
+    public function getBreadcrumbs(): array
     {
-        return null;
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
+        return [
+            '/sectors/priorities' => 'Top Ten Priority Sectors',
+            'Create'
+        ];
     }
 
     protected function handleRecordCreation(array $data): Priority
@@ -68,7 +68,7 @@ class CreatePriority extends CreateRecord
 
         if ($priority) {
             $message = $priority->deleted_at 
-                ? 'This priority sector has been deleted and must be restored before reuse.'
+                ? 'A priority sector with this name has been deleted and must be restored before reuse.'
                 : 'A priority sector with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

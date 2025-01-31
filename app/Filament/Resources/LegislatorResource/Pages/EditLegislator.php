@@ -19,6 +19,11 @@ class EditLegislator extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -26,11 +31,6 @@ class EditLegislator extends EditRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
-    }
-
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return null;
     }
 
     protected function handleRecordUpdate($record, array $data): Legislator
@@ -63,7 +63,7 @@ class EditLegislator extends EditRecord
 
         if ($legislator) {
             $message = $legislator->deleted_at 
-                ? 'This legislator has been deleted and must be restored before reuse.'
+                ? 'A legislator with this name has been deleted and must be restored before reuse.'
                 : 'A legislator with this name already exists.';
             
             NotificationHandler::handleValidationException('Something went wrong', $message);

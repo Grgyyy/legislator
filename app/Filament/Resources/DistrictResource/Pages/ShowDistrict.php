@@ -36,8 +36,8 @@ class ShowDistrict extends ListRecords
         $province = Province::find($provinceId);
     
         return [
-            route('filament.admin.resources.regions.index', ['record' => $province->region->id]) => $province->region ? $province->region->name : 'Regions',
-            route('filament.admin.resources.provinces.showProvince', ['record' => $province->id]) => $province ? $province->name : 'Provinces',
+            route('filament.admin.resources.provinces.showProvince', ['record' => $province->region->id]) => $province->region ? $province->region->name : 'Regions',
+            route('filament.admin.resources.districts.showDistricts', ['record' => $province->id]) => $province ? $province->name : 'Provinces',
             'Districts',
             'List'
         ];

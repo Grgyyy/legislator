@@ -16,13 +16,13 @@ use Exception;
 class ListSubParticulars extends ListRecords
 {
     protected static string $resource = SubParticularResource::class;
-    
+
+    protected static ?string $title = 'Particular Types';
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
     }
-
-    protected static ?string $title = 'Particular Types';
 
     public function getBreadcrumbs(): array
     {
@@ -39,7 +39,7 @@ class ListSubParticulars extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('RegionImport')
+            Action::make('ParticularTypesImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
