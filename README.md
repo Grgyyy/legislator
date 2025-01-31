@@ -1,66 +1,61 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<p align="center"><img src="https://tesdaonlineprogram.com/wp-content/uploads/2023/08/TESDA-LOGO-1024x1024.jpg" width="150" alt="TESDA Logo"></p>
+<h1 align="center"><strong>Legislative Information System</strong></h1>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## About Legislative Information System
 
-## About Laravel
+The Legislative Information System (LIS) is a web-based application designed to streamline the management and tracking of legislative activities, providing a comprehensive tool for managing and organizing source data, legislative data, and targets featuring a user-friendly interface that enhances data accessibility and usability. The system is designed to achieve the following:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- <strong>Enhance Data Accuracy</strong> - Reduce errors associated with manual data handling and provides a more reliable, real-time view of encoded data to ensure accuracy across all entries.
+- <strong>Improve Efficiency</strong> - Reduce the need for manual data entry in spreadsheets by allowing users to encode targets, track allocations, and manage legislative data directly within the system, reducing duplication of effort and improving workflow efficiency.
+- <strong>Facilitate Reporting</strong> - Enable seamless exporting of data needed for generating reports and filtered reports based on specific requirements.
+- <strong>Support Collaboration</strong> - Improve collaboration and information sharing across different regions, provinces, and offices, ensuring that legislative activities are coordinated effectively.
+- <strong>Ensure Scalability</strong> - Accommodate growing datasets while maintaining user-friendly experience for all users.
+- <strong>Platform for Connection</strong> - The system will serve as the connection between Absorptive Capacity (AbsCap) and Provincial Scholarship Allocation Plan (PSAP).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+This system offers a comprehensive set of tools designed to enhance legislative processes and ensure efficient data handling.
 
-## Learning Laravel
+- <strong>Comprehensive Data Management:</strong> Centralizes and organizes legislative data for easier access and tracking.
+- <strong>User-Friendly Interface:</strong> Provides an intuitive platform for efficient navigation and use.
+- <strong>Real-Time Data Monitoring:</strong> Ensures up-to-date information on legislative activities and targets.
+- <strong>Custom Reporting:</strong> Generate detailed reports to support decision-making and analysis.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Installation
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Prerequisites
 
-## Laravel Sponsors
+- PHP 8.3
+- Composer
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Steps
 
-### Premium Partners
+<strong> 1. Clone the repository: <br /><br />  </strong>
+     ``` git clone https://github.com/iyanayi/legislator.git ```
+     
+<strong> 2. Navigate to the repository of Legislative Information System <br /><br />  </strong>
+     ``` cd legislator ```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+<strong> 3. Install dependencies <br /><br />  </strong>
+     ``` composer install ```
 
-## Contributing
+<strong> 3. Create the database and the database tables <br /><br />  </strong>
+     ``` php artisan migrate ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+<strong> 3. Run the database seeder <br /><br />  </strong>
+     ``` php artisan db:seed ```
+     
+## Usage
 
-## Code of Conduct
+### Steps
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+<strong> 1. Running the Server: <br /><br />  </strong>
+     ``` php artisan serve ```
 
-## Security Vulnerabilities
+<strong> 2. Accessing the Web Interface: <br /><br />  </strong>
+    To interact with the application, open a browser and visit: <br />
+     ``` http://localhost:8000 ```
+## Ownership
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The source code and intellectual property associated with this project remain the property of Technical Education and Skills Development Authority - Regional Operations Management Office (TESDA - ROMO). Any modifications or distribution of the software should adhere to the terms set by TESDA - ROMO.
