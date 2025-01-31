@@ -15,7 +15,7 @@ class EditTrainingProgram extends EditRecord
 {
     protected static string $resource = TrainingProgramResource::class;
 
-    protected ?string $heading = 'Edit Qualification Title';
+    protected static ?string $title = "Edit Qualification Title";
 
     protected function getRedirectUrl(): string
     {
@@ -51,7 +51,6 @@ class EditTrainingProgram extends EditRecord
         $data['title'] = Helper::capitalizeWords($data['title']);
 
         try {
-
             if($data['full_coc_ele'] === 'COC' || $data['full_coc_ele'] === 'ELEV') {
                 $data['nc_level'] = null;
             }
@@ -83,6 +82,21 @@ class EditTrainingProgram extends EditRecord
                 : 'A qualification title with the provided SoC code already exists.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        $trainingProgram = TrainingProgram::withTrashed()
+            ->where('title', $data['title'])
+            ->where('tvet_id', $data['tvet_id'])
+            ->where('priority_id', $data['priority_id'])
+            ->whereNot('id', $currentId)
+            ->first();
+
+        if ($trainingProgram) {
+            $message = $trainingProgram->deleted_at
+                ? 'A qualification title with the provided details has been deleted and must be restored before reuse.'
+                : 'A qualification title with the provided details already exists.';
+
+                NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
 }

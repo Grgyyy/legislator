@@ -56,7 +56,7 @@ class TrainingProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Qualification Code'),
+                    ->validationAttribute('qualification code'),
 
                 TextInput::make('soc_code')
                     ->label('Schedule of Cost Code')
@@ -64,7 +64,7 @@ class TrainingProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('SoC Code'),
+                    ->validationAttribute('SoC code'),
                 
                 Select::make('full_coc_ele')
                     ->label('Qualification Type')
@@ -79,7 +79,7 @@ class TrainingProgramResource extends Resource
                     ])
                     ->reactive()
                     ->live()
-                    ->validationAttribute('Full/COC/ELE'),
+                    ->validationAttribute('qualification type'),
 
                 Select::make('nc_level')
                     ->label('NC Level')
@@ -105,7 +105,7 @@ class TrainingProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Qualification Title'),
+                    ->validationAttribute('qualification title'),
 
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Program')
@@ -122,7 +122,8 @@ class TrainingProgramResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
+                    ->validationAttribute('scholarship program'),
 
                 Select::make('tvet_id')
                     ->label('TVET Sector')
@@ -137,7 +138,8 @@ class TrainingProgramResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_tvet' => 'No TVET sectors available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_tvet'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_tvet')
+                    ->validationAttribute('TVET sector'),
 
                 Select::make('priority_id')
                     ->label('Priority Sector')
@@ -152,7 +154,8 @@ class TrainingProgramResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_priority' => 'No priority sectors available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_priority'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_priority')
+                    ->validationAttribute('priority sector'),
             ]);
     }
 
@@ -196,7 +199,7 @@ class TrainingProgramResource extends Resource
                     ->tooltip(fn ($state): ?string => strlen($state) > 50 ? $state : null),
                 
                 TextColumn::make('scholarshipPrograms.name')
-                    ->label('Scholarship Program')
+                    ->label('Scholarship Programs')
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($record) {
@@ -417,7 +420,10 @@ class TrainingProgramResource extends Resource
                                     Column::make('full_coc_ele')
                                         ->heading('Qualification Type'),
                                     Column::make('nc_level')
-                                        ->heading('NC Level'),
+                                        ->heading('NC Level')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->nc_level ?: '-';
+                                        }),
                                     Column::make('title')
                                         ->heading('Qualification Title'),
                                     Column::make('formatted_scholarship_programs')

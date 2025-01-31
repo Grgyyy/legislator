@@ -16,8 +16,8 @@ class ListTrainingPrograms extends ListRecords
 {
     protected static string $resource = TrainingProgramResource::class;
 
-    protected ?string $heading = 'Qualification Titles';
-    
+    protected static ?string $title = "Qualification Titles";
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;

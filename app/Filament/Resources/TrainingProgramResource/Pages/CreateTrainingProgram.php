@@ -13,7 +13,7 @@ class CreateTrainingProgram extends CreateRecord
 {
     protected static string $resource = TrainingProgramResource::class;
 
-    protected ?string $heading = 'Create Qualification Title';
+    protected static ?string $title = "Create Qualification Title";
 
     protected function getRedirectUrl(): string
     {
@@ -47,7 +47,7 @@ class CreateTrainingProgram extends CreateRecord
 
     protected function handleRecordCreation(array $data): TrainingProgram
     {
-        $this->validateUniqueTrainingProgram($data);
+        $this->validateUniqueQualificationTitle($data);
 
         $data['title'] = Helper::capitalizeWords($data['title']);
 
@@ -56,7 +56,7 @@ class CreateTrainingProgram extends CreateRecord
                 'soc_code' => $data['soc_code'],
                 'title' => $data['title'],
                 'full_coc_ele' => $data['full_coc_ele'],
-                'nc_level' => $data['nc_level'],
+                'nc_level' => $data['nc_level']  ?? null,
                 'priority_id' => $data['priority_id'],
                 'tvet_id' => $data['tvet_id'],
         ]));
@@ -66,7 +66,7 @@ class CreateTrainingProgram extends CreateRecord
         return $trainingProgram;
     }
 
-    protected function validateUniqueTrainingProgram($data)
+    protected function validateUniqueQualificationTitle($data)
     {
         $trainingProgram = TrainingProgram::withTrashed()
             ->where('soc_code', $data['soc_code'])
@@ -76,6 +76,20 @@ class CreateTrainingProgram extends CreateRecord
             $message = $trainingProgram->deleted_at
                 ? 'A qualification title with the provided SoC code has been deleted and must be restored before reuse.'
                 : 'A qualification title with the provided SoC code already exists.';
+
+                NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        $trainingProgram = TrainingProgram::withTrashed()
+            ->where('title', $data['title'])
+            ->where('tvet_id', $data['tvet_id'])
+            ->where('priority_id', $data['priority_id'])
+            ->first();
+
+        if ($trainingProgram) {
+            $message = $trainingProgram->deleted_at
+                ? 'A qualification title with the provided details has been deleted and must be restored before reuse.'
+                : 'A qualification title with the provided details already exists.';
 
                 NotificationHandler::handleValidationException('Something went wrong', $message);
         }

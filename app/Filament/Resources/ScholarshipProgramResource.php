@@ -46,7 +46,7 @@ class ScholarshipProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Scholarship Program'),
+                    ->validationAttribute('scholarship program'),
 
                 TextInput::make("code")
                     ->label('Scholarship Program Code')
@@ -54,7 +54,7 @@ class ScholarshipProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Scholarship Program Code'),
+                    ->validationAttribute('scholarship program code'),
 
                 TextInput::make("desc")
                     ->label('Description')
@@ -62,7 +62,7 @@ class ScholarshipProgramResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Description'),
+                    ->validationAttribute('description'),
             ]);
     }
 
