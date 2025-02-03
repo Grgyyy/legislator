@@ -2,29 +2,30 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Partylist;
-use App\Filament\Resources\PartylistResource\Pages;
-use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
 use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
+use App\Models\Partylist;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
+use Filament\Resources\Resource;
+use Illuminate\Support\Facades\Auth;
+use App\Services\NotificationHandler;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use App\Filament\Resources\PartylistResource\Pages;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class PartylistResource extends Resource
 {
@@ -100,19 +101,22 @@ class PartylistResource extends Resource
                             $records->each->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected party-lists have been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore fund sources')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected party-lists have been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore fund sources')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected party-lists have been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore fund sources')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
