@@ -2,41 +2,42 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\TrainingProgram;
 use App\Models\Tvi;
-use App\Models\TviClass;
-use App\Models\InstitutionClass;
-use App\Models\District;
-use App\Filament\Resources\TviResource\Pages;
-use App\Models\Municipality;
-use App\Models\Province;
 use App\Models\Region;
-use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
+use App\Models\District;
+use App\Models\Province;
+use App\Models\TviClass;
 use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Filters\Filter;
-use Filament\Forms\Components\Fieldset;
+use App\Models\Municipality;
+use App\Models\TrainingProgram;
+use App\Models\InstitutionClass;
+use Filament\Resources\Resource;
 use Filament\Forms\Components\Grid;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Auth;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Fieldset;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use App\Filament\Resources\TviResource\Pages;
+use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class TviResource extends Resource
 {
@@ -224,8 +225,8 @@ class TviResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->limit(45)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 45 ? $state : null),
-                    // ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+                    ->tooltip(fn($state): ?string => strlen($state) > 45 ? $state : null),
+                // ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
                 TextColumn::make("tviClass.name")
                     ->label('Institution Class(A)')
@@ -261,8 +262,8 @@ class TviResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->limit(40)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 40 ? $state : null),
-                    // ->formatStateUsing(fn ($state) => ucwords($state)),
+                    ->tooltip(fn($state): ?string => strlen($state) > 40 ? $state : null),
+                // ->formatStateUsing(fn ($state) => ucwords($state)),
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id]),
@@ -411,19 +412,22 @@ class TviResource extends Resource
                             $records->each->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected institutions have been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore tvi')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected institutions have been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore tvi')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institutions have been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore tvi')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

@@ -74,7 +74,6 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     public function canAccessPanel(Panel $panel): bool
     {
-        // Define fixed roles allowed to access the panel
         $allowedRoles = [
             'Super Admin',
             'Admin',
@@ -87,13 +86,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             'TESDO',
         ];
 
-        // Check if the user has any of the explicitly allowed roles
         if ($this->hasAnyRole($allowedRoles)) {
             return true;
         }
 
-        // Dynamically check region-based roles
-        // List of regions (could be fetched dynamically from a regions table)
         $regionRoles = [
             'Region I',
             'Region II',
@@ -115,17 +111,14 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             'BARMM'
         ];
 
-        // Check if the user has any region-specific roles
+
         foreach ($regionRoles as $regionRole) {
             if ($this->hasRole($regionRole)) {
-                // Check if the user belongs to the same region
                 if ($this->region && $this->region->name === $regionRole) {
                     return true;
                 }
             }
         }
-
-        // Default to denying access if no roles match
         return false;
     }
 
