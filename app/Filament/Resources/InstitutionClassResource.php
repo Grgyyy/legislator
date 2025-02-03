@@ -97,7 +97,7 @@ class InstitutionClassResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected institutions have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore institution class a')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution class a')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -111,7 +111,7 @@ class InstitutionClassResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institutions have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution class a')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution class a')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

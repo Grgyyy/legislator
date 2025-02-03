@@ -397,7 +397,7 @@ class CompliantTargetsResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore compliant target ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete compliant target ')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

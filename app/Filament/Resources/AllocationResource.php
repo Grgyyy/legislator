@@ -568,7 +568,7 @@ class AllocationResource extends Resource
                                 'Selected allocations have been deleted successfully.'
                             );
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
 
                     RestoreBulkAction::make()
                         ->action(function ($records) {

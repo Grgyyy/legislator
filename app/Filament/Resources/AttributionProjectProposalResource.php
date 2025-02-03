@@ -1549,11 +1549,11 @@ class AttributionProjectProposalResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
                     ForceDeleteBulkAction::make()
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution project proposal ')),
                     RestoreBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution project proposal ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution project proposal ')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

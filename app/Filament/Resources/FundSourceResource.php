@@ -97,7 +97,7 @@ class FundSourceResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected fund sources have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore fund sources')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete fund sources')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();

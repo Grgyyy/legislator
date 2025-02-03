@@ -101,7 +101,7 @@ class TvetResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected sectors have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore tvet sector')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete tvet sector')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -115,7 +115,7 @@ class TvetResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected sectors have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore tvet sector')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete tvet sector')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

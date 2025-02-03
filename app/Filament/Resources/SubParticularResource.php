@@ -156,7 +156,7 @@ class SubParticularResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected particular types have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore particular types')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete particular types')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -170,7 +170,7 @@ class SubParticularResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected particular types have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore particular types')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete particular types')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

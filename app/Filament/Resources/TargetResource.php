@@ -1076,9 +1076,9 @@ class TargetResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore target ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
                     ForceDeleteBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore target ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete target ')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each(function ($record) {

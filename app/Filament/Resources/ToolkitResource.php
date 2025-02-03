@@ -241,7 +241,7 @@ class ToolkitResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected training programs have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore toolkit')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete toolkit')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -255,7 +255,7 @@ class ToolkitResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected training programs have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore toolkit')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete toolkit')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

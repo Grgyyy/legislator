@@ -99,7 +99,7 @@ class TviTypeResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected institution types have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore institution type')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution type')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -113,7 +113,7 @@ class TviTypeResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institution types have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution type')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution type')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

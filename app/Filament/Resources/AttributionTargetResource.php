@@ -1543,7 +1543,7 @@ class AttributionTargetResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected targets have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -1557,7 +1557,7 @@ class AttributionTargetResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected targets have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete allocation ')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

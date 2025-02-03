@@ -102,7 +102,7 @@ class PartylistResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected party-lists have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore party-list')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete party-list')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -116,7 +116,7 @@ class PartylistResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected party-lists have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore party-list')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete party-list')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

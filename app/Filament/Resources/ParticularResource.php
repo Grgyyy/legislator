@@ -187,7 +187,7 @@ class ParticularResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected particulars have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore particulars')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete particulars')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -201,7 +201,7 @@ class ParticularResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected particulars have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore particulars')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force deleted particulars')),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([

@@ -218,7 +218,7 @@ class SkillPriorityResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected Skills Priority have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore institution qualification title')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution qualification title')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -232,7 +232,7 @@ class SkillPriorityResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected Skills Priority have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore skills priority qualification title')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete skills priority qualification title')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
