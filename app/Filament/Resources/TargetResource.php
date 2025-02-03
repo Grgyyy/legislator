@@ -77,7 +77,7 @@ class TargetResource extends Resource
                         //     ->required()
                         //     ->markAsRequired(false)
                         //     ->numeric(),
-
+    
                         Select::make('legislator_id')
                             ->label('Legislator')
                             ->required()
@@ -174,7 +174,7 @@ class TargetResource extends Resource
                                 }
 
                                 $set('qualification_title_id', null);
-                                
+
                             })
                             ->reactive()
                             ->live(),
@@ -274,7 +274,7 @@ class TargetResource extends Resource
                             ->schema([
                                 // TextInput::make('abscap_id')
                                 //     ->label('Absorptive Capacity ID')
-                                    
+    
                                 //     ->placeholder('Enter an Absorbative capacity ID')
                                 //     ->numeric(),
                                 Select::make('legislator_id')
@@ -289,8 +289,8 @@ class TargetResource extends Resource
                                             ->whereNull('deleted_at')
                                             ->whereHas('allocation', function ($query) {
                                                 $query->where('soft_or_commitment', 'Soft')
-                                                      ->where('balance', '>', 0)
-                                                      ->whereNull('attributor_id');
+                                                    ->where('balance', '>', 0)
+                                                    ->whereNull('attributor_id');
                                             })
                                             ->pluck('name', 'id')
                                             ->toArray() ?: ['no_legislators' => 'No legislator available'];
@@ -305,7 +305,7 @@ class TargetResource extends Resource
                                             $set('appropriation_type', null);
                                             return;
                                         }
-                                
+
                                         // Fetch allocations based on the selected legislator
                                         $allocations = Allocation::where('legislator_id', $state)
                                             ->where('soft_or_commitment', 'Soft')
@@ -313,33 +313,33 @@ class TargetResource extends Resource
                                             ->whereNull('attributor_id')
                                             ->with('particular', 'scholarship_program')
                                             ->get();
-                                
+
                                         // Prepare options for the particular, scholarship programs, and allocation year
                                         $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                         $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-                                
+
                                         // Set particular_id, scholarship_program_id, and allocation_year based on the allocations available
                                         if (count($particularOptions) === 1) {
                                             $set('particular_id', key($particularOptions));
                                         } else {
                                             $set('particular_id', null);
                                         }
-                                
+
                                         if (count($scholarshipProgramOptions) === 1) {
                                             $set('scholarship_program_id', key($scholarshipProgramOptions));
                                         } else {
                                             $set('scholarship_program_id', null);
                                         }
-                                
+
                                         $particularId = $particularOptions ? key($particularOptions) : null;
                                         $scholarshipProgramId = $scholarshipProgramOptions ? key($scholarshipProgramOptions) : null;
-                                
+
                                         // Set allocation year and appropriation type if both particular and scholarship_program are set
                                         if ($particularId && $scholarshipProgramId) {
                                             if (count($allocations) === 1) {
                                                 $set('allocation_year', key($appropriationYearOptions));
-                                
+
                                                 $currentYear = now()->year;
                                                 if (key($appropriationYearOptions) == $currentYear) {
                                                     $set('appropriation_type', 'Current');
@@ -355,7 +355,7 @@ class TargetResource extends Resource
                                     })
                                     ->reactive()
                                     ->live(),
-                                
+
                                 Select::make('particular_id')
                                     ->label('Particular')
                                     ->required()
@@ -366,11 +366,11 @@ class TargetResource extends Resource
                                     ->options(function ($get) {
                                         $legislator_id = $get('legislator_id');
                                         $legislatorRecords = Legislator::find($legislator_id);
-                                
+
                                         if ($legislatorRecords) {
                                             // Get particulars with subParticular names
                                             $particulars = $legislatorRecords->particular()->with(['subParticular', 'district.province.region'])->get();
-                                
+
                                             if ($particulars->isNotEmpty()) {
                                                 // Prepare options array
                                                 $options = $particulars->mapWithKeys(function ($particular) {
@@ -381,7 +381,7 @@ class TargetResource extends Resource
                                                     $provinceName = $particular->district && $particular->district && $particular->district->province ? $particular->district->province->name : 'No Province';
                                                     $regionName = $particular->district && $particular->district && $particular->district->province && $particular->district->province->region ? $particular->district->province->region->name : 'No Region';
                                                     $partylistName = $particular->partylist ? $particular->partylist->name : 'No Partylist';
-                                
+
                                                     if ($fundSourceName === 'CO Legislator Funds') {
                                                         if ($subParticularName === 'Senator') {
                                                             return [$particular->id => "{$subParticularName}"];
@@ -403,14 +403,14 @@ class TargetResource extends Resource
                                                         $regionName = $particular->district?->province?->region ?? 'No Region';
                                                         return [$particular->id => "{$subParticularName} - {$regionName->name}"];
                                                     }
-                                
+
                                                     return [];
                                                 })->toArray();
-                                
+
                                                 return $options ?: ['no_particular' => 'No particular available'];
                                             }
                                         }
-                                
+
                                         return ['no_particular' => 'No particular available. Select a legislator first.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_particular')
@@ -422,24 +422,24 @@ class TargetResource extends Resource
                                             $set('appropriation_type', null);
                                             return;
                                         }
-                                
+
                                         $legislator_id = $get('legislator_id');
                                         $allocations = Allocation::where('legislator_id', $legislator_id)
                                             ->where('particular_id', $state)
                                             ->where('soft_or_commitment', 'Soft')
                                             ->with('particular', 'scholarship_program')
                                             ->get();
-                                
+
                                         $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-                                
+
                                         $currentYear = now()->year;
-                                
+
                                         if (count($allocations) === 1) {
                                             // If only one allocation exists, set values automatically
                                             $set('scholarship_program_id', key($scholarshipProgramOptions));
                                             $set('allocation_year', key($appropriationYearOptions));
-                                
+
                                             // If the allocation year matches the current year, set the appropriation type as 'Current'
                                             if (key($appropriationYearOptions) == $currentYear) {
                                                 $set('appropriation_type', 'Current');
@@ -575,7 +575,7 @@ class TargetResource extends Resource
                                         }
 
                                         $set('qualification_title_id', null);
-                                        
+
                                     })
                                     ->reactive()
                                     ->live(),
@@ -795,8 +795,7 @@ class TargetResource extends Resource
                         } else {
                             if ($municipality === '') {
                                 return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
-                            }
-                            else {
+                            } else {
                                 return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
                             }
                         }
@@ -1006,7 +1005,7 @@ class TargetResource extends Resource
 
                             $slots = $record->number_of_slots;
                             $totalCostOfToolkit = 0;
-                            
+
                             if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
 
                                 $toolkit->available_number_of_toolkits -= $slots;
@@ -1041,45 +1040,47 @@ class TargetResource extends Resource
                             $records->each(function ($record) {
                                 $allocation = $record->allocation;
                                 $totalAmount = $record->total_amount;
-    
+
                                 $qualificationTitleId = $record->qualification_title_id;
                                 $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
-    
+
                                 $provinceId = $record->tvi->district->province_id;
-    
+
                                 $quali = QualificationTitle::find($qualificationTitleId);
                                 $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
-    
+
                                 $stepId = ScholarshipProgram::where('name', 'STEP')->first();
                                 $compliant = TargetStatus::where("desc", "Compliant")->first();
-    
+
                                 $slots = $record->number_of_slots;
                                 $totalCostOfToolkit = 0;
-    
+
                                 if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
-    
+
                                     $toolkit->available_number_of_toolkits += $slots;
                                     $toolkit->save();
                                 }
-    
+
                                 $skillPriority = SkillPriority::where('province_id', $provinceId)
                                     ->where('training_program_id', $trainingProgramId)
                                     ->where('year', $allocation->year)
                                     ->first();
-    
+
                                 $skillPriority->available_slots += $slots;
                                 $skillPriority->save();
-    
+
                                 $allocation->balance += $totalAmount + $totalCostOfToolkit;
                                 $allocation->save();
-    
+
                                 $record->delete();
                             });
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
-                        }),
-                    ForceDeleteBulkAction::make(),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
+                    ForceDeleteBulkAction::make()
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete target ')),
                     RestoreBulkAction::make()
-                        ->action(function ($records){
+                        ->action(function ($records) {
                             $records->each(function ($record) {
                                 $allocation = $record->allocation;
                                 $totalAmount = $record->total_amount;
@@ -1099,7 +1100,7 @@ class TargetResource extends Resource
 
                                 $totalCostOfToolkit = 0;
                                 if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
-                                    
+
                                     $toolkit->available_number_of_toolkits -= $slots;
                                     $toolkit->save();
                                 }
@@ -1119,7 +1120,8 @@ class TargetResource extends Resource
                                 $record->save();
                             });
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore target ')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -1284,7 +1286,7 @@ class TargetResource extends Resource
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('new_normal_assistance_per_slot')
                                         ->heading('New Normal Assistance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_new_normal_assistance'))
@@ -1360,7 +1362,7 @@ class TargetResource extends Resource
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_entrepreneurship_fee')
                                         ->heading('Total Entrepreneurship Fee')
                                         ->formatStateUsing(function ($state) {
@@ -1456,8 +1458,7 @@ class TargetResource extends Resource
                 } else {
                     if ($particular->district->underMunicipality) {
                         return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
-                    }
-                    else {
+                    } else {
                         return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->province->name];
                     }
                 }

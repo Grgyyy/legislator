@@ -45,7 +45,7 @@ class TopTenPolicy
      */
     public function delete(User $user, Priority $priority): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**

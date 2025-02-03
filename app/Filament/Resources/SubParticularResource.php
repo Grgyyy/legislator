@@ -2,32 +2,33 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\SubParticular;
-use App\Models\FundSource;
-use App\Filament\Resources\SubParticularResource\Pages;
-use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
 use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
+use App\Models\FundSource;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
+use App\Models\SubParticular;
+use Filament\Resources\Resource;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Auth;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Filters\Filter;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\SubParticularResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class SubParticularResource extends Resource
 {
@@ -38,7 +39,7 @@ class SubParticularResource extends Resource
     protected static ?string $navigationParentItem = "Fund Sources";
 
     protected static ?string $navigationLabel = "Particular Types";
-    
+
     protected static ?int $navigationSort = 2;
 
     protected static ?string $slug = "particular-types";
@@ -68,7 +69,7 @@ class SubParticularResource extends Resource
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_fund_source' => 'No fund sources available'];
                     })
-                    ->disableOptionWhen(fn ($value) => $value === 'no_fund_source'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_fund_source'),
             ]);
     }
 
@@ -87,7 +88,7 @@ class SubParticularResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                    
+
                 TextColumn::make('fundSource.name')
                     ->label('Fund Source')
                     ->sortable()
@@ -154,19 +155,22 @@ class SubParticularResource extends Resource
                             $records->each->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected particular types have been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete particular types')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected particular types have been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore particular types')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected particular types have been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete particular types')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -181,7 +185,7 @@ class SubParticularResource extends Resource
                 ])
             ]);
     }
-        
+
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()

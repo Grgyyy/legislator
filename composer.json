@@ -19,9 +19,10 @@
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "leandrocfe/filament-apex-charts": "^3.1",
+        "livewire/livewire": "3.5.12",
         "psr/simple-cache": "^2.0",
         "pxlrbt/filament-excel": "^2.3",
-          "livewire/livewire": "3.5.12"
+        "spatie/laravel-permission": "^6.12"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.13",

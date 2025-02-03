@@ -2,34 +2,35 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ToolkitResource\Pages;
-use App\Filament\Resources\ToolkitResource\RelationManagers;
+use Filament\Forms;
+use Filament\Tables;
+use App\Models\Toolkit;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use App\Models\Toolkit;
+use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationHandler;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use App\Filament\Resources\ToolkitResource\Pages;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\ToolkitResource\RelationManagers;
 
 class ToolkitResource extends Resource
 {
@@ -72,7 +73,7 @@ class ToolkitResource extends Resource
                     ->afterStateUpdated(function ($state, $set) {
                         if ($state && isset($state[0])) {  // Check if there is at least one selected value
                             $qualificationTitle = QualificationTitle::find($state[0]);  // Get the first selected ID
-
+            
                             if ($qualificationTitle) {
                                 $set('lot_name', $qualificationTitle->trainingProgram->title);
                             } else {
@@ -189,21 +190,21 @@ class ToolkitResource extends Resource
                 TextColumn::make('available_number_of_toolkits')
                     ->label('Available Number of Toolkits Per Lot')
                     ->getStateUsing(fn($record) => $record->available_number_of_toolkits ?? '-'),
-                    
+
                 TextColumn::make('number_of_toolkits')
                     ->label('No. of Toolkits')
                     ->getStateUsing(fn($record) => $record->number_of_toolkits ?? '-'),
 
                 TextColumn::make('total_abc_per_lot')
                     ->label('Total ABC per Lot')
-                    ->getStateUsing(fn($record) => $record->total_abc_per_lot 
-                        ? '₱' . number_format((float) $record->total_abc_per_lot, 2, '.', ',') 
+                    ->getStateUsing(fn($record) => $record->total_abc_per_lot
+                        ? '₱' . number_format((float) $record->total_abc_per_lot, 2, '.', ',')
                         : '-'),
 
                 TextColumn::make('number_of_items_per_toolkit')
-                    ->label('No. of Items per Toolkit'),  
+                    ->label('No. of Items per Toolkit'),
                 TextColumn::make('year')
-                    ->label('Year'), 
+                    ->label('Year'),
             ])
             ->filters([
                 //
@@ -233,44 +234,49 @@ class ToolkitResource extends Resource
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
+                BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected training programs have been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete toolkit')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected training programs have been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore toolkit')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected training programs have been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete toolkit')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
                                 ->withColumns([
                                     Column::make('formatted_scholarship_programs')
                                         ->heading('Qualification Titles')
-                                        ->getStateUsing(fn($record) => $record->qualificationTitles
-                                            ->map(fn($qualificationTitle) => 
-                                                $qualificationTitle->trainingProgram 
-                                                    ? "{$qualificationTitle->trainingProgram->soc_code}" 
+                                        ->getStateUsing(
+                                            fn($record) => $record->qualificationTitles
+                                                ->map(
+                                                    fn($qualificationTitle) =>
+                                                    $qualificationTitle->trainingProgram
+                                                    ? "{$qualificationTitle->trainingProgram->soc_code}"
                                                     : null
-                                            )
-                                            ->filter() // Remove null values
-                                            ->implode(', ')
+                                                )
+                                                ->filter() // Remove null values
+                                                ->implode(', ')
                                         ),
 
                                     Column::make('lot_name')
                                         ->heading('Lot Name'),
-                                        
+
                                     Column::make('price_per_toolkit')
                                         ->heading('Estimated Price Per Toolkit')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
@@ -285,8 +291,8 @@ class ToolkitResource extends Resource
 
                                     Column::make('total_abc_per_lot')
                                         ->heading('Total ABC Per Lot')
-                                        ->getStateUsing(fn($record) => $record->total_abc_per_lot 
-                                            ? '₱' . number_format((float) $record->total_abc_per_lot, 2, '.', ',') 
+                                        ->getStateUsing(fn($record) => $record->total_abc_per_lot
+                                            ? '₱' . number_format((float) $record->total_abc_per_lot, 2, '.', ',')
                                             : '-'),
 
                                     Column::make('number_of_items_per_toolkit')

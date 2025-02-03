@@ -45,7 +45,7 @@ class InstitutionClassBPolicy
      */
     public function delete(User $user, InstitutionClass $institutionClass): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**

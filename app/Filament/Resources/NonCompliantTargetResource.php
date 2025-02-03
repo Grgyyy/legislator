@@ -23,6 +23,7 @@ use Filament\Resources\Resource;
 use App\Models\NonCompliantTarget;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
+use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
@@ -34,13 +35,14 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\NonCompliantTargetResource\Pages;
 use App\Filament\Resources\NonCompliantTargetResource\RelationManagers;
-use Illuminate\Support\Facades\Auth;
 
 class NonCompliantTargetResource extends Resource
 {
@@ -248,16 +250,16 @@ class NonCompliantTargetResource extends Resource
                                 })
                                 ->toArray() ?: ['no_tvi' => 'No institution available'];
                         })
-                       ->afterStateUpdated(function (callable $set, $state) {
-                                                if (!$state) {
-                                                    $set('qualification_title_id', null);
-                                                }
+                        ->afterStateUpdated(function (callable $set, $state) {
+                            if (!$state) {
+                                $set('qualification_title_id', null);
+                            }
 
-                                                $set('qualification_title_id', null);
+                            $set('qualification_title_id', null);
 
-                                            })
-                                            ->reactive()
-                                            ->live(),
+                        })
+                        ->reactive()
+                        ->live(),
 
                     Select::make('qualification_title_id')
                         ->label('Qualification Title')
@@ -661,8 +663,9 @@ class NonCompliantTargetResource extends Resource
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution project proposal ')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -695,8 +698,7 @@ class NonCompliantTargetResource extends Resource
                                         ->getStateUsing(function ($record) {
                                             if (!$record->allocation->attributor) {
                                                 return '-';
-                                            }
-                                            else {
+                                            } else {
                                                 return $record->allocation->attributor->name;
                                             }
                                         }),
@@ -721,8 +723,7 @@ class NonCompliantTargetResource extends Resource
                                             } else {
                                                 if ($municipality) {
                                                     return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
-                                                }
-                                                else {
+                                                } else {
                                                     return "{$particular->subParticular->name} - {$districtName}, {$provinceName}, {$regionName}";
                                                 }
                                             }
@@ -756,8 +757,7 @@ class NonCompliantTargetResource extends Resource
                                             } else {
                                                 if ($municipality) {
                                                     return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
-                                                }
-                                                else {
+                                                } else {
                                                     return "{$particular->subParticular->name} - {$districtName}, {$provinceName}, {$regionName}";
                                                 }
                                             }
@@ -868,7 +868,7 @@ class NonCompliantTargetResource extends Resource
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('misc_fee_per_slot')
                                         ->heading('Miscellaneous Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_misc_fee'))
@@ -876,7 +876,7 @@ class NonCompliantTargetResource extends Resource
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_amount_per_slot')
                                         ->heading('PCC')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_amount'))
@@ -884,84 +884,84 @@ class NonCompliantTargetResource extends Resource
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_training_cost_pcc')
                                         ->heading('Total Training Cost')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_cost_of_toolkit_pcc')
                                         ->heading('Total Cost of Toolkit')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_training_support_fund')
                                         ->heading('Total Training Support Fund')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_assessment_fee')
                                         ->heading('Total Assessment Fee')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_entrepreneurship_fee')
                                         ->heading('Total Entrepreneurship Fee')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_new_normal_assisstance')
                                         ->heading('Total New Normal Assistance')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_accident_insurance')
                                         ->heading('Total Accident Insurance')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_book_allowance')
                                         ->heading('Total Book Allowance')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_uniform_allowance')
                                         ->heading('Total Uniform Allowance')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_misc_fee')
                                         ->heading('Total Miscellaneous Fee')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
                                     Column::make('total_amount')
                                         ->heading('Total PCC')
                                         ->formatStateUsing(function ($state) {
                                             $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
                                             return $formatter->formatCurrency($state, 'PHP');
                                         }),
-                                        
+
 
                                     Column::make('nonCompliantRemark.target_remarks.remarks')
                                         ->heading('Remarks')

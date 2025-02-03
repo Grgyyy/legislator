@@ -45,7 +45,7 @@ class ScholarshipProgramPolicy
      */
     public function delete(User $user, ScholarshipProgram $scholarshipProgram): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**

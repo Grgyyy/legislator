@@ -2,39 +2,40 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\InstitutionProgramResource\Pages;
-use App\Filament\Resources\InstitutionProgramResource\RelationManagers;
-use App\Models\InstitutionProgram;
-use App\Models\Province;
-use App\Models\Region;
-use App\Models\TrainingProgram;
 use App\Models\Tvi;
-use App\Services\NotificationHandler;
 use Filament\Forms;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\TrashedFilter;
+use App\Models\Region;
+use App\Models\Province;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
+use App\Models\TrainingProgram;
+use Filament\Resources\Resource;
+use App\Models\InstitutionProgram;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Auth;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Fieldset;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use App\Filament\Resources\InstitutionProgramResource\Pages;
+use App\Filament\Resources\InstitutionProgramResource\RelationManagers;
 
 class InstitutionProgramResource extends Resource
 {
@@ -91,7 +92,7 @@ class InstitutionProgramResource extends Resource
                             ->mapWithKeys(function ($title, $id) {
                                 // Assuming `soc_code` is a column in the TrainingProgram model
                                 $program = TrainingProgram::find($id);
-                    
+
                                 return [$id => "{$program->soc_code} - {$program->title}"];
                             })
                             ->toArray() ?: ['no_training_program' => 'No Training Program Available'];
@@ -108,30 +109,30 @@ class InstitutionProgramResource extends Resource
                 TextColumn::make('tvi.name')
                     ->label('Institution')
                     ->searchable(),
-                    // ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+                // ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
                 TextColumn::make('trainingProgram.title')
                     ->label('Qualification Title')
                     ->searchable()
-                    // ->formatStateUsing(function ($state) {
-                    //     if (!$state) {
-                    //         return $state;
-                    //     }
+                // ->formatStateUsing(function ($state) {
+                //     if (!$state) {
+                //         return $state;
+                //     }
 
-                    //     $state = ucwords($state);
+                //     $state = ucwords($state);
 
-                    //     if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                    //         $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                    //             return 'NC ' . strtoupper($matches[1]);
-                    //         }, $state);
-                    //     }
+                //     if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
+                //         $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                //             return 'NC ' . strtoupper($matches[1]);
+                //         }, $state);
+                //     }
 
-                    //     return $state;
-                    // })
+                //     return $state;
+                // })
             ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
-                
+
                 Filter::make('filter')
                     ->form(function () {
                         return [
@@ -164,13 +165,13 @@ class InstitutionProgramResource extends Resource
                         return $query
                             ->when(
                                 $data['region_id'] ?? null,
-                                fn (Builder $query, $regionId) => $query->whereHas('tvi.district.province.region', function ($query) use ($regionId) {
+                                fn(Builder $query, $regionId) => $query->whereHas('tvi.district.province.region', function ($query) use ($regionId) {
                                     $query->where('id', $regionId);
                                 })
                             )
                             ->when(
                                 $data['province_id'] ?? null,
-                                fn (Builder $query, $provinceId) => $query->whereHas('tvi.district.province', function ($query) use ($provinceId) {
+                                fn(Builder $query, $provinceId) => $query->whereHas('tvi.district.province', function ($query) use ($provinceId) {
                                     $query->where('id', $provinceId);
                                 })
                             );
@@ -219,19 +220,22 @@ class InstitutionProgramResource extends Resource
                             $records->each->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected institutions have been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution qualification title')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected institutions have been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution qualification title')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institutions have been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution qualification title')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -245,9 +249,11 @@ class InstitutionProgramResource extends Resource
                                                 return 'No Institution Information';
                                             }
 
-                                            return preg_replace_callback('/(\d)([a-zA-Z])/',
+                                            return preg_replace_callback(
+                                                '/(\d)([a-zA-Z])/',
                                                 fn($matches) => $matches[1] . strtoupper($matches[2]),
-                                                ucwords($tvi->name));
+                                                ucwords($tvi->name)
+                                            );
                                         }),
                                     Column::make('training_program_id')
                                         ->heading('Qualification Title')

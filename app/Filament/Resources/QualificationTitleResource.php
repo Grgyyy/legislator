@@ -2,38 +2,39 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\Status;
+use Filament\Forms\Form;
+use Filament\Pages\Page;
+use Filament\Tables\Table;
+use App\Models\TrainingProgram;
+use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use App\Models\TrainingProgram;
-use App\Models\Status;
-use App\Filament\Resources\QualificationTitleResource\Pages;
+use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationHandler;
-use Filament\Forms\Components\Fieldset;
-use Filament\Resources\Resource;
-use Filament\Resources\Pages\CreateRecord;
-use Filament\Pages\Page;
-use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
+use Filament\Forms\Components\Fieldset;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\SelectColumn;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Resources\Pages\CreateRecord;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\QualificationTitleResource\Pages;
 
 class QualificationTitleResource extends Resource
 {
@@ -67,7 +68,7 @@ class QualificationTitleResource extends Resource
                             ->mapWithKeys(function ($title, $id) {
                                 // Assuming `soc_code` is a column in the TrainingProgram model
                                 $program = TrainingProgram::find($id);
-                    
+
                                 return [$id => "{$program->soc_code} - {$program->title}"];
                             })
                             ->toArray() ?: ['no_qualification_title' => 'No qualification titles available'];
@@ -96,7 +97,7 @@ class QualificationTitleResource extends Resource
                     ->native(false)
                     ->options(function ($get) {
                         $trainingProgramId = $get('training_program_id');
-                
+
                         return $trainingProgramId
                             ? self::getScholarshipProgramsOptions($trainingProgramId)
                             : ['no_scholarship_program' => 'No scholarship programs available. Select a training program first.'];
@@ -104,7 +105,7 @@ class QualificationTitleResource extends Resource
                     ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                     ->reactive()
                     ->live(),
-                
+
                 Fieldset::make('Costing')
                     ->schema([
                         TextInput::make('training_cost_pcc')
@@ -260,7 +261,7 @@ class QualificationTitleResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                   TextColumn::make('trainingProgram.soc_code')
+                TextColumn::make('trainingProgram.soc_code')
                     ->label('SOC Code')
                     ->sortable()
                     ->searchable()
@@ -272,8 +273,8 @@ class QualificationTitleResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->limit(50)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 50 ? $state : null),
-                    
+                    ->tooltip(fn($state): ?string => strlen($state) > 50 ? $state : null),
+
                 TextColumn::make('scholarshipProgram.name')
                     ->label('Scholarship Program')
                     ->sortable()
@@ -360,8 +361,8 @@ class QualificationTitleResource extends Resource
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
                     }),
-                
-                    TextColumn::make("toolkit.price_per_toolkit")
+
+                TextColumn::make("toolkit.price_per_toolkit")
                     ->label("Cost of Toolkits PCC")
                     ->sortable()
                     ->toggleable()
@@ -372,7 +373,7 @@ class QualificationTitleResource extends Resource
                             ? number_format($record->toolkit->price_per_toolkit, 2, '.', ',')
                             : '0.00';
                     }),
-                
+
                 TextColumn::make("pcc")
                     ->label("Total PCC (w/o Toolkits)")
                     ->sortable()
@@ -381,7 +382,7 @@ class QualificationTitleResource extends Resource
                     ->formatStateUsing(function ($state) {
                         return number_format($state, 2, '.', ',');
                     }),
-                
+
                 TextColumn::make('days_duration')
                     ->label('Training Days')
                     ->sortable()
@@ -460,19 +461,22 @@ class QualificationTitleResource extends Resource
                             $records->each->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected schedule of cost have been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete qualification title')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected schedule of cost have been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore qualification title')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected schedule of cost have been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete qualification title')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()

@@ -45,7 +45,7 @@ class ParticularTypePolicy
      */
     public function delete(User $user, SubParticular $subParticular): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**

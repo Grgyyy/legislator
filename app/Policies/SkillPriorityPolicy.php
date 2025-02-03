@@ -45,7 +45,7 @@ class SkillPriorityPolicy
      */
     public function delete(User $user, SkillPriority $skillPriority): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'Planning Office']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Filament\Notifications\Notification;
 use Illuminate\Validation\ValidationException;
 
+
 class Allocation extends Model
 {
     use HasFactory, SoftDeletes;

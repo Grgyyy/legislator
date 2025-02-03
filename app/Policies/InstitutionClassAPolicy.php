@@ -45,7 +45,7 @@ class InstitutionClassAPolicy
      */
     public function delete(User $user, TviClass $tviClass): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**

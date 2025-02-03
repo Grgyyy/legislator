@@ -2,35 +2,36 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProjectProposalResource\Pages;
-use App\Models\Priority;
-use App\Models\ScholarshipProgram;
-use App\Models\TrainingProgram;
 use App\Models\Tvet;
-use App\Services\NotificationHandler;
-use Filament\Tables\Actions\Action;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
+use App\Models\Priority;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Models\TrainingProgram;
+use Filament\Resources\Resource;
+use App\Models\ScholarshipProgram;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Auth;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Fieldset;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use App\Filament\Resources\ProjectProposalResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class ProjectProposalResource extends Resource
 {
@@ -83,10 +84,10 @@ class ProjectProposalResource extends Resource
                     ->live()
                     ->hidden(fn($livewire) => $livewire->noQualiCode())
                     ->validationAttribute('qualification type'),
-                    
+
                 Select::make('nc_level')
                     ->label('NC Level')
-                    ->required(fn ($get) => $get('full_coc_ele') === 'Full')
+                    ->required(fn($get) => $get('full_coc_ele') === 'Full')
                     ->markAsRequired(false)
                     ->native(false)
                     ->options([
@@ -99,9 +100,9 @@ class ProjectProposalResource extends Resource
                     ])
                     ->reactive()
                     ->live()
-                    ->hidden(fn ($get) => $get('full_coc_ele') !== 'Full')
+                    ->hidden(fn($get) => $get('full_coc_ele') !== 'Full')
                     ->validationAttribute('NC level'),
-                    
+
                 TextInput::make('title')
                     ->label("Qualification Title")
                     ->placeholder('Enter qualification title')
@@ -291,11 +292,11 @@ class ProjectProposalResource extends Resource
                         if (!empty($data['scholarship_program'])) {
                             $indicators[] = 'Scholarship Program: ' . Optional(ScholarshipProgram::find($data['scholarship_program']))->name;
                         }
-                        
+
                         if (!empty($data['full_coc_ele'])) {
                             $indicators[] = 'Qualification Type: ' . $data['full_coc_ele'];
                         }
-                        
+
                         if (!empty($data['nc_level'])) {
                             $indicators[] = 'NC Level: ' . $data['nc_level'];
                         }
@@ -344,20 +345,23 @@ class ProjectProposalResource extends Resource
                         ->action(function ($records) {
                             $records->each->delete();
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected qualifications titles have been deleted successfully.');
-                        }),
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected project proposal programs have been deleted successfully.');
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete project proposal')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Selected qualifications titles have been restored successfully.');
-                        }),
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected project proposal programs have been restored successfully.');
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore project proposal')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
-                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected qualifications titles have been deleted permanently.');
-                        }),
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected project proposal programs have been deleted permanently.');
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete project proposal')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -368,9 +372,10 @@ class ProjectProposalResource extends Resource
                                         ->heading('Qualification Title'),
                                     Column::make('formatted_scholarship_programs')
                                         ->heading('Scholarship Programs')
-                                        ->getStateUsing(fn($record) => $record->scholarshipPrograms
-                                            ->pluck('name')
-                                            ->implode(', ')
+                                        ->getStateUsing(
+                                            fn($record) => $record->scholarshipPrograms
+                                                ->pluck('name')
+                                                ->implode(', ')
                                         ),
                                     Column::make('tvet.name')
                                         ->heading('TVET Sector'),

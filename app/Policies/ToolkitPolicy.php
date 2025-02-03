@@ -45,7 +45,7 @@ class ToolkitPolicy
      */
     public function delete(User $user, Toolkit $toolkit): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**

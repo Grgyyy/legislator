@@ -45,7 +45,7 @@ class PartyListPolicy
      */
     public function delete(User $user, Partylist $partylist): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**
