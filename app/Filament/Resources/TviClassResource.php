@@ -134,14 +134,14 @@ class TviClassResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected institution classes have been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore institution class b')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution class b')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institution classes have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore institution class b')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution class b')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
