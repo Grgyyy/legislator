@@ -19,6 +19,8 @@ class ListQualificationTitles extends ListRecords
 {
     protected static string $resource = QualificationTitleResource::class;
 
+    protected static ?string $title = 'Schedule of Cost';
+    
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -27,12 +29,10 @@ class ListQualificationTitles extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            route('filament.admin.resources.qualification-titles.index') => 'Schedule of Cost',
-            'List',
+            '/schedule-of-cost' => 'Schedule of Cost',
+            'Create',
         ];
     }
-
-    protected ?string $heading = 'Schedule of Cost';
 
     protected function getHeaderActions(): array
     {
@@ -58,7 +58,7 @@ class ListQualificationTitles extends ListRecords
 
             Action::make('QualificationTitleImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
                         ->required()
@@ -73,9 +73,9 @@ class ListQualificationTitles extends ListRecords
 
                         try {
                             Excel::import(new QualificationTitleImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Schedule of Cost have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The schedule of costs have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the schedule of cost: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the schedule of costs: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);

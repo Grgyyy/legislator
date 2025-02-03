@@ -8,22 +8,20 @@ use Filament\Pages\Page;
 use Filament\Tables\Table;
 use App\Models\TrainingProgram;
 use Filament\Resources\Resource;
+use App\Filament\Resources\QualificationTitleResource\Pages;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Fieldset;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Resources\Pages\CreateRecord;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -31,11 +29,14 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use App\Exports\CustomExport\CustomScheduleOfCostExport;
+use Illuminate\Support\Str;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Filament\Resources\QualificationTitleResource\Pages;
 
 class QualificationTitleResource extends Resource
 {
@@ -67,7 +68,6 @@ class QualificationTitleResource extends Resource
                         return TrainingProgram::where('soc', 1)
                             ->pluck('title', 'id')
                             ->mapWithKeys(function ($title, $id) {
-                                // Assuming `soc_code` is a column in the TrainingProgram model
                                 $program = TrainingProgram::find($id);
 
                                 return [$id => "{$program->soc_code} - {$program->title}"];
@@ -86,7 +86,8 @@ class QualificationTitleResource extends Resource
                             $set('scholarship_program_id', key($scholarshipPrograms));
                         }
                     })
-                    ->live(),
+                    ->live()
+                    ->validationAttribute('qualification title'),
 
                 Select::make('scholarship_program_id')
                     ->label('Scholarship Program')
@@ -105,8 +106,9 @@ class QualificationTitleResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                     ->reactive()
-                    ->live(),
-
+                    ->live()
+                    ->validationAttribute('scholarship program'),
+                
                 Fieldset::make('Costing')
                     ->schema([
                         TextInput::make('training_cost_pcc')
@@ -220,7 +222,9 @@ class QualificationTitleResource extends Resource
                             ->numeric()
                             ->suffix('day(s)')
                             ->default(0)
-                            ->minValue(0),
+                            ->minValue(0)
+                            ->currencyMask(precision: 0),
+
                         TextInput::make('hours_duration')
                             ->label('Hours')
                             ->required()
@@ -229,7 +233,8 @@ class QualificationTitleResource extends Resource
                             ->numeric()
                             ->suffix('hrs')
                             ->default(0)
-                            ->minValue(0),
+                            ->minValue(0)
+                            ->currencyMask(precision: 0),
                     ])
                     ->columns(2),
 
@@ -253,7 +258,7 @@ class QualificationTitleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('trainingProgram.title')
+            ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No schedule of cost available')
             ->columns([
                 TextColumn::make('trainingProgram.code')
@@ -370,7 +375,6 @@ class QualificationTitleResource extends Resource
                     ->toggleable()
                     ->prefix('₱ ')
                     ->getStateUsing(function ($record) {
-                        // Check if the related toolkit exists and has a price_per_toolkit value
                         return $record->toolkit && $record->toolkit->price_per_toolkit !== null
                             ? number_format($record->toolkit->price_per_toolkit, 2, '.', ',')
                             : '0.00';
@@ -420,17 +424,53 @@ class QualificationTitleResource extends Resource
                 TrashedFilter::make()
                     ->label('Records'),
 
-                SelectFilter::make('training_program')
-                    ->label('Training Program')
-                    ->relationship('trainingProgram', 'title'),
+                Filter::make('filter')
+                    ->form(function () {
+                        return [
+                            Select::make('scholarship_program')
+                                ->label("Scholarship Program")
+                                ->placeholder('All')
+                                ->relationship('scholarshipPrograms', 'name')
+                                ->options(function () {
+                                    return ScholarshipProgram::all()
+                                        ->pluck('name', 'id')
+                                        ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
+                                })
+                                ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
+                                ->reactive(),
 
-                SelectFilter::make('scholarship_program')
-                    ->label('Scholarship Program')
-                    ->relationship('scholarshipProgram', 'name'),
+                            Select::make('status_id')
+                                ->label("Status")
+                                ->placeholder('All')
+                                ->relationship('status', 'desc')
+                                ->reactive(),
+                        ];
+                    })
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['scholarship_program'] ?? null,
+                                fn(Builder $query, $scholarshipProgramId) => $query->where('scholarship_program_id', $scholarshipProgramId)
+                            )
 
-                SelectFilter::make('status')
-                    ->label('Status')
-                    ->relationship('status', 'desc'),
+                            ->when(
+                                $data['status_id'] ?? null,
+                                fn(Builder $query, $statusId) => $query->where('status_id', $statusId)
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if (!empty($data['scholarship_program'])) {
+                            $indicators[] = 'Scholarship Program: ' . Optional(ScholarshipProgram::find($data['scholarship_program']))->name;
+                        }
+
+                        if (!empty($data['status_id'])) {
+                            $indicators[] = 'Status: ' . Optional(Status::find($data['status_id']))->desc;
+                        }
+
+                        return $indicators;
+                    })
             ])
             ->actions([
                 ActionGroup::make([

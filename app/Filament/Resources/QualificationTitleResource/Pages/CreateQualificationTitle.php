@@ -5,13 +5,14 @@ namespace App\Filament\Resources\QualificationTitleResource\Pages;
 use App\Filament\Resources\QualificationTitleResource;
 use App\Models\QualificationTitle;
 use App\Services\NotificationHandler;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
 class CreateQualificationTitle extends CreateRecord
 {
     protected static string $resource = QualificationTitleResource::class;
+
+    protected static ?string $title = 'Schedule of Cost';
 
     protected function getRedirectUrl(): string
     {
@@ -38,16 +39,14 @@ class CreateQualificationTitle extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            route('filament.admin.resources.qualification-titles.index') => 'Schedule of Cost',
-            'Insert a Record',
+            '/schedule-of-cost' => 'Schedule of Cost',
+            'Create',
         ];
     }
 
-    protected ?string $heading = 'Insert a Record in the Schedule of Cost';
-
     protected function handleRecordCreation(array $data): QualificationTitle
     {
-        $this->validateUniqueQualificationTitle($data['training_program_id'], $data['scholarship_program_id']);
+        $this->validateUniqueQualificationTitle($data);
 
         $target = DB::transaction(function () use ($data) {
             $costingFields = [
@@ -78,7 +77,7 @@ class CreateQualificationTitle extends CreateRecord
             ]));
         });
 
-        NotificationHandler::sendSuccessNotification('Created', 'Qualification title has been created successfully.');
+        NotificationHandler::sendSuccessNotification('Created', 'Schedule of cost has been created successfully.');
 
         return $target;
     }
@@ -93,17 +92,17 @@ class CreateQualificationTitle extends CreateRecord
         return is_numeric($value) ? (float) $value : 0;
     }
 
-    protected function validateUniqueQualificationTitle($trainingProgramId, $scholarshipProgramId)
+    protected function validateUniqueQualificationTitle($data)
     {
         $qualificationTitle = QualificationTitle::withTrashed()
-            ->where('training_program_id', $trainingProgramId)
-            ->where('scholarship_program_id', $scholarshipProgramId)
+            ->where('training_program_id', $data['training_program_id'])
+            ->where('scholarship_program_id', $data['scholarship_program_id'])
             ->first();
 
         if ($qualificationTitle) {
             $message = $qualificationTitle->deleted_at
-                ? 'This qualification title associated with the training program and scholarship program has been deleted and must be restored before reuse.'
-                : 'A qualification title associated with the training program and scholarship program already exists.';
+                ? 'A schedule of cost associated with the qualification title and scholarship program has been deleted and must be restored before reuse.'
+                : 'A schedule of cost associated with the qualification title and scholarship program already exists.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
