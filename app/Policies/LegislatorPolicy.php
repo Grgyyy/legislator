@@ -45,7 +45,7 @@ class LegislatorPolicy
      */
     public function delete(User $user, Legislator $legislator): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**
