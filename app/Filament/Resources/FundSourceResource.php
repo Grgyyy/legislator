@@ -104,7 +104,7 @@ class FundSourceResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected fund sources have been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore fund sources')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore fund sources')),
 
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
@@ -112,7 +112,7 @@ class FundSourceResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected fund sources have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('force delete fund sources')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete fund sources')),
 
                     ExportBulkAction::make()
                         ->exports([

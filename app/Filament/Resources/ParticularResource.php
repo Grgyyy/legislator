@@ -2,32 +2,33 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Particular;
-use App\Models\Partylist;
-use App\Models\SubParticular;
 use App\Models\District;
-use App\Filament\Resources\ParticularResource\Pages;
-use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
 use Filament\Forms\Form;
-use Filament\Forms\Components\Select;
+use App\Models\Partylist;
+use App\Models\Particular;
 use Filament\Tables\Table;
+use App\Models\SubParticular;
+use Filament\Resources\Resource;
+use Illuminate\Support\Facades\Auth;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\EditAction;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\ParticularResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class ParticularResource extends Resource
 {
@@ -133,7 +134,7 @@ class ParticularResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
-                        return $record->district->underMunicipality 
+                        return $record->district->underMunicipality
                             ? $record->district->underMunicipality->name
                             : '-';
                     }),
@@ -185,19 +186,22 @@ class ParticularResource extends Resource
                             $records->each->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected particulars have been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore particulars')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected particulars have been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore particulars')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected particulars have been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore particulars')),
                     ExportBulkAction::make()->exports([
                         ExcelExport::make()
                             ->withColumns([
