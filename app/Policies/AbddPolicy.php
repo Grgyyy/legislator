@@ -46,7 +46,7 @@ class AbddPolicy
      */
     public function delete(User $user, Abdd $abdd): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**
