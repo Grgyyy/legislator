@@ -8,5 +8,5 @@ use Spatie\Permission\Traits\HasRoles;
 
 class Role extends ModelsRole
 {
-    use HasFactory, HasRoles;
+    use HasFactory;
 }
