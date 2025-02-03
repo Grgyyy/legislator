@@ -2,36 +2,37 @@
 
 namespace App\Filament\Resources;
 
-use App\Services\NotificationHandler;
+use Date;
 use Carbon\Carbon;
 use App\Models\Tvi;
-use Date;
 use Filament\Forms;
-use Filament\Forms\Components\DatePicker;
 use Filament\Tables;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use App\Models\Recognition;
 use Filament\Resources\Resource;
+use Illuminate\Support\Facades\Auth;
+use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
 use App\Models\InstitutionRecognition;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Forms\Components\DatePicker;
+use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\InstitutionRecognitionResource\Pages;
 use App\Filament\Resources\InstitutionRecognitionResource\RelationManagers;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 
 class InstitutionRecognitionResource extends Resource
 {
@@ -88,7 +89,7 @@ class InstitutionRecognitionResource extends Resource
                     ->native(false)
                     ->weekStartsOnSunday()
                     ->closeOnDateSelection(),
-                
+
                 DatePicker::make('expiration_date')
                     ->label('Expiration Date')
                     ->required()
@@ -113,12 +114,12 @@ class InstitutionRecognitionResource extends Resource
                     ->toggleable(),
                 TextColumn::make('accreditation_date')
                     ->label('Accreditation Date')
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('F j, Y')),
-                
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('F j, Y')),
+
                 TextColumn::make('expiration_date')
                     ->label('Expiration Date')
-                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('F j, Y')),
-                
+                    ->formatStateUsing(fn($state) => Carbon::parse($state)->format('F j, Y')),
+
             ])
             ->filters([
                 //
@@ -148,8 +149,28 @@ class InstitutionRecognitionResource extends Resource
                 ])
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected institution recognition have been deleted successfully.');
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore institution qualification title')),
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected institution recognition have been restored successfully.');
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution qualification title')),
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institution recognition have been deleted permanently.');
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution qualification title')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -160,10 +181,10 @@ class InstitutionRecognitionResource extends Resource
                                         ->heading('Recognition Title'),
                                     Column::make('accreditation_date')
                                         ->heading('Accreditation Date')
-                                        ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('F j, Y')),
+                                        ->formatStateUsing(fn($state) => Carbon::parse($state)->format('F j, Y')),
                                     Column::make('expiration_date')
                                         ->heading('Expiration Date')
-                                        ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('F j, Y')),
+                                        ->formatStateUsing(fn($state) => Carbon::parse($state)->format('F j, Y')),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Institution Recognitions')
                         ])
