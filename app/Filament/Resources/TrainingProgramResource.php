@@ -396,21 +396,21 @@ class TrainingProgramResource extends Resource
                         ->action(function ($records) {
                             $records->each->delete();
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected qualification titles have been deleted successfully.');
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected schedule of cost have been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore qualification title')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Selected qualification titles have been restored successfully.');
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected schedule of cost have been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore qualification title')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
-                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected qualification titles have been deleted permanently.');
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected schedule of cost have been deleted permanently.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore qualification title')),
                     ExportBulkAction::make()
