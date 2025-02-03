@@ -113,13 +113,13 @@ class AttributionTargetResource extends Resource
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         // if (count($appropriationYearOptions) === 1) {
                                         //     $set('attribution_appropriation_type', key($appropriationYearOptions));
                                         // }
-
+                    
                                         // $currentYear = now()->year;
-
+                    
                                         if (count($AttributorParticularOptions) === 1) {
                                             $set('attribution_sender_particular', key($AttributorParticularOptions));
                                         } else {
@@ -204,7 +204,7 @@ class AttributionTargetResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -291,7 +291,7 @@ class AttributionTargetResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -379,7 +379,7 @@ class AttributionTargetResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -469,7 +469,7 @@ class AttributionTargetResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -514,7 +514,7 @@ class AttributionTargetResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -711,13 +711,13 @@ class AttributionTargetResource extends Resource
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 // if (count($appropriationYearOptions) === 1) {
                                                 //     $set('attribution_appropriation_type', key($appropriationYearOptions));
                                                 // }
-
+                            
                                                 // $currentYear = now()->year;
-
+                            
                                                 if (count($AttributorParticularOptions) === 1) {
                                                     $set('attribution_sender_particular', key($AttributorParticularOptions));
                                                 } else {
@@ -802,7 +802,7 @@ class AttributionTargetResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -889,7 +889,7 @@ class AttributionTargetResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -977,7 +977,7 @@ class AttributionTargetResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1067,7 +1067,7 @@ class AttributionTargetResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1112,7 +1112,7 @@ class AttributionTargetResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1550,14 +1550,14 @@ class AttributionTargetResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected targets have been restored successfully.');
                         })
-                              ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore allocation ')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected targets have been deleted permanently.');
                         })
-                              ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore allocation ')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -1591,17 +1591,17 @@ class AttributionTargetResource extends Resource
                                         ->heading('Attributor Particular')
                                         ->getStateUsing(function ($record) {
                                             // $legislator = $record->allocation->attributor;
-
+                                
                                             // if (!$legislator) {
                                             //     return 'No legislator available';
                                             // }
-
+                                
                                             // $particulars = $legislator->particular;
-
+                                
                                             // if ($particulars->isEmpty()) {
                                             //     return 'No particular available';
                                             // }
-
+                                
                                             $particular = $record->allocation->attributorParticular;
                                             $district = $particular->district;
                                             $municipality = $district ? $district->underMunicipality : null;
