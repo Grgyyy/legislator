@@ -53,7 +53,7 @@ class FundSourcePolicy
      */
     public function restore(User $user, FundSource $fundSource): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**
@@ -61,6 +61,6 @@ class FundSourcePolicy
      */
     public function forceDelete(User $user, FundSource $fundSource): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 }

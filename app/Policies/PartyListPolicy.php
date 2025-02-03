@@ -53,7 +53,7 @@ class PartyListPolicy
      */
     public function restore(User $user, Partylist $partylist): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 
     /**
@@ -61,6 +61,6 @@ class PartyListPolicy
      */
     public function forceDelete(User $user, Partylist $partylist): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin']);
+        return $user->hasRole('Super Admin');
     }
 }
