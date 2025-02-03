@@ -45,7 +45,7 @@ class FundSourcePolicy
      */
     public function delete(User $user, FundSource $fundSource): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole('Super Admin');
     }
 
     /**
