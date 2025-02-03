@@ -45,7 +45,7 @@ class LearningModePolicy
      */
     public function delete(User $user, LearningMode $learningMode): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**
