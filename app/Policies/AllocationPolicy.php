@@ -45,7 +45,7 @@ class AllocationPolicy
      */
     public function delete(User $user, Allocation $allocation): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**

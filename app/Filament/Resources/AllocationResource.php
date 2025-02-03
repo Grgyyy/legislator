@@ -568,20 +568,22 @@ class AllocationResource extends Resource
                                 'Selected allocations have been deleted successfully.'
                             );
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore allocation ')),
 
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected allocations have been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore allocation')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected allocations have been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete allocation')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
