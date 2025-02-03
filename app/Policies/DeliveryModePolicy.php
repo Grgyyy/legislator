@@ -45,7 +45,7 @@ class DeliveryModePolicy
      */
     public function delete(User $user, DeliveryMode $deliveryMode): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin']);
     }
 
     /**
