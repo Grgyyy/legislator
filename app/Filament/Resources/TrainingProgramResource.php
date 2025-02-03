@@ -2,35 +2,36 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\TrainingProgramResource\Pages;
-use App\Models\Priority;
-use App\Models\ScholarshipProgram;
-use App\Models\TrainingProgram;
 use App\Models\Tvet;
-use App\Services\NotificationHandler;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
+use App\Models\Priority;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Models\TrainingProgram;
+use Filament\Resources\Resource;
+use App\Models\ScholarshipProgram;
+use Filament\Tables\Filters\Filter;
+use Illuminate\Support\Facades\Auth;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Fieldset;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Resources\TrainingProgramResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class TrainingProgramResource extends Resource
 {
@@ -65,7 +66,7 @@ class TrainingProgramResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('SoC code'),
-                
+
                 Select::make('full_coc_ele')
                     ->label('Qualification Type')
                     ->required()
@@ -83,7 +84,7 @@ class TrainingProgramResource extends Resource
 
                 Select::make('nc_level')
                     ->label('NC Level')
-                    ->required(fn ($get) => $get('full_coc_ele') === 'Full')
+                    ->required(fn($get) => $get('full_coc_ele') === 'Full')
                     ->markAsRequired(false)
                     ->native(false)
                     ->options([
@@ -96,9 +97,9 @@ class TrainingProgramResource extends Resource
                     ])
                     ->reactive()
                     ->live()
-                    ->hidden(fn ($get) => $get('full_coc_ele') !== 'Full')
+                    ->hidden(fn($get) => $get('full_coc_ele') !== 'Full')
                     ->validationAttribute('NC level'),
-                    
+
                 TextInput::make('title')
                     ->label('Qualification Title')
                     ->placeholder('Enter qualification title')
@@ -188,7 +189,7 @@ class TrainingProgramResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->getStateUsing(fn ($record) => empty($record->nc_level) ? '-' : $record->nc_level),
+                    ->getStateUsing(fn($record) => empty($record->nc_level) ? '-' : $record->nc_level),
 
                 TextColumn::make('title')
                     ->label('Qualification Title')
@@ -196,8 +197,8 @@ class TrainingProgramResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->limit(50)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 50 ? $state : null),
-                
+                    ->tooltip(fn($state): ?string => strlen($state) > 50 ? $state : null),
+
                 TextColumn::make('scholarshipPrograms.name')
                     ->label('Scholarship Programs')
                     ->searchable()
@@ -225,7 +226,7 @@ class TrainingProgramResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->limit(35)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 35 ? $state : null),
+                    ->tooltip(fn($state): ?string => strlen($state) > 35 ? $state : null),
 
                 TextColumn::make('priority.name')
                     ->label('Priority Sector')
@@ -233,12 +234,12 @@ class TrainingProgramResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->limit(35)
-                    ->tooltip(fn ($state): ?string => strlen($state) > 35 ? $state : null),
+                    ->tooltip(fn($state): ?string => strlen($state) > 35 ? $state : null),
             ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
-                
+
                 Filter::make('filter')
                     ->form(function () {
                         return [
@@ -253,7 +254,7 @@ class TrainingProgramResource extends Resource
                                 })
                                 ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
                                 ->reactive(),
-                            
+
                             Fieldset::make('')
                                 ->schema([
                                     Select::make('full_coc_ele')
@@ -279,7 +280,7 @@ class TrainingProgramResource extends Resource
                                             'NC V' => 'NC V',
                                             'NC VI' => 'NC VI',
                                         ])
-                                        ->hidden(fn ($get) => $get('full_coc_ele') !== 'Full')
+                                        ->hidden(fn($get) => $get('full_coc_ele') !== 'Full')
                                         ->reactive()
                                         ->live(),
                                 ])
@@ -345,11 +346,11 @@ class TrainingProgramResource extends Resource
                         if (!empty($data['scholarship_program'])) {
                             $indicators[] = 'Scholarship Program: ' . Optional(ScholarshipProgram::find($data['scholarship_program']))->name;
                         }
-                        
+
                         if (!empty($data['full_coc_ele'])) {
                             $indicators[] = 'Qualification Type: ' . $data['full_coc_ele'];
                         }
-                        
+
                         if (!empty($data['nc_level'])) {
                             $indicators[] = 'NC Level: ' . $data['nc_level'];
                         }
@@ -396,19 +397,22 @@ class TrainingProgramResource extends Resource
                             $records->each->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected qualification titles have been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore qualification title')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected qualification titles have been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore qualification title')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected qualification titles have been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore qualification title')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -428,9 +432,10 @@ class TrainingProgramResource extends Resource
                                         ->heading('Qualification Title'),
                                     Column::make('formatted_scholarship_programs')
                                         ->heading('Scholarship Programs')
-                                        ->getStateUsing(fn($record) => $record->scholarshipPrograms
-                                            ->pluck('name')
-                                            ->implode(', ')
+                                        ->getStateUsing(
+                                            fn($record) => $record->scholarshipPrograms
+                                                ->pluck('name')
+                                                ->implode(', ')
                                         ),
                                     Column::make('tvet.name')
                                         ->heading('TVET Sector'),
@@ -446,13 +451,13 @@ class TrainingProgramResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-    
+
         $query->withoutGlobalScopes([SoftDeletingScope::class])
             ->where('soc', 1);
-    
+
         return $query;
     }
-    
+
     public static function getPages(): array
     {
         return [
