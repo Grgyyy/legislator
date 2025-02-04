@@ -21,8 +21,7 @@ class FundSourceExport implements FromQuery, WithHeadings, WithStyles, WithMappi
     public function query(): Builder
     {
         return FundSource::query()
-            ->select(array_keys($this->columns))
-            ->orderBy('name'); // Adjust ordering as needed
+            ->select(array_keys($this->columns));
     }
 
     public function headings(): array

@@ -4,12 +4,14 @@ namespace App\Filament\Resources\InstitutionRecognitionResource\Pages;
 
 use Exception;
 use Filament\Actions\Action;
-use App\Imports\InstitutionRecognitionImport;
 use Filament\Actions\CreateAction;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
+use App\Exports\InstitutionRecognitionExport;
+use App\Imports\InstitutionRecognitionImport;
+use Maatwebsite\Excel\Validators\ValidationException;
 use App\Filament\Resources\InstitutionRecognitionResource;
 
 class ListInstitutionRecognitions extends ListRecords
@@ -27,6 +29,21 @@ class ListInstitutionRecognitions extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('InstitutionRecognitionExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new InstitutionRecognitionExport, 'institution_recognition_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
 
             Action::make('InstitutionRecognitionImport')
                 ->label('Import')

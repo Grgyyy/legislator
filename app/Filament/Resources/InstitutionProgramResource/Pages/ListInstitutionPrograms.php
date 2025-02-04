@@ -2,24 +2,26 @@
 
 namespace App\Filament\Resources\InstitutionProgramResource\Pages;
 
-use App\Filament\Resources\InstitutionProgramResource;
-use App\Imports\InstitutionClassImport;
-use App\Imports\InstitutionProgramImport;
-use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Services\NotificationHandler;
+use App\Imports\InstitutionClassImport;
+use App\Imports\InstitutionProgramImport;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Exports\InsitutionQualificationTitleExport;
+use Maatwebsite\Excel\Validators\ValidationException;
+use App\Filament\Resources\InstitutionProgramResource;
 
 class ListInstitutionPrograms extends ListRecords
 {
     protected static string $resource = InstitutionProgramResource::class;
 
     protected static ?string $title = "Institution's Qualification Titles";
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -39,6 +41,23 @@ class ListInstitutionPrograms extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+
+            Action::make('InsitutionQualificationTitleExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new InsitutionQualificationTitleExport, 'institution_class_a_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
 
             Action::make('TviImport')
                 ->label('Import')

@@ -2,23 +2,25 @@
 
 namespace App\Filament\Resources\ProjectProposalResource\Pages;
 
-use App\Filament\Resources\ProjectProposalResource;
-use App\Imports\AdminProjectProposalImport;
-use App\Imports\ProjectProposalProgramImport;
-use Filament\Actions\CreateAction;
 use Exception;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
+use App\Exports\ProjectProposalExport;
 use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Imports\AdminProjectProposalImport;
+use App\Imports\ProjectProposalProgramImport;
+use App\Filament\Resources\ProjectProposalResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListProjectProposals extends ListRecords
 {
     protected static string $resource = ProjectProposalResource::class;
 
     protected static ?string $title = 'Project Proposal Program';
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -38,6 +40,21 @@ class ListProjectProposals extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New'),
+
+            Action::make('ProjectProposalExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ProjectProposalExport, 'project_proposal_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
 
             Action::make('TargetImport')
                 ->label('Import')

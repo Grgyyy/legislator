@@ -2,20 +2,23 @@
 
 namespace App\Filament\Resources\QualificationTitleResource\Pages;
 
-use App\Filament\Resources\QualificationTitleResource;
-use App\Imports\QualificationTitleImport;
-use App\Services\NotificationHandler;
-use Filament\Resources\Pages\ListRecords;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
 use Maatwebsite\Excel\Facades\Excel;
-use Exception;
+use App\Exports\ScheduleOfCostExport;
+use App\Services\NotificationHandler;
+use App\Exports\TrainingProgramExport;
+use App\Imports\QualificationTitleImport;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Validators\ValidationException;
+use App\Filament\Resources\QualificationTitleResource;
 
 class ListQualificationTitles extends ListRecords
 {
     protected static string $resource = QualificationTitleResource::class;
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -37,6 +40,21 @@ class ListQualificationTitles extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('ScheduleOfCostExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ScheduleOfCostExport, 'schedule_of_cost_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
 
             Action::make('QualificationTitleImport')
                 ->label('Import')

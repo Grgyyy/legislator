@@ -2,19 +2,21 @@
 
 namespace App\Filament\Resources\ProjectProposalTargetResource\Pages;
 
-use App\Filament\Resources\ProjectProposalTargetResource;
-use App\Imports\ProjectProposalImport;
-use App\Imports\TargetImport;
 use Filament\Actions;
-use Filament\Actions\CreateAction;
-
 use Filament\Actions\Action;
+use App\Imports\TargetImport;
+use Filament\Actions\CreateAction;
 use Illuminate\Support\Facades\Auth;
+
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
+use App\Imports\ProjectProposalImport;
 use PhpOffice\PhpSpreadsheet\Exception;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
+use App\Exports\ProjectProposalTargetExport;
+use Maatwebsite\Excel\Validators\ValidationException;
+use App\Filament\Resources\ProjectProposalTargetResource;
 
 class ListProjectProposalTargets extends ListRecords
 {
@@ -35,7 +37,25 @@ class ListProjectProposalTargets extends ListRecords
         return [
             CreateAction::make()
                 ->label('New')
-                ->icon('heroicon-m-plus'),
+                ->icon('heroicon-m-plus')
+                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+
+
+            Action::make('ProjectProposalTargetExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ProjectProposalTargetExport, 'project_proposal_target_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
+
 
             Action::make('TargetImport')
                 ->label('Import')
@@ -64,7 +84,8 @@ class ListProjectProposalTargets extends ListRecords
                             }
                         }
                     }
-                }),
+                })
+                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
         ];
     }
 }

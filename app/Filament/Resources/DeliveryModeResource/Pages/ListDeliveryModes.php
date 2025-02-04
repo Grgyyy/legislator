@@ -6,17 +6,19 @@ use Exception;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use App\Exports\DeliveryModeExport;
 use App\Imports\DeliveryModeImport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use App\Filament\Resources\DeliveryModeResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListDeliveryModes extends ListRecords
 {
     protected static string $resource = DeliveryModeResource::class;
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -28,6 +30,23 @@ class ListDeliveryModes extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+
+            Action::make('DeliveryModeExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-up')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new DeliveryModeExport, 'delivery_mode_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
+
 
             Action::make('DeliveryModeImport')
                 ->label('Import')

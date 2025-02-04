@@ -2,15 +2,17 @@
 
 namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
-use App\Filament\Resources\TrainingProgramResource;
-use App\Imports\TrainingProgramsImport;
-use App\Services\NotificationHandler;
-use Filament\Resources\Pages\ListRecords;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
 use Maatwebsite\Excel\Facades\Excel;
-use Exception;
+use App\Services\NotificationHandler;
+use App\Exports\TrainingProgramExport;
+use App\Imports\TrainingProgramsImport;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\TrainingProgramResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListTrainingPrograms extends ListRecords
 {
@@ -26,7 +28,7 @@ class ListTrainingPrograms extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            '/qualification-titles'=> 'Qualification Titles',
+            '/qualification-titles' => 'Qualification Titles',
             'List'
         ];
     }
@@ -37,6 +39,21 @@ class ListTrainingPrograms extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('TrainingProgramExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new TrainingProgramExport, 'qualification_title_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
 
             Action::make('TrainingProgramsImport')
                 ->label('Import')
