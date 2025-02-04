@@ -2,19 +2,21 @@
 
 namespace App\Filament\Resources\AttributionProjectProposalResource\Pages;
 
-use App\Filament\Resources\AttributionProjectProposalResource;
-use App\Imports\AttributionProjectProposalImport;
-use App\Imports\ProjectProposalImport;
 use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Actions\CreateAction;
-
 use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
+
+use App\Imports\ProjectProposalImport;
 use PhpOffice\PhpSpreadsheet\Exception;
 use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Exports\AttributionProjectProposalExport;
+use App\Imports\AttributionProjectProposalImport;
+use Maatwebsite\Excel\Validators\ValidationException;
+use App\Filament\Resources\AttributionProjectProposalResource;
 
 
 class ListAttributionProjectProposals extends ListRecords
@@ -27,6 +29,22 @@ class ListAttributionProjectProposals extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('AttributionProjectProposalExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new AttributionProjectProposalExport, 'attribution_project_proposal_target_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
+
             Action::make('TargetImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')

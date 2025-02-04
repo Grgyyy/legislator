@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Target;
+use App\Models\Allocation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -14,24 +15,25 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 
-
-
-class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
         'fund_source' => 'Fund Source',
-        'allocation.legislator.name' => 'Legislator',
         'allocation.soft_or_commitment' => 'Source of Fund',
-        'appropriation_type' => 'Appropriation Type',
-        'allocation.year' => 'Allocation',
+        'attributor_id' => 'Attributor',
+        'attributor_particular_id' => 'Attributor Particular',
+        'allocation.legislator.name' => 'Legislator',
         'allocation.legislator.particular.subParticular' => 'Particular',
+        'appropriation_type' => 'Appropriation Type',
+        'allocation.year' => 'Appropriation Year',
+        'institution_name' => 'Institution',
+        'institution_type' => 'Institution Type',
+        'institution_class' => 'Institution Class',
         'municipality_name' => 'Municipality',
         'district_name' => 'District',
         'municipality.province.name' => 'Province',
         'region_name' => 'Region',
-        'institution_name' => 'Institution',
-        'institution_type' => 'Institution Type',
-        'institution_class' => 'Institution Class',
+        'scholarship_program' => 'Scholarship Program',
         'qualification_code' => 'Qualification Code',
         'qualification_title_soc_code' => 'Qualification SOC Code',
         'qualification_name' => 'Qualification Title',
@@ -40,7 +42,6 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
         'priority_sector' => 'Priority Sector',
         'delivery_mode' => 'Delivery Mode',
         'learning_mode' => 'Learning Mode',
-        'scholarship_program' => 'Scholarship Program',
         'number_of_slots' => 'No. of Slots',
         'training_cost_per_slot' => 'Training Cost',
         'cost_of_toolkit_per_slot' => 'Cost of Toolkit',
@@ -109,8 +110,8 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
                 $query->where('soc', 0);
             })
             ->whereHas('allocation', function ($subQuery) {
-                $subQuery->whereNull('attributor_id');
-                // ->where('soft_or_commitment', 'Commitment');
+                $subQuery->whereNotNull('attributor_id')
+                    ->where('soft_or_commitment', 'Commitment');
             });
 
     }
@@ -131,11 +132,13 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
     {
         return [
             $this->getFundSource($record),
-            $record->allocation->legislator->name ?? '-',
             $record->allocation->soft_or_commitment ?? '-',
+            $record->allocation->attributor->name ?? '-',
+            $this->getAttributorParticular($record),
+            $record->allocation->legislator->name ?? '-',
+            $this->getParticular($record),
             $record->appropriation_type,
             $record->allocation->year,
-            $this->getParticular($record),
             $record->municipality->name ?? '-',
             $record->district->name ?? '-',
             $record->municipality->province->name ?? '-',
@@ -187,6 +190,32 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
     {
         $particulars = $record->allocation->legislator->particular;
         return $particulars->isNotEmpty() ? ($particulars->first()->subParticular->name ?? '-') : '-';
+    }
+
+    private function getAttributorParticular($record)
+    {
+        $particular = $record->allocation->attributorParticular;
+
+        if (!$particular) {
+            return '-';
+        }
+
+        $district = $particular->district;
+        $districtName = $district ? $district->name : 'Unknown District';
+
+        if ($districtName === 'Not Applicable') {
+            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+            } else {
+                return $particular->subParticular->name ?? 'Unknown Particular Type';
+            }
+        } else {
+            if ($particular->district->underMunicipality) {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+            } else {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+            }
+        }
     }
     private function formatCurrency($amount)
     {
