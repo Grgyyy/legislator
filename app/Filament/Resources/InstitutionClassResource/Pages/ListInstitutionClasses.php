@@ -2,20 +2,22 @@
 
 namespace App\Filament\Resources\InstitutionClassResource\Pages;
 
-use App\Filament\Resources\InstitutionClassResource;
-use App\Imports\InstitutionClassImport;
-use App\Services\NotificationHandler;
-use Filament\Resources\Pages\ListRecords;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
 use Maatwebsite\Excel\Facades\Excel;
-use Exception;
+use App\Services\NotificationHandler;
+use App\Exports\InsitutionClassBExport;
+use App\Imports\InstitutionClassImport;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\InstitutionClassResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListInstitutionClasses extends ListRecords
 {
     protected static string $resource = InstitutionClassResource::class;
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -27,6 +29,22 @@ class ListInstitutionClasses extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('InsitutionClassBExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new InsitutionClassBExport, 'institution_class_b_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
 
             Action::make('InstitutionClassImport')
                 ->label('Import')

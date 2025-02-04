@@ -12,10 +12,10 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class InsitutionTypeExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+class InsitutionClassBExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
-        'name' => 'Institution Type',
+        'name' => 'Institution Class B',
     ];
 
     public function query(): Builder
@@ -29,7 +29,7 @@ class InsitutionTypeExport implements FromQuery, WithHeadings, WithStyles, WithM
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['INSTITUTION TYPE'],
+            ['INSTITUTION CLASS B'],
             [''],
         ];
 
