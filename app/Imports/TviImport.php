@@ -29,16 +29,20 @@ class TviImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-
                 $tviTypeId = $this->getInstitutionType($row['institution_type']);
-                $tviClassId = $this->getInstitutionClassA($row['institution_class_a']);
-                $institutionClassId = $this->getInstitutionClassB($row['institution_class_b']);
+                $tviClassId = !empty($row['institution_class_a']) && is_string($row['institution_class_a']) 
+                    ? $this->getInstitutionClassA($row['institution_class_a']) 
+                    : null;
+
+                $institutionClassId = !empty($row['institution_class_b']) && is_string($row['institution_class_b']) 
+                    ? $this->getInstitutionClassB($row['institution_class_b']) 
+                    : null;
+
                 $regionId = $this->getRegionId($row['region']);
                 $provinceId = $this->getProvinceId($regionId, $row['province']);
                 $municipalityId = $this->getMunicipalityId($provinceId, $row['municipality']);
                 $districtId = $this->getDistrictId($regionId, $provinceId, $municipalityId, $row['district']);
                 $tviCode = $row['school_id'] ? $row['school_id'] : null;
-
 
                 // Fetch or create TVI record
                 $tviRecord = Tvi::where(DB::raw('LOWER(name)'), strtolower($row['institution_name']))
@@ -47,7 +51,6 @@ class TviImport implements ToModel, WithHeadingRow
 
                 if (!$tviRecord) {
                     $tviRecord = Tvi::create([
-
                         'school_id' => $row['school_id'],
                         'name' => $row['institution_name'],
                         'tvi_type_id' => $tviTypeId,
@@ -69,10 +72,9 @@ class TviImport implements ToModel, WithHeadingRow
         });
     }
 
-
     protected function validateRow(array $row)
     {
-        $requiredFields = ['institution_name', 'institution_type', 'institution_class_a', 'institution_class_b', 'district', 'municipality', 'province', 'region', 'full_address'];
+        $requiredFields = ['institution_name', 'institution_type', 'institution_class_a', 'district', 'municipality', 'province', 'region', 'full_address'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
@@ -146,7 +148,6 @@ class TviImport implements ToModel, WithHeadingRow
         return $province->id;
     }
 
-
     protected function getMunicipalityId(int $provinceId, string $municipalityName)
     {
         $municipality = Municipality::where('name', $municipalityName)
@@ -165,38 +166,6 @@ class TviImport implements ToModel, WithHeadingRow
 
         return $municipality->id;
     }
-
-
-    // protected function getMunicipalityId(int $provinceId, string $municipalityName)
-    // {
-    //     $municipality = Municipality::where('name', $municipalityName)
-    //         ->where('province_id', $provinceId)
-    //         ->whereNull('deleted_at')
-    //         ->first();
-
-    //     if (!$municipality) {
-    //         throw new \Exception("Municipality with name '{$municipalityName}' in province ID '{$provinceId}' not found. No changes were saved.");
-    //     }
-
-    //     return $municipality->id;
-    // }
-
-    // protected function getDistrictId(int $municipalityId, string $districtName)
-    // {
-    //     $fullDistrictName = $districtName . ' ' . 'District'; // Concatenate the district name with 'District'
-
-    //     $district = District::where('name', $fullDistrictName)
-    //         ->where('municipality_id', $municipalityId)
-    //         ->whereNull('deleted_at')
-    //         ->first();
-
-    //     if (!$district) {
-    //         throw new \Exception("District with name '{$fullDistrictName}' in municipality ID '{$municipalityId}' not found. No changes were saved.");
-    //     }
-
-    //     return $district->id;
-    // }
-
 
     protected function getDistrictId($regionId, $provinceId, $municipalityId, $districtName)
     {
@@ -226,6 +195,4 @@ class TviImport implements ToModel, WithHeadingRow
 
         return $districtRecord->id;
     }
-
-
 }

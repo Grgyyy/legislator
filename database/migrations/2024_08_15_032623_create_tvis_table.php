@@ -28,6 +28,7 @@ return new class extends Migration {
                 ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('institution_class_id')
+                ->nullable()
                 ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('status_id')
