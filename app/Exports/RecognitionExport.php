@@ -2,8 +2,8 @@
 
 namespace App\Exports;
 
-
 use App\Models\InstitutionProgram;
+use App\Models\Recognition;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -13,16 +13,15 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+class RecognitionExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
-        'tvi_id' => 'Institution',
-        'training_program_id' => 'Training Program',
+        'name' => 'Recognition',
     ];
 
     public function query(): Builder
     {
-        return InstitutionProgram::query()
+        return Recognition::query()
             ->select(array_keys($this->columns));
     }
 
@@ -31,7 +30,7 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['INSTITUTION QUALIFICATION TITLE'],
+            ['RECOGNITIONS'],
             [''],
         ];
 
@@ -41,8 +40,7 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
     public function map($record): array
     {
         return [
-            $record->tvi->name,
-            $record->trainingProgram->title,
+            $record->name,
         ];
     }
 
