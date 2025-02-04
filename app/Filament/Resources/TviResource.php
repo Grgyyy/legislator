@@ -7,6 +7,7 @@ use App\Models\Region;
 use App\Models\District;
 use App\Models\Province;
 use App\Models\TviClass;
+use App\Models\TviType;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use App\Models\Municipality;
@@ -72,6 +73,21 @@ class TviResource extends Resource
                     ->autocomplete(false)
                     ->validationAttribute('Institution'),
 
+                Select::make('tvi_type_id')
+                    ->label("Institution Type")
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->options(function () {
+                        return TviType::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_institution_type' => 'No Institution Type Available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_institution_type'),
+
+
                 Select::make('tvi_class_id')
                     ->label("Institution Class (A)")
                     ->relationship('tviClass', 'name')
@@ -80,29 +96,33 @@ class TviResource extends Resource
                     ->searchable()
                     ->preload()
                     ->native(false)
-                    ->options(function () {
+                    ->options(function ($get) {
+                        $type = $get('tvi_type_id');
+                    
+                        $publicTypes = ['LGU', 'LUC', 'NGA', 'SUC', 'TTI', 'HEI'];
+                        $privateTypes = ['TVI', 'HEI', 'Farm School'];
+
                         $tviClasses = TviClass::all();
-
-                        $institutionTypes = [
-                            'Private' => 1,
-                            'Public' => 2,
-                        ];
-
-                        $getClassOptions = function ($typeId) use ($tviClasses) {
+                    
+                        $publicId = TviType::where('name', 'Public')->value('id');
+                        $privateId = TviType::where('name', 'Private')->value('id');
+                    
+                        if ($type == $publicId) {
                             return $tviClasses
-                                ->where('tvi_type_id', $typeId)
+                                ->whereIn('name', $publicTypes)
                                 ->pluck('name', 'id')
-                                ->toArray();
-                        };
-
-                        $privateClasses = $getClassOptions($institutionTypes['Private']);
-                        $publicClasses = $getClassOptions($institutionTypes['Public']);
-
-                        return [
-                            'Private' => $privateClasses ?: ['no_private_class' => 'No Private Institution Class Available'],
-                            'Public' => $publicClasses ?: ['no_public_class' => 'No Public Institution Class Available'],
-                        ];
-                    })
+                                ->toArray() ?: ['no_public_class' => 'No Public Institution Class Available'];
+                        }
+                    
+                        if ($type == $privateId) {
+                            return $tviClasses
+                                ->whereIn('name', $privateTypes)
+                                ->pluck('name', 'id')
+                                ->toArray() ?: ['no_private_class' => 'No Private Institution Class Available'];
+                        }
+                    
+                        return [];
+                    }) 
                     ->disableOptionWhen(fn($value) => $value === 'no_private_class' || $value === 'no_public_class'),
 
                 Select::make('institution_class_id')
@@ -185,26 +205,26 @@ class TviResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false),
 
-                Select::make('training_programs')
-                    ->relationship('trainingPrograms')
-                    ->label('Training Programs')
-                    ->searchable()
-                    ->preload()
-                    ->native(false)
-                    ->multiple()
-                    ->options(function () {
-                        return TrainingProgram::all()->pluck('title', 'id')->map(function ($item) {
-                            $item = ucwords($item);
+                // Select::make('training_programs')
+                //     ->relationship('trainingPrograms')
+                //     ->label('Training Programs')
+                //     ->searchable()
+                //     ->preload()
+                //     ->native(false)
+                //     ->multiple()
+                //     ->options(function () {
+                //         return TrainingProgram::all()->pluck('title', 'id')->map(function ($item) {
+                //             $item = ucwords($item);
 
-                            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $item)) {
-                                $item = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                    return 'NC ' . strtoupper($matches[1]);
-                                }, $item);
-                            }
+                //             if (preg_match('/\bNC\s+[I]{1,3}\b/i', $item)) {
+                //                 $item = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                //                     return 'NC ' . strtoupper($matches[1]);
+                //                 }, $item);
+                //             }
 
-                            return $item;
-                        });
-                    })
+                //             return $item;
+                //         });
+                //     })
             ]);
     }
 
@@ -227,6 +247,12 @@ class TviResource extends Resource
                     ->limit(45)
                     ->tooltip(fn($state): ?string => strlen($state) > 45 ? $state : null),
                 // ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+
+                TextColumn::make("tviType.name")
+                    ->label('Institution Type')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make("tviClass.name")
                     ->label('Institution Class(A)')

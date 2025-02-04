@@ -53,21 +53,6 @@ class TviClassResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Institution Class (A)'),
-
-                Select::make('tvi_type_id')
-                    ->label('Institution Type')
-                    ->relationship('tviType', 'name')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->preload()
-                    ->native(false)
-                    ->options(function () {
-                        return TviType::all()
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_tvi_type' => 'No Institution Type Available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_tvi_type'),
             ]);
     }
 
@@ -82,18 +67,10 @@ class TviClassResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('tviType.name')
-                    ->label('Institution Types')
-                    ->searchable()
-                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
-
-                SelectFilter::make('tvi_type_id')
-                    ->label('Institution Type')
-                    ->relationship('tviType', 'name')
             ])
             ->actions([
                 ActionGroup::make([

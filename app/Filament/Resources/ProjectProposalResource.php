@@ -113,7 +113,6 @@ class ProjectProposalResource extends Resource
 
                 Select::make('scholarshipPrograms')
                     ->label('Scholarship Program')
-                    ->relationship('scholarshipPrograms', 'name')
                     ->required()
                     ->markAsRequired(false)
                     ->searchable()

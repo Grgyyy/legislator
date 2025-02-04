@@ -21,6 +21,9 @@ return new class extends Migration {
             $table->foreignId('municipality_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('tvi_type_id')
+                ->constrained()
+                ->cascadeOnDelete();
             $table->foreignId('tvi_class_id')
                 ->constrained()
                 ->cascadeOnDelete();
