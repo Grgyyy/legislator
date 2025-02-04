@@ -30,6 +30,7 @@ class TviImport implements ToModel, WithHeadingRow
         return DB::transaction(function () use ($row) {
             try {
 
+                $tviTypeId = $this->getInstitutionType($row['institution_type']);
                 $tviClassId = $this->getInstitutionClassA($row['institution_class_a']);
                 $institutionClassId = $this->getInstitutionClassB($row['institution_class_b']);
                 $regionId = $this->getRegionId($row['region']);
@@ -49,6 +50,7 @@ class TviImport implements ToModel, WithHeadingRow
 
                         'school_id' => $row['school_id'],
                         'name' => $row['institution_name'],
+                        'tvi_type_id' => $tviTypeId,
                         'institution_class_id' => $institutionClassId,
                         'tvi_class_id' => $tviClassId,
                         'district_id' => $districtId,
@@ -70,13 +72,25 @@ class TviImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['institution_name', 'institution_class_a', 'institution_class_b', 'district', 'municipality', 'province', 'region', 'full_address'];
+        $requiredFields = ['institution_name', 'institution_type', 'institution_class_a', 'institution_class_b', 'district', 'municipality', 'province', 'region', 'full_address'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
                 throw new \Exception("The field '{$field}' is required and cannot be null or empty. No changes were saved.");
             }
         }
+    }
+
+    protected function getInstitutionType(string $institutionType) 
+    {
+        $type = TviType::where("name", $institutionType)
+            ->whereNull("deleted_at")
+            ->first();
+
+        if (!$type) {
+            throw new \Exception("Institution Type with name '{$institutionType}' not found. No changes were saved.");
+        }
+        return $type->id;
     }
 
     protected function getInstitutionClassA(string $institutionClassA)
@@ -86,7 +100,7 @@ class TviImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$class) {
-            throw new \Exception("TVI Type with name '{$institutionClassA}' not found. No changes were saved.");
+            throw new \Exception("Institution Class (A) with name '{$institutionClassA}' not found. No changes were saved.");
         }
 
         return $class->id;
@@ -99,7 +113,7 @@ class TviImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$class) {
-            throw new \Exception("TVI Type with name '{$institutionClassB}' not found. No changes were saved.");
+            throw new \Exception("Institution Class (B) with name '{$institutionClassB}' not found. No changes were saved.");
         }
 
         return $class->id;

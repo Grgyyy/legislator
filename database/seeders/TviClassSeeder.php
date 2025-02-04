@@ -14,14 +14,14 @@ class TviClassSeeder extends Seeder
     public function run(): void
     {
         $classes = [
-            ['name' => 'NGA', 'tvi_type_id' => 1],
-            ['name' => 'LGU', 'tvi_type_id' => 1],
-            ['name' => 'LUC', 'tvi_type_id' => 1],
-            ['name' => 'SUC', 'tvi_type_id' => 1],
-            ['name' => 'TTI', 'tvi_type_id' => 1],
-            ['name' => 'HEI', 'tvi_type_id' => 2],
-            ['name' => 'TVI', 'tvi_type_id' => 2],
-            ['name' => 'NGO', 'tvi_type_id' => 2],
+            ['name' => 'NGA'],
+            ['name' => 'LGU'],
+            ['name' => 'LUC'],
+            ['name' => 'SUC'],
+            ['name' => 'TTI'],
+            ['name' => 'HEI'],
+            ['name' => 'TVI'],
+            ['name' => 'NGO'],
         ];
 
         foreach ($classes as $class) {

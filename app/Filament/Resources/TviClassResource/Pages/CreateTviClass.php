@@ -50,7 +50,6 @@ class CreateTviClass extends CreateRecord
 
         $tviClass = DB::transaction(fn() => TviClass::create([
             'name' => $data['name'],
-            'tvi_type_id' => $data['tvi_type_id'],
         ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'Institution type has been created successfully.');

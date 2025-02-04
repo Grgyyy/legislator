@@ -17,8 +17,8 @@ class TviType extends Model
 
     ];
 
-    public function tviClasses()
+    public function tvi()
     {
-        return $this->hasMany(TviClass::class);
+        return $this->hasMany(Tvi::class);
     }
 }

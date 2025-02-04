@@ -13,7 +13,8 @@ return new class extends Migration {
         Schema::create('targets', function (Blueprint $table) {
             $table->id();
             $table->integer('abscap_id')
-                ->unique()
+                ->nullable();
+            $table->integer('nqm_code')
                 ->nullable();
             $table->integer('rqm_code')
                 ->unique()

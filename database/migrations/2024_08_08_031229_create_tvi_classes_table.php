@@ -13,9 +13,6 @@ return new class extends Migration {
         Schema::create('tvi_classes', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
-            $table->foreignId('tvi_type_id')
-                ->constrained()
-                ->cascadeOnDelete();
             $table->softDeletes();
             $table->timestamps();
         });

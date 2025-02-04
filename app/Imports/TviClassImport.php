@@ -28,14 +28,12 @@ class TviClassImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                $tvi_type_id = $this->getTviTypeId($row['institution_type']);
                 $classIsExist = TviClass::where('name', $row['institution_class'])
                     ->exists();
 
                 if (!$classIsExist) {
                     return new TviClass([
                         'name' => $row['institution_class'],
-                        'tvi_type_id' => $tvi_type_id,
                     ]);
                 }
 
@@ -53,25 +51,12 @@ class TviClassImport implements ToModel, WithHeadingRow
      */
     protected function validateRow(array $row)
     {
-        $requiredFields = ['institution_type', 'institution_class'];
+        $requiredFields = ['institution_class'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
                 throw new \Exception("The field '{$field}' is required and cannot be null or empty. No changes were saved.");
             }
         }
-    }
-
-    public function getTviTypeId(string $tviType)
-    {
-        $tvi = TviType::where('name', $tviType)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if (!$tvi) {
-            throw new \Exception("TVI Type with name '{$tviType}' not found. No changes were saved.");
-        }
-
-        return $tvi->id;
     }
 }

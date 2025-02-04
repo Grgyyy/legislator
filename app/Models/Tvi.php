@@ -17,10 +17,16 @@ class Tvi extends Model
         'name',
         'institution_class_id',
         'tvi_class_id',
+        'tvi_type_id',
         'district_id',
         'municipality_id',
         'address',
     ];
+
+    public function tviType() 
+    {
+        return $this->belongsTo(TviType::class);
+    }
 
     public function tviClass()
     {

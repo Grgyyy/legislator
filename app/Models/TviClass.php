@@ -15,12 +15,5 @@ class TviClass extends Model
 
     protected $fillable = [
         'name',
-        'tvi_type_id'
     ];
-
-
-    public function tviType()
-    {
-        return $this->belongsTo(tviType::class);
-    }
 }
