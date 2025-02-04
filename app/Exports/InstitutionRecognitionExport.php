@@ -2,7 +2,8 @@
 
 namespace App\Exports;
 
-use App\Models\Recognition;
+
+use App\Models\InstitutionRecognition;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -12,15 +13,18 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class RecognitionExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+class InstitutionRecognitionExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
-        'name' => 'Recognition',
+        'tvi_id' => 'Institution',
+        'recognition_id' => 'Institution Recognition',
+        'accreditation_date' => 'Accreditation Date',
+        'expiration_date' => 'Expiration Date',
     ];
 
     public function query(): Builder
     {
-        return Recognition::query()
+        return InstitutionRecognition::query()
             ->select(array_keys($this->columns));
     }
 
@@ -29,7 +33,7 @@ class RecognitionExport implements FromQuery, WithHeadings, WithStyles, WithMapp
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['RECOGNITIONS'],
+            ['INSTITUTION RECOGNITIONS'],
             [''],
         ];
 
@@ -39,7 +43,12 @@ class RecognitionExport implements FromQuery, WithHeadings, WithStyles, WithMapp
     public function map($record): array
     {
         return [
-            $record->name,
+            $record->tvi->name,
+            $record->recognition->name,
+            $record->accreditation_date,
+            $record->expiration_date,
+
+
         ];
     }
 
