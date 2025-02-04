@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\ScholarshipProgram;
+use App\Models\TrainingProgram;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -12,26 +13,36 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class ScholarshipProgramExport implements FromQuery, WithMapping, WithStyles, WithHeadings
+class TrainingProgramExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
     private array $columns = [
-        'code' => 'Code',
-        'name' => 'Scholarship Program',
-        'desc' => 'Description',
+        'code' => 'Qualification Code',
+        'soc_code' => 'SOC Code',
+        'full_coc_ele' => 'Qualification Type',
+        'nc_level' => 'NC Level',
+        'title' => 'Qualification Title',
+        'tvet_id' => 'TVET Sector',
+        'scholarshipPrograms.code' => 'Scholarship Program',
+        'priority_id' => 'Priority Sector',
     ];
 
     public function query(): Builder
     {
-        return ScholarshipProgram::query()
-            ->select(array_keys($this->columns));
+        return TrainingProgram::query()
+            ->with('scholarshipPrograms');
     }
 
     public function map($record): array
     {
         return [
-            $record->code,
-            $record->name,
-            $record->desc,
+            $record->code ?? '-',
+            $record->soc_code ?? '-',
+            $record->full_coc_ele ?? '-',
+            $record->nc_level ?? '-',
+            $record->title ?? '-',
+            $record->tvet->name ?? '-',
+            $record->scholarshipPrograms->pluck('code')->implode(', '),
+            $record->priority->name ?? '-',
         ];
     }
 

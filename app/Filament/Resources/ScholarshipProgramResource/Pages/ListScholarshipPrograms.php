@@ -35,7 +35,7 @@ class ListScholarshipPrograms extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new ScholarshipProgramExport, 'institution_recognition_export.xlsx');
+                        return Excel::download(new ScholarshipProgramExport, 'scholarship_program_export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {
