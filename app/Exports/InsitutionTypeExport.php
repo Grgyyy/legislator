@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Tvi;
+use App\Models\TviType;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -12,21 +13,15 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+class InsitutionTypeExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
-        'school_id' => 'School ID',
-        'name' => 'Institution',
-        'institution_class_id' => 'Institution Class (A)',
-        'tvi_class_id' => 'Institution Class (B)',
-        'district_id' => 'District',
-        'municipality_id' => 'Municipality',
-        'address' => 'Address',
+        'name' => 'Institution Type',
     ];
 
     public function query(): Builder
     {
-        return Tvi::query()
+        return TviType::query()
             ->select(array_keys($this->columns));
     }
 
@@ -35,7 +30,7 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['INSTITUTIONS'],
+            ['INSTITUTION TYPE'],
             [''],
         ];
 
@@ -45,13 +40,7 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
     public function map($record): array
     {
         return [
-            $record->school_id,
             $record->name,
-            $record->InstitutionClass->name,
-            $record->tviClass->name,
-            $record->district->name,
-            $record->municipality->name,
-            $record->address,
         ];
     }
 

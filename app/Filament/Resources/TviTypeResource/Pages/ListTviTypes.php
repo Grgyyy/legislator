@@ -2,22 +2,24 @@
 
 namespace App\Filament\Resources\TviTypeResource\Pages;
 
-use App\Filament\Resources\TviTypeResource;
-use App\Imports\TviTypeImport;
-use App\Services\NotificationHandler;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
-use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use Filament\Actions\Action;
+use App\Imports\TviTypeImport;
+use Filament\Actions\CreateAction;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\InsitutionTypeExport;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\TviTypeResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListTviTypes extends ListRecords
 {
     protected static string $resource = TviTypeResource::class;
 
     protected static ?string $title = 'Institution Types';
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -37,6 +39,22 @@ class ListTviTypes extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('InsitutionTypeExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new InsitutionTypeExport, 'institution_type_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
 
             Action::make('TviTypeImport')
                 ->label('Import')
