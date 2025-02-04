@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Models\DeliveryMode;
 use App\Models\FundSource;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -12,16 +13,20 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class FundSourceExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+
+
+
+class DeliveryModeExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
-        'name' => 'Fund Source',
+        'name' => 'Delivery Mode',
     ];
 
     public function query(): Builder
     {
-        return FundSource::query()
-            ->select(array_keys($this->columns));
+        return DeliveryMode::query()
+            ->select(array_keys($this->columns))
+            ->orderBy('name');
     }
 
     public function headings(): array
@@ -29,17 +34,17 @@ class FundSourceExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['FUND SOURCE'],
+            ['DELIVERY MODE'],
             [''],
         ];
 
         return array_merge($customHeadings, [array_values($this->columns)]);
     }
 
-    public function map($fundSource): array
+    public function map($deliveryMode): array
     {
         return [
-            $fundSource->name, // Add additional fields as required
+            $deliveryMode->name,
         ];
     }
 
@@ -82,7 +87,6 @@ class FundSourceExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
         return [
-            // Style heading rows
             1 => ['font' => ['bold' => true]],
         ];
     }
