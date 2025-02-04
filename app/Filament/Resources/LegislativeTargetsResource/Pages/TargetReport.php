@@ -145,15 +145,25 @@ class TargetReport extends ListRecords
     /**
      * Define the table query.
      */
-    protected function getTableQuery(): \Illuminate\Database\Eloquent\Builder
+    protected function getTableQuery(): ?\Illuminate\Database\Eloquent\Builder
     {
         $allocationId = request()->route('record');
 
-        if (!$allocationId) {
-            abort(404, 'Allocation ID not provided in the route.');
-        }
+        // if (!$allocationId) {
+        //     throw new NotFoundHttpException('Allocation ID not provided in the route.');
+        // }
 
         return Target::query()
+            ->select([
+                'targets.*',
+                'tvis.name as tvi_name',
+                'districts.name as district_name',
+                'provinces.name as province_name',
+                'regions.name as region_name',
+                'municipalities.name as municipality_name',
+                'training_programs.title as training_program_title',
+                'target_statuses.desc as target_status'
+            ])
             ->join('tvis', 'tvis.id', '=', 'targets.tvi_id')
             ->join('districts', 'districts.id', '=', 'tvis.district_id')
             ->join('provinces', 'provinces.id', '=', 'districts.province_id')
@@ -161,68 +171,66 @@ class TargetReport extends ListRecords
             ->join('municipalities', 'municipalities.id', '=', 'districts.municipality_id')
             ->join('qualification_titles', 'qualification_titles.id', '=', 'targets.qualification_title_id')
             ->join('training_programs', 'training_programs.id', '=', 'qualification_titles.training_program_id')
-            ->where(function ($query) use ($allocationId) {
-                $query->where('allocation_id', $allocationId);
-                // ->orWhere('attribution_allocation_id', $allocationId);
-            })
-            ->select(
-                'regions.name as region',
-                'provinces.name as province',
-                'municipalities.name as municipality',
-                'tvis.name as institution_name',
-                'training_programs.title as qualification_title',
-
-                DB::raw('SUM(targets.number_of_slots) as total_slots'),
-                DB::raw('SUM(targets.total_training_cost_pcc + targets.total_assessment_fee + targets.total_training_support_fund + targets.total_entrepreneurship_fee) / SUM(targets.number_of_slots) as training_cost'),
-                DB::raw('SUM(targets.total_cost_of_toolkit_pcc) / SUM(targets.number_of_slots) as cost_of_toolkits'),
-                DB::raw('SUM(targets.total_training_cost_pcc + targets.total_assessment_fee + targets.total_training_support_fund + targets.total_entrepreneurship_fee) as total_training_cost'),
-                DB::raw('SUM(targets.total_cost_of_toolkit_pcc) as total_cost_of_toolkits'),
-                DB::raw('SUM(targets.total_training_cost_pcc + targets.total_assessment_fee + targets.total_training_support_fund + targets.total_entrepreneurship_fee + targets.total_cost_of_toolkit_pcc) as total_amount')
-            )
-            ->groupBy('regions.name', 'provinces.name', 'municipalities.name', 'tvis.name', 'training_programs.title');
+            ->join('target_statuses', 'target_statuses.id', '=', 'targets.target_status_id')
+            ->where('targets.allocation_id', $allocationId);
     }
 
     public function table(Tables\Table $table): Tables\Table
     {
         return $table
             ->columns([
-                TextColumn::make('region')
-                    ->label('Region'),
-                TextColumn::make('province')
+                TextColumn::make('region_name')
+                    ->label('Region Name'),
+                TextColumn::make('province_name')
                     ->label('Province'),
-                TextColumn::make('municipality')
+                TextColumn::make('municipality_name')
                     ->label('Municipality'),
-                TextColumn::make('institution_name')
+                TextColumn::make('district_name')
+                    ->label('Municipality'),
+                TextColumn::make('tvi_name')
                     ->label('Institution'),
-                TextColumn::make('qualification_title')
+                TextColumn::make('training_program_title')
                     ->label('Qualification Title'),
-                TextColumn::make('total_slots')
-                    ->label('Total No. of Slots'),
+                TextColumn::make('number_of_slots')
+                    ->label('No. of Slots'),
                 TextColumn::make('training_cost')
                     ->label('Training Cost PCC (TC, AF, TSF, EF)')
                     ->getStateUsing(function ($record) {
-                        return '₱ ' . number_format($record->training_cost, 2);
+                        $trainingCost = ($record->total_training_cost_pcc + $record->total_assessment_fee + $record->total_training_support_fund + $record->total_entrepreneurship_fee) / $record->number_of_slots;
+
+                        return '₱ ' . number_format($trainingCost, 2);
                     }),
+
                 TextColumn::make('cost_of_toolkits')
                     ->label('Cost of Toolkits PCC')
                     ->getStateUsing(function ($record) {
-                        return '₱ ' . number_format($record->cost_of_toolkits, 2);
+                        $oostOfToolkit = $record->total_cost_of_toolkit_pcc / $record->number_of_slots;
+                        return '₱ ' . number_format($oostOfToolkit, 2);
                     }),
+
                 TextColumn::make('total_training_cost')
-                    ->label('Total Training Cost (TC, AF, TSF, EF)')
+                    ->label('Total Training Cost (TC, AF, TSF, EF')
                     ->getStateUsing(function ($record) {
-                        return '₱ ' . number_format($record->total_training_cost, 2);
+                        $trainingCost = ($record->total_training_cost_pcc + $record->total_assessment_fee + $record->total_training_support_fund + $record->total_entrepreneurship_fee);
+
+                        return '₱ ' . number_format($trainingCost, 2);
                     }),
+
                 TextColumn::make('total_cost_of_toolkits')
-                    ->label('Total Cost of Toolkits')
+                    ->label('Cost of Toolkits PCC')
                     ->getStateUsing(function ($record) {
-                        return '₱ ' . number_format($record->total_cost_of_toolkits, 2);
+                        $oostOfToolkit = $record->total_cost_of_toolkit_pcc;
+                        return '₱ ' . number_format($oostOfToolkit, 2);
                     }),
+        
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
                     ->getStateUsing(function ($record) {
                         return '₱ ' . number_format($record->total_amount, 2);
                     }),
+
+                TextColumn::make('target_status')
+                    ->label('Status'),
             ])
             ->filters([]);
     }
