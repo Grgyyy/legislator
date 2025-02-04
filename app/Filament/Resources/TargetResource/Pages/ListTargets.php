@@ -88,7 +88,9 @@ class ListTargets extends ListRecords
                             }
                         }
                     }
-                }),
+                })
+                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+
 
             Action::make('AdminTargetImport')
                 ->label('Admin Import')

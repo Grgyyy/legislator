@@ -37,7 +37,8 @@ class ListProjectProposalTargets extends ListRecords
         return [
             CreateAction::make()
                 ->label('New')
-                ->icon('heroicon-m-plus'),
+                ->icon('heroicon-m-plus')
+                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
 
 
             Action::make('ProjectProposalTargetExport')
@@ -83,7 +84,8 @@ class ListProjectProposalTargets extends ListRecords
                             }
                         }
                     }
-                }),
+                })
+                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
         ];
     }
 }
