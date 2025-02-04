@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\SkillPriority;
+use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -14,35 +15,23 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 class SkillsPriorityExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
     private array $columns = [
-        'provinces.name' => 'Province',
-        'trainingPrograms.title' => 'Training Program',
+        'province_id' => 'Province',
+        'training_program_id' => 'Training Program',
         'available_slots' => 'Available Slots',
         'total_slots' => 'Total Slots',
         'year' => 'Year',
     ];
 
-    public function query()
+    public function query(): Builder
     {
         return SkillPriority::query()
-            ->with([
-                'provinces.name',
-                'trainingPrograms.title'
-            ])
-            ->select([
-                'id',
-                'province_id',
-                'training_program_id',
-                'available_slots',
-                'total_slots',
-                'year',
-
-            ]);
+            ->select(array_keys($this->columns));
     }
 
     public function map($record): array
     {
         return [
-            $record->province->name,
+            $record->provinces->name,
             $record->trainingPrograms->title,
             $record->available_slots,
             $record->total_slots,
