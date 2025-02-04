@@ -3,6 +3,8 @@
 namespace App\Exports;
 
 use App\Models\InstitutionClass;
+use App\Models\TviClass;
+use App\Models\TviType;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -12,15 +14,16 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class InsitutionClassBExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+class InsitutionClassAExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
-        'name' => 'Institution Class (B)',
+        'name' => 'Institution Class (A)',
+        'tvi_type_id' => 'Institution Type',
     ];
 
     public function query(): Builder
     {
-        return InstitutionClass::query()
+        return TviClass::query()
             ->select(array_keys($this->columns));
     }
 
@@ -29,7 +32,7 @@ class InsitutionClassBExport implements FromQuery, WithHeadings, WithStyles, Wit
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['INSTITUTION CLASS (B)'],
+            ['INSTITUTION CLASS (A)'],
             [''],
         ];
 
@@ -40,6 +43,7 @@ class InsitutionClassBExport implements FromQuery, WithHeadings, WithStyles, Wit
     {
         return [
             $record->name,
+            $record->tviType->name,
         ];
     }
 
