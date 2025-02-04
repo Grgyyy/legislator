@@ -12,35 +12,32 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class TrainingProgramExport implements FromQuery, WithMapping, WithStyles, WithHeadings
+class ProjectProposalExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
+
     private array $columns = [
-        'code' => 'Qualification Code',
         'soc_code' => 'SOC Code',
-        'full_coc_ele' => 'Qualification Type',
-        'nc_level' => 'NC Level',
         'title' => 'Qualification Title',
-        'tvet_id' => 'TVET Sector',
         'scholarshipPrograms.code' => 'Scholarship Program',
+        'tvet_id' => 'TVET Sector',
         'priority_id' => 'Priority Sector',
     ];
 
     public function query(): Builder
     {
         return TrainingProgram::query()
-            ->with('scholarshipPrograms');
+            ->with('scholarshipPrograms')
+            ->where('soc', 0)
+            ->orderBy('title');
     }
 
     public function map($record): array
     {
         return [
-            $record->code ?? '-',
             $record->soc_code ?? '-',
-            $record->full_coc_ele ?? '-',
-            $record->nc_level ?? '-',
             $record->title ?? '-',
-            $record->tvet->name ?? '-',
             $record->scholarshipPrograms->pluck('code')->implode(', '),
+            $record->tvet->name ?? '-',
             $record->priority->name ?? '-',
         ];
     }
@@ -50,7 +47,7 @@ class TrainingProgramExport implements FromQuery, WithMapping, WithStyles, WithH
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['SCHOLARSHIP PROGRAM'],
+            ['PROJECT PROPOSAL'],
             [''],
         ];
 
