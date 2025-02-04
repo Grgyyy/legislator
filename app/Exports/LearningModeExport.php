@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\DeliveryMode;
+use App\Models\LearningMode;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -12,27 +12,25 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-
-
-
-class DeliveryModeExport implements FromQuery, WithHeadings, WithStyles, WithMapping
+class LearningModeExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
-        'name' => 'Delivery Mode',
+        'name' => 'Learning Mode',
+        'deliveryMode.acronym' => 'Delivery Mode'
     ];
 
     public function query(): Builder
     {
-        return DeliveryMode::query()
-            ->select(array_keys($this->columns));
+        return LearningMode::query()->with('deliveryMode');
     }
+
 
     public function headings(): array
     {
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['DELIVERY MODE'],
+            ['LEARNING MODE'],
             [''],
         ];
 
@@ -43,8 +41,10 @@ class DeliveryModeExport implements FromQuery, WithHeadings, WithStyles, WithMap
     {
         return [
             $record->name,
+            $record->deliveryMode->pluck('acronym')->implode(', '),
         ];
     }
+
 
     public function styles(Worksheet $sheet)
     {
