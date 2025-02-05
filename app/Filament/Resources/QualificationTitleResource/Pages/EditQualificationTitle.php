@@ -2,12 +2,12 @@
 
 namespace App\Filament\Resources\QualificationTitleResource\Pages;
 
-use App\Models\QualificationTitle;
 use App\Filament\Resources\QualificationTitleResource;
+use App\Models\QualificationTitle;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
 
 class EditQualificationTitle extends EditRecord
 {

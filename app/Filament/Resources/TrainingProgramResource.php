@@ -2,37 +2,37 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Tvet;
-use App\Models\Priority;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use App\Models\TrainingProgram;
-use Filament\Resources\Resource;
-use App\Models\ScholarshipProgram;
-use Filament\Tables\Filters\Filter;
-use Illuminate\Support\Facades\Auth;
-use App\Services\NotificationHandler;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Fieldset;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\TrainingProgramResource\Pages;
+use App\Models\Priority;
+use App\Models\ScholarshipProgram;
+use App\Models\TrainingProgram;
+use App\Models\Tvet;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Exports\CustomExport\CustomQualificationTitleExport;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class TrainingProgramResource extends Resource
 {
@@ -160,7 +160,7 @@ class TrainingProgramResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('title')
+            ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No qualification titles available')
             ->columns([
                 TextColumn::make('code')

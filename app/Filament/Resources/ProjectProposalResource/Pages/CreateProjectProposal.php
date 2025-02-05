@@ -4,9 +4,11 @@ namespace App\Filament\Resources\ProjectProposalResource\Pages;
 
 use App\Filament\Resources\ProjectProposalResource;
 use App\Helpers\Helper;
+use App\Models\Priority;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
+use App\Models\Tvet;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +40,7 @@ class CreateProjectProposal extends CreateRecord
                 ->label('Exit'),
         ];
     }
-
+    
     public function getBreadcrumbs(): array
     {
         return [

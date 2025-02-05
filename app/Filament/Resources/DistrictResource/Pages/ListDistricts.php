@@ -64,6 +64,7 @@ class ListDistricts extends ListRecords
 
                         try {
                             Excel::import(new DistrictImport, $filePath);
+                            
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The districts have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the districts: ' . $e->getMessage());

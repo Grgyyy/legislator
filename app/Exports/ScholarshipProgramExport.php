@@ -5,12 +5,12 @@ namespace App\Exports;
 use App\Models\ScholarshipProgram;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class ScholarshipProgramExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
@@ -64,7 +64,6 @@ class ScholarshipProgramExport implements FromQuery, WithMapping, WithStyles, Wi
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
-
 
         $subHeaderStyle = [
             'alignment' => [

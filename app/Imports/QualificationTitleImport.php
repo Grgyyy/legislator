@@ -6,8 +6,8 @@ use App\Models\QualificationTitle;
 use App\Models\TrainingProgram;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Throwable;
 
@@ -21,7 +21,6 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                // Retrieve IDs
                 $trainingProgramId = $this->getTrainingProgramId($row['training_program'], $row['soc_code']);
                 $scholarshipProgramId = $this->getScholarshipProgramId($row['scholarship_program'], $trainingProgramId);
 
@@ -64,6 +63,7 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
                 return $qualificationTitle;
             } catch (Throwable $e) {
                 Log::error('Failed to import Qualification Title: ' . $e->getMessage());
+                
                 throw $e;
             }
         });
@@ -71,7 +71,6 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        // \Log::debug('Row data:', $row); // Add this line to check the row contents
         $requiredFields = ['soc_code', 'training_program', 'scholarship_program', 'training_cost_pcc', 'no_of_training_hours', 'no_of_training_days'];
 
         foreach ($requiredFields as $field) {
@@ -89,8 +88,6 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
         if (!$trainingProgram) {
             throw new \Exception("Training program with name '{$trainingProgramName}' not found. No changes were saved.");
-            // throw new \Exception($trainingProgram);
-
         }
 
         return $trainingProgram->id;

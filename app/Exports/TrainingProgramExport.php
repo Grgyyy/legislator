@@ -5,12 +5,12 @@ namespace App\Exports;
 use App\Models\TrainingProgram;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class TrainingProgramExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
@@ -20,8 +20,8 @@ class TrainingProgramExport implements FromQuery, WithMapping, WithStyles, WithH
         'full_coc_ele' => 'Qualification Type',
         'nc_level' => 'NC Level',
         'title' => 'Qualification Title',
-        'tvet_id' => 'TVET Sector',
         'scholarshipPrograms.code' => 'Scholarship Program',
+        'tvet_id' => 'TVET Sector',
         'priority_id' => 'Priority Sector',
     ];
 
@@ -74,7 +74,6 @@ class TrainingProgramExport implements FromQuery, WithMapping, WithStyles, WithH
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
-
 
         $subHeaderStyle = [
             'alignment' => [

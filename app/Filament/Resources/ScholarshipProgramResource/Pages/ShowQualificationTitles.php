@@ -1,15 +1,32 @@
 <?php
 namespace App\Filament\Resources\ScholarshipProgramResource\Pages;
 
-use App\Models\ScholarshipProgram;
 use App\Filament\Resources\QualificationTitleResource;
-use Filament\Resources\Pages\ListRecords;
+use App\Models\ScholarshipProgram;
 use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 
 class ShowQualificationTitles extends ListRecords
 {
     protected static string $resource = QualificationTitleResource::class;
+    
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
 
+    protected function getFormActions(): array
+    {
+        return [
+            $this->getCreateFormAction()
+                ->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()
+                ->label('Save & Create Another'),
+            $this->getCancelFormAction()
+                ->label('Exit'),
+        ];
+    }
+    
     public function getBreadcrumbs(): array
     {
         $scholarshipProgramId = $this->getscholarshipProgramId();
@@ -33,23 +50,6 @@ class ShowQualificationTitles extends ListRecords
                 ->icon('heroicon-m-plus')
                 ->url(route('filament.admin.resources.qualification_titles.create', ['scholarshipProgram_id' => $scholarshipProgramId]))
         ];
-    }
-
-    protected function getFormActions(): array
-    {
-        return [
-            $this->getCreateFormAction()
-                ->label('Save & Exit'),
-            $this->getCreateAnotherFormAction()
-                ->label('Save & Create Another'),
-            $this->getCancelFormAction()
-                ->label('Exit'),
-        ];
-    }
-
-    protected function getCreatedNotificationTitle(): ?string
-    {
-        return null;
     }
 
     protected function getscholarshipProgramId(): ?int

@@ -65,6 +65,7 @@ class ListProvinces extends ListRecords
 
                         try {
                             Excel::import(new ProvinceImport, $filePath);
+                            
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The provinces have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());

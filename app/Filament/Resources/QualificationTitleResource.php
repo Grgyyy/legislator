@@ -35,7 +35,6 @@ use Filament\Tables\Filters\Filter;
 use App\Exports\CustomExport\CustomScheduleOfCostExport;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
@@ -224,7 +223,8 @@ class QualificationTitleResource extends Resource
                             ->suffix('day(s)')
                             ->default(0)
                             ->minValue(0)
-                            ->currencyMask(precision: 0),
+                            ->currencyMask(thousandSeparator: '', precision: 0)
+                            ->validationAttribute('training days'),
 
                         TextInput::make('hours_duration')
                             ->label('Hours')
@@ -235,7 +235,8 @@ class QualificationTitleResource extends Resource
                             ->suffix('hrs')
                             ->default(0)
                             ->minValue(0)
-                            ->currencyMask(precision: 0),
+                            ->currencyMask(thousandSeparator: '', precision: 0)
+                            ->validationAttribute('training hours'),
                     ])
                     ->columns(2),
 
