@@ -2,9 +2,9 @@
 
 namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
-use App\Models\Priority;
 use App\Filament\Clusters\Sectors\Resources\PriorityResource;
 use App\Helpers\Helper;
+use App\Models\Priority;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;

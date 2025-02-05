@@ -65,6 +65,7 @@ class ListLegislators extends ListRecords
 
                         try {
                             Excel::import(new LegislatorImport, $filePath);
+                            
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The legislators have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the legislators: ' . $e->getMessage());

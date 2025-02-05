@@ -1,13 +1,13 @@
 <?php
 namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
-use App\Models\Priority;
 use App\Filament\Clusters\Sectors\Resources\PriorityResource;
 use App\Helpers\Helper;
+use App\Models\Priority;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
 
 class EditPriority extends EditRecord
 {

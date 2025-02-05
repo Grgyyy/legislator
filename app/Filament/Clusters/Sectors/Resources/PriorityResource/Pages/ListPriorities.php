@@ -74,6 +74,7 @@ class ListPriorities extends ListRecords
 
                         try {
                             Excel::import(new TenPrioImport, $filePath);
+                            
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The ten priorities sectors have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the ten priorities sectors: ' . $e->getMessage());

@@ -5,8 +5,8 @@ namespace App\Imports;
 use App\Models\Tvet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Throwable;
 
@@ -21,12 +21,10 @@ class TvetImport implements ToModel, WithHeadingRow
      */
     public function model(array $row)
     {
-
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-
                 $sectorIsExist = Tvet::where('name', $row['sector_name'])->exists();
 
                 if (!$sectorIsExist) {
@@ -34,12 +32,10 @@ class TvetImport implements ToModel, WithHeadingRow
                         'name' => $row['sector_name'],
                     ]);
                 }
-
             } catch (Throwable $e) {
-
                 Log::error('Failed to import TVET Sectors: ' . $e->getMessage());
+               
                 throw $e;
-
             }
         });
     }

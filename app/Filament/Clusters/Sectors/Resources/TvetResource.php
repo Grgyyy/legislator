@@ -2,32 +2,32 @@
 
 namespace App\Filament\Clusters\Sectors\Resources;
 
-use App\Models\Tvet;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
 use App\Filament\Clusters\Sectors;
-use Illuminate\Support\Facades\Auth;
+use App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
+use App\Models\Tvet;
 use App\Services\NotificationHandler;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Exports\CustomExport\CustomTvetSectorExport;
+use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class TvetResource extends Resource
 {
@@ -51,7 +51,7 @@ class TvetResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Sector'),
+                    ->validationAttribute('sector'),
             ]);
     }
 

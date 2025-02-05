@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\LegislatorResource\Pages;
 
-use App\Models\Legislator;
 use App\Filament\Resources\LegislatorResource;
+use App\Models\Legislator;
 use App\Helpers\Helper;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
 
 class EditLegislator extends EditRecord
 {
