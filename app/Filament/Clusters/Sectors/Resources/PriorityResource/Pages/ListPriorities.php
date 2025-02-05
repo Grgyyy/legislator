@@ -2,15 +2,17 @@
 
 namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
-use App\Filament\Clusters\Sectors\Resources\PriorityResource;
-use App\Imports\TenPrioImport;
-use Filament\Resources\Pages\ListRecords;
-use App\Services\NotificationHandler;
-use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
-use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use Filament\Actions\Action;
+use App\Imports\TenPrioImport;
+use App\Exports\PriorityExport;
+use Filament\Actions\CreateAction;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Validators\ValidationException;
+use App\Filament\Clusters\Sectors\Resources\PriorityResource;
 
 class ListPriorities extends ListRecords
 {
@@ -37,6 +39,23 @@ class ListPriorities extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+
+            Action::make('PriorityExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new PriorityExport, 'ten_priority_sector_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
 
             Action::make('TenPrioImport')
                 ->label('Import')

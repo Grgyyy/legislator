@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Abdd;
+use App\Models\Priority;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithStyles;
@@ -12,7 +13,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class AbddExport implements FromQuery, WithMapping, WithStyles, WithHeadings
+class PriorityExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
     private array $columns = [
         'name' => 'Sector',
@@ -20,7 +21,7 @@ class AbddExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 
     public function query(): Builder
     {
-        return Abdd::query();
+        return Priority::query();
     }
 
     public function map($record): array
@@ -35,7 +36,7 @@ class AbddExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['ABDD SECTOR'],
+            ['TEN PRIORITY SECTOR'],
             [''],
         ];
 
