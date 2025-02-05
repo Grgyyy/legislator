@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\Province;
+use App\Models\District;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -12,29 +12,33 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class ProvinceExport implements FromQuery, WithMapping, WithStyles, WithHeadings
+class DistrictExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
     private array $columns = [
         'code' => 'PSG Code',
-        'name' => 'Province',
-        'region.name' => 'Region',
+        'name' => 'District',
+        'underMunicipality.name' => 'Municipality',
+        'province.name' => 'Province',
+        'province.region.name' => 'Region',
     ];
 
     public function query(): Builder
     {
-        return Province::query()
-            ->select('provinces.*')
-            ->join('regions', 'provinces.region_id', 'regions.id')
+        return District::query()
+            ->select('districts.*')
+            ->join('provinces', 'districts.province_id', '=', 'provinces.id')
+            ->join('regions', 'provinces.region_id', '=', 'regions.id')
             ->orderBy('regions.id', 'asc');
     }
-
 
     public function map($record): array
     {
         return [
             $record->code ?? '-',
             $record->name ?? '-',
-            $record->region->name ?? '-',
+            $this->getUndermunicipality($record) ?? '-',
+            $record->province->name ?? '-',
+            $record->province->region->name ?? '-',
         ];
     }
 
@@ -43,7 +47,7 @@ class ProvinceExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PROVINCES'],
+            ['DISTRICTS'],
             [''],
         ];
 
@@ -86,5 +90,10 @@ class ProvinceExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         }
 
         return $sheet;
+    }
+
+    private function getUndermunicipality($record)
+    {
+        return $record->underMunicipality ? $record->underMunicipality->name : '-';
     }
 }
