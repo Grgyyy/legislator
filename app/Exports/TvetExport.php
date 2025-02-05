@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use App\Models\Priority;
 use App\Models\Tvet;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;

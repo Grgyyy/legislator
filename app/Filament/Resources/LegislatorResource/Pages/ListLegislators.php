@@ -2,20 +2,22 @@
 
 namespace App\Filament\Resources\LegislatorResource\Pages;
 
-use App\Filament\Resources\LegislatorResource;
-use App\Imports\LegislatorImport;
-use Filament\Resources\Pages\ListRecords;
-use App\Services\NotificationHandler;
-use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
-use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use Filament\Actions\Action;
+use App\Exports\LegislatorExport;
+use App\Imports\LegislatorImport;
+use Filament\Actions\CreateAction;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\LegislatorResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListLegislators extends ListRecords
 {
     protected static string $resource = LegislatorResource::class;
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -27,6 +29,24 @@ class ListLegislators extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('LegislatorExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new LegislatorExport, 'legislator_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
+
+
 
             Action::make('LegislatorImport')
                 ->label('Import')
