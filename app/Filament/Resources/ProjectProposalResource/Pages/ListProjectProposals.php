@@ -56,7 +56,6 @@ class ListProjectProposals extends ListRecords
                     };
                 }),
 
-            Action::make('TargetImport')
             Action::make('ProjectProposalProgramImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
