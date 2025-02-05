@@ -259,7 +259,8 @@ class QualificationTitleResource extends Resource
                     ->label('Qualification Code')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => empty($record->trainingProgram->code) ? '-' : $record->trainingProgram->code),
 
                 TextColumn::make('trainingProgram.soc_code')
                     ->label('SOC Code')
