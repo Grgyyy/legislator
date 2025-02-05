@@ -2,6 +2,7 @@
 
 namespace App\Exports;
 
+use App\Models\Province;
 use App\Models\Region;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -12,24 +13,29 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class RegionExport implements FromQuery, WithMapping, WithStyles, WithHeadings
+class ProvinceExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
     private array $columns = [
         'code' => 'PSG Code',
-        'name' => 'Region',
+        'name' => 'Province',
+        'region.name' => 'Region',
     ];
 
     public function query(): Builder
     {
-        return Region::query()
-            ->orderBy('name');
+        return Province::query()
+            ->select('provinces.*')
+            ->join('regions', 'provinces.region_id', 'regions.id')
+            ->orderBy('regions.id', 'asc');
     }
+
 
     public function map($record): array
     {
         return [
             $record->code ?? '-',
             $record->name ?? '-',
+            $record->region->name ?? '-',
         ];
     }
 
@@ -38,7 +44,7 @@ class RegionExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['REGION'],
+            ['PROVINCES'],
             [''],
         ];
 

@@ -33,7 +33,7 @@ class ListRegions extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('ParticularExport')
+            Action::make('RegionExport')
                 ->label('Export')
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {

@@ -28,9 +28,9 @@ class ParticularExport implements FromQuery, WithMapping, WithStyles, WithHeadin
     {
         return Particular::query()
             ->select('particulars.*')
-            ->join('districts', 'particulars.district_id', '=', 'districts.id')
-            ->join('provinces', 'districts.province_id', '=', 'provinces.id')
-            ->join('regions', 'provinces.region_id', '=', 'regions.id')
+            ->join('districts', 'particulars.district_id', 'districts.id')
+            ->join('provinces', 'districts.province_id', 'provinces.id')
+            ->join('regions', 'provinces.region_id', 'regions.id')
             ->orderBy('regions.name', 'asc');
     }
 
