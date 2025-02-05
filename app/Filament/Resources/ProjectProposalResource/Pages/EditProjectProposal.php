@@ -69,10 +69,6 @@ class EditProjectProposal extends EditRecord
 
         $data['program_name'] = $record->title;
 
-        $data['scholarshipPrograms'] = $record->scholarshipPrograms()
-            ->pluck('scholarship_programs.id')
-            ->toArray();
-
         return $data;
     }
 
@@ -85,28 +81,6 @@ class EditProjectProposal extends EditRecord
         try {
             $record->update($data);
 
-            if (!empty($data['scholarshipPrograms'])) {
-                $record->scholarshipPrograms()->detach();
-
-                $record->scholarshipPrograms()->sync($data['scholarshipPrograms']);
-
-                foreach ($data['scholarshipPrograms'] as $scholarshipProgramId) {
-                    $scholarshipProgram = ScholarshipProgram::find($scholarshipProgramId);
-
-                    $qualificationTitle = QualificationTitle::where('training_program_id', $record->id)
-                        ->where('scholarship_program_id', $scholarshipProgram->id)
-                        ->first();
-
-                    if (!$qualificationTitle) {
-                        QualificationTitle::create([
-                            'training_program_id' => $record->id,
-                            'scholarship_program_id' => $scholarshipProgram->id,
-                            'status_id' => 1,
-                            'soc' => 0
-                        ]);
-                    }
-                }
-            }
 
             NotificationHandler::sendSuccessNotification('Saved', 'Project proposal program has been updated successfully.');
 
@@ -124,8 +98,6 @@ class EditProjectProposal extends EditRecord
     {
         $trainingProgram = TrainingProgram::withTrashed()
             ->where('title', $data['title'])
-            ->where('tvet_id', $data['tvet_id'])
-            ->where('priority_id', $data['priority_id'])
             ->whereNot('id', $currentId)
             ->first();
 

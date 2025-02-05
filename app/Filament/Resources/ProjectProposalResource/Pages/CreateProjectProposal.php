@@ -41,6 +41,7 @@ class CreateProjectProposal extends CreateRecord
                 ->label('Exit'),
         ];
     }
+
     public function getBreadcrumbs(): array
     {
         return [
@@ -69,34 +70,46 @@ class CreateProjectProposal extends CreateRecord
         $this->validateUniqueProjectProposal($data);
 
         $data['title'] = Helper::capitalizeWords($data['title']);
-        
         $formattedSocCode = $this->generateSocCode();
-        
-        $projectProposalProgram = DB::transaction(fn () => TrainingProgram::create([
-            'soc_code'   => $formattedSocCode,
-            'title'      => $data['title'],
-            'priority_id' => $data['priority_id'],
-            'tvet_id'    => $data['tvet_id'],
-            'soc' => 0
-        ]));
 
-        if (!empty($data['scholarshipPrograms'])) {
-            $projectProposalProgram->scholarshipPrograms()->sync($data['scholarshipPrograms']);
+        $projectProposalProgram = DB::transaction(function () use ($data, $formattedSocCode) {
+            $priority = Priority::where('name', 'Not Applicable')->first();
+            $tvet = Tvet::where('name', 'Not Applicable')->first();
 
-            foreach ($data['scholarshipPrograms'] as $scholarshipProgramId) {
-                $scholarshipProgram = ScholarshipProgram::find($scholarshipProgramId);
+            $projectProposalProgram = TrainingProgram::create([
+                'soc_code' => $formattedSocCode,
+                'title' => $data['title'],
+                'priority_id' => $priority->id,
+                'tvet_id' => $tvet->id,
+                'soc' => 0,
+            ]);
 
-                QualificationTitle::create([
-                    'training_program_id' => $projectProposalProgram->id,
-                    'scholarship_program_id' => $scholarshipProgram->id,
-                    'status_id' => 1,
-                    'soc' => 0
-                ]);
+            $scholarshipProgramIds = ScholarshipProgram::pluck('id');
+
+            if ($scholarshipProgramIds->isNotEmpty()) {
+                $projectProposalProgram->scholarshipPrograms()->sync($scholarshipProgramIds);
+
+                foreach ($scholarshipProgramIds as $scholarshipProgramId) {
+                    $exists = QualificationTitle::where('training_program_id', $projectProposalProgram->id)
+                        ->where('scholarship_program_id', $scholarshipProgramId)
+                        ->where('soc', 0)
+                        ->exists();
+
+                    if (!$exists) {
+                        QualificationTitle::create([
+                            'training_program_id' => $projectProposalProgram->id,
+                            'scholarship_program_id' => $scholarshipProgramId,
+                            'status_id' => 1,
+                            'soc' => 0,
+                        ]);
+                    }
+                }
             }
-        }
+
+            return $projectProposalProgram;
+        });
 
         NotificationHandler::sendSuccessNotification('Created', 'Qualification title has been created successfully.');
-
         return $projectProposalProgram;
     }
 
@@ -108,7 +121,7 @@ class CreateProjectProposal extends CreateRecord
 
         $lastSocCode = $lastTrainingProgram ? substr($lastTrainingProgram->soc_code, 4) : 0;
         $lastSocCode = ltrim($lastSocCode, '0');
-        $newSocCode = (int)$lastSocCode + 1;
+        $newSocCode = (int) $lastSocCode + 1;
 
         return sprintf('PROP%06d', $newSocCode);
     }
@@ -117,8 +130,6 @@ class CreateProjectProposal extends CreateRecord
     {
         $trainingProgram = TrainingProgram::withTrashed()
             ->where('title', $data['title'])
-            ->where('tvet_id', $data['tvet_id'])
-            ->where('priority_id', $data['priority_id'])
             ->first();
 
         if ($trainingProgram) {
@@ -126,7 +137,7 @@ class CreateProjectProposal extends CreateRecord
                 ? 'A qualification title with the provided details has been deleted and must be restored before reuse.'
                 : 'A qualification title with the provided details already exists.';
 
-                NotificationHandler::handleValidationException('Something went wrong', $message);
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
 }
