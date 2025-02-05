@@ -3,28 +3,29 @@
 namespace App\Filament\Resources;
 
 use App\Models\Region;
-use App\Filament\Resources\RegionResource\Pages;
-use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
 use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
+use Filament\Resources\Resource;
+use App\Exports\CustomRegionExport;
+use App\Services\NotificationHandler;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use App\Filament\Resources\RegionResource\Pages;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class RegionResource extends Resource
 {
@@ -129,9 +130,43 @@ class RegionResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected regions have been deleted permanently.');
                         }),
+                    //     ExportBulkAction::make()
+                    //         ->exports([
+                    //             ExcelExport::make()
+                    //                 ->withColumns([
+                    //                     Column::make('code')
+                    //                         ->heading('PSG Code')
+                    //                         ->getStateUsing(function ($record) {
+                    //                             return $record->code ?: '-';
+                    //                         }),
+                    //                     Column::make('name')
+                    //                         ->heading('Region'),
+                    //                 ])
+                    //                 ->withFilename(date('m-d-Y') . ' - Regions'),
+                    //         ]),
+                    // ]),
+
+                    // ExportBulkAction::make()
+                    //     ->exports([
+                    //         CustomRegionExport::make()  // Use the custom export class
+                    //             ->withColumns([
+                    //                 Column::make('code')
+                    //                     ->heading('PSG Code')
+                    //                     ->getStateUsing(function ($record) {
+                    //                         return $record->code ?: '-';
+                    //                     }),
+                    //                 Column::make('name')
+                    //                     ->heading('Region')
+                    //                     ->getStateUsing(function ($record) {
+                    //                         return $record->name ?: '-';
+                    //                     }),
+                    //             ])
+                    //             ->withFilename(date('m-d-Y') . ' - Regions'),
+                    //     ]),
+
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomRegionExport::make()  // Use the custom export class
                                 ->withColumns([
                                     Column::make('code')
                                         ->heading('PSG Code')
@@ -139,10 +174,14 @@ class RegionResource extends Resource
                                             return $record->code ?: '-';
                                         }),
                                     Column::make('name')
-                                        ->heading('Region'),
+                                        ->heading('Region')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->name ?: '-';
+                                        }),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Regions'),
                         ]),
+
                 ]),
             ]);
     }
