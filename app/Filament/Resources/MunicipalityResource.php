@@ -57,7 +57,7 @@ class MunicipalityResource extends Resource
                     ->placeholder('Enter PSG code')
                     ->autocomplete(false)
                     ->numeric()
-                    ->currencyMask(precision: 2)
+                    ->currencyMask(thousandSeparator: '', precision: 0)
                     ->validationAttribute('PSG code'),
 
                 TextInput::make('class')

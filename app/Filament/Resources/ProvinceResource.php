@@ -58,7 +58,7 @@ class ProvinceResource extends Resource
                     ->numeric()
                     ->minLength(5)
                     ->maxLength(5)
-                    ->currencyMask(precision: 0)
+                    ->currencyMask(thousandSeparator: '', precision: 0)
                     ->validationAttribute('PSG code'),
 
                 Select::make('region_id')

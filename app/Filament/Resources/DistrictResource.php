@@ -57,7 +57,7 @@ class DistrictResource extends Resource
                     ->placeholder('Enter PSG code')
                     ->autocomplete(false)
                     ->numeric()
-                    ->currencyMask(0)
+                    ->currencyMask(thousandSeparator: '', precision: 0)
                     ->validationAttribute('PSG code'),
 
                 Select::make('province_id')
