@@ -2,20 +2,22 @@
 
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
-use App\Filament\Resources\MunicipalityResource;
-use App\Imports\MunicipalityImport;
-use App\Services\NotificationHandler;
-use Filament\Resources\Pages\ListRecords;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
+use App\Exports\MunicipalityExport;
+use App\Imports\MunicipalityImport;
 use Maatwebsite\Excel\Facades\Excel;
-use Exception;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\MunicipalityResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListMunicipalities extends ListRecords
 {
     protected static string $resource = MunicipalityResource::class;
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -27,6 +29,21 @@ class ListMunicipalities extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('MunicipalityExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new MunicipalityExport, 'municipality_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
 
             Action::make('MunicipalityImport')
                 ->label('Import')

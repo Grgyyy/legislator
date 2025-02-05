@@ -2,23 +2,25 @@
 
 namespace App\Filament\Resources\ParticularResource\Pages;
 
-use App\Models\Particular;
-use App\Models\FundSource;
-use App\Filament\Resources\ParticularResource;
-use Filament\Resources\Components\Tab;
-use App\Imports\ParticularImport;
-use Filament\Resources\Pages\ListRecords;
-use App\Services\NotificationHandler;
-use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
-use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use App\Models\FundSource;
+use App\Models\Particular;
+use Filament\Actions\Action;
+use App\Exports\ParticularExport;
+use App\Imports\ParticularImport;
+use Filament\Actions\CreateAction;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Services\NotificationHandler;
+use Filament\Resources\Components\Tab;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\ParticularResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListParticulars extends ListRecords
 {
     protected static string $resource = ParticularResource::class;
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -30,6 +32,22 @@ class ListParticulars extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('ParticularExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ParticularExport, 'particular_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
 
             Action::make('ParticularImport')
                 ->label('Import')

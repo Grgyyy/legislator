@@ -2,15 +2,17 @@
 
 namespace App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
 
-use App\Filament\Clusters\Sectors\Resources\TvetResource;
+use Exception;
+use App\Exports\TvetExport;
 use App\Imports\TvetImport;
-use Filament\Resources\Pages\ListRecords;
-use App\Services\NotificationHandler;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
 use Maatwebsite\Excel\Facades\Excel;
-use Exception;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Validators\ValidationException;
+use App\Filament\Clusters\Sectors\Resources\TvetResource;
 
 class ListTvets extends ListRecords
 {
@@ -37,6 +39,22 @@ class ListTvets extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('TvetExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new TvetExport, 'tvet_sector_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
 
             Action::make('TvetImport')
                 ->label('Import')

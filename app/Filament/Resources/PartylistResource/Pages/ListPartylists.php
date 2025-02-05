@@ -2,15 +2,17 @@
 
 namespace App\Filament\Resources\PartylistResource\Pages;
 
-use App\Filament\Resources\PartylistResource;
-use App\Imports\PartylistImport;
-use Filament\Resources\Pages\ListRecords;
-use App\Services\NotificationHandler;
-use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
-use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use Filament\Actions\Action;
+use App\Exports\PartylistExport;
+use App\Imports\PartylistImport;
+use Filament\Actions\CreateAction;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\PartylistResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListPartylists extends ListRecords
 {
@@ -37,6 +39,22 @@ class ListPartylists extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('PartylistExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new PartylistExport, 'partylist_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
 
             Action::make('PartylistImport')
                 ->label('Import')
