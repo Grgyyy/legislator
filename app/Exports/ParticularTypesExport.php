@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Partylist;
+use App\Models\SubParticular;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -12,15 +13,16 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class PartylistExport implements FromQuery, WithMapping, WithStyles, WithHeadings
+class ParticularTypesExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
     private array $columns = [
-        'name' => 'Party-list',
+        'name' => 'Particular Types',
+        'fund_source_id' => 'Fund Source',
     ];
 
     public function query(): Builder
     {
-        return Partylist::query()
+        return SubParticular::query()
             ->orderBy('name');
     }
 
@@ -28,6 +30,7 @@ class PartylistExport implements FromQuery, WithMapping, WithStyles, WithHeading
     {
         return [
             $record->name ?? '-',
+            $record->fundSource->name ?? '-',
         ];
     }
 
@@ -36,7 +39,7 @@ class PartylistExport implements FromQuery, WithMapping, WithStyles, WithHeading
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PARTY-LIST'],
+            ['PARTICULAR TYPES'],
             [''],
         ];
 
