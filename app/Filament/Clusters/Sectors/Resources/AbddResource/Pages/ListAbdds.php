@@ -2,15 +2,17 @@
 
 namespace App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
 
-use App\Filament\Clusters\Sectors\Resources\AbddResource;
+use Exception;
+use App\Exports\AbddExport;
 use App\Imports\AbddImport;
-use Filament\Resources\Pages\ListRecords;
-use App\Services\NotificationHandler;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
 use Maatwebsite\Excel\Facades\Excel;
-use Exception;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Validators\ValidationException;
+use App\Filament\Clusters\Sectors\Resources\AbddResource;
 
 class ListAbdds extends ListRecords
 {
@@ -37,6 +39,22 @@ class ListAbdds extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
+
+            Action::make('AbddExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new AbddExport, 'abdd_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
 
             Action::make('AbddImport')
                 ->label('Import')
