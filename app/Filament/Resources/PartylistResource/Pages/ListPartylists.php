@@ -73,6 +73,7 @@ class ListPartylists extends ListRecords
 
                         try {
                             Excel::import(new PartylistImport, $filePath);
+                            
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The party-lists have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the party-lists: ' . $e->getMessage());

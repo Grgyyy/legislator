@@ -2,18 +2,18 @@
 
 namespace App\Filament\Resources\SubParticularResource\Pages;
 
+use App\Filament\Resources\SubParticularResource;
+use App\Imports\ParticularTypesImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
 use App\Models\SubParticular;
 use Filament\Actions\CreateAction;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
 use App\Exports\ParticularTypesExport;
-use App\Imports\ParticularTypesImport;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\SubParticularResource;
-use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListSubParticulars extends ListRecords
 {
@@ -73,6 +73,7 @@ class ListSubParticulars extends ListRecords
 
                         try {
                             Excel::import(new ParticularTypesImport, $filePath);
+                            
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The particular types have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the particular types: ' . $e->getMessage());

@@ -2,18 +2,18 @@
 
 namespace App\Filament\Resources\ParticularResource\Pages;
 
-use App\Models\Particular;
-use App\Models\SubParticular;
-use App\Models\Partylist;
+use App\Filament\Resources\ParticularResource;
 use App\Models\District;
+use App\Models\Particular;
+use App\Models\Partylist;
 use App\Models\Province;
 use App\Models\Region;
-use App\Filament\Resources\ParticularResource;
+use App\Models\SubParticular;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Exception;
 
 class EditParticular extends EditRecord
 {

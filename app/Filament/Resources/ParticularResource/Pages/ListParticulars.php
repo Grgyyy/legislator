@@ -2,20 +2,18 @@
 
 namespace App\Filament\Resources\ParticularResource\Pages;
 
-use Exception;
+use App\Filament\Resources\ParticularResource;
+use App\Imports\ParticularImport;
 use App\Models\FundSource;
 use App\Models\Particular;
-use Filament\Actions\Action;
-use App\Exports\ParticularExport;
-use App\Imports\ParticularImport;
-use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
-use Filament\Resources\Components\Tab;
+use Exception;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\ParticularResource;
-use Maatwebsite\Excel\Validators\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ListParticulars extends ListRecords
 {
@@ -66,6 +64,7 @@ class ListParticulars extends ListRecords
 
                         try {
                             Excel::import(new ParticularImport, $filePath);
+                            
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The particulars have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the particulars: ' . $e->getMessage());

@@ -3,12 +3,11 @@
 namespace App\Imports;
 
 use App\Models\Partylist;
-use App\Models\Region;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\Importable;
 use Throwable;
 
 class PartylistImport implements ToModel, WithHeadingRow
@@ -26,7 +25,6 @@ class PartylistImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-
                 $partylistExist = Partylist::where('name', $row['partylist_name'])->exists();
 
                 if(!$partylistExist) {
@@ -34,12 +32,10 @@ class PartylistImport implements ToModel, WithHeadingRow
                         'name' => $row['partylist_name'],
                     ]);
                 }
-
             } catch (Throwable $e) {
-
                 Log::error('Failed to import partylist: ' . $e->getMessage());
+                
                 throw $e;
-
             }
         });
     }

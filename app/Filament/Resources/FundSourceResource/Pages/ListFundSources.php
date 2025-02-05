@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources\FundSourceResource\Pages;
 
-use Filament\Actions\Action;
 use App\Exports\FundSourceExport;
+use App\Filament\Resources\FundSourceResource;
 use App\Imports\FundSourceImport;
-use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
-use PhpOffice\PhpSpreadsheet\Exception;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\FundSourceResource;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
+use PhpOffice\PhpSpreadsheet\Exception;
 
 class ListFundSources extends ListRecords
 {
@@ -40,8 +40,6 @@ class ListFundSources extends ListRecords
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
                     }
                 }),
 
@@ -50,7 +48,7 @@ class ListFundSources extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import Fund Source')
+                        ->label('Import')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -63,9 +61,10 @@ class ListFundSources extends ListRecords
 
                         try {
                             Excel::import(new FundSourceImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Fund Source have been successfully imported from the file.');
+                            
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The fund sources have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Fund Source: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the fund sources: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);
