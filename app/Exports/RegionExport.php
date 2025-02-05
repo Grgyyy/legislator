@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Particular;
+use App\Models\Region;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -12,39 +13,24 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class ParticularExport implements FromQuery, WithMapping, WithStyles, WithHeadings
+class RegionExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
     private array $columns = [
-        'subParticular.name' => 'Particular Type',
-        'subParticular.fundSource.name' => 'Fund Source',
-        'partylist.name' => 'Party-list',
-        'district.name' => 'District',
-        'district.underMunicipality.name' => 'Municipality',
-        'district.province.name' => 'Province',
-        'district.province.region.name' => 'Region',
+        'code' => 'PSG Code',
+        'name' => 'Region',
     ];
 
     public function query(): Builder
     {
-        return Particular::query()
-            ->select('particulars.*')
-            ->join('districts', 'particulars.district_id', '=', 'districts.id')
-            ->join('provinces', 'districts.province_id', '=', 'provinces.id')
-            ->join('regions', 'provinces.region_id', '=', 'regions.id')
-            ->orderBy('regions.name', 'asc');
+        return Region::query()
+            ->orderBy('name');
     }
 
     public function map($record): array
     {
         return [
-            $record->subParticular->name ?? '-',
-            $record->subParticular->fundSource->name ?? '-',
-            $record->partylist->name ?? '-',
-            $record->district->name ?? '-',
-            $record->district->underMunicipality->name ?? '-',
-            $record->district->province->name ?? '-',
-            $record->district->province->region->name ?? '-',
-
+            $record->code ?? '-',
+            $record->name ?? '-',
         ];
     }
 
@@ -53,7 +39,7 @@ class ParticularExport implements FromQuery, WithMapping, WithStyles, WithHeadin
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PARTICULARS'],
+            ['REGION'],
             [''],
         ];
 

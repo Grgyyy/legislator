@@ -2,18 +2,20 @@
 
 namespace App\Filament\Resources\RegionResource\Pages;
 
-use App\Filament\Resources\RegionResource;
-use App\Services\NotificationHandler;
 use Exception;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Filament\Forms\Components\FileUpload;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\RegionImport;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\UploadedFile;
 use Notification;
+use Filament\Actions\Action;
+use App\Exports\RegionExport;
+use App\Imports\RegionImport;
+use Illuminate\Http\UploadedFile;
+use Filament\Actions\CreateAction;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Services\NotificationHandler;
+use Illuminate\Support\Facades\Storage;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\RegionResource;
+use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListRegions extends ListRecords
 {
@@ -31,6 +33,21 @@ class ListRegions extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
+            Action::make('ParticularExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new RegionExport, 'region_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
             Action::make('RegionImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
@@ -46,7 +63,7 @@ class ListRegions extends ListRecords
                 ->action(function (array $data) {
                     if (isset($data['file']) && is_string($data['file'])) {
                         $filePath = storage_path('app/' . $data['file']); // Get the full file path
-
+        
                         try {
                             Excel::import(new RegionImport, $filePath);
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The provinces have been successfully imported from the file.');
