@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\DistrictResource\Pages;
 use App\Models\District;
 use App\Models\Province;
 use Filament\Forms\Form;
@@ -15,20 +16,19 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use App\Filament\Resources\DistrictResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class DistrictResource extends Resource
 {
@@ -50,14 +50,15 @@ class DistrictResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('District'),
+                    ->validationAttribute('district'),
 
                 TextInput::make("code")
                     ->label('PSG Code')
                     ->placeholder('Enter PSG code')
                     ->autocomplete(false)
                     ->numeric()
-                    ->validationAttribute('PSG Code'),
+                    ->currencyMask(0)
+                    ->validationAttribute('PSG code'),
 
                 Select::make('province_id')
                     ->label('Province')
@@ -87,7 +88,8 @@ class DistrictResource extends Resource
                         }
                     })
                     ->reactive()
-                    ->live(),
+                    ->live()
+                    ->validationAttribute('province'),
 
                 Select::make('municipality_id')
                     ->label('Municipality')
@@ -129,7 +131,8 @@ class DistrictResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_municipality')
                     ->reactive()
-                    ->live(),
+                    ->live()
+                    ->validationAttribute('municipality'),
             ]);
     }
 
@@ -153,16 +156,17 @@ class DistrictResource extends Resource
 
                 TextColumn::make('underMunicipality.name')
                     ->label('Municipality')
+                    ->sortable()
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         return $record->underMunicipality
                             ? $record->underMunicipality->name
-                            // ->pluck('name')->join(', ')
                             : '-';
                     }),
 
                 TextColumn::make('province.name')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
 

@@ -1,15 +1,15 @@
 <?php
 namespace App\Filament\Resources\DistrictResource\Pages;
 
-use Exception;
-use App\Models\District;
-use App\Models\Province;
-use Illuminate\Support\Facades\Log;
-use App\Services\NotificationHandler;
-use Illuminate\Database\QueryException;
-use Filament\Resources\Pages\EditRecord;
 use App\Filament\Resources\DistrictResource;
 use App\Helpers\Helper;
+use App\Models\District;
+use App\Models\Province;
+use App\Services\NotificationHandler;
+use Exception;
+use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 
 class EditDistrict extends EditRecord
 {
@@ -72,10 +72,10 @@ class EditDistrict extends EditRecord
     {
         try {
             $record->municipality()->sync($municipalityIds);
-            NotificationHandler::sendSuccessNotification('Updated', 'Municipalities have been updated for the district.');
+            
+            NotificationHandler::sendSuccessNotification('Saved', 'Municipality has been updated for the district.');
         } catch (Exception $e) {
-            Log::error('Failed to update municipalities for district: ' . $e->getMessage());
-            throw $e;
+            NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the municipality update for the district: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
         }
     }
 

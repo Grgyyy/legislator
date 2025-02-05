@@ -4,8 +4,8 @@ namespace App\Filament\Resources\DistrictResource\Pages;
 
 use App\Filament\Resources\DistrictResource;
 use App\Models\Province;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 
 class ShowDistrict extends ListRecords

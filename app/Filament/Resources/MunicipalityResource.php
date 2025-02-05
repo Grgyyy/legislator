@@ -2,33 +2,33 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\CustomExport\CustomMunicipalityExport;
+use App\Filament\Resources\MunicipalityResource\Pages;
 use App\Models\District;
-use App\Models\Province;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
 use App\Models\Municipality;
-use Filament\Resources\Resource;
+use App\Models\Province;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
-use App\Exports\CustomExport\CustomMunicipalityExport;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\MunicipalityResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class MunicipalityResource extends Resource
 {
@@ -50,14 +50,15 @@ class MunicipalityResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Municipality'),
+                    ->validationAttribute('municipality'),
 
                 TextInput::make("code")
                     ->label('PSG Code')
                     ->placeholder('Enter PSG code')
                     ->autocomplete(false)
-                    ->integer()
-                    ->validationAttribute('PSG Code'),
+                    ->numeric()
+                    ->currencyMask(precision: 2)
+                    ->validationAttribute('PSG code'),
 
                 TextInput::make('class')
                     ->label('Municipality Class')
@@ -65,7 +66,7 @@ class MunicipalityResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Municipality Class'),
+                    ->validationAttribute('municipality class'),
 
                 Select::make('province_id')
                     ->label('Province')
@@ -73,25 +74,25 @@ class MunicipalityResource extends Resource
                     ->markAsRequired(false)
                     ->searchable()
                     ->preload()
-                    ->native(false)
-                    ->options(function () {
-                        return Province::whereNot('name', 'Not Applicable')
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_province' => 'No provinces available'];
-                    })
-                    // ->default(fn($get) => request()->get('district_id'))
                     ->default(function ($get) {
                         $districtId = request()->get('district_id');
                         $district = District::find($districtId);
 
                         return $district->province_id;
                     })
+                    ->native(false)
+                    ->options(function () {
+                        return Province::whereNot('name', 'Not Applicable')
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_province' => 'No provinces available'];
+                    })
                     ->disableOptionWhen(fn($value) => $value === 'no_province')
                     ->afterStateUpdated(function (callable $set) {
                         $set('district_id', []);
                     })
                     ->reactive()
-                    ->live(),
+                    ->live()
+                    ->validationAttribute('province'),
 
                 Select::make('district_id')
                     ->label('District')
@@ -100,6 +101,7 @@ class MunicipalityResource extends Resource
                     ->markAsRequired(false)
                     ->searchable()
                     ->preload()
+                    ->default(fn($get) => request()->get('district_id'))
                     ->native(false)
                     ->options(function (callable $get) {
                         $selectedProvince = $get('province_id');
@@ -123,10 +125,10 @@ class MunicipalityResource extends Resource
                             })
                             ->toArray() ?: ['no_district' => 'No districts available'];
                     })
-                    ->default(fn($get) => request()->get('district_id'))
                     ->disableOptionWhen(fn($value) => $value === 'no_district')
                     ->reactive()
-                    ->live(),
+                    ->live()
+                    ->validationAttribute('district'),
             ]);
     }
 
@@ -145,6 +147,7 @@ class MunicipalityResource extends Resource
 
                 TextColumn::make('name')
                     ->label('Municipality')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
 
@@ -190,6 +193,7 @@ class MunicipalityResource extends Resource
                     ->html(),
 
                 TextColumn::make('province.name')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
 

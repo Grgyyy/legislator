@@ -5,9 +5,9 @@ namespace App\Imports;
 use App\Models\Region;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\Importable;
 use Throwable;
 
 class RegionImport implements ToModel, WithHeadingRow
@@ -25,11 +25,9 @@ class RegionImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-
                 $regionIsExist = Region::where('code', $row['code'])
                     ->where('name', $row['region'])
                     ->exists();
-
 
                 if (!$regionIsExist) {
                     return new Region([
@@ -37,12 +35,10 @@ class RegionImport implements ToModel, WithHeadingRow
                         'name' => $row['region'],
                     ]);
                 }
-
             } catch (Throwable $e) {
-
                 Log::error('Failed to import region: ' . $e->getMessage());
-                throw $e;
 
+                throw $e;
             }
         });
     }
