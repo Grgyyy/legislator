@@ -32,6 +32,7 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\TrainingProgramResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Exports\CustomExport\CustomQualificationTitleExport;
 
 class TrainingProgramResource extends Resource
 {
@@ -416,7 +417,7 @@ class TrainingProgramResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete qualification title')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomQualificationTitleExport::make()
                                 ->withColumns([
                                     Column::make('code')
                                         ->heading('Qualification Code'),
