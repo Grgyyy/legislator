@@ -2,31 +2,32 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Province;
 use App\Models\Region;
-use App\Filament\Resources\ProvinceResource\Pages;
-use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
+use App\Models\Province;
 use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
+use Filament\Resources\Resource;
+use App\Exports\CustomProvinceExport;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use App\Filament\Resources\ProvinceResource\Pages;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class ProvinceResource extends Resource
 {
@@ -49,7 +50,7 @@ class ProvinceResource extends Resource
                     ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Province'),
-                
+
                 TextInput::make('code')
                     ->label('PSG Code')
                     ->placeholder('Enter PSG code')
@@ -156,7 +157,7 @@ class ProvinceResource extends Resource
                         }),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomProvinceExport::make()
                                 ->withColumns([
                                     Column::make('region.code')
                                         ->heading('PSG Code')

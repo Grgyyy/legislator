@@ -8,7 +8,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class CustomRegionExport extends ExcelExport
+class CustomProvinceExport extends ExcelExport
 {
     /**
      * Define the custom headings.
@@ -18,13 +18,14 @@ class CustomRegionExport extends ExcelExport
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['REGION'],
+            ['PROVINCE'],
             [''],
         ];
 
         // Add the dynamic column headings
         $columnHeadings = [
             'PSG Code',
+            'Province',
             'Region',
         ];
 
@@ -72,7 +73,5 @@ class CustomRegionExport extends ExcelExport
 
         return $sheet;
     }
-
-
 
 }

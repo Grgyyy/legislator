@@ -79,33 +79,25 @@ class RegionResource extends Resource
                     ->searchable()
                     ->toggleable(),
             ])
-            ->recordUrl(
-                fn($record) => route('filament.admin.resources.provinces.showProvince', ['record' => $record->id]),
-            )
             ->filters([
-                TrashedFilter::make()
-                    ->label('Records'),
+                TrashedFilter::make()->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
-                    EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
+                    EditAction::make()->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make()
-                        ->action(function ($record, $data) {
+                        ->action(function ($record) {
                             $record->delete();
-
                             NotificationHandler::sendSuccessNotification('Deleted', 'Region has been deleted successfully.');
                         }),
                     RestoreAction::make()
-                        ->action(function ($record, $data) {
+                        ->action(function ($record) {
                             $record->restore();
-
                             NotificationHandler::sendSuccessNotification('Restored', 'Region has been restored successfully.');
                         }),
                     ForceDeleteAction::make()
-                        ->action(function ($record, $data) {
+                        ->action(function ($record) {
                             $record->forceDelete();
-
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Region has been deleted permanently.');
                         }),
                 ])
@@ -113,73 +105,27 @@ class RegionResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->action(function ($records) {
-                            $records->each->delete();
+                        ->action(fn($records) => $records->each->delete()),
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected regions have been deleted successfully.');
-                        }),
                     RestoreBulkAction::make()
-                        ->action(function ($records) {
-                            $records->each->restore();
+                        ->action(fn($records) => $records->each->restore()),
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Selected regions have been restored successfully.');
-                        }),
                     ForceDeleteBulkAction::make()
-                        ->action(function ($records) {
-                            $records->each->forceDelete();
-
-                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected regions have been deleted permanently.');
-                        }),
-                    //     ExportBulkAction::make()
-                    //         ->exports([
-                    //             ExcelExport::make()
-                    //                 ->withColumns([
-                    //                     Column::make('code')
-                    //                         ->heading('PSG Code')
-                    //                         ->getStateUsing(function ($record) {
-                    //                             return $record->code ?: '-';
-                    //                         }),
-                    //                     Column::make('name')
-                    //                         ->heading('Region'),
-                    //                 ])
-                    //                 ->withFilename(date('m-d-Y') . ' - Regions'),
-                    //         ]),
-                    // ]),
-
-                    // ExportBulkAction::make()
-                    //     ->exports([
-                    //         CustomRegionExport::make()  // Use the custom export class
-                    //             ->withColumns([
-                    //                 Column::make('code')
-                    //                     ->heading('PSG Code')
-                    //                     ->getStateUsing(function ($record) {
-                    //                         return $record->code ?: '-';
-                    //                     }),
-                    //                 Column::make('name')
-                    //                     ->heading('Region')
-                    //                     ->getStateUsing(function ($record) {
-                    //                         return $record->name ?: '-';
-                    //                     }),
-                    //             ])
-                    //             ->withFilename(date('m-d-Y') . ' - Regions'),
-                    //     ]),
+                        ->action(fn($records) => $records->each->forceDelete()),
 
                     ExportBulkAction::make()
                         ->exports([
-                            CustomRegionExport::make()  // Use the custom export class
+                            CustomRegionExport::make()
                                 ->withColumns([
                                     Column::make('code')
                                         ->heading('PSG Code')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->code ?: '-';
-                                        }),
+                                        ->getStateUsing(fn($record) => $record->code ?: '-'),
+
                                     Column::make('name')
                                         ->heading('Region')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->name ?: '-';
-                                        }),
+                                        ->getStateUsing(fn($record) => $record->name ?: '-'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Regions'),
+                                ->withFilename(now()->format('m-d-Y') . ' - Regions'),
                         ]),
 
                 ]),
