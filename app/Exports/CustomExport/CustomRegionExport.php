@@ -1,38 +1,46 @@
 <?php
 
-namespace App\Exports;
+namespace App\Exports\CustomExport;
+
 
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use pxlrbt\FilamentExcel\Columns\Column;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class CustomProvinceExport extends ExcelExport
+class CustomRegionExport extends ExcelExport
 {
-
+    /**
+     * Define the custom headings.
+     */
     public function headings(): array
     {
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PROVINCE'],
+            ['REGION'],
             [''],
         ];
 
+        // Add the dynamic column headings
         $columnHeadings = [
             'PSG Code',
-            'Province',
             'Region',
         ];
+
+        // Merge custom headings with the dynamic ones
         return array_merge($customHeadings, [$columnHeadings]);
     }
 
+    /**
+     * Apply styles to the worksheet.
+     */
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
+        // Merge cells for headers
         foreach (range(1, 4) as $row) {
             $sheet->mergeCells("A{$row}:{$lastColumn}{$row}");
         }
@@ -64,5 +72,7 @@ class CustomProvinceExport extends ExcelExport
 
         return $sheet;
     }
+
+
 
 }

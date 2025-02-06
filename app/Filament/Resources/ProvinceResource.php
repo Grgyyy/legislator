@@ -7,7 +7,7 @@ use App\Models\Province;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use App\Exports\CustomProvinceExport;
+use App\Exports\CustomExport\CustomProvinceExport;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;

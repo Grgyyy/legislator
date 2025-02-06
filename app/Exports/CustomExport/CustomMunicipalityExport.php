@@ -1,27 +1,29 @@
 <?php
 
-namespace App\Exports;
+namespace App\Exports\CustomExport;
 
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use pxlrbt\FilamentExcel\Columns\Column;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-class CustomDistrictExport extends ExcelExport
+
+class CustomMunicipalityExport extends ExcelExport
 {
+
     public function headings(): array
     {
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['DISTRICTS'],
+            ['MUNICIPALITIES'],
             [''],
         ];
 
         $columnHeadings = [
             'PSG Code',
-            'District',
             'Municipality',
+            'Municipality Class',
+            'District',
             'Province',
             'Region',
         ];
@@ -57,12 +59,10 @@ class CustomDistrictExport extends ExcelExport
         $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($boldStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
-        // Auto-size columns
         foreach (range(1, $columnCount) as $colIndex) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colIndex))->setAutoSize(true);
         }
 
         return $sheet;
     }
-
 }

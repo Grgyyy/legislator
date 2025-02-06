@@ -1,46 +1,35 @@
 <?php
 
-namespace App\Exports;
+namespace App\Exports\CustomExport;
+
 
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use pxlrbt\FilamentExcel\Columns\Column;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class CustomRegionExport extends ExcelExport
+class CustomPartylistExport extends ExcelExport
 {
-    /**
-     * Define the custom headings.
-     */
     public function headings(): array
     {
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['REGION'],
+            ['PARTY-LIST'],
             [''],
         ];
 
-        // Add the dynamic column headings
         $columnHeadings = [
-            'PSG Code',
-            'Region',
+            'Party-list',
         ];
-
-        // Merge custom headings with the dynamic ones
         return array_merge($customHeadings, [$columnHeadings]);
     }
 
-    /**
-     * Apply styles to the worksheet.
-     */
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
-        // Merge cells for headers
         foreach (range(1, 4) as $row) {
             $sheet->mergeCells("A{$row}:{$lastColumn}{$row}");
         }
@@ -65,14 +54,10 @@ class CustomRegionExport extends ExcelExport
         $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($boldStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
-        // Auto-size columns
         foreach (range(1, $columnCount) as $colIndex) {
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colIndex))->setAutoSize(true);
         }
 
         return $sheet;
     }
-
-
-
 }

@@ -15,7 +15,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
-use App\Exports\CustomMunicipalityExport;
+use App\Exports\CustomExport\CustomMunicipalityExport;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
@@ -257,7 +257,17 @@ class MunicipalityResource extends Resource
                                     Column::make('class')
                                         ->heading('Municipality Class'),
                                     Column::make('district.name')
-                                        ->heading('District'),
+                                        ->heading('District')
+                                        ->getStateUsing(function ($record) {
+                                            if ($record->district->isEmpty()) {
+                                                return '-';
+                                            }
+
+                                            return $record->district->map(function ($district) {
+                                                $municipalityName = optional($district->underMunicipality)->name;
+                                                return $municipalityName ? "{$district->name} - {$municipalityName}" : "{$district->name}";
+                                            })->implode(', ');
+                                        }),
                                     Column::make('province.name')
                                         ->heading('Province'),
                                     Column::make('province.region.name')

@@ -8,6 +8,7 @@ use Filament\Tables\Table;
 use Filament\Resources\Resource;
 use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationHandler;
+use App\Exports\CustomExport\CustomFundsourceExport;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
@@ -116,7 +117,7 @@ class FundSourceResource extends Resource
 
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomFundsourceExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Fund Source'),
