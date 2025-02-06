@@ -46,7 +46,7 @@ class TviImport implements ToModel, WithHeadingRow
 
                 // Fetch or create TVI record
                 $tviRecord = Tvi::where(DB::raw('LOWER(name)'), strtolower($row['institution_name']))
-                    ->where('school_id', $tviCode)
+                    ->where('address', $row['full_address'])
                     ->first();
 
                 if (!$tviRecord) {

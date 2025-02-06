@@ -24,7 +24,7 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
             try {
 
                 $institution = $this->getInstitution($row['institution']);
-                $trainingProgram = $this->getTrainingProgram($row['training_program']);
+                $trainingProgram = $this->getTrainingProgram($row['training_program'], $row['soc_code']);
 
                 $institutionTrainingProgram = InstitutionProgram::where('tvi_id', $institution->id)
                     ->where('training_program_id', $trainingProgram->id)
@@ -53,7 +53,7 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['institution', 'training_program'];
+        $requiredFields = ['institution', 'soc_code', 'training_program'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
@@ -74,10 +74,12 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
         return $institution;
     }
 
-    protected function getTrainingProgram(string $trainingProgramName)
+    protected function getTrainingProgram(string $trainingProgramName, string $soc_code)
     {
         $trainingProgramName = strtolower($trainingProgramName);
-        $trainingProgram = TrainingProgram::where('title', $trainingProgramName)->first();
+        $trainingProgram = TrainingProgram::where('title', $trainingProgramName)
+            ->where('soc_code', $soc_code)
+            ->first();
 
         if (!$trainingProgram) {
             throw new \Exception("Training Program with name '{$trainingProgramName}' not found. No changes were saved.");
