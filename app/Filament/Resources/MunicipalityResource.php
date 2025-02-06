@@ -15,6 +15,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
+use App\Exports\CustomMunicipalityExport;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
@@ -244,7 +245,7 @@ class MunicipalityResource extends Resource
                         }),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomMunicipalityExport::make()
                                 ->withColumns([
                                     Column::make('code')
                                         ->heading('PSG Code')
@@ -271,14 +272,14 @@ class MunicipalityResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-    
+
         $routeParameter = request()->route('record');
-    
+
         return $query
             ->withoutGlobalScopes([SoftDeletingScope::class])
             ->whereNot('name', 'Not Applicable')
             ->when(!request()->is('*/edit') && $routeParameter, function ($query) use ($routeParameter) {
-                $query->whereHas('district', fn (Builder $q) => $q->where('districts.id', (int) $routeParameter));
+                $query->whereHas('district', fn(Builder $q) => $q->where('districts.id', (int) $routeParameter));
             });
     }
 
