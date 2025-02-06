@@ -7,21 +7,21 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-
-class CustomProvinceExport extends ExcelExport
+class CustomDistrictExport extends ExcelExport
 {
-
     public function headings(): array
     {
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PROVINCE'],
+            ['DISTRICTS'],
             [''],
         ];
 
         $columnHeadings = [
             'PSG Code',
+            'District',
+            'Municipality',
             'Province',
             'Region',
         ];
