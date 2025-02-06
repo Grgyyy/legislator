@@ -15,12 +15,13 @@ class CustomPartylistExport extends ExcelExport
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PARTY-LIST'],
+            ['PARTICULAR TYPE'],
             [''],
         ];
 
         $columnHeadings = [
-            'Party-list',
+            'Particular Type',
+            'Fund Source',
         ];
         return array_merge($customHeadings, [$columnHeadings]);
     }
