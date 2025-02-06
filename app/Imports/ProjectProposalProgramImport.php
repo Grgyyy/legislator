@@ -104,7 +104,7 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         $requiredFields = [
-            'project_proposal_program_name', 'tvet_sector', 'priority_sector',
+            'project_proposal_program_name',
         ];
 
         foreach ($requiredFields as $field) {
