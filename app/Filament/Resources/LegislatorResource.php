@@ -31,6 +31,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomLegislatorExport;
 use App\Filament\Resources\LegislatorResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
@@ -89,6 +90,7 @@ class LegislatorResource extends Resource
             ->emptyStateHeading('No legislators available')
             ->columns([
                 TextColumn::make("name")
+                    ->label('Legislator')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -185,7 +187,7 @@ class LegislatorResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete legislator')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomLegislatorExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Legislator'),
@@ -217,7 +219,9 @@ class LegislatorResource extends Resource
 
                                                 return trim($formattedName, ', ');
                                             })->implode(', ');
-                                        })
+                                        }),
+                                    Column::make('status.desc')
+                                        ->heading('Status'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Legislators'),
                         ])
