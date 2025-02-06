@@ -27,6 +27,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomParticularExport;
 use App\Filament\Resources\ParticularResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
@@ -203,7 +204,7 @@ class ParticularResource extends Resource
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force deleted particulars')),
                     ExportBulkAction::make()->exports([
-                        ExcelExport::make()
+                        CustomParticularExport::make()
                             ->withColumns([
                                 Column::make('subParticular.name')
                                     ->heading('Particular Type'),
