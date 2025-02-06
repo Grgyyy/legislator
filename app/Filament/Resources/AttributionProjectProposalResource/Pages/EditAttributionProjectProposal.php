@@ -136,6 +136,12 @@ class EditAttributionProjectProposal extends EditRecord
             $totalAmount = $data['per_capita_cost'] * $numberOfSlots;
 
             if ($qualificationTitle->scholarship_program_id === $step->id) {
+                
+                if (!$costOfToolkitPcc) {
+                    $this->sendErrorNotification('Please add STEP Toolkits.');
+                    throw new Exception('Please add STEP Toolkits.');
+                }
+
                 $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
                 $totalAmount += $totalCostOfToolkit;
             }
