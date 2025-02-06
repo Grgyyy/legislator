@@ -7,14 +7,14 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class CustomTvetSectorExport extends ExcelExport
+class CustomAbddSectorExport extends ExcelExport
 {
     public function headings(): array
     {
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['TVET SECTOR'],
+            ['ABDD SECTOR'],
             [''],
         ];
 

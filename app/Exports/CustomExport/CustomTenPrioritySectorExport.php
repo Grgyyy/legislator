@@ -14,12 +14,12 @@ class CustomTenPrioritySectorExport extends ExcelExport
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['TVET SECTOR'],
+            ['TEN PRIORITY SECTOR'],
             [''],
         ];
 
         $columnHeadings = [
-            'TVET Sector',
+            'Sector',
         ];
         return array_merge($customHeadings, [$columnHeadings]);
     }
