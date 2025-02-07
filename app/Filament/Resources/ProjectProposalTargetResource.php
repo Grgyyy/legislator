@@ -968,45 +968,32 @@ class ProjectProposalTargetResource extends Resource
                         }
                     }),
 
-                TextColumn::make('municipality.name')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('district.name')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('tvi.district.municipality.province.name')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('tvi.district.municipality.province.region.name')
-                    ->searchable()
-                    ->toggleable(),
-
                 TextColumn::make('tvi.name')
                     ->label('Institution')
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
-                TextColumn::make('tvi.tviType.name')
-                    ->label('Institution Type')
+                
+                    TextColumn::make('location')
+                    ->label('Administrative Area')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => self::getLocationNames($record)),
 
                 TextColumn::make('tvi.tviClass.name')
                     ->label('Institution Class')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(function ($state, $record) {
+                        $institutionType = $record->tvi->tviClass->tviType->name ?? '';
+                        $institutionClass = $record->tvi->tviClass->name ?? '';
+
+                        return "{$institutionType} - {$institutionClass}";
+                    }),
 
                 TextColumn::make('qualification_title_code')
                     ->label('Qualification Code')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('qualification_title_soc_code')
-                    ->label('Qualification SOC Code')
                     ->searchable()
                     ->toggleable(),
 
@@ -1014,20 +1001,21 @@ class ProjectProposalTargetResource extends Resource
                     ->label('Qualification Title')
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        if (!$state) {
-                            return $state;
+                    ->formatStateUsing(function ($state, $record) {
+                        $qualificationCode = $record->qualification_title_soc_code ?? '';
+                        $qualificationName = $record->qualification_title_name ?? '';
+
+                        if ($qualificationName) {
+                            $qualificationName = ucwords($qualificationName);
+
+                            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $qualificationName)) {
+                                $qualificationName = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                    return 'NC ' . strtoupper($matches[1]);
+                                }, $qualificationName);
+                            }
                         }
 
-                        $state = ucwords($state);
-
-                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                return 'NC ' . strtoupper($matches[1]);
-                            }, $state);
-                        }
-
-                        return $state;
+                        return "{$qualificationCode} - {$qualificationName}";
                     }),
 
                 TextColumn::make('abdd.name')
