@@ -111,54 +111,54 @@ class ProjectProposalResource extends Resource
                     ->autocomplete(false)
                     ->validationAttribute('qualification title'),
 
-                Select::make('scholarshipPrograms')
-                    ->label('Scholarship Program')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->preload()
-                    ->multiple(fn($get) => request()->get('scholarship_program_id') === null)
-                    ->default(fn($get) => request()->get('scholarship_program_id'))
-                    ->native(false)
-                    ->options(function () {
-                        return ScholarshipProgram::all()
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
-                    ->validationAttribute('scholarship program'),
+                // Select::make('scholarshipPrograms')
+                //     ->label('Scholarship Program')
+                //     ->required()
+                //     ->markAsRequired(false)
+                //     ->searchable()
+                //     ->preload()
+                //     ->multiple(fn($get) => request()->get('scholarship_program_id') === null)
+                //     ->default(fn($get) => request()->get('scholarship_program_id'))
+                //     ->native(false)
+                //     ->options(function () {
+                //         return ScholarshipProgram::all()
+                //             ->pluck('name', 'id')
+                //             ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
+                //     })
+                //     ->disableOptionWhen(fn($value) => $value === 'no_scholarship_program')
+                //     ->validationAttribute('scholarship program'),
 
-                Select::make('tvet_id')
-                    ->label('TVET Sector')
-                    ->relationship('tvet', 'name')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->preload()
-                    ->native(false)
-                    ->options(function () {
-                        return Tvet::whereNot('name', 'Not Applicable')
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_tvet' => 'No TVET sectors available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_tvet')
-                    ->validationAttribute('TVET sector'),
+                // Select::make('tvet_id')
+                //     ->label('TVET Sector')
+                //     ->relationship('tvet', 'name')
+                //     ->required()
+                //     ->markAsRequired(false)
+                //     ->searchable()
+                //     ->preload()
+                //     ->native(false)
+                //     ->options(function () {
+                //         return Tvet::whereNot('name', 'Not Applicable')
+                //             ->pluck('name', 'id')
+                //             ->toArray() ?: ['no_tvet' => 'No TVET sectors available'];
+                //     })
+                //     ->disableOptionWhen(fn($value) => $value === 'no_tvet')
+                //     ->validationAttribute('TVET sector'),
 
-                Select::make('priority_id')
-                    ->label('Priority Sector')
-                    ->relationship('priority', 'name')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->preload()
-                    ->native(false)
-                    ->options(function () {
-                        return Priority::whereNot('name', 'Not Applicable')
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_priority' => 'No priority sectors available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_priority')
-                    ->validationAttribute('priority sector'),
+                // Select::make('priority_id')
+                //     ->label('Priority Sector')
+                //     ->relationship('priority', 'name')
+                //     ->required()
+                //     ->markAsRequired(false)
+                //     ->searchable()
+                //     ->preload()
+                //     ->native(false)
+                //     ->options(function () {
+                //         return Priority::whereNot('name', 'Not Applicable')
+                //             ->pluck('name', 'id')
+                //             ->toArray() ?: ['no_priority' => 'No priority sectors available'];
+                //     })
+                //     ->disableOptionWhen(fn($value) => $value === 'no_priority')
+                //     ->validationAttribute('priority sector'),
             ]);
     }
 
@@ -181,44 +181,6 @@ class ProjectProposalResource extends Resource
                     ->toggleable()
                     ->limit(50)
                     ->tooltip(fn($state): ?string => strlen($state) > 50 ? $state : null),
-
-                TextColumn::make('scholarshipPrograms.name')
-                    ->label('Scholarship Program')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(function ($record) {
-                        $scholarshipPrograms = $record->scholarshipPrograms->sortBy('name')->pluck('name')->toArray();
-
-                        $schoProHtml = array_map(function ($name, $index) use ($scholarshipPrograms) {
-                            $comma = ($index < count($scholarshipPrograms) - 1) ? ', ' : '';
-
-                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
-
-                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
-
-                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
-                        }, $scholarshipPrograms, array_keys($scholarshipPrograms));
-
-                        return implode('', $schoProHtml);
-                    })
-                    ->html(),
-
-                TextColumn::make('tvet.name')
-                    ->label('TVET Sector')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable()
-                    ->limit(35)
-                    ->tooltip(fn($state): ?string => strlen($state) > 35 ? $state : null),
-
-                TextColumn::make('priority.name')
-                    ->label('Priority Sector')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable()
-                    ->limit(35)
-                    ->tooltip(fn($state): ?string => strlen($state) > 35 ? $state : null),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -315,9 +277,9 @@ class ProjectProposalResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    Action::make('Convert')
-                        ->icon('heroicon-o-arrows-right-left')
-                        ->url(fn($record) => route('filament.admin.resources.project-proposals.convert', ['record' => $record])),
+                    // Action::make('Convert')
+                    //     ->icon('heroicon-o-arrows-right-left')
+                    //     ->url(fn($record) => route('filament.admin.resources.project-proposals.convert', ['record' => $record])),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();

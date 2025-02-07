@@ -264,7 +264,12 @@ class TviResource extends Resource
                     ->label("Institution Class(B)")
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        return $record->InstitutionClass
+                            ? $record->InstitutionClass->name
+                            : '-';
+                    }),
 
                 TextColumn::make('district.name')
                     ->toggleable()

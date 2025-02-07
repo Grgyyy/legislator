@@ -243,6 +243,11 @@ class EditTarget extends EditRecord
         $totalCostOfToolkit = 0;
         $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
         if ($quali->scholarship_program_id === $step->id) {
+            if (!$costOfToolkitPcc) {
+                $this->sendErrorNotification('Please add STEP Toolkits.');
+                throw new Exception('Please add STEP Toolkits.');
+            }
+            
             $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
             $totalAmount += $totalCostOfToolkit;
         }

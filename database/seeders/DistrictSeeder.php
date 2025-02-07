@@ -88,5 +88,56 @@ class DistrictSeeder extends Seeder
                 }
             }
         }
+
+        
+        $antipoloMunicipality = DB::table('municipalities')
+                ->where('name', 'City of Antipolo')
+                ->first();
+
+        if ($antipoloMunicipality) {
+            for ($i = 1; $i <= 2; $i++) {
+                $districtName = "District {$i}";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $antipoloMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $antipoloMunicipality->id,
+                        'province_id' => $antipoloMunicipality->province_id,
+                    ])->id;
+
+                    if ($i < 3) {
+                        DB::table('district_municipalities')->insert([
+                            'district_id' => $districtId,
+                            'municipality_id' => $antipoloMunicipality->id,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $rizalId = DB::table('provinces')
+            ->where('name', 'Rizal')
+            ->value('id');
+
+        for ($i = 1; $i <= 4; $i++) {
+            $districtName = "District {$i}";
+            $districtExists = DB::table('districts')
+                ->where('name', $districtName)
+                ->whereNull('municipality_id')
+                ->where('province_id', $rizalId)
+                ->exists();
+
+            if (!$districtExists) {
+                $districtId = District::create([
+                    'name' => $districtName,
+                    'province_id' => $rizalId,
+                ])->id;
+            }
+        }
+
     }
 }

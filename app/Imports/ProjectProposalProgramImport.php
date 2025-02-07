@@ -38,9 +38,9 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
                     ->where('soc', 1)
                     ->first();
 
-                $tvetSector = Tvet::where('name', $row['tvet_sector'])->first();
-                $prioSector = Priority::where('name', $row['priority_sector'])->first();
-                $scholarshipProgram = ScholarshipProgram::where('name', $row['scholarship_program'])->first();
+                $tvetSector = Tvet::where('name', 'Not Applicable')->first();
+                $prioSector = Priority::where('name', 'Not Applicable')->first();
+                $scholarshipPrograms = ScholarshipProgram::all();
 
                 if (!$projectProposalProgram) {
                     // Increment the currentSocCode to generate the next proposal
@@ -70,22 +70,26 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
                         $projectProposalProgram = $existingProgram;
                     }
 
-                    // Sync the scholarship programs
-                    $projectProposalProgram->scholarshipPrograms()->syncWithoutDetaching($scholarshipProgram);
+                    // Sync the scholarship programs by ID
+                    $projectProposalProgram->scholarshipPrograms()->syncWithoutDetaching(
+                        $scholarshipPrograms->pluck('id')->toArray()
+                    );
 
-                    // Check if QualificationTitle already exists
-                    $qualificationTitle = QualificationTitle::where('training_program_id', $projectProposalProgram->id)
-                        ->where('scholarship_program_id', $scholarshipProgram->id)
-                        ->where('soc', 0)
-                        ->exists();
+                    foreach ($scholarshipPrograms as $scholarshipProgram) {
+                        // Check if QualificationTitle already exists
+                        $qualificationTitleExists = QualificationTitle::where('training_program_id', $projectProposalProgram->id)
+                            ->where('scholarship_program_id', $scholarshipProgram->id)
+                            ->where('soc', 0)
+                            ->exists();
 
-                    if (!$qualificationTitle) {
-                        QualificationTitle::create([
-                            'training_program_id' => $projectProposalProgram->id,
-                            'scholarship_program_id' => $scholarshipProgram->id,
-                            'status_id' => 1,
-                            'soc' => 0,
-                        ]);
+                        if (!$qualificationTitleExists) {
+                            QualificationTitle::create([
+                                'training_program_id' => $projectProposalProgram->id,
+                                'scholarship_program_id' => $scholarshipProgram->id,
+                                'status_id' => 1,
+                                'soc' => 0,
+                            ]);
+                        }
                     }
                 }
 
@@ -100,7 +104,7 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
     protected function validateRow(array $row)
     {
         $requiredFields = [
-            'project_proposal_program_name', 'tvet_sector', 'priority_sector',
+            'project_proposal_program_name',
         ];
 
         foreach ($requiredFields as $field) {

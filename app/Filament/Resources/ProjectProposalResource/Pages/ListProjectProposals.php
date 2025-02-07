@@ -74,9 +74,9 @@ class ListProjectProposals extends ListRecords
 
                         try {
                             Excel::import(new ProjectProposalProgramImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Attribution Targets have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Project Proposal Programs have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the attribution targets: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the project proposal program: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);

@@ -170,7 +170,8 @@ class TrainingProgramResource extends Resource
                     ->label('Qualification Code')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => empty($record->nc_level) ? '-' : $record->code),
 
                 TextColumn::make('soc_code')
                     ->label('SOC Code')

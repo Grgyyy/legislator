@@ -74,9 +74,9 @@ class ListQualificationTitles extends ListRecords
 
                         try {
                             Excel::import(new QualificationTitleImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The district have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Schedule of Cost have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the schedule of cost: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);

@@ -208,6 +208,31 @@ class MunicipalitySeeder extends Seeder
             }
         }
 
+        $rizalProvince = DB::table('provinces')
+            ->where('name', 'Rizal')
+            ->first();
+
+        if ($rizalProvince) {
+            $rizalMunicipalities = [
+                ['code' => '0405802000', 'name' => 'City of Antipolo', 'class' => '1st'],
+            ];
+
+            foreach ($rizalMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $rizalProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $rizalProvince->id,
+                    ]);
+                }
+            }
+        }        
+
 
     }
 }
