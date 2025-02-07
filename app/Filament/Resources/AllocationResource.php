@@ -34,6 +34,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomAllocationExport;
 use App\Filament\Resources\AllocationResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
@@ -586,53 +587,32 @@ class AllocationResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete allocation')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomAllocationExport::make()
                                 ->withColumns([
                                     Column::make('soft_or_commitment')
-                                        ->heading('Soft of Commitment'),
+                                        ->heading('Source of Fund'),
                                     Column::make('attributor.name')
-                                        ->heading('Attributor'),
-                                    Column::make('attributorParticular.name')
                                         ->heading('Attributor')
                                         ->getStateUsing(function ($record) {
-                                            $particular = $record->attributorParticular;
+                                            $attributor = $record->attributor->name ?? "-";
 
-                                            if (!$particular) {
-                                                return ['no_particular' => 'No particulars available'];
-                                            }
+                                            return $attributor;
+                                        }),
+                                    Column::make('attributorParticular.subParticular.name')
+                                        ->heading('Attributor Particular')
+                                        ->getStateUsing(function ($record) {
+                                            $particularName = $record->attributorParticular->subParticular->name ?? "-";
+                                            $regionName = $record->attributorParticular->district->province->region->name ?? "-";
 
-                                            $district = $particular->district;
-                                            $municipality = $district ? $district->underMunicipality : null;
-                                            $districtName = $district ? $district->name : 'Unknown District';
-                                            $municipalityName = $municipality ? $municipality->name : '';
-                                            $provinceName = $district ? $district->province->name : 'Unknown Province';
-                                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
-
-                                            $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
-
-                                            $formattedName = '';
-
-                                            if ($subParticular === 'Party-list') {
-                                                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
-                                                $formattedName = "{$subParticular} - {$partylistName}";
-                                            } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                                                $formattedName = "{$subParticular}";
-                                            } elseif ($subParticular === 'District') {
-                                                if ($municipalityName) {
-                                                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
-                                                } else {
-                                                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
-                                                }
-                                            } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
-                                                $formattedName = "{$subParticular} - {$regionName}";
+                                            if ($particularName === 'RO Regular' || $particularName === 'CO Regular') {
+                                                return $particularName . ' - ' . $regionName;
                                             } else {
-                                                $formattedName = "{$subParticular} - {$regionName}";
+                                                return $particularName;
                                             }
-
-                                            return $formattedName;
                                         }),
                                     Column::make('legislator.name')
                                         ->heading('Legislator'),
+
                                     Column::make('particular.name')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
@@ -680,22 +660,27 @@ class AllocationResource extends Resource
                                     Column::make('admin_cost')
                                         ->heading('Admin Cost')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                    Column::make('balance')
-                                        ->heading('Balance')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                    // Column::make('attribution_sent')
-                                    //     ->heading('Attribution Sent')
-                                    //     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-                                    // Column::make('attribution_received')
-                                    //     ->heading('Attribution Received')
-                                    //     ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('admin_cost_difference')
+                                        ->heading('Allocation - Admin Cost')
+                                        ->getStateUsing(function ($record) {
+                                            $allocation = $record->allocation ?? 0;
+                                            $adminCost = $record->admin_cost ?? 0;
+
+                                            $difference = $allocation - $adminCost;
+
+                                            return number_format($difference, 2);
+                                        }),
                                     Column::make('expended_funds')
                                         ->heading('Funds Expended')
                                         ->getStateUsing(function ($record) {
-                                            $fundsExpended = $record->target->sum('total_amount');
+                                            $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
+                                            $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
 
-                                            return '₱ ' . number_format($fundsExpended, 2, '.', ',');
+                                            return number_format($fundsExpended, 2);
                                         }),
+                                    Column::make('balance')
+                                        ->heading('Balance')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
