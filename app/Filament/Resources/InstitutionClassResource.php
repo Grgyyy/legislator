@@ -26,6 +26,7 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\InstitutionClassResource\Pages;
+use App\Exports\CustomExport\CustomInstitutionClassBExport;
 
 class InstitutionClassResource extends Resource
 {
@@ -114,7 +115,7 @@ class InstitutionClassResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution class a')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomInstitutionClassBExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Institution Class (B)'),
