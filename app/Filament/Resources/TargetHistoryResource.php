@@ -138,7 +138,7 @@ class TargetHistoryResource extends Resource
                     ->toggleable()
                     ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
-                TextColumn::make('tvi.tviClass.tviType.name')
+                TextColumn::make('tvi.tviType.name')
                     ->label('Institution Type')
                     ->searchable()
                     ->toggleable(),

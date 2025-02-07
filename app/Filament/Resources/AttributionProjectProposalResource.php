@@ -1419,7 +1419,7 @@ class AttributionProjectProposalResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($state, $record) {
-                        $institutionType = $record->tvi->tviClass->tviType->name ?? '';
+                        $institutionType = $record->tvi->tviType->name ?? '';
                         $institutionClass = $record->tvi->tviClass->name ?? '';
 
                         return "{$institutionType} - {$institutionClass}";

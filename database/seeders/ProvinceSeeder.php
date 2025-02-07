@@ -50,7 +50,7 @@ class ProvinceSeeder extends Seeder
 
             ['0505', 'Albay'],
             ['0516', 'Camarines Norte'],
-            ['0517', 'Camarines Sur	'],
+            ['0517', 'Camarines Sur'],
             ['0520', 'Catanduanes'],
             ['0541', 'Masbate'],
             ['0562', 'Sorsogon'],
