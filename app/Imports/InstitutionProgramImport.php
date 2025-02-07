@@ -22,26 +22,28 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-
                 $institution = $this->getInstitution($row['institution']);
-                $trainingProgram = $this->getTrainingProgram($row['training_program'], $row['soc_code']);
+                $trainingPrograms = $this->getTrainingPrograms($row['training_program']);
 
-                $institutionTrainingProgram = InstitutionProgram::where('tvi_id', $institution->id)
-                    ->where('training_program_id', $trainingProgram->id)
-                    ->exists();
+                $createdRecords = [];
 
-                if(!$institutionTrainingProgram) {
-                    $institutionTrainingProgramRecord = InstitutionProgram::create([
-                        'tvi_id' => $institution->id,
-                        'training_program_id' => $trainingProgram->id
-                    ]);
+                foreach ($trainingPrograms as $trainingProgram) {
+                    $exists = InstitutionProgram::where('tvi_id', $institution->id)
+                        ->where('training_program_id', $trainingProgram->id)
+                        ->exists();
 
-                    return $institutionTrainingProgramRecord;
-    
+                    if (!$exists) {
+                        $institutionTrainingProgramRecord = InstitutionProgram::create([
+                            'tvi_id' => $institution->id,
+                            'training_program_id' => $trainingProgram->id
+                        ]);
+
+                        $createdRecords[] = $institutionTrainingProgramRecord;
+                    }
                 }
 
-               
-                return null;
+                return count($createdRecords) > 0 ? $createdRecords : null;
+
             } catch (Throwable $e) {
                 DB::rollBack();
                 Log::error("An error occurred while importing row: " . json_encode($row) . " Error: " . $e->getMessage());
@@ -50,10 +52,9 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
         });
     }
 
-
     protected function validateRow(array $row)
     {
-        $requiredFields = ['institution', 'soc_code', 'training_program'];
+        $requiredFields = ['institution', 'training_program'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
@@ -64,8 +65,8 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
 
     protected function getInstitution(string $institutionName)
     {
-        $institutionName = strtolower($institutionName);
-        $institution = Tvi::where('name', $institutionName)->first();
+        $institutionName = strtolower(trim($institutionName));
+        $institution = Tvi::whereRaw('LOWER(name) = ?', [$institutionName])->first();
 
         if (!$institution) {
             throw new \Exception("Institution with name '{$institutionName}' not found. No changes were saved.");
@@ -74,17 +75,16 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
         return $institution;
     }
 
-    protected function getTrainingProgram(string $trainingProgramName, string $soc_code)
+    protected function getTrainingPrograms(string $trainingProgramNames)
     {
-        $trainingProgramName = strtolower($trainingProgramName);
-        $trainingProgram = TrainingProgram::where('title', $trainingProgramName)
-            ->where('soc_code', $soc_code)
-            ->first();
+        $trainingProgramNames = array_map('trim', explode(',', strtolower($trainingProgramNames)));
 
-        if (!$trainingProgram) {
-            throw new \Exception("Training Program with name '{$trainingProgramName}' not found. No changes were saved.");
+        $trainingPrograms = TrainingProgram::whereIn(DB::raw('LOWER(title)'), $trainingProgramNames)->get();
+
+        if ($trainingPrograms->isEmpty()) {
+            throw new \Exception("No matching Training Programs found for '{$trainingProgramNames}'. No changes were saved.");
         }
 
-        return $trainingProgram;
+        return $trainingPrograms;
     }
 }
