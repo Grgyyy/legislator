@@ -51,7 +51,6 @@ class ListAttributionProjectProposals extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import Targets')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')

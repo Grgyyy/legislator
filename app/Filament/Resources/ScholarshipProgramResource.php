@@ -25,6 +25,7 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Exports\CustomExport\CustomScholarshipProgramExport;
 use App\Filament\Resources\ScholarshipProgramResource\Pages;
 
 class ScholarshipProgramResource extends Resource
@@ -143,7 +144,7 @@ class ScholarshipProgramResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete scholarship program')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomScholarshipProgramExport::make()
                                 ->withColumns([
                                     Column::make('code')
                                         ->heading('Scholarship Program Code'),

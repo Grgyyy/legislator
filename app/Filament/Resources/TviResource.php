@@ -4,10 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Models\Tvi;
 use App\Models\Region;
+use App\Models\TviType;
 use App\Models\District;
 use App\Models\Province;
 use App\Models\TviClass;
-use App\Models\TviType;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use App\Models\Municipality;
@@ -38,6 +38,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomInstitutionExport;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class TviResource extends Resource
@@ -98,31 +99,31 @@ class TviResource extends Resource
                     ->native(false)
                     ->options(function ($get) {
                         $type = $get('tvi_type_id');
-                    
+
                         $publicTypes = ['LGU', 'LUC', 'NGA', 'SUC', 'TTI', 'HEI'];
                         $privateTypes = ['TVI', 'HEI', 'Farm School'];
 
                         $tviClasses = TviClass::all();
-                    
+
                         $publicId = TviType::where('name', 'Public')->value('id');
                         $privateId = TviType::where('name', 'Private')->value('id');
-                    
+
                         if ($type == $publicId) {
                             return $tviClasses
                                 ->whereIn('name', $publicTypes)
                                 ->pluck('name', 'id')
                                 ->toArray() ?: ['no_public_class' => 'No Public Institution Class Available'];
                         }
-                    
+
                         if ($type == $privateId) {
                             return $tviClasses
                                 ->whereIn('name', $privateTypes)
                                 ->pluck('name', 'id')
                                 ->toArray() ?: ['no_private_class' => 'No Private Institution Class Available'];
                         }
-                    
+
                         return [];
-                    }) 
+                    })
                     ->disableOptionWhen(fn($value) => $value === 'no_private_class' || $value === 'no_public_class'),
 
                 Select::make('institution_class_id')
@@ -461,12 +462,14 @@ class TviResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete tvi')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomInstitutionExport::make()
                                 ->withColumns([
                                     Column::make('school_id')
                                         ->heading('School ID'),
                                     Column::make('name')
-                                        ->heading('Institution Name'),
+                                        ->heading('Institution'),
+                                    Column::make('tviType.name')
+                                        ->heading('Institution Type'),
                                     Column::make('tviClass.name')
                                         ->heading('Institution Class (A)'),
                                     Column::make('InstitutionClass.name')

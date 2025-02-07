@@ -19,7 +19,7 @@ use Maatwebsite\Excel\Validators\ValidationException;
 class ListSkillPriorities extends ListRecords
 {
     protected static string $resource = SkillPriorityResource::class;
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -38,7 +38,6 @@ class ListSkillPriorities extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import Skill Priorities')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')

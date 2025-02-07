@@ -35,6 +35,7 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\InstitutionProgramResource\Pages;
+use App\Exports\CustomExport\CustomInstitutionQualificationTitleExport;
 use App\Filament\Resources\InstitutionProgramResource\RelationManagers;
 
 class InstitutionProgramResource extends Resource
@@ -240,7 +241,7 @@ class InstitutionProgramResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution qualification title')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomInstitutionQualificationTitleExport::make()
                                 ->withColumns([
                                     Column::make('tvi_id')
                                         ->heading('Institution')
@@ -257,6 +258,8 @@ class InstitutionProgramResource extends Resource
                                                 ucwords($tvi->name)
                                             );
                                         }),
+                                    Column::make('trainingProgram.soc_code')
+                                        ->heading('SOC Code'),
                                     Column::make('training_program_id')
                                         ->heading('Qualification Title')
                                         ->getStateUsing(function ($record) {
@@ -277,7 +280,7 @@ class InstitutionProgramResource extends Resource
                                             return $title;
                                         }),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Institutions Training Programs')
+                                ->withFilename(date('m-d-Y') . ' - Institutions Qualification Titles')
                         ]),
                 ])
             ]);

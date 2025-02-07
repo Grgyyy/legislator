@@ -51,7 +51,6 @@ class ListToolkits extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import District')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -76,7 +75,6 @@ class ListToolkits extends ListRecords
                 }),
 
             Action::make('ToolkitsSlotsImport')
-                ->label('Import No. of Toolkits')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')

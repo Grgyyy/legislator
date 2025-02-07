@@ -61,7 +61,6 @@ class ListProjectProposals extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import Targets')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')

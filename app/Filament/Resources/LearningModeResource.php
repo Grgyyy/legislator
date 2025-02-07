@@ -16,6 +16,7 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
+use League\CommonMark\Extension\CommonMark\Node\Block\Heading;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,6 +26,7 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomLearningModeExport;
 use App\Filament\Resources\LearningModeResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\LearningModeResource\RelationManagers;
@@ -63,8 +65,10 @@ class LearningModeResource extends Resource
         return $table
             ->columns([
 
-                TextColumn::make('name'),
-                TextColumn::make('deliveryMode.acronym'),
+                TextColumn::make('name')
+                    ->label('Learning Mode'),
+                TextColumn::make('deliveryMode.acronym')
+                    ->label('Delivery Mode Acronym'),
                 // TextColumn::make('deliveryMode.name'),
             ])
             ->filters([
@@ -103,7 +107,7 @@ class LearningModeResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomLearningModeExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Learning Mode'),

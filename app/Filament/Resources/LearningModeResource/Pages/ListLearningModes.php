@@ -52,7 +52,6 @@ class ListLearningModes extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import Learning Mode')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')

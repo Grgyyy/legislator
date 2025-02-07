@@ -25,6 +25,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomAbddSectorExport;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
 
@@ -118,7 +119,7 @@ class AbddResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete abdd sector')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomAbddSectorExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('ABDD Sector'),

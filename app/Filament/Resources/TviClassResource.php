@@ -29,6 +29,7 @@ use App\Filament\Resources\TviClassResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Exports\CustomExport\CustomInstitutionClassAExport;
 
 class TviClassResource extends Resource
 {
@@ -121,7 +122,7 @@ class TviClassResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution class b')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomInstitutionClassAExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Institution Class (A)'),

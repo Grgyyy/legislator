@@ -26,6 +26,7 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use App\Exports\CustomExport\CustomToolkitExport;
 use App\Filament\Resources\ToolkitResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -85,10 +86,10 @@ class ToolkitResource extends Resource
                     }),
 
                 TextInput::make('lot_name')
-                    ->label('Lot Name')
+                    ->label('LOT Name')
                     ->required()
                     ->markAsRequired(false)
-                    ->placeholder('Enter a Lot Name'),
+                    ->placeholder('Enter a LOT Name'),
 
 
                 TextInput::make('price_per_toolkit')
@@ -181,14 +182,14 @@ class ToolkitResource extends Resource
                     ->html(),
 
                 TextColumn::make('lot_name')
-                    ->label('Lot Name')
+                    ->label('LOT Name')
                     ->searchable(),
                 TextColumn::make('price_per_toolkit')
                     ->label('Price per Toolkit')
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make('available_number_of_toolkits')
-                    ->label('Available Number of Toolkits Per Lot')
+                    ->label('Available Number of Toolkits Per LOT')
                     ->getStateUsing(fn($record) => $record->available_number_of_toolkits ?? '-'),
 
                 TextColumn::make('number_of_toolkits')
@@ -196,7 +197,7 @@ class ToolkitResource extends Resource
                     ->getStateUsing(fn($record) => $record->number_of_toolkits ?? '-'),
 
                 TextColumn::make('total_abc_per_lot')
-                    ->label('Total ABC per Lot')
+                    ->label('Total ABC per LOT')
                     ->getStateUsing(fn($record) => $record->total_abc_per_lot
                         ? '₱' . number_format((float) $record->total_abc_per_lot, 2, '.', ',')
                         : '-'),
@@ -258,7 +259,7 @@ class ToolkitResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete toolkit')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomToolkitExport::make()
                                 ->withColumns([
                                     Column::make('formatted_scholarship_programs')
                                         ->heading('Qualification Titles')
@@ -275,22 +276,22 @@ class ToolkitResource extends Resource
                                         ),
 
                                     Column::make('lot_name')
-                                        ->heading('Lot Name'),
+                                        ->heading('LOT Name'),
 
                                     Column::make('price_per_toolkit')
                                         ->heading('Estimated Price Per Toolkit')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
 
                                     Column::make('available_number_of_toolkits')
-                                        ->heading('Available Number of Toolkits Per Lot')
+                                        ->heading('Available Number of Toolkits Per LOT')
                                         ->getStateUsing(fn($record) => $record->available_number_of_toolkits ?? '-'),
 
                                     Column::make('number_of_toolkit')
-                                        ->heading('Number of Toolkits Per Lot')
+                                        ->heading('Number of Toolkits Per LOT')
                                         ->getStateUsing(fn($record) => $record->number_of_toolkits ?? '-'),
 
                                     Column::make('total_abc_per_lot')
-                                        ->heading('Total ABC Per Lot')
+                                        ->heading('Total ABC Per LOT')
                                         ->getStateUsing(fn($record) => $record->total_abc_per_lot
                                             ? '₱' . number_format((float) $record->total_abc_per_lot, 2, '.', ',')
                                             : '-'),

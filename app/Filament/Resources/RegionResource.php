@@ -3,28 +3,29 @@
 namespace App\Filament\Resources;
 
 use App\Models\Region;
-use App\Filament\Resources\RegionResource\Pages;
-use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
 use Filament\Forms\Form;
-use Filament\Forms\Components\TextInput;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
+use Filament\Resources\Resource;
+use App\Services\NotificationHandler;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use App\Exports\CustomExport\CustomRegionExport;
+use App\Filament\Resources\RegionResource\Pages;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class RegionResource extends Resource
 {
@@ -78,33 +79,25 @@ class RegionResource extends Resource
                     ->searchable()
                     ->toggleable(),
             ])
-            ->recordUrl(
-                fn($record) => route('filament.admin.resources.provinces.showProvince', ['record' => $record->id]),
-            )
             ->filters([
-                TrashedFilter::make()
-                    ->label('Records'),
+                TrashedFilter::make()->label('Records'),
             ])
             ->actions([
                 ActionGroup::make([
-                    EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
+                    EditAction::make()->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make()
-                        ->action(function ($record, $data) {
+                        ->action(function ($record) {
                             $record->delete();
-
                             NotificationHandler::sendSuccessNotification('Deleted', 'Region has been deleted successfully.');
                         }),
                     RestoreAction::make()
-                        ->action(function ($record, $data) {
+                        ->action(function ($record) {
                             $record->restore();
-
                             NotificationHandler::sendSuccessNotification('Restored', 'Region has been restored successfully.');
                         }),
                     ForceDeleteAction::make()
-                        ->action(function ($record, $data) {
+                        ->action(function ($record) {
                             $record->forceDelete();
-
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Region has been deleted permanently.');
                         }),
                 ])
@@ -112,37 +105,29 @@ class RegionResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->action(function ($records) {
-                            $records->each->delete();
+                        ->action(fn($records) => $records->each->delete()),
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected regions have been deleted successfully.');
-                        }),
                     RestoreBulkAction::make()
-                        ->action(function ($records) {
-                            $records->each->restore();
+                        ->action(fn($records) => $records->each->restore()),
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Selected regions have been restored successfully.');
-                        }),
                     ForceDeleteBulkAction::make()
-                        ->action(function ($records) {
-                            $records->each->forceDelete();
+                        ->action(fn($records) => $records->each->forceDelete()),
 
-                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected regions have been deleted permanently.');
-                        }),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomRegionExport::make()
                                 ->withColumns([
                                     Column::make('code')
                                         ->heading('PSG Code')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->code ?: '-';
-                                        }),
+                                        ->getStateUsing(fn($record) => $record->code ?: '-'),
+
                                     Column::make('name')
-                                        ->heading('Region'),
+                                        ->heading('Region')
+                                        ->getStateUsing(fn($record) => $record->name ?: '-'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Regions'),
+                                ->withFilename(now()->format('m-d-Y') . ' - Regions'),
                         ]),
+
                 ]),
             ]);
     }

@@ -26,6 +26,7 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Exports\CustomExport\CustomTenPrioritySectorExport;
 use App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
 class PriorityResource extends Resource
@@ -118,7 +119,7 @@ class PriorityResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete top ten priority sector')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomTenPrioritySectorExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Top Ten Priority Sectors'),

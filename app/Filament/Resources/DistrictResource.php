@@ -3,31 +3,32 @@
 namespace App\Filament\Resources;
 
 use App\Models\District;
-use App\Models\Municipality;
 use App\Models\Province;
-use App\Filament\Resources\DistrictResource\Pages;
-use App\Services\NotificationHandler;
-use Filament\Resources\Resource;
 use Filament\Forms\Form;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
+use App\Models\Municipality;
+use Filament\Resources\Resource;
+use App\Exports\CustomExport\CustomDistrictExport;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
+use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\ForceDeleteAction;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Filters\TrashedFilter;
-use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use App\Filament\Resources\DistrictResource\Pages;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class DistrictResource extends Resource
 {
@@ -155,7 +156,7 @@ class DistrictResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
-                        return $record->underMunicipality 
+                        return $record->underMunicipality
                             ? $record->underMunicipality->name
                             // ->pluck('name')->join(', ')
                             : '-';
@@ -223,7 +224,7 @@ class DistrictResource extends Resource
                         }),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomDistrictExport::make()
                                 ->withColumns([
                                     Column::make('code')
                                         ->heading('PSG Code')

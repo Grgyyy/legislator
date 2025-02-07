@@ -32,6 +32,7 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use App\Filament\Resources\ProjectProposalResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Exports\CustomExport\CustomProjectProposalProgramExport;
 
 class ProjectProposalResource extends Resource
 {
@@ -325,7 +326,7 @@ class ProjectProposalResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete project proposal')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomProjectProposalProgramExport::make()
                                 ->withColumns([
                                     Column::make('soc_code')
                                         ->heading('Schedule of Cost Code'),

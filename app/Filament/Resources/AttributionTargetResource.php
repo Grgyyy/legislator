@@ -19,8 +19,10 @@ use App\Policies\TargetPolicy;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
+use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
+use Spatie\Permission\Traits\HasRoles;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Actions\EditAction;
@@ -40,9 +42,8 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Exports\CustomExport\CustomAttributionTargetExport;
 use App\Filament\Resources\AttributionTargetResource\Pages;
-use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Traits\HasRoles;
 
 
 class AttributionTargetResource extends Resource
@@ -1560,7 +1561,7 @@ class AttributionTargetResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete allocation ')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomAttributionTargetExport::make()
                                 ->withColumns([
                                     // Column::make('abscap_id')
                                     //     ->heading('Absorptive Capacity'),
@@ -1585,109 +1586,127 @@ class AttributionTargetResource extends Resource
 
                                             return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
+
+                                    Column::make('allocation.soft_or_commitment')
+                                        ->heading('Source of Fund'),
+
                                     Column::make('allocation.attributor.name')
-                                        ->heading('Attribution Sender'),
+                                        ->heading('Attributor'),
+
                                     Column::make('attributionAllocation.legislator.particular.subParticular')
                                         ->heading('Attributor Particular')
                                         ->getStateUsing(function ($record) {
-                                            // $legislator = $record->allocation->attributor;
-                                
-                                            // if (!$legislator) {
-                                            //     return 'No legislator available';
-                                            // }
-                                
-                                            // $particulars = $legislator->particular;
-                                
-                                            // if ($particulars->isEmpty()) {
-                                            //     return 'No particular available';
-                                            // }
-                                
                                             $particular = $record->allocation->attributorParticular;
-                                            $district = $particular->district;
-                                            $municipality = $district ? $district->underMunicipality : null;
 
+                                            if (!$particular) {
+                                                return '-';
+                                            }
+
+                                            $district = $particular->district;
                                             $districtName = $district ? $district->name : 'Unknown District';
-                                            $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
 
                                             if ($districtName === 'Not Applicable') {
                                                 if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                                     return "{$particular->subParticular->name} - {$particular->partylist->name}";
                                                 } else {
-                                                    return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                                    return $particular->subParticular->name ?? 'Unknown Particular Type';
                                                 }
                                             } else {
-                                                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                                                if ($particular->district->underMunicipality) {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+                                                } else {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                                                }
                                             }
                                         }),
+
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
-                                    Column::make('allocation.soft_or_commitment')
-                                        ->heading('Soft or Commitment'),
-                                    Column::make('appropriation_type')
-                                        ->heading('Appropriation Type'),
-                                    Column::make('allocation.year')
-                                        ->heading('Appropriation Year'),
-                                    Column::make('allocation.particular.subParticular')
+
+                                    Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
                                             $particular = $record->allocation->particular;
-                                            $district = $particular->district;
-                                            $municipality = $district ? $district->underMunicipality : null;
 
+                                            if (!$particular) {
+                                                return '-';
+                                            }
+
+                                            $district = $particular->district;
                                             $districtName = $district ? $district->name : 'Unknown District';
-                                            $municipalityName = $municipality ? $municipality->name : '';
-                                            $provinceName = $district ? $district->province->name : 'Unknown Province';
-                                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
 
                                             if ($districtName === 'Not Applicable') {
                                                 if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                                     return "{$particular->subParticular->name} - {$particular->partylist->name}";
                                                 } else {
-                                                    return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                                    return $particular->subParticular->name ?? 'Unknown Particular Type';
                                                 }
                                             } else {
-                                                if ($municipality) {
-                                                    return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
+                                                if ($particular->district->underMunicipality) {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
                                                 } else {
-                                                    return "{$particular->subParticular->name} - {$districtName}, {$provinceName}, {$regionName}";
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
                                                 }
                                             }
                                         }),
 
-                                    Column::make('municipality.name')
-                                        ->heading('Municipality'),
-                                    Column::make('district.name')
-                                        ->heading('District'),
-                                    Column::make('tvi.district.province.name')
-                                        ->heading('Province'),
-                                    Column::make('tvi.district.province.region.name')
-                                        ->heading('Region'),
+                                    Column::make('appropriation_type')
+                                        ->heading('Appropriation Type'),
+
+                                    Column::make('allocation.year')
+                                        ->heading('Appropriation Year'),
+
                                     Column::make('tvi.name')
                                         ->heading('Institution'),
-                                    Column::make('tvi.tviClass.tviType.name')
+
+                                    Column::make('tvi.tviType.name')
                                         ->heading('Institution Type'),
+
                                     Column::make('tvi.tviClass.name')
-                                        ->heading('Institution Class(A)'),
-                                    Column::make('qualification_title_code')
-                                        ->heading('Qualification Code'),
-                                    Column::make('qualification_title_code')
-                                        ->heading('Schedule of Cost Code'),
-                                    Column::make('qualification_title_name')
-                                        ->heading('Qualification Title'),
-                                    Column::make('abdd.name')
-                                        ->heading('ABDD Sector'),
-                                    Column::make('qualification_title.trainingProgram.tvet.name')
-                                        ->heading('TVET Sector'),
-                                    Column::make('qualification_title.trainingProgram.priority.name')
-                                        ->heading('Priority Sector'),
-                                    Column::make('deliveryMode.name')
-                                        ->heading('Delivery Mode'),
-                                    Column::make('learningMode.name')
-                                        ->heading('Learning Mode'),
+                                        ->heading('Institution Class'),
+
+                                    Column::make('municipality.name')
+                                        ->heading('Municipality'),
+
+                                    Column::make('district.name')
+                                        ->heading('District'),
+
+                                    Column::make('tvi.district.province.name')
+                                        ->heading('Province'),
+
+                                    Column::make('tvi.district.province.region.name')
+                                        ->heading('Region'),
+
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
+
+                                    Column::make('qualification_title_code')
+                                        ->heading('Qualification Code'),
+
+                                    Column::make('qualification_title_soc_code')
+                                        ->heading('Qualification SOC Code'),
+
+                                    Column::make('qualification_title_name')
+                                        ->heading('Qualification Title'),
+
+                                    Column::make('abdd.name')
+                                        ->heading('ABDD Sector'),
+
+                                    Column::make('qualification_title.trainingProgram.tvet.name')
+                                        ->heading('TVET Sector'),
+
+                                    Column::make('qualification_title.trainingProgram.priority.name')
+                                        ->heading('Priority Sector'),
+
+                                    Column::make('deliveryMode.name')
+                                        ->heading('Delivery Mode'),
+
+                                    Column::make('learningMode.name')
+                                        ->heading('Learning Mode'),
+
                                     Column::make('number_of_slots')
-                                        ->heading('No. of slots'),
+                                        ->heading('Number of slots'),
+
                                     Column::make('training_cost_per_slot')
                                         ->heading('Training Cost')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
@@ -1856,7 +1875,7 @@ class AttributionTargetResource extends Resource
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Targets')
+                                ->withFilename(date('m-d-Y') . ' - Attribution Targets')
                         ]),
                 ]),
             ])

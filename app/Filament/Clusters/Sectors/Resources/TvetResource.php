@@ -25,6 +25,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomTvetSectorExport;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
 
@@ -118,7 +119,7 @@ class TvetResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete tvet sector')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomTvetSectorExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('TVET Sector'),

@@ -25,6 +25,7 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomDeliveryModeExport;
 use App\Filament\Resources\DeliveryModeResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\DeliveryModeResource\RelationManagers;
@@ -103,7 +104,7 @@ class DeliveryModeResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomDeliveryModeExport::make()
                                 ->withColumns([
                                     Column::make('acronym')
                                         ->heading('Delivery Mode Acronym'),
