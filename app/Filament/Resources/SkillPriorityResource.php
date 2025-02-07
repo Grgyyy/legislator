@@ -35,6 +35,7 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\SkillPriorityResource\Pages;
+use App\Exports\CustomExport\CustomSkillsPriorityExport;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class SkillPriorityResource extends Resource
@@ -235,17 +236,18 @@ class SkillPriorityResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete skills priority qualification title')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomSkillsPriorityExport::make()
                                 ->withColumns([
                                     Column::make('provinces.name')
                                         ->heading('Province'),
                                     Column::make('trainingPrograms.title')
-                                        ->heading('Training Program Title'),
+                                        ->heading('Training Program'),
                                     Column::make('available_slots')
                                         ->heading('Available Slots'),
                                     Column::make('total_slots')
                                         ->heading('Total Slots'),
-                                    Column::make('year')->heading('Year'),
+                                    Column::make('year')
+                                        ->heading('Year'),
                                 ])
                                 ->withFilename(date('Y-m-d') . '-skill-priorities-export.xlsx'),
                         ])
