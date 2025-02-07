@@ -31,6 +31,7 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Exports\CustomExport\CustomInstitutionRecognitionExport;
 use App\Filament\Resources\InstitutionRecognitionResource\Pages;
 use App\Filament\Resources\InstitutionRecognitionResource\RelationManagers;
 
@@ -173,7 +174,7 @@ class InstitutionRecognitionResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution recognition')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomInstitutionRecognitionExport::make()
                                 ->withColumns([
                                     Column::make('tvi.name')
                                         ->heading('Institution'),

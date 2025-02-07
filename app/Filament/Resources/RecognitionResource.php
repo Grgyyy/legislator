@@ -25,6 +25,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomRecognitionExport;
 use App\Filament\Resources\RecognitionResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\RecognitionResource\RelationManagers;
@@ -110,7 +111,7 @@ class RecognitionResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete recognition')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomRecognitionExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Recognition Title'),
