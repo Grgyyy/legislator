@@ -89,7 +89,9 @@ class InstitutionRecognitionResource extends Resource
                     ->markAsRequired(false)
                     ->native(false)
                     ->weekStartsOnSunday()
-                    ->closeOnDateSelection(),
+                    ->closeOnDateSelection()
+                    ->minDate(today())
+                    ->rules(['after_or_equal:today']),
 
                 DatePicker::make('expiration_date')
                     ->label('Expiration Date')
@@ -98,6 +100,11 @@ class InstitutionRecognitionResource extends Resource
                     ->native(false)
                     ->weekStartsOnSunday()
                     ->closeOnDateSelection()
+                    ->minDate(fn($get) => $get('accreditation_date') ? Carbon::parse($get('accreditation_date'))->addDay() : today()->addDay())
+                    ->rules(['after:accreditation_date']),
+
+
+
             ]);
     }
 
