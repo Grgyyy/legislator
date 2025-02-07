@@ -17,6 +17,7 @@ use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
+use App\Exports\CustomExport\CustomInstitutionTypeExport;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -116,12 +117,12 @@ class TviTypeResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution type')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomInstitutionTypeExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Institution Type'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Institution Class (B)')
+                                ->withFilename(date('m-d-Y') . ' - Institution Types')
                         ]),
                 ]),
             ]);

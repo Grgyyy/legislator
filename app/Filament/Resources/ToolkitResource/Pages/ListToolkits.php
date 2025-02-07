@@ -75,7 +75,6 @@ class ListToolkits extends ListRecords
                 }),
 
             Action::make('ToolkitsSlotsImport')
-                ->label('Import No. of Toolkits')
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')
