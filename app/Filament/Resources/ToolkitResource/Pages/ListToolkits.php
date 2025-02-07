@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources\ToolkitResource\Pages;
 
+use App\Exports\ToolkitExport;
+use App\Filament\Resources\ToolkitResource;
+use App\Imports\NoOfToolkitsImport;
+use App\Imports\ToolkitImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
-use App\Exports\ToolkitExport;
-use App\Imports\ToolkitImport;
 use Filament\Actions\CreateAction;
-use App\Imports\NoOfToolkitsImport;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\ToolkitResource;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListToolkits extends ListRecords
@@ -31,24 +31,9 @@ class ListToolkits extends ListRecords
                 ->icon('heroicon-m-plus')
                 ->label('New'),
 
-            Action::make('ToolkitExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new ToolkitExport, 'toolkits_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
-
-            Action::make('ToolkitsImport')
+            Action::make('ToolkitImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
                         ->required()
@@ -63,6 +48,7 @@ class ListToolkits extends ListRecords
 
                         try {
                             Excel::import(new ToolkitImport, $filePath);
+                            
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The Toolkits have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the toolkits: ' . $e->getMessage());
@@ -74,11 +60,11 @@ class ListToolkits extends ListRecords
                     }
                 }),
 
-            Action::make('ToolkitsSlotsImport')
-                ->icon('heroicon-o-document-arrow-up')
+            Action::make('NoOfToolkitsImport')
+                ->label('Import No. of Toolkits')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import District')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -91,7 +77,8 @@ class ListToolkits extends ListRecords
 
                         try {
                             Excel::import(new NoOfToolkitsImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The No. of Toolkits have been successfully imported from the file.');
+                            
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The no. of toolkits have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the no. of toolkits: ' . $e->getMessage());
                         } finally {
@@ -100,6 +87,19 @@ class ListToolkits extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('ToolkitExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-up')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ToolkitExport, 'toolkits_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }

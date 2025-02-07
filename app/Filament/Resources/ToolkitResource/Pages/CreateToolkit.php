@@ -3,12 +3,11 @@
 namespace App\Filament\Resources\ToolkitResource\Pages;
 
 use App\Filament\Resources\ToolkitResource;
-use App\Models\QualificationTitle;
+use App\Helpers\Helper;
 use App\Models\Toolkit;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class CreateToolkit extends CreateRecord
 {
@@ -38,37 +37,27 @@ class CreateToolkit extends CreateRecord
 
     public function isEdit(): bool
     {
-        return false; // Create mode
+        return false;
     }
 
     protected function handleRecordCreation(array $data): Toolkit
     {
-        return DB::transaction(function () use ($data) {
-            
-            $existingRecord = Toolkit::where('lot_name', $data['lot_name'])
-                ->where('year', $data['year'])
-                ->first();
+        $this->validateUniqueToolkit($data);
+        
+        $data['lot_name'] = Helper::capitalizeWords($data['lot_name']);
 
-            if ($existingRecord) {
-                $message = "{$data['lot_name']} toolkit for {$data['year']} is already existing.";
-
-                NotificationHandler::handleValidationException('Something went wrong', $message);
-            }
-
-            
-
+        return DB::transaction(function () use ($data) {          
             if ($data['number_of_toolkit']) {
                 $toolkit = Toolkit::create([
                     'lot_name' => $data['lot_name'],
                     'price_per_toolkit' => $data['price_per_toolkit'],
-                    'available_number_of_toolkit' => $data['number_of_toolkit'],
-                    'number_of_toolkit' => $data['number_of_toolkit'],
+                    'available_number_of_toolkits' => $data['number_of_toolkit'],
+                    'number_of_toolkits' => $data['number_of_toolkit'],
                     'total_abc_per_lot' => $data['price_per_toolkit'] * $data['number_of_toolkit'],
                     'number_of_items_per_toolkit' => $data['number_of_items_per_toolkit'],
                     'year' => $data['year']
                 ]);
-            }
-            else {
+            } else {
                 $toolkit = Toolkit::create([
                     'lot_name' => $data['lot_name'],
                     'price_per_toolkit' => $data['price_per_toolkit'],
@@ -81,12 +70,25 @@ class CreateToolkit extends CreateRecord
                 $toolkit->qualificationTitles()->sync($data['qualification_title_id']);
             }
 
-            NotificationHandler::sendSuccessNotification(
-                'Created',
-                'The toolkit has been successfully created.'
-            );
+            NotificationHandler::sendSuccessNotification('Created', 'The toolkit has been successfully created.');
 
             return $toolkit;
         });
+    }
+
+    protected function validateUniqueToolkit($data)
+    {
+        $toolkit = Toolkit::withTrashed()
+            ->where('lot_name', $data['lot_name'])
+            ->where('year', $data['year'])
+            ->first();
+
+        if ($toolkit) {
+            $message = $toolkit->deleted_at 
+                ? "{$data['lot_name']} toolkits for {$data['year']} has been deleted and must be restored before reuse."
+                : "{$data['lot_name']} toolkits for {$data['year']} already exists.";
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
     }
 }
