@@ -1383,12 +1383,12 @@ class AttributionTargetResource extends Resource
                     ->toggleable()
                     ->getStateUsing(fn($record) => self::getLocationNames($record)),
 
-                TextColumn::make('tvi.tviClass.tviType.name')
+                TextColumn::make('tvi.tviType.name')
                     ->label('Institution Class')
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($state, $record) {
-                        $institutionType = $record->tvi->tviClass->tviType->name ?? '';
+                        $institutionType = $record->tvi->tviType->name ?? '';
                         $institutionClass = $record->tvi->tviClass->name ?? '';
 
                         return "{$institutionType} - {$institutionClass}";

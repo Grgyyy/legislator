@@ -823,7 +823,7 @@ class TargetResource extends Resource
                     ->toggleable()
                     ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
-                TextColumn::make('tvi.tviClass.tviType.name')
+                TextColumn::make('tvi.tviType.name')
                     ->label('Institution Type')
                     ->searchable()
                     ->toggleable(),
@@ -836,7 +836,8 @@ class TargetResource extends Resource
                 TextColumn::make('qualification_title_code')
                     ->label('Qualification Code')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => empty($record->qualification_title_code) ? '-' : $record->qualification_title_code),
 
                 TextColumn::make('qualification_title_soc_code')
                     ->label('Qualification SOC Code')
@@ -1211,7 +1212,7 @@ class TargetResource extends Resource
                                     Column::make('tvi.name')
                                         ->heading('Institution'),
 
-                                    Column::make('tvi.tviClass.tviType.name')
+                                    Column::make('tvi.tviType.name')
                                         ->heading('Institution Type'),
 
                                     Column::make('tvi.tviClass.name')

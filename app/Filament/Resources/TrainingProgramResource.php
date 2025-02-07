@@ -54,8 +54,6 @@ class TrainingProgramResource extends Resource
                 TextInput::make('code')
                     ->label('Qualification Code')
                     ->placeholder('Enter qualification code')
-                    ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('qualification code'),
 
@@ -84,8 +82,6 @@ class TrainingProgramResource extends Resource
 
                 Select::make('nc_level')
                     ->label('NC Level')
-                    ->required(fn($get) => $get('full_coc_ele') === 'Full')
-                    ->markAsRequired(false)
                     ->native(false)
                     ->options([
                         'NC I' => 'NC I',
