@@ -109,10 +109,12 @@ class InstitutionProgramResource extends Resource
                 TextColumn::make('tvi.name')
                     ->label('Institution')
                     ->searchable(),
-                // ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+                TextColumn::make('trainingProgram.soc_code')
+                    ->label('SOC Code')
+                    ->searchable(),
                 TextColumn::make('trainingProgram.title')
                     ->label('Qualification Title')
-                    ->searchable()
+                    ->searchable(),
                 // ->formatStateUsing(function ($state) {
                 //     if (!$state) {
                 //         return $state;
