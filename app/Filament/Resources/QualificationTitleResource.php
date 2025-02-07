@@ -33,6 +33,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomScheduleOfCostExport;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\QualificationTitleResource\Pages;
 
@@ -480,12 +481,12 @@ class QualificationTitleResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete qualification title')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomScheduleOfCostExport::make()
                                 ->withColumns([
                                     Column::make('TrainingProgram.code')
                                         ->heading('Qualification Code'),
                                     Column::make('TrainingProgram.soc_code')
-                                        ->heading('Schedule of Cost Code'),
+                                        ->heading('SOC Code'),
                                     Column::make('TrainingProgram.title')
                                         ->heading('Qualification Title'),
                                     Column::make('ScholarshipProgram.name')
@@ -517,13 +518,20 @@ class QualificationTitleResource extends Resource
                                     Column::make('misc_fee')
                                         ->heading('Miscellaneous Fee')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                    Column::make('toolkit.price_per_toolkit')
+                                        ->heading('Cost of Toolkits PCC')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->toolkit && $record->toolkit->price_per_toolkit !== null
+                                                ? number_format($record->toolkit->price_per_toolkit, 2, '.', ',')
+                                                : '0.00';
+                                        }),
                                     Column::make('pcc')
-                                        ->heading('Total PCC')
+                                        ->heading('Total PCC (w/o Toolkits)')
                                         ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
                                     Column::make('days_duration')
-                                        ->heading('No. of Training Days'),
+                                        ->heading('Training Days'),
                                     Column::make('hours_duration')
-                                        ->heading('Duration (Hrs)'),
+                                        ->heading('Training Hours'),
                                     Column::make('status.desc')
                                         ->heading('Status'),
                                 ])
