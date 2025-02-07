@@ -27,8 +27,10 @@ use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
+use Spatie\Permission\Traits\HasRoles;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
@@ -48,9 +50,8 @@ use Filament\Tables\Actions\RestoreBulkAction;
 use App\Filament\Resources\TargetResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomPendingTargetExport;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Traits\HasRoles;
 
 class TargetResource extends Resource
 {
@@ -1124,7 +1125,7 @@ class TargetResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore target ')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomPendingTargetExport::make()
                                 ->withColumns([
                                     // Column::make('abscap_id')
                                     //     ->heading('Absorptive Capacity'),
@@ -1211,7 +1212,7 @@ class TargetResource extends Resource
                                     Column::make('tvi.name')
                                         ->heading('Institution'),
 
-                                    Column::make('tvi.tviClass.tviType.name')
+                                    Column::make('tvi.tviType.name')
                                         ->heading('Institution Type'),
 
                                     Column::make('tvi.tviClass.name')
@@ -1221,7 +1222,7 @@ class TargetResource extends Resource
                                         ->heading('Qualification Code'),
 
                                     Column::make('qualification_title_soc_code')
-                                        ->heading('Schedule of Cost Code'),
+                                        ->heading('Qualification SOC Code'),
 
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
@@ -1245,7 +1246,7 @@ class TargetResource extends Resource
                                         ->heading('Scholarship Program'),
 
                                     Column::make('number_of_slots')
-                                        ->heading('No. of slots'),
+                                        ->heading('Number of slots'),
 
                                     Column::make('training_cost_per_slot')
                                         ->heading('Training Cost')
