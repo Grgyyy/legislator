@@ -53,7 +53,6 @@ class ListLegislators extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import District')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')

@@ -53,7 +53,6 @@ class ListDeliveryModes extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import Delivery Mode')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')

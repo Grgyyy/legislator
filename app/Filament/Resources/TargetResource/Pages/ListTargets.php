@@ -66,7 +66,6 @@ class ListTargets extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import Targets')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -97,7 +96,6 @@ class ListTargets extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import Targets as Admin')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')

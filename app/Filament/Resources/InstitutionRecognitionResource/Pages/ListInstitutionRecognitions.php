@@ -50,7 +50,6 @@ class ListInstitutionRecognitions extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import District')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
