@@ -52,7 +52,7 @@ class ProvinceSeeder extends Seeder
             ['03077', 'Aurora'],
             ['03000', 'Not Applicable'],
 
-            ['04010	', 'Batangas'],
+            ['04010', 'Batangas'],
             ['04021', 'Cavite'],
             ['04034', 'Laguna'],
             ['04056', 'Quezon'],
