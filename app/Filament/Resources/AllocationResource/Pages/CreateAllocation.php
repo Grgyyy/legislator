@@ -18,6 +18,7 @@ class CreateAllocation extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
+
     protected function getFormActions(): array
     {
         return [
@@ -44,8 +45,8 @@ class CreateAllocation extends CreateRecord
     {
         $this->validateUniqueAllocation($data);
 
-        // Validate that the 'attributor_particular_id' exists in the 'particulars' table
-        $this->validateAttributorParticularId($data['attributor_particular_id']);
+        // Validate that the 'attributor_particular_id' exists in the 'particulars' table if provided
+        $this->validateAttributorParticularId($data['attributor_particular_id'] ?? null);
 
         $adminCost = $this->calculateAdminCost($data['allocation']);
         $balance = $this->calculateBalance($data['allocation'], $adminCost);
@@ -54,9 +55,9 @@ class CreateAllocation extends CreateRecord
             return Allocation::create([
                 'soft_or_commitment' => $data['soft_or_commitment'],
                 'legislator_id' => $data['legislator_id'],
-                'attributor_id' => $data['attributor_id'],
+                'attributor_id' => $data['attributor_id'] ?? null,
                 'particular_id' => $data['particular_id'],
-                'attributor_particular_id' => $data['attributor_particular_id'],
+                'attributor_particular_id' => $data['attributor_particular_id'] ?? null,
                 'scholarship_program_id' => $data['scholarship_program_id'],
                 'allocation' => $data['allocation'],
                 'admin_cost' => $adminCost,
@@ -90,14 +91,22 @@ class CreateAllocation extends CreateRecord
      */
     protected function validateUniqueAllocation(array $data): void
     {
-        $allocation = Allocation::where('soft_or_commitment', $data['soft_or_commitment'])
+        $query = Allocation::where('soft_or_commitment', $data['soft_or_commitment'])
             ->where('legislator_id', $data['legislator_id'])
-            ->where('attributor_id', $data['attributor_id'])
-            ->where('attributor_particular_id', $data['attributor_particular_id'])
             ->where('particular_id', $data['particular_id'])
             ->where('scholarship_program_id', $data['scholarship_program_id'])
-            ->where('year', $data['year'])
-            ->first();
+            ->where('year', $data['year']);
+
+        // Apply optional filters only if values are present
+        if (!empty($data['attributor_id'])) {
+            $query->where('attributor_id', $data['attributor_id']);
+        }
+
+        if (!empty($data['attributor_particular_id'])) {
+            $query->where('attributor_particular_id', $data['attributor_particular_id']);
+        }
+
+        $allocation = $query->first();
 
         if ($allocation) {
             $message = $allocation->trashed()
