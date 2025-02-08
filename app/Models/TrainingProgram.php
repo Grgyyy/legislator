@@ -47,9 +47,9 @@ class TrainingProgram extends Model
             ->withTimestamps();
     }
 
-    public function skillPriorities()
+    public function skillPriority()
     {
-        return $this->belongsToMany(Province::class, 'skill_priorities')
+        return $this->belongsToMany(SkillPriority::class, 'skill_programs')
             ->withTimestamps();
     }
 }

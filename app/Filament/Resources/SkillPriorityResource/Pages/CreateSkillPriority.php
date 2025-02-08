@@ -4,9 +4,11 @@ namespace App\Filament\Resources\SkillPriorityResource\Pages;
 
 use App\Filament\Resources\SkillPriorityResource;
 use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
 use App\Services\NotificationHandler;
-use Filament\Actions;
-use Filament\Actions\Action;
+use Exception;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -24,12 +26,9 @@ class CreateSkillPriority extends CreateRecord
     protected function getFormActions(): array
     {
         return [
-            $this->getCreateFormAction()
-                ->label('Save & Exit'),
-            $this->getCreateAnotherFormAction()
-                ->label('Save & Create Another'),
-            $this->getCancelFormAction()
-                ->label('Exit'),
+            $this->getCreateFormAction()->label('Save & Exit'),
+            $this->getCreateAnotherFormAction()->label('Save & Create Another'),
+            $this->getCancelFormAction()->label('Exit'),
         ];
     }
 
@@ -43,36 +42,49 @@ class CreateSkillPriority extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
-    /**
-     * Handle record creation logic with validation.
-     *
-     * @param array $data
-     * @return SkillPriority
-     */
     protected function handleRecordCreation(array $data): SkillPriority
     {
-        // Validate input data
         $this->validateCreateData($data);
 
         return DB::transaction(function () use ($data) {
-            $existingRecord = SkillPriority::where('province_id', $data['province_id'])
-                ->where('training_program_id', $data['training_program_id'])
-                ->where('year', $data['year'])
-                ->first();
+            $status = Status::where('desc', 'Active')->first();
 
-            if ($existingRecord) {
-                NotificationHandler::sendErrorNotification('Record Exists', 'A record for this Province, Training Program, and Year already exists.');
-                return $existingRecord; // Returning existing record prevents duplicate entries
+            if (!$status) {
+                $this->notifyError('The "Active" status does not exist.');
+                return null;
             }
 
-            // Create new SkillPriority record
+            $existingRecordQuery = SkillPriority::where('province_id', $data['province_id'])
+                ->where('qualification_title', $data['qualification_title'])
+                ->where('year', $data['year'])
+                ->where('status_id', $status->id);
+
+            if (!empty($data['district_id'])) {
+                $existingRecordQuery->where('district_id', $data['district_id']);
+            }
+
+            $existingRecord = $existingRecordQuery->first();
+
+            if ($existingRecord) {
+                $message = 'A record for this Province, District (if selected), Training Program, and Year already exists.';
+
+                NotificationHandler::handleValidationException('Something went wrong', $message);
+            }
+
             $skillPriority = SkillPriority::create([
                 'province_id' => $data['province_id'],
-                'training_program_id' => $data['training_program_id'],
+                'district_id' => $data['district_id'] ?? null,
+                'qualification_title' => $data['qualification_title'],
                 'available_slots' => $data['total_slots'],
                 'total_slots' => $data['total_slots'],
                 'year' => $data['year'],
+                'status_id' => $status->id,
             ]);
+
+            if (!empty($data['qualification_title_id'])) {
+                // Attach the training programs to the skillPriority
+                $skillPriority->trainingProgram()->sync($data['qualification_title_id']);
+            }
 
             NotificationHandler::sendSuccessNotification('Created', 'Skill Priority has been created successfully.');
 
@@ -80,25 +92,18 @@ class CreateSkillPriority extends CreateRecord
         });
     }
 
-    /**
-     * Validate the create data
-     *
-     * @param array $data
-     * @throws ValidationException
-     */
     protected function validateCreateData(array $data): void
     {
         $validator = Validator::make($data, [
             'province_id' => ['required', 'integer', 'exists:provinces,id'],
-            'training_program_id' => ['required', 'integer', 'exists:training_programs,id'],
+            'district_id' => ['nullable', 'integer', 'exists:districts,id'],
             'year' => ['required', 'numeric', 'min:' . date('Y'), 'digits:4'],
-            'total_slots' => ['required', 'integer', 'min:0'], // Ensure slots are non-negative
+            'total_slots' => ['required', 'integer', 'min:1'],
         ]);
 
         if ($validator->fails()) {
-            NotificationHandler::sendErrorNotification('Validation Error', 'There was an issue with the provided data.');
-            throw new ValidationException($validator);
+            $message = 'Please check the inputted information.';
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
-
 }

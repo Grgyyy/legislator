@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\District;
+use App\Models\QualificationTitle;
 use Filament\Tables;
 use App\Models\Province;
 use Filament\Forms\Form;
@@ -68,19 +70,64 @@ class SkillPriorityResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_province'),
 
-                Select::make('training_program_id')
-                    ->label('Training Program')
-                    ->required()
-                    ->markAsRequired(false)
+                Select::make('district_id')
+                    ->label('District')
                     ->searchable()
                     ->preload()
                     ->native(false)
-                    ->options(function () {
-                        return TrainingProgram::all()
-                            ->pluck('title', 'id')
-                            ->toArray() ?: ['no_training_program' => 'No training programs available'];
+                    ->options(function ($get) {
+                        $provinceId = $get('province_id');
+                        if ($provinceId) {
+                            $districts = District::whereNot('name', 'Not Applicable')
+                                ->where('province_id', $provinceId)
+                                ->get();
+
+                            return $districts->mapWithKeys(function ($district) {
+                                $municipalityName = $district->underMunicipality->name ?? '';
+                                $concatenatedName = $district->name . ($municipalityName ? " - $municipalityName" : '');
+                                return [$district->id => $concatenatedName];
+                            })->toArray() ?: ['no_district' => 'No district available'];
+                        }
+                        return ['no_district' => 'No distict available. Select a province first.'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_training_program'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_district'),
+
+                Select::make('qualification_title_id')
+                    ->label('Qualification Titles')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->multiple()
+                    ->preload()
+                    ->native(false)
+                    ->options(function () {
+                        $qualificationTitles = TrainingProgram::all();
+
+                        return $qualificationTitles->mapWithKeys(function ($title) {
+                                $concatenatedName = $title->soc_code . " - " . $title->title;
+                                return [$title->id => $concatenatedName];
+                        })->toArray() ?: ['no_qualification_title' => 'No qualification title available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_qualification_title')
+                    ->afterStateUpdated(function ($state, $set) {
+                        if ($state && isset($state[0])) {
+                            $qualificationTitle = TrainingProgram::find($state[0]);
+
+                            if ($qualificationTitle) {
+                                $set('qualification_title', $qualificationTitle->title);
+                            } else {
+                                $set('qualification_title', null);
+                            }
+                        } else {
+                            $set('qualification_title', null);
+                        }
+                    })
+                    ->reactive(),
+
+                TextInput::make('qualification_title')
+                    ->label('Skill Priority Title')
+                    ->required()
+                    ->markAsRequired(false),
 
                 TextInput::make('available_slots')
                     ->label('Available Slots')
@@ -122,9 +169,9 @@ class SkillPriorityResource extends Resource
             ->columns([
                 TextColumn::make('provinces.name')
                     ->label('Province'),
-                TextColumn::make('trainingPrograms.title')
+                TextColumn::make('qualification_title')
                     ->searchable()
-                    ->label('Training Program')
+                    ->label('Qualification Title')
                 // ->formatStateUsing(function ($state) {
                 //     if (!$state) {
                 //         return $state;
