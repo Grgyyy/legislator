@@ -34,14 +34,14 @@ class EditInstitutionProgram extends EditRecord
     {
         return null;
     }
-    
+
     public function getBreadcrumbs(): array
     {
 
         $record = $this->getRecord();
 
         return [
-            route('filament.admin.resources.training-programs.index') => $record ? $record->tvi->name . "'s Qualification Title Association" : "Institution's Training Program",
+            route('filament.admin.resources.institution-programs.index') => $record ? $record->tvi->name . "'s Qualification Title Association" : "Institution's Training Program",
             'Edit'
         ];
     }
@@ -60,7 +60,7 @@ class EditInstitutionProgram extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): InstitutionProgram
     {
-        $this->validateData($data);
+        $this->validateData($data, $record);
 
         $record->update($data);
 
@@ -70,10 +70,11 @@ class EditInstitutionProgram extends EditRecord
 
     }
 
-    private function validateData(array $data): void
+    private function validateData($data, $record): void
     {
         $exists = InstitutionProgram::where('tvi_id', $data['tvi_id'])
             ->where('training_program_id', $data['training_program_id'])
+            ->whereNot('id', $record->id)
             ->exists();
 
         if ($exists) {
