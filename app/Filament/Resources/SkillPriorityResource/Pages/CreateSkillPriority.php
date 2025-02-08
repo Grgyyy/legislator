@@ -82,7 +82,6 @@ class CreateSkillPriority extends CreateRecord
             ]);
 
             if (!empty($data['qualification_title_id'])) {
-                // Attach the training programs to the skillPriority
                 $skillPriority->trainingProgram()->sync($data['qualification_title_id']);
             }
 

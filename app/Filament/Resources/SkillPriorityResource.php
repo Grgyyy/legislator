@@ -95,6 +95,7 @@ class SkillPriorityResource extends Resource
                 Select::make('qualification_title_id')
                     ->label('Qualification Titles')
                     ->required()
+                    ->relationship('trainingProgram')
                     ->markAsRequired(false)
                     ->searchable()
                     ->multiple()
