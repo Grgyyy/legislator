@@ -2,27 +2,13 @@
 
 namespace App\Imports;
 
-use App\Models\DeliveryMode;
-use App\Models\LearningMode;
-use App\Models\Particular;
-use App\Models\SkillPriority;
-use App\Models\SubParticular;
-use App\Models\TargetStatus;
-use App\Models\TrainingProgram;
-use Throwable;
-use App\Models\Tvi;
-use App\Models\Abdd;
-use App\Models\Region;
-use App\Models\Target;
-use App\Models\District;
-use App\Models\Province;
-use App\Models\Partylist;
-use App\Models\Allocation;
-use App\Models\Legislator;
 use App\Models\Municipality;
-use App\Models\TargetHistory;
-use App\Models\QualificationTitle;
-use App\Models\ScholarshipProgram;
+use App\Models\SkillPriority;
+use App\Models\Status;
+use App\Models\TrainingProgram;
+use App\Models\Region;
+use App\Models\Province;
+use App\Models\District;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -40,44 +26,65 @@ class SkillsPriorityImport implements ToModel, WithHeadingRow
             $this->validateYear($row['year']);
 
             DB::transaction(function () use ($row) {
-                $qualificationTitle = $this->getTrainingProgram($row['qualification_title']);
+                $qualificationTitle = $this->getTrainingProgram($row['qualification_title'], $row['soc_code']);
                 $region = $this->getRegion($row['region']);
                 $province = $this->getProvince($row['province'], $region->id);
+                $municipality = $this->getMunicipality($row['municipality'], $province);
+                $district = $this->getDistrict($row['district'], $province, $municipality);
                 
-                $skillPriorityExists = SkillPriority::where('training_program_id', $qualificationTitle->id)
-                    ->where('province_id', $province->id)
+                
+                // Get the existing skill priority record or null if not found
+                $skillPriority = SkillPriority::where('province_id', $province->id)
+                    ->where('district_id', $district->id)
+                    ->where('qualification_title', $row['lot_name'])
                     ->where('year', $row['year'])
-                    ->exists();
+                    ->first();
 
-                if($skillPriorityExists) {
-                    throw new \Exception("A Skill Priority under the province '{$province->name}' and qualification '{$qualificationTitle->title}' already exists.");
+                $status = Status::where('desc', 'Active')->first();
+
+                if (!$status) {
+                    throw new \Exception("The Active Status does not exist.");
                 }
 
-                $skillPriority = SkillPriority::create([
-                    'province_id' => $province->id,
-                    'training_program_id' => $qualificationTitle->id,
-                    'available_slots' => $row['no_of_skills_priorities'],
-                    'total_slots' => $row['no_of_skills_priorities'],
-                    'year' => $row['year'],
-                ]);
+                // Insert new skill priority if not found
+                if (!$skillPriority) {
+                    $skillPriority = SkillPriority::create([
+                        'province_id' => $province->id,
+                        'district_id' => $district ? $district->id : null,
+                        'qualification_title' => $row['lot_name'],
+                        'available_slots' => $row['target_benificiaries'],
+                        'total_slots' => $row['target_benificiaries'],
+                        'year' => $row['year'],
+                        'status_id' => $status->id,
+                    ]);
+                } else {
+                    // If skill priority exists, check if total_slots match
+                    if ($skillPriority->total_slots !== $row['target_benificiaries']) {
+                        throw new \Exception("Skill Priority exists and the target beneficiaries do not match the record.");
+                    }
+                }
+
+                // Use syncWithoutDetaching to add the relationship without detaching existing ones
+                $skillPriority->trainingProgram()->syncWithoutDetaching([$qualificationTitle->id]);
 
                 return $skillPriority;
-                
             });
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             Log::error("Import failed: " . $e->getMessage());
             throw $e;
         }
     }
 
-
     protected function validateRow(array $row)
     {
         $requiredFields = [
+            'lot_name',
+            'soc_code',
             'qualification_title',
+            'district',
             'province',
             'region',
-            'no_of_skills_priorities',
+            'target_benificiaries',
             'year',
         ];
 
@@ -96,12 +103,14 @@ class SkillsPriorityImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function getTrainingProgram(string $trainingProgramName)
+    protected function getTrainingProgram(string $trainingProgramName, string $socCode)
     {
-        $trainingProgram = TrainingProgram::where('title', $trainingProgramName)->first();
+        $trainingProgram = TrainingProgram::where("title", $trainingProgramName)
+            ->where('soc_code', $socCode)
+            ->first();
 
-        if(!$trainingProgram) {
-            throw new \Exception("Training Program with name '{$trainingProgramName}' not found.");
+        if (!$trainingProgram) {
+            throw new \Exception("Qualification Title with name '{$trainingProgramName}' not found.");
         }
 
         return $trainingProgram;
@@ -111,7 +120,7 @@ class SkillsPriorityImport implements ToModel, WithHeadingRow
     {
         $region = Region::where('name', $regionName)->first();
 
-        if(!$region) {
+        if (!$region) {
             throw new \Exception("Region with name '{$regionName}' not found.");
         }
 
@@ -124,11 +133,41 @@ class SkillsPriorityImport implements ToModel, WithHeadingRow
             ->where('region_id', $regionId)
             ->first();
 
-        if(!$province) {
+        if (!$province) {
             throw new \Exception("Province with name '{$provinceName}' not found.");
         }
 
         return $province;
     }
 
+    protected function getDistrict(string $districtName, $province, $municipality)
+    {
+        $districtQuery = District::where("name", $districtName)
+            ->where("province_id", $province->id);
+
+        if ($municipality !== null) {
+            $districtQuery->where("municipality_id", $municipality->id);
+        }
+
+        $district = $districtQuery->first();
+
+        if (!$district) {
+            throw new \Exception("District with name '{$districtName}' under the province '{$province->name}' not found.");
+        }
+
+        return $district;
+    }
+
+    protected function getMunicipality(string $municipalityName, $province)
+    {
+        $municipality = Municipality::where("name", $municipalityName)
+            ->where("province_id", $province->id)
+            ->first();
+
+        if (!$municipality) {
+            throw new \Exception("District with name '{$municipalityName}' under the province '{$province->name}' not found.");
+        }
+
+        return $municipality;
+    }
 }
