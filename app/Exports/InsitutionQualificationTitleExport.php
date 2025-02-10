@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-
 use App\Models\InstitutionProgram;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -16,13 +15,15 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
-        'tvi_id' => 'Institution',
-        'training_program_id' => 'Training Program',
+        'institution_programs.tvi_id' => 'Institution',
+        'training_programs.soc_code' => 'Schedule of Cost',
+        'training_programs.title' => 'Training Program',
     ];
 
     public function query(): Builder
     {
         return InstitutionProgram::query()
+            ->join('training_programs', 'institution_programs.training_program_id', '=', 'training_programs.id')
             ->select(array_keys($this->columns));
     }
 
@@ -41,15 +42,14 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
     public function map($record): array
     {
         return [
-            $record->tvi->name,
-            $record->trainingProgram->title,
+            $record->tvi?->name,
+            $record->soc_code,
+            $record->title,
         ];
     }
 
-
     public function styles(Worksheet $sheet)
     {
-
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
