@@ -18,7 +18,6 @@ use function Filament\Support\format_money;
 class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
     private array $columns = [
-        'qualificationTitles.trainingProgram.code' => 'Qualification Code',
         'qualificationTitles.trainingProgram.title' => 'Qualification Titles',
         'lot_name' => 'Lot Name',
         'price_per_toolkit' => 'Price per Toolkit',
@@ -38,9 +37,7 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings
     public function map($record): array
     {
         return [
-            // Ensure trainingProgram is not null
-            $record->qualificationTitles->first()->trainingProgram->code ?? '-',
-            $record->qualificationTitles->first()->trainingProgram->title ?? '-',
+            $this->getQualificationTitle($record),
             $record->lot_name ?? '-',
             $this->formatCurrency($record->price_per_toolkit) ?? '-',
             $this->formatCurrency($record->available_number_of_toolkits) ?? '-',
@@ -56,7 +53,7 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['SCHEDULE OF COST'],
+            ['TOOLKITS'],
             [''],
         ];
 
@@ -113,5 +110,17 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         // Use the NumberFormatter class to format the currency in the Filipino Peso (PHP)
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
         return $formatter->formatCurrency($amount, 'PHP');
+    }
+
+    private function getQualificationTitle($record)
+    {
+        $qualificationTitles = $record->qualificationTitles->map(
+            fn($qualificationTitle) =>
+            optional($qualificationTitle->trainingProgram)->soc_code .
+            ' - ' .
+            optional($qualificationTitle->trainingProgram)->title
+        )->filter()->toArray();
+
+        return empty($qualificationTitles) ? '-' : implode(', ', $qualificationTitles);
     }
 }

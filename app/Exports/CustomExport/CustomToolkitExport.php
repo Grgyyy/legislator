@@ -20,7 +20,7 @@ class CustomToolkitExport extends ExcelExport
         ];
 
         $columnHeadings = [
-            'Qualification Titles',
+            'Qualification Title',
             'LOT Name',
             'Price per toolkit',
             'Available Number of Toolkits Per Lot',
