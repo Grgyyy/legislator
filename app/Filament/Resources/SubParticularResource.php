@@ -174,7 +174,7 @@ class SubParticularResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete particular types')),
                     ExportBulkAction::make()
                         ->exports([
-                            CustomPartylistExport::make()
+                            CustomParticularTypeExport::make()
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Particular Type'),

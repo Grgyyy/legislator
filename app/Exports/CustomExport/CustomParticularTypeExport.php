@@ -7,19 +7,20 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-class CustomPartylistExport extends ExcelExport
+class CustomParticularTypeExport extends ExcelExport
 {
     public function headings(): array
     {
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PARTY-LISTS'],
+            ['PARTICULAR TYPES'],
             [''],
         ];
 
         $columnHeadings = [
-            'Party-list     ',
+            'Particular Type',
+            'Fund Source',
         ];
         return array_merge($customHeadings, [$columnHeadings]);
     }
