@@ -3,89 +3,96 @@
 namespace App\Imports;
 
 use Throwable;
-use App\Models\Recognition;
+use Carbon\Carbon;
 use App\Models\Tvi;
+use App\Models\Recognition;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\InstitutionRecognition;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Imports\HeadingRowFormatter;
+
+HeadingRowFormatter::default('none');
 
 class InstitutionRecognitionImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     * @return \Illuminate\Database\Eloquent\Model|null
-     * @throws \Throwable
-     */
     public function model(array $row)
     {
+        Log::info('Raw Row Data from Excel: ' . json_encode($row));
+
+        if (empty(array_filter($row))) {
+            Log::warning('Empty row detected, skipping: ' . json_encode($row));
+            return null;
+        }
+
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
-            try {
-                $tviId = $this->getTvi($row['school_id'], $row['institution']);
-                $recognitionId = $this->getRecognition($row['recognition']);
+            $tviId = $this->getTvi($row['Institution']);
+            $recognitionId = $this->getRecognition($row['Recognition']);
+            $accreditationDate = $this->convertExcelDate($row['Accreditation Date']);
+            $expirationDate = $this->convertExcelDate($row['Expiration Date']);
 
-                $exists = DB::table('institution_recognitions')
-                    ->where('tvi_id', $tviId)
-                    ->where('recognition_id', $recognitionId)
-                    ->where('year', $row['year'])
-                    ->exists();
+            $exists = InstitutionRecognition::where([
+                'tvi_id' => $tviId,
+                'recognition_id' => $recognitionId,
+                'accreditation_date' => $accreditationDate,
+                'expiration_date' => $expirationDate,
+            ])->exists();
 
-                if (!$exists) {
-                    return Recognition::create([
-                        'tvi_id' => $tviId,
-                        'recognition_id' => $recognitionId,
-                        'year' => $row['year'],
-                    ]);
-                }
-            } catch (Throwable $e) {
-                Log::error('Failed to import Recognition: ' . $e->getMessage());
-                throw $e;
+            if (!$exists) {
+                return InstitutionRecognition::create([
+                    'tvi_id' => $tviId,
+                    'recognition_id' => $recognitionId,
+                    'accreditation_date' => $accreditationDate,
+                    'expiration_date' => $expirationDate,
+                ]);
             }
         });
     }
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['institution', 'recognition', 'year'];
+        $requiredFields = ['Institution', 'Recognition', 'Accreditation Date', 'Expiration Date'];
 
         foreach ($requiredFields as $field) {
-            if (empty($row[$field])) {
-                throw new \Exception("The field '{$field}' is required and cannot be empty. Import aborted.");
+            if (!isset($row[$field]) || empty(trim($row[$field]))) {
+                throw new \Exception("The field '{$field}' is required and cannot be empty.");
             }
         }
-        if (!is_numeric($row['year']) || (int) $row['year'] < 1900 || (int) $row['year'] > now()->year) {
-            throw new \Exception("The year '{$row['year']}' is invalid. It must be a numeric value between 1900 and the current year.");
+
+        $accreditationDate = $this->convertExcelDate(trim($row['Accreditation Date']));
+        $expirationDate = $this->convertExcelDate(trim($row['Expiration Date']));
+
+        if (Carbon::parse($accreditationDate)->lt(Carbon::today())) {
+            throw new \Exception("The accreditation date must be today or a future date.");
+        }
+
+        if (Carbon::parse($expirationDate)->lte(Carbon::parse($accreditationDate))) {
+            throw new \Exception("The expiration date must be greater than the accreditation date.");
         }
     }
 
-
-    protected function getTvi(int $schoolId, string $tviName)
+    protected function convertExcelDate($value)
     {
-        $tvi = Tvi::where('name', $tviName)
-            ->where('school_id', $schoolId)
-            ->first();
-
-        if (!$tvi) {
-            throw new \Exception("TVI with name '{$tviName}' and school ID '{$schoolId}' not found.");
+        if (is_numeric($value)) {
+            return Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value))->format('Y-m-d');
         }
 
-        return $tvi->id;
+        return Carbon::parse($value)->format('Y-m-d');
     }
 
+    protected function getTvi(string $tviName)
+    {
+        return Tvi::where('name', $tviName)->firstOrFail()->id;
+    }
 
     protected function getRecognition(string $recognitionName)
     {
-        $recognition = Recognition::where('name', $recognitionName)->first();
-
-        if (!$recognition) {
-            throw new \Exception("Recognition with name '{$recognitionName}' not found.");
-        }
-
-        return $recognition->id;
+        return Recognition::where('name', $recognitionName)->firstOrFail()->id;
     }
 }
