@@ -140,22 +140,37 @@ class LearningModeResource extends Resource
         ];
     }
 
+    // public static function getEloquentQuery(): Builder
+    // {
+    //     $query = parent::getEloquentQuery();
+
+    //     // Remove global soft delete scope to include trashed records
+    //     $query->withoutGlobalScopes([SoftDeletingScope::class]);
+
+    //     $routeParameter = request()->route('record');
+
+    //     // Apply filter only if a valid delivery_mode_id is present in the route
+    //     if ($routeParameter && is_numeric($routeParameter)) {
+    //         $query->whereHas('deliveryMode', function ($subQuery) use ($routeParameter) {
+    //             $subQuery->where('delivery_modes.id', (int) $routeParameter);
+    //         });
+    //     }
+
+    //     return $query;
+    // }
+
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class]);
 
-        // Remove global soft delete scope to include trashed records
-        $query->withoutGlobalScopes([SoftDeletingScope::class]);
-
-        $routeParameter = request()->route('record');
-
-        // Apply filter only if a valid delivery_mode_id is present in the route
-        if ($routeParameter && is_numeric($routeParameter)) {
-            $query->whereHas('deliveryMode', function ($subQuery) use ($routeParameter) {
-                $subQuery->where('delivery_modes.id', (int) $routeParameter);
+        if (request()->routeIs('filament.resources.learning-modes.index') && request()->has('delivery_mode')) {
+            $deliveryMode = request()->query('delivery_mode');
+            $query->whereHas('deliveryMode', function ($subQuery) use ($deliveryMode) {
+                $subQuery->where('delivery_modes.id', $deliveryMode);
             });
         }
 
         return $query;
     }
+
 }

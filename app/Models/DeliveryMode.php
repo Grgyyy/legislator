@@ -24,5 +24,5 @@ class DeliveryMode extends Model
     {
         return $this->hasMany(Target::class);
     }
-    
+
 }
