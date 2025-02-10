@@ -21,13 +21,14 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         'tvi_class_id' => 'Institution Class (B)',
         'district_id' => 'District',
         'municipality_id' => 'Municipality',
+        'district.province' => 'Province',
         'address' => 'Address',
     ];
 
     public function query(): Builder
     {
         return Tvi::query()
-            ->select(array_keys($this->columns));
+            ->with(['district.province', 'InstitutionClass', 'tviClass', 'municipality']);
     }
 
     public function headings(): array
@@ -47,18 +48,20 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         return [
             $record->school_id,
             $record->name,
-            $record->InstitutionClass->name,
-            $record->tviClass->name,
-            $record->district->name,
-            $record->municipality->name,
-            $record->address,
+            optional($record->InstitutionClass)->name ?? '-',
+            optional($record->tviClass)->name ?? '-',
+            optional($record->municipality)->name ?? '-',
+            optional($record->district)->name ?? '-',
+            optional($record->district->province)->name ?? '-',
+            $record->address ?? '-',
         ];
+
     }
+
 
 
     public function styles(Worksheet $sheet)
     {
-
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
@@ -90,12 +93,34 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
             ],
         ];
 
-        $sheet->getStyle('A1:A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
         $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($subHeaderStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
-        return [
-            1 => ['font' => ['bold' => true]],
-        ];
+        foreach (range(1, $columnCount) as $colIndex) {
+            $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+        }
+
+        return $sheet;
+    }
+
+    private function formatCurrency($amount)
+    {
+        // Use the NumberFormatter class to format the currency in the Filipino Peso (PHP)
+        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+        return $formatter->formatCurrency($amount, 'PHP');
+    }
+
+    private function getQualificationTitle($record)
+    {
+        $qualificationTitles = $record->qualificationTitles->map(
+            fn($qualificationTitle) =>
+            optional($qualificationTitle->trainingProgram)->soc_code .
+            ' - ' .
+            optional($qualificationTitle->trainingProgram)->title
+        )->filter()->toArray();
+
+        return empty($qualificationTitles) ? '-' : implode(', ', $qualificationTitles);
     }
 }
