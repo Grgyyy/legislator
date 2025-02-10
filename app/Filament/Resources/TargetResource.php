@@ -802,46 +802,31 @@ class TargetResource extends Resource
                         }
                     }),
 
-                TextColumn::make('municipality.name')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('district.name')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('tvi.district.municipality.province.name')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('tvi.district.municipality.province.region.name')
-                    ->searchable()
-                    ->toggleable(),
-
                 TextColumn::make('tvi.name')
                     ->label('Institution')
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
-                TextColumn::make('tvi.tviType.name')
-                    ->label('Institution Type')
+                TextColumn::make('location')
+                    ->label('Administrative Area')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => self::getLocationNames($record)),
 
                 TextColumn::make('tvi.tviClass.name')
                     ->label('Institution Class')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(function ($state, $record) {
+                        $institutionType = $record->tvi->tviClass->tviType->name ?? '';
+                        $institutionClass = $record->tvi->tviClass->name ?? '';
+
+                        return "{$institutionType} - {$institutionClass}";
+                    }),
 
                 TextColumn::make('qualification_title_code')
                     ->label('Qualification Code')
-                    ->searchable()
-                    ->toggleable()
-                    ->getStateUsing(fn($record) => empty($record->qualification_title_code) ? '-' : $record->qualification_title_code),
-
-                TextColumn::make('qualification_title_soc_code')
-                    ->label('Qualification SOC Code')
                     ->searchable()
                     ->toggleable(),
 
@@ -849,20 +834,21 @@ class TargetResource extends Resource
                     ->label('Qualification Title')
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        if (!$state) {
-                            return $state;
+                    ->formatStateUsing(function ($state, $record) {
+                        $qualificationCode = $record->qualification_title_soc_code ?? '';
+                        $qualificationName = $record->qualification_title_name ?? '';
+
+                        if ($qualificationName) {
+                            $qualificationName = ucwords($qualificationName);
+
+                            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $qualificationName)) {
+                                $qualificationName = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                                    return 'NC ' . strtoupper($matches[1]);
+                                }, $qualificationName);
+                            }
                         }
 
-                        $state = ucwords($state);
-
-                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                return 'NC ' . strtoupper($matches[1]);
-                            }, $state);
-                        }
-
-                        return $state;
+                        return "{$qualificationCode} - {$qualificationName}";
                     }),
 
                 TextColumn::make('abdd.name')
@@ -1433,6 +1419,26 @@ class TargetResource extends Resource
         }
 
         return 0;
+    }
+
+    protected static function getLocationNames($record): string
+    {
+        $tvi = $record->tvi;
+
+        if ($tvi) {
+            $districtName = $tvi->district->name ?? 'Unknown District';
+            $provinceName = $tvi->district->province->name ?? 'Unknown Province';
+            $regionName = $tvi->district->province->region->name ?? 'Unknown Region';
+            $municipalityName = $tvi->district->underMunicipality->name ?? 'Unknown Municipality';
+
+            if ($regionName === 'NCR') {
+                return "{$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
+            } else {
+                return "{$municipalityName}, {$districtName}, {$provinceName}, {$regionName}";
+            }
+        }
+
+        return 'Location information not available';
     }
 
     private function formatCurrency($amount)

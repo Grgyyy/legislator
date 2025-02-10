@@ -9,7 +9,6 @@ class DistrictMunicipality extends Model
 {
     use HasFactory;
 
-
     public function district()
     {
         return $this->belongsToMany(District::class, 'district_municipalities');

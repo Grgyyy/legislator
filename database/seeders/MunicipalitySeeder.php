@@ -12,7 +12,6 @@ class MunicipalitySeeder extends Seeder
      */
     public function run(): void
     {
-        // Handle "Not Applicable" municipalities
         $provinces = DB::table('provinces')
             ->where('name', 'Not Applicable')
             ->pluck('id');
@@ -40,7 +39,6 @@ class MunicipalitySeeder extends Seeder
             }
         }
 
-        // Handle CaMaNaVa municipalities
         $camanavaProvince = DB::table('provinces')
             ->where('name', 'CaMaNaVa')
             ->first();
@@ -69,7 +67,6 @@ class MunicipalitySeeder extends Seeder
             }
         }
 
-        // Handle MuntiParLasTaPat municipalities
         $muntiparlastapatProvince = DB::table('provinces')
             ->where('name', 'MuntiParLasTaPat')
             ->first();
@@ -99,7 +96,6 @@ class MunicipalitySeeder extends Seeder
             }
         }
 
-        // Handle PasMak municipalities
         $pasmakProvince = DB::table('provinces')
             ->where('name', 'PasMak')
             ->first();
@@ -126,7 +122,6 @@ class MunicipalitySeeder extends Seeder
             }
         }
 
-        // Handle PaMaMariSan municipalities
         $pamamarisanProvince = DB::table('provinces')
             ->where('name', 'PaMaMariSan')
             ->first();
@@ -155,8 +150,6 @@ class MunicipalitySeeder extends Seeder
             }
         }
 
-
-        // Handle PaMaMariSan municipalities
         $manilaProvince = DB::table('provinces')
             ->where('name', 'Manila City')
             ->first();
@@ -182,7 +175,6 @@ class MunicipalitySeeder extends Seeder
             }
         }
 
-        // Handle PaMaMariSan municipalities
         $quezoncityProvince = DB::table('provinces')
             ->where('name', 'Quezon City')
             ->first();

@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\ScholarshipProgramResource\Pages;
 
-use App\Models\ScholarshipProgram;
 use App\Filament\Resources\ScholarshipProgramResource;
 use App\Helpers\Helper;
+use App\Models\ScholarshipProgram;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
 
 class EditScholarshipProgram extends EditRecord
 {

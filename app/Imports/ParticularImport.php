@@ -3,16 +3,16 @@ namespace App\Imports;
 
 use App\Models\District;
 use App\Models\Municipality;
-use App\Models\Partylist;
-use App\Models\Region;
-use App\Models\Province;
 use App\Models\Particular;
+use App\Models\Partylist;
+use App\Models\Province;
+use App\Models\Region;
 use App\Models\SubParticular;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\Importable;
 use Throwable;
 
 class ParticularImport implements ToModel, WithHeadingRow
@@ -30,7 +30,6 @@ class ParticularImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                
                 $subParticularRecord = $this->getSubParticularName($row['particular']);
                 $partylistRecord = $this->getPartylist($row['partylist']);
                 $districtRecord = $this->getDistrict($row);
@@ -47,9 +46,9 @@ class ParticularImport implements ToModel, WithHeadingRow
                         'district_id' => $districtRecord->id,
                     ]);
                 }
-
             } catch (Throwable $e) {
                 Log::error('Failed to import particular: ' . $e->getMessage());
+                
                 throw $e;
             }
         });
@@ -134,7 +133,5 @@ class ParticularImport implements ToModel, WithHeadingRow
         }
 
         return $district;
-        
     }
 }
-

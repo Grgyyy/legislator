@@ -1,13 +1,13 @@
 <?php
 namespace App\Filament\Resources\DistrictResource\Pages;
 
+use App\Filament\Resources\DistrictResource;
+use App\Helpers\Helper;
 use App\Models\District;
 use App\Models\Municipality;
 use App\Services\NotificationHandler;
-use Illuminate\Support\Facades\DB;
 use Filament\Resources\Pages\CreateRecord;
-use App\Filament\Resources\DistrictResource;
-use App\Helpers\Helper;
+use Illuminate\Support\Facades\DB;
 
 class CreateDistrict extends CreateRecord
 {
@@ -37,27 +37,25 @@ class CreateDistrict extends CreateRecord
 
     protected function handleRecordCreation(array $data): District
     {
-        return DB::transaction(function () use ($data) {
-            $this->validateUniqueDistrict($data);
+        $this->validateUniqueDistrict($data);
 
-            $data['name'] = Helper::capitalizeWords($data['name']);
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
-            $district = District::create([
-                'name' => $data['name'],
-                'code' => $data['code'],
-                'municipality_id' => $data['municipality_id'] ?? null,
-                'province_id' => $data['province_id'],
-            ]);
+        $district = DB::transaction(fn() => District::create([
+            'name' => $data['name'],
+            'code' => $data['code'],
+            'municipality_id' => $data['municipality_id'] ?? null,
+            'province_id' => $data['province_id'],
+        ]));
 
-            if (!empty($data['municipality_id'])) {
-                $municipality = Municipality::find($data['municipality_id']);
-                $district->municipality()->attach($municipality->id);
-            }
+        if (!empty($data['municipality_id'])) {
+            $municipality = Municipality::find($data['municipality_id']);
+            $district->municipality()->attach($municipality->id);
+        }
 
-            NotificationHandler::sendSuccessNotification('Created', 'District has been created successfully.');
+        NotificationHandler::sendSuccessNotification('Created', 'District has been created successfully.');
 
-            return $district;
-        });
+        return $district;
     }
 
     protected function validateUniqueDistrict($data)

@@ -2,15 +2,13 @@
 
 namespace App\Imports;
 
-use Throwable;
 use App\Models\FundSource;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
-use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class FundSourceImport implements ToModel, WithHeadingRow
 {
@@ -27,22 +25,18 @@ class FundSourceImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-
                 $fundSourceIsExist = FundSource::where('name', $row['fund_source'])
                     ->exists();
-
 
                 if (!$fundSourceIsExist) {
                     return new FundSource([
                         'name' => $row['fund_source'],
                     ]);
                 }
-
             } catch (Throwable $e) {
-
                 Log::error('Failed to import Fund Source: ' . $e->getMessage());
-                throw $e;
 
+                throw $e;
             }
         });
     }

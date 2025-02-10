@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ToolkitResource\Pages;
 
 use App\Filament\Resources\ToolkitResource;
+use App\Helpers\Helper;
 use App\Models\Toolkit;
 use App\Services\NotificationHandler;
 use Filament\Actions;
@@ -12,12 +13,15 @@ use Illuminate\Support\Facades\DB;
 class EditToolkit extends EditRecord
 {
     protected static string $resource = ToolkitResource::class;
-
-    protected function getHeaderActions(): array
+    
+    protected function getRedirectUrl(): string
     {
-        return [
-            Actions\DeleteAction::make(),
-        ];
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -28,49 +32,27 @@ class EditToolkit extends EditRecord
                 ->label('Exit'),
         ];
     }
-
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return null;
-    }
-    
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
-    }
-
     public function isEdit(): bool
     {
-        return true; // Edit mode
+        return true;
     }
     
     protected function handleRecordUpdate($record, array $data): Toolkit
     {
+        $this->validateUniqueToolkit($data, $record->id);
+
+        $data['lot_name'] = Helper::capitalizeWords($data['lot_name']);
+
         return DB::transaction(function () use ($record, $data) {
-
-            $existingRecord = Toolkit::where('lot_name', $data['lot_name'])
-                ->where('year', $data['year'])
-                ->whereNot('id', $record['id'])
-                ->first();
-
-            if ($existingRecord) {
-                NotificationHandler::sendErrorNotification('Record Exists', "A record for this Qualification Title toolkit for '{$data['year']}' already exists.");
-                return $existingRecord; 
-            }
-
-            
-
             if ($data['number_of_toolkit']) {
-
                 $difference = $data['number_of_toolkit'] - $record['number_of_toolkit'];
-
                 $new_anot = $record['available_number_of_toolkit'] + $difference;
 
                 $record->update([
                     'lot_name' => $data['lot_name'],
                     'price_per_toolkit' => $data['price_per_toolkit'],
-                    'available_number_of_toolkit' => $new_anot,
-                    'number_of_toolkit' => $data['number_of_toolkit'],
+                    'available_number_of_toolkits' => $new_anot,
+                    'number_of_toolkits' => $data['number_of_toolkit'],
                     'total_abc_per_lot' => $data['price_per_toolkit'] * $data['number_of_toolkit'],
                     'number_of_items_per_toolkit' => $data['number_of_items_per_toolkit'],
                     'year' => $data['year']
@@ -84,12 +66,27 @@ class EditToolkit extends EditRecord
                     'year' => $data['year']
                 ]);
             }
-            
 
-            NotificationHandler::sendSuccessNotification('Updated', 'The toolkit has been successfully updated.');
+            NotificationHandler::sendSuccessNotification('Saved', 'Toolkit has been updated successfully.');
 
             return $record;
         });
     }
 
+    protected function validateUniqueToolkit($data, $currentId)
+    {
+        $toolkit = Toolkit::withTrashed()
+            ->where('lot_name', $data['lot_name'])
+            ->where('year', $data['year'])
+            ->whereNot('id', $currentId)
+            ->first();
+
+        if ($toolkit) {
+            $message = $toolkit->deleted_at 
+                ? "{$data['lot_name']} toolkits for {$data['year']} has been deleted and must be restored before reuse."
+                : "{$data['lot_name']} toolkits for {$data['year']} already exists.";
+            
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+    }
 }

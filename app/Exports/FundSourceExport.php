@@ -5,9 +5,9 @@ namespace App\Exports;
 use App\Models\FundSource;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -39,7 +39,7 @@ class FundSourceExport implements FromQuery, WithHeadings, WithStyles, WithMappi
     public function map($fundSource): array
     {
         return [
-            $fundSource->name, // Add additional fields as required
+            $fundSource->name,
         ];
     }
 
@@ -82,7 +82,6 @@ class FundSourceExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
         return [
-            // Style heading rows
             1 => ['font' => ['bold' => true]],
         ];
     }

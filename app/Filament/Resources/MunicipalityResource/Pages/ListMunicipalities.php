@@ -62,9 +62,10 @@ class ListMunicipalities extends ListRecords
 
                         try {
                             Excel::import(new MunicipalityImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The district have been successfully imported from the file.');
+                            
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The municipalities have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the municipalities: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);

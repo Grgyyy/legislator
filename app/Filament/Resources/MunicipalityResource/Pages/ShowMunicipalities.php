@@ -1,11 +1,10 @@
 <?php
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
-use App\Models\District;
-use App\Models\Municipality;
 use App\Filament\Resources\MunicipalityResource;
-use Filament\Resources\Pages\ListRecords;
+use App\Models\District;
 use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 
 class ShowMunicipalities extends ListRecords
@@ -63,6 +62,7 @@ class ShowMunicipalities extends ListRecords
     protected function getTableQuery(): Builder|null
     {
         $districtId = $this->getDistrictId();
+        
         return parent::getTableQuery()->whereHas('district', function (Builder $query) use ($districtId) {
             $query->where('district_id', $districtId);
         });

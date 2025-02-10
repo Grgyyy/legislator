@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
-use App\Models\Province;
 use App\Filament\Resources\ProvinceResource;
 use App\Helpers\Helper;
+use App\Models\Province;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
 
 class EditProvince extends EditRecord
 {
@@ -63,7 +63,7 @@ class EditProvince extends EditRecord
     protected function validateUniqueProvince($data, $currentId)
     {
         $province = Province::withTrashed()
-        ->where('name', $data['name'])
+            ->where('name', $data['name'])
             ->where('region_id', $data['region_id'])
             ->whereNot('id', $currentId)
             ->first();

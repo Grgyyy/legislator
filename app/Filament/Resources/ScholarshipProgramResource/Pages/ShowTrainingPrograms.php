@@ -10,19 +10,12 @@ use Filament\Actions\CreateAction;
 class ShowTrainingPrograms extends ListRecords
 {
     protected static string $resource = TrainingProgramResource::class;
-
-    public function getBreadcrumbs(): array
+    
+    protected function getCreatedNotificationTitle(): ?string
     {
-        $scholarshipId = $this->getScholarshipProgramId();
-        
-        $scholarship = ScholarshipProgram::find($scholarshipId);
-
-        return [
-            route('filament.admin.resources.scholarship-programs.showTrainingPrograms', ['record' => $scholarship->id]) => $scholarship->name ?? 'Scholarship Programs',
-            'Training Programs',
-            'List'
-        ];
+        return null;
     }
+    
     protected function getFormActions(): array
     {
         return [
@@ -35,9 +28,17 @@ class ShowTrainingPrograms extends ListRecords
         ];
     }
 
-    protected function getCreatedNotificationTitle(): ?string
+    public function getBreadcrumbs(): array
     {
-        return null;
+        $scholarshipId = $this->getScholarshipProgramId();
+        
+        $scholarship = ScholarshipProgram::find($scholarshipId);
+
+        return [
+            route('filament.admin.resources.scholarship-programs.showTrainingPrograms', ['record' => $scholarship->id]) => $scholarship->name ?? 'Scholarship Programs',
+            'Training Programs',
+            'List'
+        ];
     }
 
     protected function getHeaderActions(): array

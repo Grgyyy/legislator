@@ -5,8 +5,8 @@ namespace App\Imports;
 use App\Models\Abdd;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Throwable;
 
@@ -27,11 +27,9 @@ class AbddImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                // Check if the record already exists
                 $abddExists = Abdd::where('name', $row['sector_name'])->exists();
 
                 if (!$abddExists) {
-                    // Create a new Abdd record
                     return new Abdd([
                         'name' => $row['sector_name'],
                     ]);
@@ -40,6 +38,7 @@ class AbddImport implements ToModel, WithHeadingRow
                 Log::info("Abdd with name '{$row['sector_name']}' already exists. No new record created.");
             } catch (Throwable $e) {
                 Log::error("Failed to import Abdd: " . $e->getMessage(), ['row' => $row]);
+                
                 throw $e;
             }
         });

@@ -2,32 +2,31 @@
 
 namespace App\Imports;
 
+use App\Models\Abdd;
+use App\Models\Allocation;
 use App\Models\DeliveryMode;
+use App\Models\District;
 use App\Models\LearningMode;
+use App\Models\Legislator;
 use App\Models\Particular;
+use App\Models\Partylist;
+use App\Models\Province;
+use App\Models\QualificationTitle;
+use App\Models\Region;
+use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
 use App\Models\SubParticular;
-use App\Models\TargetStatus;
-use Auth;
-use Throwable;
-use App\Models\Tvi;
-use App\Models\Abdd;
-use App\Models\Region;
 use App\Models\Target;
-use App\Models\District;
-use App\Models\Province;
-use App\Models\Partylist;
-use App\Models\Allocation;
-use App\Models\Legislator;
-use App\Models\Municipality;
 use App\Models\TargetHistory;
-use App\Models\QualificationTitle;
-use App\Models\ScholarshipProgram;
+use App\Models\TargetStatus;
+use App\Models\Tvi;
+use Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class ProjectProposalImport implements ToModel, WithHeadingRow
 {
@@ -124,10 +123,10 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
             });
         } catch (Throwable $e) {
             Log::error("Import failed: " . $e->getMessage());
+            
             throw $e;
         }
     }
-
 
     protected function validateRow(array $row)
     {
@@ -377,7 +376,6 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
         $quali = QualificationTitle::find($qualificationTitle->id);
         $costOfToolkitPcc = $quali->toolkits()->where('year', $year)->first();
 
-
         if (!$quali) {
             throw new \Exception("Qualification Title with name '{$qualificationTitle->trainingProgram->title}' not found.");
         }
@@ -390,7 +388,6 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
             $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
             $totalAmount += $totalCostOfToolkit;
         }
-
 
         return [
             'total_training_cost_pcc' => $qualificationTitle->training_cost_pcc * $numberOfSlots,
@@ -459,5 +456,4 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
             'user_id' => Auth::user()->id,
         ]);
     }
-
 }

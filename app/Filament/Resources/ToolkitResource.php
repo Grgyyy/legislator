@@ -2,36 +2,35 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
-use Filament\Tables;
-use App\Models\Toolkit;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use Filament\Resources\Resource;
+use App\Filament\Resources\ToolkitResource\Pages;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Toolkit;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use App\Exports\CustomExport\CustomToolkitExport;
-use App\Filament\Resources\ToolkitResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Filament\Resources\ToolkitResource\RelationManagers;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class ToolkitResource extends Resource
 {
@@ -54,9 +53,10 @@ class ToolkitResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->searchable()
-                    ->multiple()  // Allow multiple selections
+                    ->multiple()
                     ->preload()
                     ->native()
+                    ->default(fn ($record) => $record?->qualificationTitles->pluck('id')->toArray() ?? [])
                     ->options(function () {
                         $step_scholarship = ScholarshipProgram::where('name', 'STEP')->first();
 
@@ -68,55 +68,47 @@ class ToolkitResource extends Resource
                                     $title->id => "{$title->trainingProgram->title}",
                                 ];
                             })
-                            ->toArray() ?: ['no_toolkits' => 'No Toolkits available'];
+                            ->toArray() ?: ['no_toolkits' => 'No toolkits available'];
                     })
+                    ->default(fn ($get) => $get('qualification_title_id'))
+                    ->afterStateHydrated(fn ($set, $record) => 
+                        $set('qualification_title_id', $record?->qualificationTitles->pluck('id')->toArray())
+                    )
+                    ->afterStateUpdated(fn ($state, $set) =>
+                        empty($state) ? $set('lot_name', null) : null
+                    )
                     ->reactive()
-                    ->afterStateUpdated(function ($state, $set) {
-                        if ($state && isset($state[0])) {  // Check if there is at least one selected value
-                            $qualificationTitle = QualificationTitle::find($state[0]);  // Get the first selected ID
-            
-                            if ($qualificationTitle) {
-                                $set('lot_name', $qualificationTitle->trainingProgram->title);
-                            } else {
-                                $set('lot_name', null); // Clear the value if no qualification title is found
-                            }
-                        } else {
-                            $set('lot_name', null); // Clear the value if no ID is selected
-                        }
-                    }),
+                    ->live()
+                    ->validationAttribute('qualification title'),
 
                 TextInput::make('lot_name')
-                    ->label('LOT Name')
-                    ->required()
-                    ->markAsRequired(false)
-                    ->placeholder('Enter a LOT Name'),
-
-
-                TextInput::make('price_per_toolkit')
-                    ->label('Price Per Toolkit')
+                    ->label('Lot')
+                    ->placeholder('Enter a lot name')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->numeric()
-                    ->prefix('₱')
-                    ->default(0)
-                    ->minValue(0)
-                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                    ->reactive()
+                    ->live()
+                    ->validationAttribute('lot name'),
 
                 TextInput::make('number_of_toolkit')
                     ->label('Number of Toolkits')
-                    // ->required()
-                    // ->markAsRequired(false)
+                    ->placeholder('Enter number of toolkits')
                     ->autocomplete(false)
                     ->numeric()
-                    // ->default(0)
-                    // ->minValue(0)
-                    ->prefix('₱')
-                    ->disabled(fn($livewire) => $livewire->isEdit())
-                    ->dehydrated(),
+                    ->default(0)
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: '', precision: 0)
+                    // ->disabled(fn($livewire) => $livewire->isEdit())
+                    ->afterStateHydrated(function ($set, ?Toolkit $record) {
+                        $set('number_of_toolkit', $record?->number_of_toolkits ?? 0);
+                    })
+                    // ->dehydrated()
+                    ->validationAttribute('number of toolkits'),
 
-                TextInput::make('number_of_items_per_toolkit')
-                    ->label('Number of Items per Toolkit')
+                TextInput::make('price_per_toolkit')
+                    ->label('Price per Toolkit')
+                    ->placeholder('Enter price per toolkits')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
@@ -124,10 +116,24 @@ class ToolkitResource extends Resource
                     ->prefix('₱')
                     ->default(0)
                     ->minValue(0)
-                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2),
+                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                    ->validationAttribute('price per toolkit'),
+
+                TextInput::make('number_of_items_per_toolkit')
+                    ->label('Number of Items per Toolkit')
+                    ->placeholder('Enter number of items per toolkit')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->default(0)
+                    ->minValue(0)
+                    ->currencyMask(thousandSeparator: '', precision: 0)
+                    ->validationAttribute('number of items per toolkit'),
 
                 TextInput::make('year')
                     ->label('Year')
+                    ->placeholder('Enter toolkit year')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
@@ -138,36 +144,37 @@ class ToolkitResource extends Resource
                     ->validationMessages([
                         'min' => 'The toolkit year must be at least ' . date('Y') . '.',
                     ]),
-
-
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('lot_name')
+            ->defaultSort('created_at', 'desc')
+            ->emptyStateHeading('No toolkits available')
             ->columns([
                 TextColumn::make('qualificationTitles')
-                    ->label('Qualification Titles')
+                    ->label('Qualification Title')
                     ->sortable()
+                    ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($record) {
-                        // Ensure qualification titles are properly loaded and accessible
                         $qualificationTitles = $record->qualificationTitles->map(function ($qualificationTitle) {
                             $trainingProgram = $qualificationTitle->trainingProgram;
+
                             if ($trainingProgram) {
                                 return "{$trainingProgram->soc_code} - {$trainingProgram->title}";
                             }
-                            return null; // Return null if trainingProgram is not set
-                        })->filter()->toArray();
 
-                        // Check if qualification titles exist
+                            return null;
+                        })
+                        ->filter()
+                        ->toArray();
+
                         if (empty($qualificationTitles)) {
-                            return '-';  // Return a fallback message if no titles are found
+                            return '-';
                         }
 
-                        // Format titles with commas, line breaks, and padding
                         $schoProHtml = array_map(function ($title, $index) use ($qualificationTitles) {
                             $comma = ($index < count($qualificationTitles) - 1) ? ', ' : '';
                             $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
@@ -176,39 +183,79 @@ class ToolkitResource extends Resource
                             return "<div style='{$paddingTop} display: inline;'>{$title}{$comma}{$lineBreak}</div>";
                         }, $qualificationTitles, array_keys($qualificationTitles));
 
-                        // Return the formatted HTML content
                         return implode('', $schoProHtml);
                     })
                     ->html(),
 
-                TextColumn::make('lot_name')
-                    ->label('LOT Name')
-                    ->searchable(),
-                TextColumn::make('price_per_toolkit')
-                    ->label('Price per Toolkit')
-                    ->prefix('₱')
-                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
                 TextColumn::make('available_number_of_toolkits')
-                    ->label('Available Number of Toolkits Per LOT')
+                    ->label('Available No. of Toolkits')
+                    ->sortable()
+                    ->toggleable()
                     ->getStateUsing(fn($record) => $record->available_number_of_toolkits ?? '-'),
 
                 TextColumn::make('number_of_toolkits')
                     ->label('No. of Toolkits')
+                    ->sortable()
+                    ->toggleable()
                     ->getStateUsing(fn($record) => $record->number_of_toolkits ?? '-'),
 
+                TextColumn::make('price_per_toolkit')
+                    ->label('Price per Toolkit')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                
                 TextColumn::make('total_abc_per_lot')
-                    ->label('Total ABC per LOT')
+                    ->label('Total ABC')
+                    ->sortable()
+                    ->toggleable()
                     ->getStateUsing(fn($record) => $record->total_abc_per_lot
                         ? '₱' . number_format((float) $record->total_abc_per_lot, 2, '.', ',')
                         : '-'),
 
                 TextColumn::make('number_of_items_per_toolkit')
-                    ->label('No. of Items per Toolkit'),
+                    ->label('No. of Items per Toolkit')
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('year')
-                    ->label('Year'),
+                    ->label('Year')
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->filters([
-                //
+                TrashedFilter::make()
+                    ->label('Records'),
+                    
+                Filter::make('year')
+                    ->form([
+                        TextInput::make('year')
+                            ->label('Year')
+                            ->placeholder('Enter year')
+                            ->integer()
+                            ->minLength(4)
+                            ->maxLength(4)
+                            ->currencyMask(thousandSeparator: '', precision: 0)
+                            ->reactive()
+                            ->live(),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['year'] ?? null,
+                                fn(Builder $query, $year) => $query->where('year', $year)
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+
+                        if (!empty($data['year'])) {
+                            $indicators[] = 'Year: ' . $data['year'];
+                        }
+
+                        return $indicators;
+                    })
             ])
             ->actions([
                 ActionGroup::make([
@@ -271,48 +318,47 @@ class ToolkitResource extends Resource
                                                     ? "{$qualificationTitle->trainingProgram->soc_code}"
                                                     : null
                                                 )
-                                                ->filter() // Remove null values
+                                                ->filter()
                                                 ->implode(', ')
                                         ),
 
                                     Column::make('lot_name')
-                                        ->heading('LOT Name'),
-
-                                    Column::make('price_per_toolkit')
-                                        ->heading('Estimated Price Per Toolkit')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
-
+                                        ->heading('Lot Name'),
+                                        
                                     Column::make('available_number_of_toolkits')
-                                        ->heading('Available Number of Toolkits Per LOT')
+                                        ->heading('Available No. of Toolkits per Lot')
                                         ->getStateUsing(fn($record) => $record->available_number_of_toolkits ?? '-'),
 
                                     Column::make('number_of_toolkit')
-                                        ->heading('Number of Toolkits Per LOT')
+                                        ->heading('No. of Toolkits')
                                         ->getStateUsing(fn($record) => $record->number_of_toolkits ?? '-'),
 
+                                    Column::make('price_per_toolkit')
+                                        ->heading('Price per Toolkit')
+                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+
                                     Column::make('total_abc_per_lot')
-                                        ->heading('Total ABC Per LOT')
+                                        ->heading('Total ABC')
                                         ->getStateUsing(fn($record) => $record->total_abc_per_lot
                                             ? '₱' . number_format((float) $record->total_abc_per_lot, 2, '.', ',')
                                             : '-'),
 
                                     Column::make('number_of_items_per_toolkit')
-                                        ->heading('Number of Items Per Toolkit'),
+                                        ->heading('No. of Items per Toolkit'),
 
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Skill Priorities')
+                                ->withFilename(date('m-d-Y') . ' - Toolkits')
                         ])
                 ]),
             ]);
     }
 
-    public static function getRelations(): array
+    public static function getEloquentQuery(): Builder
     {
-        return [
-            //
-        ];
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([SoftDeletingScope::class]);
     }
 
     public static function getPages(): array

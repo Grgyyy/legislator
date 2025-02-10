@@ -1,10 +1,10 @@
 <?php
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
-use App\Models\Region;
 use App\Filament\Resources\ProvinceResource;
-use Filament\Resources\Pages\ListRecords;
+use App\Models\Region;
 use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 
 class ShowProvinces extends ListRecords

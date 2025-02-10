@@ -2,23 +2,24 @@
 
 namespace App\Filament\Resources\QualificationTitleResource\Pages;
 
+use App\Exports\ScheduleOfCostExport;
+use App\Filament\Resources\QualificationTitleResource;
+use App\Imports\QualificationTitleImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ScheduleOfCostExport;
-use App\Services\NotificationHandler;
-use App\Exports\TrainingProgramExport;
-use App\Imports\QualificationTitleImport;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
-use App\Filament\Resources\QualificationTitleResource;
 
 class ListQualificationTitles extends ListRecords
 {
     protected static string $resource = QualificationTitleResource::class;
 
+    protected static ?string $title = 'Schedule of Cost';
+    
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -27,12 +28,10 @@ class ListQualificationTitles extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            route('filament.admin.resources.qualification-titles.index') => 'Schedule of Cost',
-            'List',
+            '/schedule-of-cost' => 'Schedule of Cost',
+            'Create',
         ];
     }
-
-    protected ?string $heading = 'Schedule of Cost';
 
     protected function getHeaderActions(): array
     {
@@ -43,14 +42,12 @@ class ListQualificationTitles extends ListRecords
 
             Action::make('ScheduleOfCostExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new ScheduleOfCostExport, 'schedule_of_cost_export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
                     } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
                     };
@@ -58,7 +55,7 @@ class ListQualificationTitles extends ListRecords
 
             Action::make('QualificationTitleImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
                         ->required()
@@ -73,9 +70,10 @@ class ListQualificationTitles extends ListRecords
 
                         try {
                             Excel::import(new QualificationTitleImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Schedule of Cost have been successfully imported from the file.');
+                            
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The schedule of costs have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the schedule of cost: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the schedule of costs: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);

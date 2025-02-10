@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\RegionResource\Pages;
 
-use App\Models\Region;
 use App\Filament\Resources\RegionResource;
 use App\Helpers\Helper;
+use App\Models\Region;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
 
 class EditRegion extends EditRecord
 {

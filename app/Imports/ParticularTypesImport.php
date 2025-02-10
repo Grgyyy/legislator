@@ -6,9 +6,9 @@ use App\Models\FundSource;
 use App\Models\SubParticular;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\Importable;
 use Throwable;
 
 class ParticularTypesImport implements ToModel, WithHeadingRow
@@ -43,14 +43,13 @@ class ParticularTypesImport implements ToModel, WithHeadingRow
                         'fund_source_id' => $fundSourceId,
                     ]);
                 }
-
             } catch (Throwable $e) {
                 Log::error('Failed to import SubParticular: ' . $e->getMessage());
-                throw $e; // This will cause the transaction to roll back
+                
+                throw $e;
             }
         });
     }
-
 
     protected function validateRow(array $row) {
         $requiredFields = ['particular_type', 'fund_source'];

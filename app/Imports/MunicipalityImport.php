@@ -2,15 +2,15 @@
 
 namespace App\Imports;
 
+use App\Models\District;
 use App\Models\Municipality;
 use App\Models\Province;
 use App\Models\Region;
-use App\Models\District;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\Importable;
 use Throwable;
 
 class MunicipalityImport implements ToModel, WithHeadingRow
@@ -44,10 +44,10 @@ class MunicipalityImport implements ToModel, WithHeadingRow
                 }
 
                 return $municipalityRecord;
-
             }
             catch (Throwable $e) {
                 Log::error('Failed to import municipality: ' . $e->getMessage());
+
                 throw $e;
             }
         });

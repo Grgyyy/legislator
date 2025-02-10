@@ -4,9 +4,8 @@ namespace App\Imports;
 use App\Models\ScholarshipProgram;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Throwable;
 
@@ -26,7 +25,6 @@ class ScholarshipProgramImport implements ToModel, WithHeadingRow
         return DB::transaction(function () use ($row) {
 
             try {
-
                 $scholarshipProgram = ScholarshipProgram::where('name', $row['scholarship_program'])
                     ->where('code', $row['code'])
                     ->exists();
@@ -40,14 +38,11 @@ class ScholarshipProgramImport implements ToModel, WithHeadingRow
                     ]);
 
                 }
-
             } catch (Throwable $e) {
-
                 Log::error('Failed to import training program: ' . $e->getMessage());
+                
                 throw $e;
-
             }
-
         });
     }
 

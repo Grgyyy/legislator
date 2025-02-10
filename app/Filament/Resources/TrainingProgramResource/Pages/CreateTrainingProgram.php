@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources\TrainingProgramResource\Pages;
 
-use App\Models\TrainingProgram;
 use App\Filament\Resources\TrainingProgramResource;
 use App\Helpers\Helper;
+use App\Models\TrainingProgram;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;

@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources\ScholarshipProgramResource\Pages;
 
+use App\Exports\ScholarshipProgramExport;
+use App\Filament\Resources\ScholarshipProgramResource;
+use App\Imports\ScholarshipProgramImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
-use App\Exports\ScholarshipProgramExport;
-use App\Imports\ScholarshipProgramImport;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
-use App\Filament\Resources\ScholarshipProgramResource;
 
 class ListScholarshipPrograms extends ListRecords
 {
@@ -32,14 +32,12 @@ class ListScholarshipPrograms extends ListRecords
 
             Action::make('ScholarshipProgramExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new ScholarshipProgramExport, 'scholarship_program_export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
                     } catch (Exception $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
                     };
@@ -62,7 +60,8 @@ class ListScholarshipPrograms extends ListRecords
 
                         try {
                             Excel::import(new ScholarshipProgramImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Scholarship Program have been successfully imported from the file.');
+                            
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The scholarship programs have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the scholarship programs: ' . $e->getMessage());
                         } finally {

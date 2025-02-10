@@ -52,7 +52,6 @@ class ListDistricts extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import District')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -65,9 +64,10 @@ class ListDistricts extends ListRecords
 
                         try {
                             Excel::import(new DistrictImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The district have been successfully imported from the file.');
+                            
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The districts have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the districts: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);

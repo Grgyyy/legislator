@@ -9,7 +9,6 @@ use App\Services\NotificationHandler;
 use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
 
 class EditTrainingProgram extends EditRecord
 {

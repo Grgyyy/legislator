@@ -2,34 +2,34 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\ParticularResource\Pages;
 use App\Models\District;
-use Filament\Forms\Form;
 use App\Models\Partylist;
 use App\Models\Particular;
-use Filament\Tables\Table;
 use App\Models\SubParticular;
-use Filament\Resources\Resource;
-use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Exports\CustomExport\CustomParticularExport;
-use App\Filament\Resources\ParticularResource\Pages;
+use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class ParticularResource extends Resource
 {
@@ -76,7 +76,9 @@ class ParticularResource extends Resource
                             $set('administrative_area', key($administrativeArea));
                         }
                     })
-                    ->live(),
+                    ->reactive()
+                    ->live()
+                    ->validationAttribute('particular type'),
 
                 Select::make('administrative_area')
                     ->label('Administrative Area')
@@ -94,7 +96,8 @@ class ParticularResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_administrative_area')
                     ->reactive()
-                    ->live(),
+                    ->live()
+                    ->validationAttribute('administrative area'),
             ]);
     }
 
@@ -112,6 +115,7 @@ class ParticularResource extends Resource
 
                 TextColumn::make("subParticular.fundSource.name")
                     ->label('Fund Source')
+                    ->sortable()
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(fn($state) => $state === 'Not Applicable' ? '-' : $state),

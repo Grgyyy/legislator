@@ -6,9 +6,9 @@ use App\Models\Region;
 use App\Models\Province;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\Importable;
 use Throwable;
 
 class ProvinceImport implements ToModel, WithHeadingRow
@@ -26,7 +26,6 @@ class ProvinceImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-
                 $region_id = $this->getRegionId($row['region']);
 
                 $provinceIsExist = Province::where('name', $row['province'])
@@ -41,12 +40,10 @@ class ProvinceImport implements ToModel, WithHeadingRow
                         'region_id' => $region_id,
                     ]);
                 }
-
             } catch (Throwable $e) {
-
                 Log::error('Failed to import province: ' . $e->getMessage());
-                throw $e;
 
+                throw $e;
             }
         });
     }

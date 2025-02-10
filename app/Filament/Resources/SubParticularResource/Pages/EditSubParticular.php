@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\SubParticularResource\Pages;
 
-use App\Models\SubParticular;
 use App\Filament\Resources\SubParticularResource;
 use App\Helpers\Helper;
+use App\Models\SubParticular;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
 
 class EditSubParticular extends EditRecord
 {

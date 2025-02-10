@@ -3,13 +3,13 @@
 namespace App\Imports;
 
 use App\Models\Priority;
-use App\Models\TrainingProgram;
 use App\Models\ScholarshipProgram;
+use App\Models\TrainingProgram;
 use App\Models\Tvet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Throwable;
 
@@ -26,11 +26,7 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
-
             try {
-
-                // dd($row);
-
                 $scholarshipProgramId = self::getScholarshipProgramId($row['scholarship_program']);
                 $tvetId = self::getTvetId($row['tvet_sector']);
                 $priorityId = self::getPriorityId($row['priority_sector']);
@@ -52,7 +48,6 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
                     ->where(DB::raw('LOWER(title)'), strtolower($row['title']))
                     ->first();
 
-
                 if (!$trainingProgram) {
                     $trainingProgram = TrainingProgram::create([
                         'code' => $row['qualification_code'],
@@ -68,14 +63,11 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
                 $trainingProgram->scholarshipPrograms()->syncWithoutDetaching([$scholarshipProgramId]);
 
                 return $trainingProgram;
-
             } catch (Throwable $e) {
-
                 Log::error('Failed to import training program: ' . $e->getMessage());
+                
                 throw $e;
-
             }
-
         });
     }
 
