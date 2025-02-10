@@ -4,6 +4,7 @@ namespace App\Filament\Resources\SkillPriorityResource\Pages;
 
 use App\Filament\Resources\SkillPriorityResource;
 use App\Models\SkillPriority;
+use App\Models\Status;
 use App\Services\NotificationHandler;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -58,9 +59,17 @@ class EditSkillPriority extends EditRecord
         $this->validateUpdateData($data);
 
         return DB::transaction(function () use ($record, $data) {
+            $status = Status::where('desc', 'Active')->first();
+
+            if (!$status) {
+                $this->notifyError('The "Active" status does not exist.');
+                return null;
+            }
+
             $existingRecord = SkillPriority::where('province_id', $data['province_id'])
-                ->where('training_program_id', $data['training_program_id'])
+                ->where('qualification_title', $data['qualification_title'])
                 ->where('year', $data['year'])
+                ->where('status_id', $status->id)
                 ->where('id', '!=', $record->id)
                 ->first();
 
@@ -74,11 +83,17 @@ class EditSkillPriority extends EditRecord
 
             $record->update([
                 'province_id' => $data['province_id'],
-                'training_program_id' => $data['training_program_id'],
+                'district_id' => $data['district_id'] ?? null,
+                'qualification_title' => $data['qualification_title'],
                 'available_slots' => $new_available_slots,
                 'total_slots' => $data['total_slots'],
                 'year' => $data['year'],
+                'status_id' => $status->id,
             ]);
+
+            if (!empty($data['qualification_title_id'])) {
+                $record->trainingProgram()->sync($data['qualification_title_id']);
+            }
 
             NotificationHandler::sendSuccessNotification('Updated', 'Skill Priority has been updated successfully.');
 
@@ -96,7 +111,6 @@ class EditSkillPriority extends EditRecord
     {
         $validator = Validator::make($data, [
             'province_id' => ['required', 'integer'],
-            'training_program_id' => ['required', 'integer'],
             'year' => ['required', 'numeric', 'min:' . date('Y')],
             'total_slots' => ['required', 'numeric'],
         ]);

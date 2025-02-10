@@ -16,12 +16,18 @@ return new class extends Migration
             $table->foreignId('province_id')
                 ->constrained('provinces')
                 ->cascadeOnDelete();
-            $table->foreignId('training_program_id')
-                ->constrained('training_programs')
+            $table->foreignId('district_id')
+                ->nullable()
+                ->constrained('districts')
                 ->cascadeOnDelete();
+            $table->string('qualification_title');
             $table->integer('available_slots');
             $table->integer('total_slots');
             $table->year('year');
+            $table->foreignId('status_id')
+            ->nullable()
+            ->constrained('statuses')
+            ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

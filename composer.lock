@@ -8,30 +8,30 @@
     "packages": [
         {
             "name": "akaunting/laravel-money",
-            "version": "5.2.2",
+            "version": "6.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/akaunting/laravel-money.git",
-                "reference": "d99a9e8e576cac40668d0a5afaf7ea153590aff9"
+                "reference": "1864f4274cb73278256d9677ccd20b6e59143fe4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/akaunting/laravel-money/zipball/d99a9e8e576cac40668d0a5afaf7ea153590aff9",
-                "reference": "d99a9e8e576cac40668d0a5afaf7ea153590aff9",
+                "url": "https://api.github.com/repos/akaunting/laravel-money/zipball/1864f4274cb73278256d9677ccd20b6e59143fe4",
+                "reference": "1864f4274cb73278256d9677ccd20b6e59143fe4",
                 "shasum": ""
             },
             "require": {
-                "illuminate/contracts": "^9.0|^10.0|^11.0",
-                "illuminate/support": "^9.0|^10.0|^11.0",
-                "illuminate/validation": "^9.0|^10.0|^11.0",
-                "illuminate/view": "^9.0|^10.0|^11.0",
-                "php": "^8.0",
+                "illuminate/contracts": "^10.0|^11.0",
+                "illuminate/support": "^10.0|^11.0",
+                "illuminate/validation": "^10.0|^11.0",
+                "illuminate/view": "^10.0|^11.0",
+                "php": "^8.2",
                 "vlucas/phpdotenv": "^5.4.1"
             },
             "require-dev": {
-                "orchestra/testbench": "^7.4|^8.0|^9.0",
-                "phpunit/phpunit": "^9.5|^10.0|^11.0",
-                "vimeo/psalm": "^4.23|^5.1"
+                "orchestra/testbench": "^8.0|^9.0",
+                "phpunit/phpunit": "^10.5|^11.0",
+                "vimeo/psalm": "^6.0"
             },
             "type": "library",
             "extra": {
@@ -70,10 +70,9 @@
                 "money"
             ],
             "support": {
-                "issues": "https://github.com/akaunting/laravel-money/issues",
-                "source": "https://github.com/akaunting/laravel-money/tree/5.2.2"
+                "source": "https://github.com/akaunting/laravel-money/tree/6.0.1"
             },
-            "time": "2024-09-25T10:06:11+00:00"
+            "time": "2025-02-08T22:35:02+00:00"
         },
         {
             "name": "althinect/filament-spatie-roles-permissions",
@@ -206,20 +205,20 @@
         },
         {
             "name": "ariaieboy/filament-currency",
-            "version": "1.11.0",
+            "version": "1.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ariaieboy/filament-currency.git",
-                "reference": "6fa9c4572d913c8e349740821f944bbf8d572916"
+                "reference": "9fb338b66e0ba5561aec3fa6fd6d999f2dc91a55"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ariaieboy/filament-currency/zipball/6fa9c4572d913c8e349740821f944bbf8d572916",
-                "reference": "6fa9c4572d913c8e349740821f944bbf8d572916",
+                "url": "https://api.github.com/repos/ariaieboy/filament-currency/zipball/9fb338b66e0ba5561aec3fa6fd6d999f2dc91a55",
+                "reference": "9fb338b66e0ba5561aec3fa6fd6d999f2dc91a55",
                 "shasum": ""
             },
             "require": {
-                "akaunting/laravel-money": "^1.2|^2.0|^3.0|^4.0|^5.2",
+                "akaunting/laravel-money": "^1.2|^2.0|^3.0|^4.0|^5.2|^6",
                 "filament/tables": "^3.0",
                 "illuminate/contracts": "^10.0|^11",
                 "php": "~8.1|~8.2|~8.3|~8.4",
@@ -282,7 +281,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-01-11T17:16:54+00:00"
+            "time": "2025-02-08T18:22:06+00:00"
         },
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -5091,20 +5090,20 @@
         },
         {
             "name": "phpoffice/phpspreadsheet",
-            "version": "1.29.9",
+            "version": "1.29.10",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPOffice/PhpSpreadsheet.git",
-                "reference": "ffb47b639649fc9c8a6fa67977a27b756592ed85"
+                "reference": "c80041b1628c4f18030407134fe88303661d4e4e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPOffice/PhpSpreadsheet/zipball/ffb47b639649fc9c8a6fa67977a27b756592ed85",
-                "reference": "ffb47b639649fc9c8a6fa67977a27b756592ed85",
+                "url": "https://api.github.com/repos/PHPOffice/PhpSpreadsheet/zipball/c80041b1628c4f18030407134fe88303661d4e4e",
+                "reference": "c80041b1628c4f18030407134fe88303661d4e4e",
                 "shasum": ""
             },
             "require": {
-                "composer/pcre": "^3.3",
+                "composer/pcre": "^1||^2||^3",
                 "ext-ctype": "*",
                 "ext-dom": "*",
                 "ext-fileinfo": "*",
@@ -5191,9 +5190,9 @@
             ],
             "support": {
                 "issues": "https://github.com/PHPOffice/PhpSpreadsheet/issues",
-                "source": "https://github.com/PHPOffice/PhpSpreadsheet/tree/1.29.9"
+                "source": "https://github.com/PHPOffice/PhpSpreadsheet/tree/1.29.10"
             },
-            "time": "2025-01-26T04:55:00+00:00"
+            "time": "2025-02-08T02:56:14+00:00"
         },
         {
             "name": "phpoption/phpoption",
