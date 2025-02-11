@@ -38,18 +38,14 @@ class CreateLearningMode extends CreateRecord
 
     protected function handleRecordCreation(array $data): LearningMode
     {
-        // Validate uniqueness
         $this->validateUniqueLearningMode($data);
 
-        // Capitalize name
         $data['name'] = Helper::capitalizeWords($data['name']);
 
-        // Create Learning Mode inside a transaction
         $learningMode = DB::transaction(fn() => LearningMode::create([
             'name' => $data['name'],
         ]));
 
-        // Attach delivery modes (Many-to-Many)
         if (!empty($data['delivery_mode_id'])) {
             $deliveryModes = DeliveryMode::whereIn('id', $data['delivery_mode_id'])->get();
             $learningMode->deliveryMode()->attach($deliveryModes->pluck('id')->toArray());
@@ -74,7 +70,6 @@ class CreateLearningMode extends CreateRecord
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
-        // Validate delivery modes exist
         if (!empty($data['delivery_mode_id'])) {
             $existingDeliveryModes = DeliveryMode::whereIn('id', $data['delivery_mode_id'])->pluck('id')->toArray();
             $missingModes = array_diff($data['delivery_mode_id'], $existingDeliveryModes);
