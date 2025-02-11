@@ -9,6 +9,7 @@ use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
 use App\Models\SkillPrograms;
+use App\Models\Status;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
@@ -196,11 +197,13 @@ class EditTarget extends EditRecord
 
     private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
     {
+        $active = Status::where('desc', 'Active')->first();
         $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
-            ->whereHas('skillPriority', function ($query) use ($districtId, $provinceId, $appropriationYear) {
+            ->whereHas('skillPriority', function ($query) use ($districtId, $provinceId, $appropriationYear, $active) {
                 $query->where('province_id', $provinceId)
                     ->where('district_id', $districtId)
-                    ->where('year', $appropriationYear);
+                    ->where('year', $appropriationYear)
+                    ->where('status_id', $active->id);
             })
             ->first();
 

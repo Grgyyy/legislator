@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\SkillPrograms;
+use App\Models\Status;
 use Throwable;
 use App\Models\Tvi;
 use App\Models\Abdd;
@@ -957,11 +958,13 @@ class TargetResource extends Resource
                                 $toolkit->save();
                             }
 
+                            $active = Status::where('desc', 'Active')->first();
                             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
-                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation) {
+                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
                                     $query->where('province_id', $provinceId)
                                         ->where('district_id', $districtId)
-                                        ->where('year', $allocation->year);
+                                        ->where('year', $allocation->year)
+                                        ->where('status_id', $active->id);
                                 })
                                 ->first();
 
@@ -1012,11 +1015,13 @@ class TargetResource extends Resource
                                 $toolkit->save();
                             }
 
+                            $active = Status::where('desc', 'Active')->first();
                             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
-                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation) {
+                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
                                     $query->where('province_id', $provinceId)
                                         ->where('district_id', $districtId)
-                                        ->where('year', $allocation->year);
+                                        ->where('year', $allocation->year)
+                                        ->where('status_id', $active->id);
                                 })
                                 ->first();
 
@@ -1076,11 +1081,13 @@ class TargetResource extends Resource
                                     $toolkit->save();
                                 }
 
+                                $active = Status::where('desc', 'Active')->first();
                                 $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
-                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation) {
+                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
                                         $query->where('province_id', $provinceId)
                                             ->where('district_id', $districtId)
-                                            ->where('year', $allocation->year);
+                                            ->where('year', $allocation->year)
+                                            ->where('status_id', $active->id);
                                     })
                                     ->first();
 
@@ -1135,11 +1142,13 @@ class TargetResource extends Resource
                                     $toolkit->save();
                                 }
 
+                                $active = Status::where('desc', 'Active')->first();
                                 $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
-                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation) {
+                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
                                         $query->where('province_id', $provinceId)
                                             ->where('district_id', $districtId)
-                                            ->where('year', $allocation->year);
+                                            ->where('year', $allocation->year)
+                                            ->where('status_id', $active->id);
                                     })
                                     ->first();
 
@@ -1574,14 +1583,12 @@ class TargetResource extends Resource
 
         $provinceId = $tvi->district->province->id;
 
-        // Fetch all training programs registered by the TVI
         $institutionPrograms = $tvi->trainingPrograms()->pluck('training_programs.id')->toArray();
 
         if (empty($institutionPrograms)) {
             return ['' => 'No Training Programs available for this Institution.'];
         }
 
-        // Find all scholarship programs by matching the name or code
         $schoPro = ScholarshipProgram::where('id', $scholarshipProgramId)->first();
         if (!$schoPro) {
             return ['' => 'Invalid Scholarship Program.'];
@@ -1589,7 +1596,6 @@ class TargetResource extends Resource
 
         $scholarshipPrograms = ScholarshipProgram::where('code', $schoPro->code)->pluck('id')->toArray();
 
-        // Fetch qualification titles related to the matched scholarship programs
         $qualificationTitlesQuery = QualificationTitle::whereIn('scholarship_program_id', $scholarshipPrograms)
             ->where('status_id', 1)
             ->where('soc', 1)
@@ -1601,7 +1607,6 @@ class TargetResource extends Resource
             return ['' => 'No Qualification Titles available for the specified Scholarship Program.'];
         }
 
-        // Fetch all skill priorities for the TVI province
         $skillPriorities = SkillPriority::where('province_id', $provinceId)
             ->where('available_slots', '>=', 10)
             ->where('year', $year)
@@ -1614,13 +1619,11 @@ class TargetResource extends Resource
 
         $qualifiedProgramIds = $skillPriorities->pluck('trainingProgram.*.id')->flatten()->unique()->toArray();
 
-        // Filter and map the qualification titles
         $qualificationTitles = $qualificationTitlesQuery->filter(function ($qualification) use ($institutionPrograms, $qualifiedProgramIds) {
             return in_array($qualification->training_program_id, $institutionPrograms) && in_array($qualification->training_program_id, $qualifiedProgramIds);
         })->mapWithKeys(function ($qualification) {
             $title = $qualification->trainingProgram->title;
 
-            // Ensure NC pattern is correctly capitalized
             if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
                 $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
                     return 'NC ' . strtoupper($matches[1]);
