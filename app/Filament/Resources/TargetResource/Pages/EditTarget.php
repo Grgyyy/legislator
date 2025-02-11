@@ -8,6 +8,7 @@ use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
@@ -56,7 +57,6 @@ class EditTarget extends EditRecord
         $record = $this->record;
         $allocation = $record->allocation;
 
-        // Set default data values if not already set
         $data['legislator_id'] = $data['legislator_id'] ?? $allocation->legislator_id ?? null;
         $data['particular_id'] = $data['particularId'] ?? $allocation->particular_id ?? null;
         $data['scholarship_program_id'] = $data['scholarship_program_id'] ?? $allocation->scholarship_program_id ?? null;
@@ -77,7 +77,8 @@ class EditTarget extends EditRecord
             $allocationYear = $allocation->year;
 
             $skillPriority = $this->getSkillPriority(
-                $qualificationTitle->training_program_id,
+                $qualificationTitle->trainingProgram->id,
+                $institution->district ?? null,
                 $institution->district->province_id,
                 $data['allocation_year']
             );
@@ -86,11 +87,12 @@ class EditTarget extends EditRecord
             $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $data);
 
             $previousSlots = $record->number_of_slots;
-            $previousSkillPrio = SkillPriority::where([
-                'training_program_id' => $record->qualification_title->training_program_id,
-                'province_id' => $record->tvi->district->province_id,
-                'year' => $record->allocation->year,
-            ])->first();
+            $previousSkillPrio = $this->getSkillPriority(
+                $record->qualification_title->training_program_id,
+                $record->tvi->district,
+                $institution->district->province_id,
+                $data['allocation_year']
+            );
 
             if (!$previousSkillPrio) {
                 $this->sendErrorNotification('Previous Skill Priority not found.');
@@ -131,9 +133,6 @@ class EditTarget extends EditRecord
 
             $this->logTargetHistory($data, $record, $allocation, $totals);
 
-            // $this->sendSuccessNotification('Target updated successfully.');
-
-            // dd($data, $qualificationTitle->trainingProgram->title);
 
             return $record;
 
@@ -195,25 +194,28 @@ class EditTarget extends EditRecord
         return $institution;
     }
 
-    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority
+    private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
     {
-        $skillPriority = SkillPriority::where([
-            'training_program_id' => $trainingProgram,
-            'province_id' => $provinceId,
-            'year' => $appropriationYear,
-        ])->first();
+        $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+            ->whereHas('skillPriority', function ($query) use ($districtId, $provinceId, $appropriationYear) {
+                $query->where('province_id', $provinceId)
+                    ->where('district_id', $districtId)
+                    ->where('year', $appropriationYear);
+            })
+            ->first();
 
-        if (!$skillPriority) {
-            $this->sendErrorNotification('Skill Priority not found.');
-            throw new Exception('Skill Priority not found.');
+        if (!$skillPrograms) {
+            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
+                    $query->where('province_id', $provinceId)
+                        ->where('year', $appropriationYear);
+                })
+                ->first();
         }
+        
+        $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
-        if ($skillPriority->available_slots <= 0) {
-            $this->sendErrorNotification('No available slots in Skill Priority.');
-            throw new Exception('No available slots in Skill Priority.');
-        }
-
-        return $skillPriority;
+        return $skillsPriority;
     }
 
     private function getQualificationTitle(int $qualificationTitleId): QualificationTitle
