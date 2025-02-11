@@ -19,30 +19,36 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
      * Column definitions for export with their headings.
      */
     private $columns = [
-        'abscap_id' => 'Absorptive Capacity',
+        // 'abscap_id' => 'Absorptive Capacity',
         'fund_source' => 'Fund Source',
-        'attributionAllocation.legislator.name' => 'Attribution Sender',
+        'allocation.soft_or_commitment' => 'Source of Fund',
+        'attributionAllocation.legislator.name' => 'Attributor',
         'attributionAllocation.legislator.particular.subParticular' => 'Attribution Particular',
         'allocation.legislator.name' => 'Legislator',
-        'allocation.soft_or_commitment' => 'Source of Fund',
+        'allocation.legislator.particular.subParticular' => 'Particular',
         'appropriation_type' => 'Appropriation Type',
         'allocation.year' => 'Allocation',
-        'allocation.legislator.particular.subParticular' => 'Particular',
-        'municipality_name' => 'Municipality',
+
+        'institution_name' => 'Institution',
         'district_name' => 'District',
+        'municipality_name' => 'Municipality',
         'municipality.province.name' => 'Province',
         'region_name' => 'Region',
-        'institution_name' => 'Institution',
-        'institution_type' => 'Institution Type',
         'institution_class' => 'Institution Class',
-        'qualification_code' => 'Qualification Code',
-        'qualification_name' => 'Qualification Title',
-        'abdd_sector' => 'ABDD Sector',
-        'tvet_sector' => 'TVET Sector',
-        'priority_sector' => 'Priority Sector',
-        'delivery_mode' => 'Delivery Mode',
-        'learning_mode' => 'Learning Mode',
-        'scholarship_program' => 'Scholarship Program',
+        'institution_type' => 'Institution Type',
+
+        'qualification_title_code' => 'Qualification Code',
+        'qualification_title_name' => 'Qualification Title',
+
+        'abdd.name' => 'ABDD Sector',
+        'qualification_title.trainingProgram.tvet.name' => 'TVET Sector',
+        'qualification_title.trainingProgram.priority.name' => 'Priority Sector',
+
+        'deliveryMode.name' => 'Delivery Mode',
+        'learningMode.name' => 'Learning Mode',
+
+        'allocation.scholarship_program.name' => 'Scholarship Program',
+
         'number_of_slots' => 'No. of Slots',
         'training_cost_per_slot' => 'Training Cost',
         'cost_of_toolkit_per_slot' => 'Cost of Toolkit',
@@ -55,6 +61,7 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
         'uniform_allowance_per_slot' => 'Uniform Allowance',
         'misc_fee_per_slot' => 'Miscellaneous Fee',
         'total_amount_per_slot' => 'PCC',
+
         'total_training_cost_pcc' => 'Total Training Cost',
         'total_cost_of_toolkit_pcc' => 'Total Cost of Toolkit',
         'total_training_support_fund' => 'Total Training Support Fund',
@@ -71,17 +78,7 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
     public function query()
     {
         return Target::query()
-            ->with([
-                'attributionAllocation.legislator.particular.subParticular',
-                'allocation.legislator.particular.subParticular',
-                'municipality.province.region',
-                'tvi.tviClass.tviType',
-                'qualification_title.trainingProgram.tvet',
-                'qualification_title.trainingProgram.priority',
-                'allocation.scholarship_program',
-            ])
             ->select([
-                'abscap_id',
                 'allocation_id',
                 'district_id',
                 'municipality_id',
@@ -115,8 +112,12 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
                 $query->where('region_id', request()->user()->region_id);
             })
             ->where('target_status_id', 1)
-            ->whereNot('attribution_allocation_id', null);
+            ->whereHas('allocation', function ($query) {
+                $query->whereNotNull('attributor_id');
+            });
+
     }
+
 
     public function headings(): array
     {
@@ -132,30 +133,36 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
     public function map($record): array
     {
         return [
-            $record->abscap_id,
+            // $record->abscap_id,
             $this->getFundSource($record),
-            $this->attributionSender($record->attributionAllocation),
-            $this->attributionParticular($record->attributionAllocation),
-            $this->getLegislator($record->allocation),
             $record->allocation->soft_or_commitment ?? '-',
+            $this->getAttributor($record),
+            $this->getAttributionParticular($record),
+            $this->getLegislator($record->allocation),
+            $this->getParticular($record),
             $record->appropriation_type,
             $record->allocation->year,
-            $this->getParticular($record),
-            $record->municipality->name ?? '-',
+
+            $record->tvi->name ?? '-',
             $record->district->name ?? '-',
+            $record->municipality->name ?? '-',
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
-            $record->tvi->name ?? '-',
-            $record->tvi->tviClass->tviType->name ?? '-',
             $record->tvi->tviClass->name ?? '-',
+            $record->tvi->tviType->name ?? '-',
+
             $record->qualification_title_code ?? '-',
-            $record->qualification_title_code ?? '-',
+            $record->qualification_title_name ?? '-',
+
             $record->abdd->name ?? '-',
             $record->qualification_title->trainingProgram->tvet->name ?? '-',
             $record->qualification_title->trainingProgram->priority->name ?? '-',
+
             $record->deliveryMode->name ?? '-',
             $record->learningMode->name ?? '-',
+
             $record->allocation->scholarship_program->name ?? '-',
+
             $record->number_of_slots,
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
@@ -168,6 +175,7 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_uniform_allowance')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_misc_fee')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_amount')),
+
             $this->formatCurrency($record->total_training_cost_pcc),
             $this->formatCurrency($record->total_cost_of_toolkit_pcc),
             $this->formatCurrency($record->total_training_support_fund),
@@ -182,26 +190,30 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
             $record->targetStatus->desc ?? '-',
         ];
     }
-    private function attributionSender($attributionAllocation)
+    private function getAttributor($record)
     {
-        return $attributionAllocation->legislator->name ?? '-';
+        return $record->allocation->attributor->name ?? '-';
     }
-    private function attributionParticular($attributionAllocation)
+    private function getAttributionParticular($record)
     {
-        return $attributionAllocation->legislator->particular->subParticular->name ?? '-';
+        $particular = $record?->allocation?->attributorParticular;
+        return $particular?->subParticular?->name ?? '-';
     }
+
     private function getLegislator($allocation)
     {
-        return $allocation->legislator->name ?? '-';
+        return $allocation?->legislator?->name ?? '-';
     }
+
     private function getParticular($record)
     {
-        $particulars = $record->allocation->legislator->particular;
-        return $particulars->isNotEmpty() ? ($particulars->first()->subParticular->name ?? '-') : '-';
+        $particular = $record->allocation?->particular;
+        return $particular?->subParticular?->name ?? '-';
     }
     private function getFundSource($record)
     {
-        return $record->allocation->particular->subParticular->fundSource->name ?? '-';
+        $particular = $record->allocation?->attributorParticular ?? $record->allocation?->particular;
+        return $particular?->subParticular?->fundSource?->name ?? '-';
     }
 
     private function formatCurrency($amount)

@@ -22,7 +22,7 @@ class CreateTargetComment extends CreateRecord
             return route('filament.admin.resources.targets.showComments', ['record' => $targetId]);
         }
 
-        return $this->getResource()::getUrl('index');
+        return $this->getResourcep()::getUrl('index');
     }
 
     protected function getFormActions(): array
@@ -30,8 +30,8 @@ class CreateTargetComment extends CreateRecord
         return [
             $this->getCreateFormAction()
                 ->label('Save & Exit'),
-            $this->getCreateAnotherFormAction()
-                ->label('Save & Create Another'),
+            // $this->getCreateAnotherFormAction()
+            //     ->label('Save & Create Another'),
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];

@@ -112,15 +112,8 @@ class TargetImport implements ToModel, WithHeadingRow
                 $this->logTargetHistory($target, $allocation, $totals);
             });
         } catch (Throwable $e) {
-            Log::error("Failed to import Target: " . $e->getMessage(), ['row' => $row]);
-
-            Notification::make()
-                ->title('Import Failed')
-                ->danger()
-                ->body($e->getMessage())
-                ->send();
-
-            return null;
+            Log::error("Import failed: " . $e->getMessage());
+            throw $e;
         }
 
     }
