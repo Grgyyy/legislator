@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\SkillPrograms;
 use Throwable;
 use App\Models\Tvi;
 use App\Models\Abdd;
@@ -939,6 +940,7 @@ class TargetResource extends Resource
                             $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
 
                             $provinceId = $record->tvi->district->province_id;
+                            $districtId = $record->tvi->district_id;
 
                             $quali = QualificationTitle::find($qualificationTitleId);
                             $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
@@ -955,13 +957,27 @@ class TargetResource extends Resource
                                 $toolkit->save();
                             }
 
-                            $skillPriority = SkillPriority::where('province_id', $provinceId)
-                                ->where('training_program_id', $trainingProgramId)
-                                ->where('year', $allocation->year)
+                            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation) {
+                                    $query->where('province_id', $provinceId)
+                                        ->where('district_id', $districtId)
+                                        ->where('year', $allocation->year);
+                                })
                                 ->first();
 
-                            $skillPriority->available_slots += $slots;
-                            $skillPriority->save();
+                            if (!$skillPrograms) {
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($record) {
+                                        $query->where('province_id', $record->tvi->district->province_id)
+                                            ->where('year', $record->allocation->year);
+                                    })
+                                    ->first();
+                            }
+                            
+                            $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                            $skillsPriority->available_slots += $slots;
+                            $skillsPriority->save();
 
                             $allocation->balance += $totalAmount + $totalCostOfToolkit;
                             $allocation->save();
@@ -979,6 +995,7 @@ class TargetResource extends Resource
                             $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
 
                             $provinceId = $record->tvi->district->province_id;
+                            $districtId = $record->tvi->district_id;
 
                             $quali = QualificationTitle::find($qualificationTitleId);
                             $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
@@ -995,13 +1012,27 @@ class TargetResource extends Resource
                                 $toolkit->save();
                             }
 
-                            $skillPriority = SkillPriority::where('province_id', $provinceId)
-                                ->where('training_program_id', $trainingProgramId)
-                                ->where('year', $allocation->year)
+                            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation) {
+                                    $query->where('province_id', $provinceId)
+                                        ->where('district_id', $districtId)
+                                        ->where('year', $allocation->year);
+                                })
                                 ->first();
 
-                            $skillPriority->available_slots -= $slots;
-                            $skillPriority->save();
+                            if (!$skillPrograms) {
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($record) {
+                                        $query->where('province_id', $record->tvi->district->province_id)
+                                            ->where('year', $record->allocation->year);
+                                    })
+                                    ->first();
+                            }
+                            
+                            $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                            $skillsPriority->available_slots -= $slots;
+                            $skillsPriority->save();
 
                             $allocation->balance -= $totalAmount + $totalCostOfToolkit;
                             $allocation->save();
@@ -1028,6 +1059,7 @@ class TargetResource extends Resource
                                 $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
 
                                 $provinceId = $record->tvi->district->province_id;
+                                $districtId = $record->tvi->district_id;
 
                                 $quali = QualificationTitle::find($qualificationTitleId);
                                 $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
@@ -1044,13 +1076,27 @@ class TargetResource extends Resource
                                     $toolkit->save();
                                 }
 
-                                $skillPriority = SkillPriority::where('province_id', $provinceId)
-                                    ->where('training_program_id', $trainingProgramId)
-                                    ->where('year', $allocation->year)
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation) {
+                                        $query->where('province_id', $provinceId)
+                                            ->where('district_id', $districtId)
+                                            ->where('year', $allocation->year);
+                                    })
                                     ->first();
 
-                                $skillPriority->available_slots += $slots;
-                                $skillPriority->save();
+                                if (!$skillPrograms) {
+                                    $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                        ->whereHas('skillPriority', function ($query) use ($record) {
+                                            $query->where('province_id', $record->tvi->district->province_id)
+                                                ->where('year', $record->allocation->year);
+                                        })
+                                        ->first();
+                                }
+                                
+                                $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                                $skillsPriority->available_slots += $slots;
+                                $skillsPriority->save();
 
                                 $allocation->balance += $totalAmount + $totalCostOfToolkit;
                                 $allocation->save();
@@ -1072,6 +1118,7 @@ class TargetResource extends Resource
                                 $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
 
                                 $provinceId = $record->tvi->district->province_id;
+                                $districtId = $record->tvi->district_id;
 
                                 $quali = QualificationTitle::find($qualificationTitleId);
                                 $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
@@ -1088,13 +1135,27 @@ class TargetResource extends Resource
                                     $toolkit->save();
                                 }
 
-                                $skillPriority = SkillPriority::where('province_id', $provinceId)
-                                    ->where('training_program_id', $trainingProgramId)
-                                    ->where('year', $allocation->year)
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation) {
+                                        $query->where('province_id', $provinceId)
+                                            ->where('district_id', $districtId)
+                                            ->where('year', $allocation->year);
+                                    })
                                     ->first();
 
-                                $skillPriority->available_slots -= $slots;
-                                $skillPriority->save();
+                                if (!$skillPrograms) {
+                                    $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                        ->whereHas('skillPriority', function ($query) use ($record) {
+                                            $query->where('province_id', $record->tvi->district->province_id)
+                                                ->where('year', $record->allocation->year);
+                                        })
+                                        ->first();
+                                }
+                                
+                                $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                                $skillsPriority->available_slots -= $slots;
+                                $skillsPriority->save();
 
                                 $allocation->balance -= $totalAmount + $totalCostOfToolkit;
                                 $allocation->save();
@@ -1570,6 +1631,30 @@ class TargetResource extends Resource
         })->toArray();
 
         return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
+    }
+
+    private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
+    {
+        $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+            ->whereHas('skillPriority', function ($query) use ($districtId, $provinceId, $appropriationYear) {
+                $query->where('province_id', $provinceId)
+                    ->where('district_id', $districtId)
+                    ->where('year', $appropriationYear);
+            })
+            ->first();
+
+        if (!$skillPrograms) {
+            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
+                    $query->where('province_id', $provinceId)
+                        ->where('year', $appropriationYear);
+                })
+                ->first();
+        }
+        
+        $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+        return $skillsPriority;
     }
 
 
