@@ -88,7 +88,7 @@ class NonCompliantTargetResource extends Resource
                         }),
 
                     Select::make('sender_particular_id')
-                        ->label('Particular')
+                        ->label('Attributor Particular')
                         ->searchable()
                         ->default($record->allocation->attributor_particular_id ?? null)
                         ->options(function ($get) {

@@ -1179,11 +1179,15 @@ class TargetResource extends Resource
                                                 return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
                                             }
                                         }),
-                                    Column::make('municipality.name')
-                                        ->heading('Municipality'),
+
+                                    Column::make('tvi.name')
+                                        ->heading('Institution'),
 
                                     Column::make('district.name')
                                         ->heading('District'),
+
+                                    Column::make('municipality.name')
+                                        ->heading('Municipality'),
 
                                     Column::make('tvi.district.province.name')
                                         ->heading('Province'),
@@ -1191,20 +1195,14 @@ class TargetResource extends Resource
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
 
-                                    Column::make('tvi.name')
-                                        ->heading('Institution'),
+                                    Column::make('tvi.tviClass.name')
+                                        ->heading('Institution Class'),
 
                                     Column::make('tvi.tviType.name')
                                         ->heading('Institution Type'),
 
-                                    Column::make('tvi.tviClass.name')
-                                        ->heading('Institution Class'),
-
                                     Column::make('qualification_title_code')
                                         ->heading('Qualification Code'),
-
-                                    Column::make('qualification_title_soc_code')
-                                        ->heading('Qualification SOC Code'),
 
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
