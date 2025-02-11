@@ -31,7 +31,7 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings
     public function query(): Builder
     {
         return Toolkit::query()
-            ->with('qualificationTitles.trainingProgram'); // Make sure to eager load the relationship
+            ->with('qualificationTitles.trainingProgram');
     }
 
     public function map($record): array
@@ -107,7 +107,6 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 
     private function formatCurrency($amount)
     {
-        // Use the NumberFormatter class to format the currency in the Filipino Peso (PHP)
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
         return $formatter->formatCurrency($amount, 'PHP');
     }

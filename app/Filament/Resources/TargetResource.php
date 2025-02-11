@@ -876,11 +876,6 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('qualification_title.trainingProgram.priority.name')
-                    ->label('Priority Sector')
-                    ->searchable()
-                    ->toggleable(),
-
                 TextColumn::make('allocation.scholarship_program.name')
                     ->label('Scholarship Program')
                     ->searchable()
