@@ -25,7 +25,9 @@ class CustomInstitutionExport extends ExcelExport
             'Institution Type',
             'Institution Class(A)',
             'Institution Class(B)',
+            'Municipality',
             'District',
+            'Province',
             'Address',
         ];
         return array_merge($customHeadings, [$columnHeadings]);

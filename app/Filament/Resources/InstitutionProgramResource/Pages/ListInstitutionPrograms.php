@@ -48,7 +48,7 @@ class ListInstitutionPrograms extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new InsitutionQualificationTitleExport, 'institution_class_a_export.xlsx');
+                        return Excel::download(new InsitutionQualificationTitleExport, 'institution_qualification_export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

@@ -94,6 +94,39 @@ class TargetReportExport implements FromCollection, WithStyles
         return $allocation && $allocation->legislator ? $allocation->legislator->name : 'N/A';
     }
 
+    // protected function getParticularName($id): string
+    // {
+    //     $allocation = Allocation::find($id);
+
+    //     if (!$allocation || !$allocation->particular) {
+    //         return 'Unknown Particular Name';
+    //     }
+
+    //     $particular = $allocation->particular;
+
+    //     $subParticularName = $particular->subParticular?->name ?? 'Unknown Sub-Particular Name';
+    //     $fundSourceName = $particular->subParticular?->fundSource?->name ?? 'Unknown Fund Source Name';
+    //     $regionName = $particular->district?->province?->region?->name ?? 'Unknown Region Name';
+    //     $underMunicipalityName = $particular->district?->underMunicipality?->name ?? 'Unknown Municipality Name';
+    //     $provinceName = $particular->province?->name ?? 'Unknown Province Name';
+    //     $partyListName = $particular->partylist?->name ?? 'Unknown Party-list Name';
+    //     $districtName = $particular->district?->name ?? 'Unknown District Name';
+
+    //     if ($fundSourceName === "CO Regular" || $fundSourceName === "RO Regular") {
+    //         return "$subParticularName - $regionName";
+    //     } elseif ($subParticularName === 'District') {
+    //         if ($regionName === 'NCR') {
+    //             return "$districtName, $underMunicipalityName";
+    //         } else {
+    //             return "$districtName, $provinceName";
+    //         }
+    //     } elseif ($subParticularName === "Party-list") {
+    //         return $partyListName;
+    //     } elseif (in_array($subParticularName, ["Senator", "House Speaker", "House Speaker (LAKAS)"], true)) {
+    //         return $subParticularName;
+    //     }
+    //     return "N/A";
+    // }
     protected function getParticularName($id): string
     {
         $allocation = Allocation::find($id);
@@ -102,30 +135,35 @@ class TargetReportExport implements FromCollection, WithStyles
             return 'Unknown Particular Name';
         }
 
-        $particular = $allocation->particular;
+        $district = $allocation->district;
+        $municipality = $district ? $district->underMunicipality : null;
+        $districtName = $district ? $district->name : 'Unknown District';
+        $municipalityName = $municipality ? $municipality->name : '';
+        $provinceName = $district ? $district->province->name : 'Unknown Province';
+        $regionName = $district ? $district->province->region->name : 'Unknown Region';
 
-        $subParticularName = $particular->subParticular?->name ?? 'Unknown Sub-Particular Name';
-        $fundSourceName = $particular->subParticular?->fundSource?->name ?? 'Unknown Fund Source Name';
-        $regionName = $particular->district?->province?->region?->name ?? 'Unknown Region Name';
-        $underMunicipalityName = $particular->district?->underMunicipality?->name ?? 'Unknown Municipality Name';
-        $provinceName = $particular->province?->name ?? 'Unknown Province Name';
-        $partyListName = $particular->partylist?->name ?? 'Unknown Party-list Name';
-        $districtName = $particular->district?->name ?? 'Unknown District Name';
+        $subParticular = $allocation->subParticular->name ?? 'Unknown SubParticular';
 
-        if ($fundSourceName === "CO Regular" || $fundSourceName === "RO Regular") {
-            return "$subParticularName - $regionName";
-        } elseif ($subParticularName === 'District') {
-            if ($regionName === 'NCR') {
-                return "$districtName, $underMunicipalityName";
+        $formattedName = '';
+
+        if ($subParticular === 'Party-list') {
+            $partylistName = $allocation->partylist->name ?? 'Unknown Party-list';
+            $formattedName = "{$subParticular} - {$partylistName}";
+        } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+            $formattedName = "{$subParticular}";
+        } elseif ($subParticular === 'District') {
+            if ($municipalityName) {
+                $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
             } else {
-                return "$districtName, $provinceName";
+                $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
             }
-        } elseif ($subParticularName === "Party-list") {
-            return $partyListName;
-        } elseif (in_array($subParticularName, ["Senator", "House Speaker", "House Speaker (LAKAS)"], true)) {
-            return $subParticularName;
+        } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+            $formattedName = "{$subParticular} - {$regionName}";
+        } else {
+            $formattedName = "{$subParticular} - {$regionName}";
         }
-        return "N/A";
+
+        return $formattedName;
     }
 
     // private function targetData($id)

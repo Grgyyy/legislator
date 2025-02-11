@@ -2,12 +2,6 @@
 
 namespace App\Imports;
 
-use App\Models\DeliveryMode;
-use App\Models\LearningMode;
-use App\Models\Particular;
-use App\Models\SkillPriority;
-use App\Models\SubParticular;
-use App\Models\TargetStatus;
 use Auth;
 use Throwable;
 use App\Models\Tvi;
@@ -19,13 +13,20 @@ use App\Models\Province;
 use App\Models\Partylist;
 use App\Models\Allocation;
 use App\Models\Legislator;
+use App\Models\Particular;
+use App\Models\DeliveryMode;
+use App\Models\LearningMode;
 use App\Models\Municipality;
+use App\Models\TargetStatus;
+use App\Models\SkillPriority;
+use App\Models\SubParticular;
 use App\Models\TargetHistory;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
+use Filament\Notifications\Notification;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -68,7 +69,6 @@ class TargetImport implements ToModel, WithHeadingRow
                 $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
                 $targetData = [
-                    // 'abscap_id' => $row['abscap_id'],
                     'allocation_id' => $allocation->id,
                     'district_id' => $tvi->district_id,
                     'municipality_id' => $tvi->municipality_id,
@@ -106,15 +106,18 @@ class TargetImport implements ToModel, WithHeadingRow
                 }
 
                 $target = Target::create($targetData);
-                $allocation->decrement('balance', $totals['total_amount']);
+
                 $skillPriority->decrement('available_slots', $numberOfSlots);
+                $allocation->decrement('balance', $totals['total_amount']);
 
                 $this->logTargetHistory($target, $allocation, $totals);
+
             });
         } catch (Throwable $e) {
             Log::error("Import failed: " . $e->getMessage());
             throw $e;
         }
+
     }
 
 
@@ -175,7 +178,6 @@ class TargetImport implements ToModel, WithHeadingRow
 
         return $legislator;
     }
-
     protected function getRegion(string $regionName)
     {
         $region = Region::where('name', $regionName)
@@ -202,7 +204,6 @@ class TargetImport implements ToModel, WithHeadingRow
 
         return $province;
     }
-
     protected function getDistrict(string $districtName, int $provinceId)
     {
         $district = District::where('name', $districtName)
@@ -213,10 +214,8 @@ class TargetImport implements ToModel, WithHeadingRow
         if (!$district) {
             throw new \Exception("District with name '{$districtName}' not found.");
         }
-
         return $district;
     }
-
     protected function getPartylist(string $partylistName)
     {
         $partylist = Partylist::where('name', $partylistName)
@@ -272,13 +271,14 @@ class TargetImport implements ToModel, WithHeadingRow
         return $scholarshipProgram;
     }
 
-    protected function getAllocation(int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
+    protected function getAllocation(int $attributorId, int $attributorParticularId, int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
     {
         $allocation = Allocation::where('legislator_id', $legislatorId)
+            ->where('attributor_id', $attributorId)
             ->where('particular_id', $particularId)
+            ->where('attributor_particular_id', $attributorParticularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('year', $appropriationYear)
-            ->where('soft_or_commitment', 'Soft')
             ->whereNull('deleted_at')
             ->first();
 
@@ -314,7 +314,6 @@ class TargetImport implements ToModel, WithHeadingRow
 
         return $deliveryMode;
     }
-
     protected function getLearningMode(string $learningModeName, int $deliveryModeId)
     {
         $learningMode = LearningMode::where('name', $learningModeName)
@@ -330,7 +329,6 @@ class TargetImport implements ToModel, WithHeadingRow
 
         return $learningMode;
     }
-
     protected function getTvi(string $tviName)
     {
         $tvi = Tvi::where('name', $tviName)

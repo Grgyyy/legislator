@@ -7,27 +7,74 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-
-class CustomToolkitExport extends ExcelExport
+class CustomAttributionProposalExport extends ExcelExport
 {
     public function headings(): array
     {
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['TOOLKITS'],
+            ['PENDING TARGETS'],
             [''],
         ];
 
         $columnHeadings = [
+            'Fund Source',
+            'Source of Fund',
+            'Attributor',
+            'Attributor Particular',
+            'Legislator',
+            'Particular',
+            'Appropriation Type',
+            'Appropriation Year',
+
+            'Institution',
+            'Institution Type',
+            'Institution Class',
+
+
+            'Municipality',
+            'District',
+            'Province',
+            'Region',
+
+            'Scholarship Program',
+            'Qualification Code',
+            'Qualification SOC Code',
             'Qualification Title',
-            'LOT Name',
-            'Price per toolkit',
-            'Available Number of Toolkits Per Lot',
-            'No. of Toolkits',
-            'Total ABC per Lot',
-            'No. of Items per Toolkit',
-            'Year',
+
+            'ABDD Sector',
+            'TVET Sector',
+            'Priority Sector',
+
+            'Delivery Mode',
+            'Learning Mode',
+            'Number of slots',
+
+            'Training Cost',
+            'Cost of Toolkit',
+            'Training Support Fund',
+            'Assessment Fee',
+            'Entrepreneurship Fee',
+            'New Normal Assistance',
+            'Accident Insurance',
+            'Book Allowance',
+            'Uniform Allowance',
+            'Miscellaneous Fee',
+            'PCC',
+
+            'Total Training Cost',
+            'Total Cost of Toolkit',
+            'Total Training Support Fund',
+            'Total Assessment Fee',
+            'Total Entrepreneurship Fee',
+            'Total New Normal Assistance',
+            'Total Accident Insurance',
+            'Total Book Allowance',
+            'Total Uniform Allowance',
+            'Total Miscellaneous Fee',
+            'Total PCC',
+            'Status',
         ];
         return array_merge($customHeadings, [$columnHeadings]);
     }

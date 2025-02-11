@@ -28,14 +28,14 @@ class DeliveryModeImport implements ToModel, WithHeadingRow
         return DB::transaction(function () use ($row) {
             try {
 
-                $deliveryModeExists = DeliveryMode::where('name', $row['name'])
-                    ->where('acronym', $row['acronym'])
+                $deliveryModeExists = DeliveryMode::where('name', $row['delivery_mode_name'])
+                    ->where('acronym', $row['delivery_mode_acronym'])
                     ->exists();
 
                 if (!$deliveryModeExists) {
                     return new DeliveryMode([
-                        'acronym' => $row['acronym'],
-                        'name' => $row['name']
+                        'acronym' => $row['delivery_mode_acronym'],
+                        'name' => $row['delivery_mode_name']
                     ]);
                 }
 
@@ -48,7 +48,7 @@ class DeliveryModeImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['acronym', 'name'];
+        $requiredFields = ['delivery_mode_acronym', 'delivery_mode_name'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {

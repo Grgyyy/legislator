@@ -86,7 +86,7 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
                     'allocation_id' => $allocation->id,
                     'district_id' => $tvi->district_id,
                     'municipality_id' => $tvi->municipality_id,
-                    'tvi_id'  => $tvi->id,
+                    'tvi_id' => $tvi->id,
                     'tvi_name' => $tvi->name,
                     'abdd_id' => $abddSector->id,
                     'qualification_title_id' => $qualificationTitle->id,
@@ -443,12 +443,13 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
         return $skillPriority;
     }
 
-    protected function getAttributorParticularRecord(int $subParticularId, string $regionName) {
+    protected function getAttributorParticularRecord(int $subParticularId, string $regionName)
+    {
 
         $region = Region::where('name', $regionName)
             ->first();
 
-        if(!$region) {
+        if (!$region) {
             throw new \Exception("The Region named '{$regionName}' is not existing.");
         }
 

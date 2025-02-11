@@ -16,7 +16,7 @@ class InsitutionClassAExport implements FromQuery, WithHeadings, WithStyles, Wit
 {
     private $columns = [
         'name' => 'Institution Class (A)',
-        'tvi_type_id' => 'Institution Type',
+        // 'tvi_type_id' => 'Institution Type',
     ];
 
     public function query(): Builder
@@ -41,7 +41,7 @@ class InsitutionClassAExport implements FromQuery, WithHeadings, WithStyles, Wit
     {
         return [
             $record->name,
-            $record->tviType->name,
+            // $record->tviType->name,
         ];
     }
 

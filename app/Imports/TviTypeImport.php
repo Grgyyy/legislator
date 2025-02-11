@@ -36,8 +36,7 @@ class TviTypeImport implements ToModel, WithHeadingRow
                     ]);
 
                 }
-            }
-            catch (Throwable $e) {
+            } catch (Throwable $e) {
 
                 Log::error('Failed to import TVI Type: ' . $e->getMessage());
                 throw $e;

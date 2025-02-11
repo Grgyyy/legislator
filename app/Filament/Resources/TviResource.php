@@ -123,7 +123,7 @@ class TviResource extends Resource
                         }
 
                         return [];
-                    }) 
+                    })
                     ->disableOptionWhen(fn($value) => $value === 'no_private_class' || $value === 'no_public_class')
                     ->validationAttribute('institution class (A)'),
 
@@ -441,42 +441,34 @@ class TviResource extends Resource
                                 ->withColumns([
                                     Column::make('school_id')
                                         ->heading('School ID'),
+
                                     Column::make('name')
                                         ->heading('Institution'),
+
+                                    Column::make('tviType.name')
+                                        ->heading('Institution Type'),
+
                                     Column::make('tviClass.name')
                                         ->heading('Institution Class (A)'),
+
                                     Column::make('InstitutionClass.name')
                                         ->heading('Institution Class (B)'),
-                                    Column::make('district.name')
-                                        ->heading('District')
-                                        ->getStateUsing(function ($record) {
-                                            $municipalityName = $record->municipality ? $record->municipality->name : '';
-                                            $districtName = $record->district ? $record->district->name : '';
-                                            $provinceName = $record->district->province ? $record->district->province->name : '-';
 
-                                            if (is_null($municipalityName) && is_null($districtName) && is_null($provinceName)) {
-                                                return '-';
-                                            }
-                                    
-                                            if (is_null($municipalityName)) {
-                                                return trim("{$districtName}, {$provinceName}", ', ');
-                                            }
-                                    
-                                            if (is_null($districtName)) {
-                                                return "{$municipalityName} - {$provinceName}";
-                                            }
-                                    
-                                            if (is_null($provinceName)) {
-                                                return "{$municipalityName} - {$districtName}";
-                                            }
-                                    
-                                            return "{$municipalityName} - {$districtName}, {$provinceName}";
-                                        }),
+                                    Column::make('district.name')
+                                        ->heading('District'),
+
+                                    Column::make('municipality.name')
+                                        ->heading('Municipality'),
+
+                                    Column::make('municipality.province.name')
+                                        ->heading('Province'),
+
                                     Column::make('address')
                                         ->heading('Address'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Institutions')
                         ]),
+
                 ])
             ]);
     }

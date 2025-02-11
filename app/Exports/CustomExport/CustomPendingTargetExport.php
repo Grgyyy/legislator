@@ -26,22 +26,27 @@ class CustomPendingTargetExport extends ExcelExport
             'Appropriation Type',
             'Allocation',
             'Particular',
-            'Municipality',
+
+            'Institution',
             'District',
+            'Municipality',
             'Province',
             'Region',
-            'Institution',
-            'Institution Type',
             'Institution Class',
+            'Institution Type',
+
             'Qualification Code',
-            'Qualification SOC Code',
             'Qualification Title',
+
             'ABDD Sector',
             'TVET Sector',
             'Priority Sector',
+
             'Delivery Mode',
             'Learning Mode',
+
             'Scholarship Program',
+
             'Number of slots',
             'Training Cost',
             'Cost of Toolkit',
@@ -54,6 +59,7 @@ class CustomPendingTargetExport extends ExcelExport
             'Uniform Allowance',
             'Miscellaneous Fee',
             'PCC',
+
             'Total Training Cost',
             'Total Cost of Toolkit',
             'Total Training Support Fund',

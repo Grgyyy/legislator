@@ -31,7 +31,7 @@ class CreateCompliantTargets extends CreateRecord
     {
         return route('filament.admin.resources.compliant-targets.index');
     }
-    
+
     protected function getFormActions(): array
     {
         return [
@@ -74,12 +74,10 @@ class CreateCompliantTargets extends CreateRecord
                 if ($costOfToolkitPcc->available_number_of_toolkits === null) {
                     $message = "Please ensure that the number of toolkits for '{$qualificationTitle->trainingProgram->title}' is specified.";
                     NotificationHandler::handleValidationException('Something went wrong', $message);
-                }
-                elseif ($costOfToolkitPcc->available_number_of_toolkits < $numberOfSlots) {
+                } elseif ($costOfToolkitPcc->available_number_of_toolkits < $numberOfSlots) {
                     $message = "There are not enough toolkits available for this batch.";
                     NotificationHandler::handleValidationException('Something went wrong', $message);
-                }
-                else {
+                } else {
                     $costOfToolkitPcc->decrement('available_number_of_toolkits', $numberOfSlots);
                 }
             }
@@ -99,13 +97,13 @@ class CreateCompliantTargets extends CreateRecord
     private function findAllocation(array $data): Allocation
     {
         $allocation = Allocation::where('attributor_id', $data['sender_legislator_id'])
-                ->where('legislator_id', $data['legislator_id'])
-                ->where('attributor_particular_id', $data['sender_particular_id'])
-                ->where('particular_id', $data['particular_id'])
-                ->where('scholarship_program_id', $data['scholarship_program_id'])
-                ->where('year', $data['allocation_year'])
-                ->first();
-    
+            ->where('legislator_id', $data['legislator_id'])
+            ->where('attributor_particular_id', $data['sender_particular_id'])
+            ->where('particular_id', $data['particular_id'])
+            ->where('scholarship_program_id', $data['scholarship_program_id'])
+            ->where('year', $data['allocation_year'])
+            ->first();
+
         return $allocation;
     }
 

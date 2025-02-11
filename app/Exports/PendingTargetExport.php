@@ -16,28 +16,34 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
-        'abscap_id' => 'Absorptive Capacity',
+        // 'abscap_id' => 'Absorptive Capacity',
         'fund_source' => 'Fund Source',
         'allocation.legislator.name' => 'Legislator',
         'allocation.soft_or_commitment' => 'Source of Fund',
         'appropriation_type' => 'Appropriation Type',
         'allocation.year' => 'Allocation',
         'allocation.legislator.particular.subParticular' => 'Particular',
-        'municipality_name' => 'Municipality',
+
+        'institution_name' => 'Institution',
         'district_name' => 'District',
+        'municipality_name' => 'Municipality',
         'municipality.province.name' => 'Province',
         'region_name' => 'Region',
-        'institution_name' => 'Institution',
-        'institution_type' => 'Institution Type',
         'institution_class' => 'Institution Class',
-        'qualification_code' => 'Qualification Code',
-        'qualification_name' => 'Qualification Title',
-        'abdd_sector' => 'ABDD Sector',
-        'tvet_sector' => 'TVET Sector',
-        'priority_sector' => 'Priority Sector',
-        'delivery_mode' => 'Delivery Mode',
-        'learning_mode' => 'Learning Mode',
-        'scholarship_program' => 'Scholarship Program',
+        'institution_type' => 'Institution Type',
+
+        'qualification_title_code' => 'Qualification Code',
+        'qualification_title_name' => 'Qualification Title',
+
+        'abdd.name' => 'ABDD Sector',
+        'qualification_title.trainingProgram.tvet.name' => 'TVET Sector',
+        'qualification_title.trainingProgram.priority.name' => 'Priority Sector',
+
+        'deliveryMode.name' => 'Delivery Mode',
+        'learningMode.name' => 'Learning Mode',
+
+        'allocation.scholarship_program.name' => 'Scholarship Program',
+
         'number_of_slots' => 'No. of Slots',
         'training_cost_per_slot' => 'Training Cost',
         'cost_of_toolkit_per_slot' => 'Cost of Toolkit',
@@ -50,6 +56,7 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         'uniform_allowance_per_slot' => 'Uniform Allowance',
         'misc_fee_per_slot' => 'Miscellaneous Fee',
         'total_amount_per_slot' => 'PCC',
+
         'total_training_cost_pcc' => 'Total Training Cost',
         'total_cost_of_toolkit_pcc' => 'Total Cost of Toolkit',
         'total_training_support_fund' => 'Total Training Support Fund',
@@ -61,13 +68,12 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         'total_uniform_allowance' => 'Total Uniform Allowance',
         'total_misc_fee' => 'Total Miscellaneous Fee',
         'total_amount' => 'Total PCC',
-        'status' => 'Status',
+        'targetStatus.desc' => 'Status',
     ];
     public function query()
     {
         return Target::query()
             ->select([
-                'abscap_id',
                 'allocation_id',
                 'district_id',
                 'municipality_id',
@@ -101,8 +107,12 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
                 $query->where('region_id', request()->user()->region_id);
             })
             ->where('target_status_id', 1)
-            ->whereNull('attribution_allocation_id');
+            ->whereDoesntHave('allocation', function ($query) {
+                $query->whereNotNull('attributor_id');
+            });
+
     }
+
     public function headings(): array
     {
         $customHeadings = [
@@ -117,28 +127,34 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
     public function map($record): array
     {
         return [
-            $record->abscap_id,
+            // $record->abscap_id,
             $this->getFundSource($record),
             $record->allocation->legislator->name ?? '-',
             $record->allocation->soft_or_commitment ?? '-',
             $record->appropriation_type,
             $record->allocation->year,
             $this->getParticular($record),
-            $record->municipality->name ?? '-',
+
+            $record->tvi->name ?? '-',
             $record->district->name ?? '-',
+            $record->municipality->name ?? '-',
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
-            $record->tvi->name ?? '-',
-            $record->tvi->tviClass->tviType->name ?? '-',
             $record->tvi->tviClass->name ?? '-',
+            $record->tvi->tviType->name ?? '-',
+
             $record->qualification_title_code ?? '-',
-            $record->qualification_title_code ?? '-',
+            $record->qualification_title_name ?? '-',
+
             $record->abdd->name ?? '-',
             $record->qualification_title->trainingProgram->tvet->name ?? '-',
             $record->qualification_title->trainingProgram->priority->name ?? '-',
+
             $record->deliveryMode->name ?? '-',
             $record->learningMode->name ?? '-',
+
             $record->allocation->scholarship_program->name ?? '-',
+
             $record->number_of_slots,
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
@@ -151,6 +167,7 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_uniform_allowance')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_misc_fee')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_amount')),
+
             $this->formatCurrency($record->total_training_cost_pcc),
             $this->formatCurrency($record->total_cost_of_toolkit_pcc),
             $this->formatCurrency($record->total_training_support_fund),

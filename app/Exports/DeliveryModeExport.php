@@ -48,7 +48,6 @@ class DeliveryModeExport implements FromQuery, WithHeadings, WithStyles, WithMap
 
     public function styles(Worksheet $sheet)
     {
-
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
@@ -65,6 +64,7 @@ class DeliveryModeExport implements FromQuery, WithHeadings, WithStyles, WithMap
             ],
         ];
 
+
         $subHeaderStyle = [
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
@@ -80,12 +80,17 @@ class DeliveryModeExport implements FromQuery, WithHeadings, WithStyles, WithMap
             ],
         ];
 
-        $sheet->getStyle('A1:A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
         $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($subHeaderStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
-        return [
-            1 => ['font' => ['bold' => true]],
-        ];
+        foreach (range(1, $columnCount) as $colIndex) {
+            $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+        }
+
+        return $sheet;
     }
+
+
 }

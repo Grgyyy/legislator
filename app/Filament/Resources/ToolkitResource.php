@@ -56,7 +56,7 @@ class ToolkitResource extends Resource
                     ->multiple()
                     ->preload()
                     ->native()
-                    ->default(fn ($record) => $record?->qualificationTitles->pluck('id')->toArray() ?? [])
+                    ->default(fn($record) => $record?->qualificationTitles->pluck('id')->toArray() ?? [])
                     ->options(function () {
                         $step_scholarship = ScholarshipProgram::where('name', 'STEP')->first();
 
@@ -70,11 +70,13 @@ class ToolkitResource extends Resource
                             })
                             ->toArray() ?: ['no_toolkits' => 'No toolkits available'];
                     })
-                    ->default(fn ($get) => $get('qualification_title_id'))
-                    ->afterStateHydrated(fn ($set, $record) => 
+                    ->default(fn($get) => $get('qualification_title_id'))
+                    ->afterStateHydrated(
+                        fn($set, $record) =>
                         $set('qualification_title_id', $record?->qualificationTitles->pluck('id')->toArray())
                     )
-                    ->afterStateUpdated(fn ($state, $set) =>
+                    ->afterStateUpdated(
+                        fn($state, $set) =>
                         empty($state) ? $set('lot_name', null) : null
                     )
                     ->reactive()
@@ -168,8 +170,8 @@ class ToolkitResource extends Resource
 
                             return null;
                         })
-                        ->filter()
-                        ->toArray();
+                            ->filter()
+                            ->toArray();
 
                         if (empty($qualificationTitles)) {
                             return '-';
@@ -205,7 +207,7 @@ class ToolkitResource extends Resource
                     ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-                
+
                 TextColumn::make('total_abc_per_lot')
                     ->label('Total ABC')
                     ->sortable()
@@ -227,7 +229,7 @@ class ToolkitResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records'),
-                    
+
                 Filter::make('year')
                     ->form([
                         TextInput::make('year')
@@ -308,23 +310,22 @@ class ToolkitResource extends Resource
                         ->exports([
                             CustomToolkitExport::make()
                                 ->withColumns([
-                                    Column::make('formatted_scholarship_programs')
+                                    Column::make('qualificationTitles')
                                         ->heading('Qualification Titles')
-                                        ->getStateUsing(
-                                            fn($record) => $record->qualificationTitles
-                                                ->map(
-                                                    fn($qualificationTitle) =>
-                                                    $qualificationTitle->trainingProgram
-                                                    ? "{$qualificationTitle->trainingProgram->soc_code}"
-                                                    : null
-                                                )
-                                                ->filter()
-                                                ->implode(', ')
-                                        ),
+                                        ->formatStateUsing(function ($record) {
+                                            $qualificationTitles = $record->qualificationTitles->map(
+                                                fn($qualificationTitle) =>
+                                                optional($qualificationTitle->trainingProgram)->soc_code .
+                                                ' - ' .
+                                                optional($qualificationTitle->trainingProgram)->title
+                                            )->filter()->toArray();
+
+                                            return empty($qualificationTitles) ? '-' : implode(', ', $qualificationTitles);
+                                        }),
 
                                     Column::make('lot_name')
                                         ->heading('Lot Name'),
-                                        
+
                                     Column::make('available_number_of_toolkits')
                                         ->heading('Available No. of Toolkits per Lot')
                                         ->getStateUsing(fn($record) => $record->available_number_of_toolkits ?? '-'),
@@ -335,7 +336,7 @@ class ToolkitResource extends Resource
 
                                     Column::make('price_per_toolkit')
                                         ->heading('Price per Toolkit')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->formatStateUsing(fn($state) => $state !== null ? '₱ ' . number_format($state, 2, '.', ',') : '-'),
 
                                     Column::make('total_abc_per_lot')
                                         ->heading('Total ABC')
@@ -351,6 +352,7 @@ class ToolkitResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Toolkits')
                         ])
+
                 ]),
             ]);
     }

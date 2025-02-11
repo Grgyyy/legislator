@@ -7,27 +7,20 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
-
-class CustomToolkitExport extends ExcelExport
+class CustomParticularTypeExport extends ExcelExport
 {
     public function headings(): array
     {
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['TOOLKITS'],
+            ['PARTICULAR TYPES'],
             [''],
         ];
 
         $columnHeadings = [
-            'Qualification Title',
-            'LOT Name',
-            'Price per toolkit',
-            'Available Number of Toolkits Per Lot',
-            'No. of Toolkits',
-            'Total ABC per Lot',
-            'No. of Items per Toolkit',
-            'Year',
+            'Particular Type',
+            'Fund Source',
         ];
         return array_merge($customHeadings, [$columnHeadings]);
     }
