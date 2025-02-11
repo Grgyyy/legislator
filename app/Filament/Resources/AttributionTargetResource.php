@@ -3,6 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
 use App\Models\Tvi;
 use App\Models\Abdd;
 use App\Models\Target;
@@ -1499,29 +1501,56 @@ class AttributionTargetResource extends Resource
 
                     //skills prio or province abdd??
                     DeleteAction::make()
-                        ->action(function ($record, $data) {
-                            $attributionAllocation = $record->attributionAllocation;
+                        ->action(function ($record) {
                             $allocation = $record->allocation;
                             $totalAmount = $record->total_amount;
 
-                            $institution = $record->tvi;
-                            $abdd = $record->abdd;
+                            $qualificationTitleId = $record->qualification_title_id;
+                            $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
 
-                            $provinceAbdd = ProvinceAbdd::where('abdd_id', $abdd->id)
-                                ->where('province_id', $institution->district->province_id)
-                                ->where('year', $attributionAllocation->year)
+                            $provinceId = $record->tvi->district->province_id;
+                            $districtId = $record->tvi->district_id;
+
+                            $quali = QualificationTitle::find($qualificationTitleId);
+                            $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                            $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                            $compliant = TargetStatus::where("desc", "Compliant")->first();
+
+                            $slots = $record->number_of_slots;
+
+                            $totalCostOfToolkit = 0;
+                            if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+
+                                $toolkit->available_number_of_toolkits += $slots;
+                                $toolkit->save();
+                            }
+
+                            $active = Status::where('desc', 'Active')->first();
+                            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
+                                    $query->where('province_id', $provinceId)
+                                        ->where('district_id', $districtId)
+                                        ->where('year', $allocation->year)
+                                        ->where('status_id', $active->id);
+                                })
                                 ->first();
 
-                            $totalSlots = $record->number_of_slots;
+                            if (!$skillPrograms) {
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($record) {
+                                        $query->where('province_id', $record->tvi->district->province_id)
+                                            ->where('year', $record->allocation->year);
+                                    })
+                                    ->first();
+                            }
+                            
+                            $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
-                            $provinceAbdd->available_slots += $totalSlots;
-                            $provinceAbdd->save();
+                            $skillsPriority->available_slots += $slots;
+                            $skillsPriority->save();
 
-                            $attributionAllocation->balance += $totalAmount;
-                            $attributionAllocation->attribution_sent -= $totalAmount;
-                            $attributionAllocation->save();
-
-                            $allocation->attribution_received -= $totalAmount;
+                            $allocation->balance += $totalAmount + $totalCostOfToolkit;
                             $allocation->save();
 
                             $record->delete();
@@ -1529,8 +1558,60 @@ class AttributionTargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         }),
                     RestoreAction::make()
-                        ->action(function ($record, $data) {
-                            $record->restore();
+                        ->action(function ($record) {
+                            $allocation = $record->allocation;
+                            $totalAmount = $record->total_amount;
+
+                            $qualificationTitleId = $record->qualification_title_id;
+                            $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+
+                            $provinceId = $record->tvi->district->province_id;
+                            $districtId = $record->tvi->district_id;
+
+                            $quali = QualificationTitle::find($qualificationTitleId);
+                            $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                            $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                            $compliant = TargetStatus::where("desc", "Compliant")->first();
+
+                            $slots = $record->number_of_slots;
+                            $totalCostOfToolkit = 0;
+
+                            if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+
+                                $toolkit->available_number_of_toolkits -= $slots;
+                                $toolkit->save();
+                            }
+
+                            $active = Status::where('desc', 'Active')->first();
+                            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
+                                    $query->where('province_id', $provinceId)
+                                        ->where('district_id', $districtId)
+                                        ->where('year', $allocation->year)
+                                        ->where('status_id', $active->id);
+                                })
+                                ->first();
+
+                            if (!$skillPrograms) {
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($record) {
+                                        $query->where('province_id', $record->tvi->district->province_id)
+                                            ->where('year', $record->allocation->year);
+                                    })
+                                    ->first();
+                            }
+                            
+                            $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                            $skillsPriority->available_slots -= $slots;
+                            $skillsPriority->save();
+
+                            $allocation->balance -= $totalAmount + $totalCostOfToolkit;
+                            $allocation->save();
+
+                            $record->deleted_at = null;
+                            $record->save();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         }),
@@ -1546,16 +1627,121 @@ class AttributionTargetResource extends Resource
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->action(function ($records) {
-                            $records->each->delete();
+                            $records->each(function ($record) {
+                                $allocation = $record->allocation;
+                                $totalAmount = $record->total_amount;
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected targets have been deleted successfully.');
+                                $qualificationTitleId = $record->qualification_title_id;
+                                $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+
+                                $provinceId = $record->tvi->district->province_id;
+                                $districtId = $record->tvi->district_id;
+
+                                $quali = QualificationTitle::find($qualificationTitleId);
+                                $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                                $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                                $compliant = TargetStatus::where("desc", "Compliant")->first();
+
+                                $slots = $record->number_of_slots;
+                                $totalCostOfToolkit = 0;
+
+                                if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+
+                                    $toolkit->available_number_of_toolkits += $slots;
+                                    $toolkit->save();
+                                }
+
+                                $active = Status::where('desc', 'Active')->first();
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
+                                        $query->where('province_id', $provinceId)
+                                            ->where('district_id', $districtId)
+                                            ->where('year', $allocation->year)
+                                            ->where('status_id', $active->id);
+                                    })
+                                    ->first();
+
+                                if (!$skillPrograms) {
+                                    $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                        ->whereHas('skillPriority', function ($query) use ($record) {
+                                            $query->where('province_id', $record->tvi->district->province_id)
+                                                ->where('year', $record->allocation->year);
+                                        })
+                                        ->first();
+                                }
+                                
+                                $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                                $skillsPriority->available_slots += $slots;
+                                $skillsPriority->save();
+
+                                $allocation->balance += $totalAmount + $totalCostOfToolkit;
+                                $allocation->save();
+
+                                $record->delete();
+                            });
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
-                            $records->each->restore();
+                            $records->each(function ($record) {
+                                $allocation = $record->allocation;
+                                $totalAmount = $record->total_amount;
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Selected targets have been restored successfully.');
+                                $qualificationTitleId = $record->qualification_title_id;
+                                $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+
+                                $provinceId = $record->tvi->district->province_id;
+                                $districtId = $record->tvi->district_id;
+
+                                $quali = QualificationTitle::find($qualificationTitleId);
+                                $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                                $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                                $compliant = TargetStatus::where("desc", "Compliant")->first();
+
+                                $slots = $record->number_of_slots;
+
+                                $totalCostOfToolkit = 0;
+                                if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+
+                                    $toolkit->available_number_of_toolkits -= $slots;
+                                    $toolkit->save();
+                                }
+
+                                $active = Status::where('desc', 'Active')->first();
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
+                                        $query->where('province_id', $provinceId)
+                                            ->where('district_id', $districtId)
+                                            ->where('year', $allocation->year)
+                                            ->where('status_id', $active->id);
+                                    })
+                                    ->first();
+
+                                if (!$skillPrograms) {
+                                    $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                        ->whereHas('skillPriority', function ($query) use ($record) {
+                                            $query->where('province_id', $record->tvi->district->province_id)
+                                                ->where('year', $record->allocation->year);
+                                        })
+                                        ->first();
+                                }
+                                
+                                $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                                $skillsPriority->available_slots -= $slots;
+                                $skillsPriority->save();
+
+                                $allocation->balance -= $totalAmount + $totalCostOfToolkit;
+                                $allocation->save();
+
+                                $record->deleted_at = null;
+                                $record->save();
+                            });
+                            NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore allocation ')),
                     ForceDeleteBulkAction::make()
