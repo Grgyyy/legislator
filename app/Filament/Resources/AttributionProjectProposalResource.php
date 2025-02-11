@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
 use App\Models\Tvi;
 use Filament\Forms;
 use App\Models\Abdd;
@@ -1554,11 +1557,126 @@ class AttributionProjectProposalResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each(function ($record) {
+                                $allocation = $record->allocation;
+                                $totalAmount = $record->total_amount;
+
+                                $qualificationTitleId = $record->qualification_title_id;
+                                $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+
+                                $provinceId = $record->tvi->district->province_id;
+                                $districtId = $record->tvi->district_id;
+
+                                $quali = QualificationTitle::find($qualificationTitleId);
+                                $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                                $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                                $compliant = TargetStatus::where("desc", "Compliant")->first();
+
+                                $slots = $record->number_of_slots;
+                                $totalCostOfToolkit = 0;
+
+                                if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+
+                                    $toolkit->available_number_of_toolkits += $slots;
+                                    $toolkit->save();
+                                }
+
+                                $active = Status::where('desc', 'Active')->first();
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
+                                        $query->where('province_id', $provinceId)
+                                            ->where('district_id', $districtId)
+                                            ->where('year', $allocation->year)
+                                            ->where('status_id', $active->id);
+                                    })
+                                    ->first();
+
+                                if (!$skillPrograms) {
+                                    $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                        ->whereHas('skillPriority', function ($query) use ($record) {
+                                            $query->where('province_id', $record->tvi->district->province_id)
+                                                ->where('year', $record->allocation->year);
+                                        })
+                                        ->first();
+                                }
+                                
+                                $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                                $skillsPriority->available_slots += $slots;
+                                $skillsPriority->save();
+
+                                $allocation->balance += $totalAmount + $totalCostOfToolkit;
+                                $allocation->save();
+
+                                $record->delete();
+                            });
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
+                        })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
                     ForceDeleteBulkAction::make()
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution project proposal ')),
                     RestoreBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution project proposal ')),
+                        ->action(function ($records) {
+                            $records->each(function ($record) {
+                                $allocation = $record->allocation;
+                                $totalAmount = $record->total_amount;
+
+                                $qualificationTitleId = $record->qualification_title_id;
+                                $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+
+                                $provinceId = $record->tvi->district->province_id;
+                                $districtId = $record->tvi->district_id;
+
+                                $quali = QualificationTitle::find($qualificationTitleId);
+                                $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                                $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                                $compliant = TargetStatus::where("desc", "Compliant")->first();
+
+                                $slots = $record->number_of_slots;
+
+                                $totalCostOfToolkit = 0;
+                                if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+
+                                    $toolkit->available_number_of_toolkits -= $slots;
+                                    $toolkit->save();
+                                }
+
+                                $active = Status::where('desc', 'Active')->first();
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
+                                        $query->where('province_id', $provinceId)
+                                            ->where('district_id', $districtId)
+                                            ->where('year', $allocation->year)
+                                            ->where('status_id', $active->id);
+                                    })
+                                    ->first();
+
+                                if (!$skillPrograms) {
+                                    $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                        ->whereHas('skillPriority', function ($query) use ($record) {
+                                            $query->where('province_id', $record->tvi->district->province_id)
+                                                ->where('year', $record->allocation->year);
+                                        })
+                                        ->first();
+                                }
+                                
+                                $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                                $skillsPriority->available_slots -= $slots;
+                                $skillsPriority->save();
+
+                                $allocation->balance -= $totalAmount + $totalCostOfToolkit;
+                                $allocation->save();
+
+                                $record->deleted_at = null;
+                                $record->save();
+                            });
+                            NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore allocation ')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -1934,47 +2052,57 @@ class AttributionProjectProposalResource extends Resource
             return ['' => 'No Skill Priority available'];
         }
 
-        $skillPriorities = $tvi->district->province->skillPriorities()
-            ->where('year', $year)
-            ->where('available_slots', '>=', 10)
-            ->pluck('training_program_id')
-            ->toArray();
+        $provinceId = $tvi->district->province->id;
 
-        if (empty($skillPriorities)) {
-            return ['' => 'No Training Programs available for this Skill Priority.'];
-        }
-
-        $institutionPrograms = $tvi->trainingPrograms()
-            ->pluck('training_program_id')
-            ->toArray();
+        $institutionPrograms = $tvi->trainingPrograms()->pluck('training_programs.id')->toArray();
 
         if (empty($institutionPrograms)) {
             return ['' => 'No Training Programs available for this Institution.'];
         }
 
-        $qualificationTitles =
-            QualificationTitle::whereIn('training_program_id', $skillPriorities)
-                ->whereIn('training_program_id', $institutionPrograms)
-                ->where('scholarship_program_id', $scholarshipProgramId)
-                ->where('status_id', 1)
-                ->where('soc', 0)
-                ->whereNull('deleted_at')
-                ->with('trainingProgram')
-                ->get()
-                ->mapWithKeys(function ($qualification) {
-                    $title = $qualification->trainingProgram->title;
+        $schoPro = ScholarshipProgram::where('id', $scholarshipProgramId)->first();
+        if (!$schoPro) {
+            return ['' => 'Invalid Scholarship Program.'];
+        }
 
-                    // Check for 'NC' pattern and capitalize it
-                    if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
-                        $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                            return 'NC ' . strtoupper($matches[1]);
-                        }, $title);
-                    }
+        $scholarshipPrograms = ScholarshipProgram::where('code', $schoPro->code)->pluck('id')->toArray();
 
-                    return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+        $qualificationTitlesQuery = QualificationTitle::whereIn('scholarship_program_id', $scholarshipPrograms)
+            ->where('status_id', 1)
+            ->where('soc', 0)
+            ->whereNull('deleted_at')
+            ->with('trainingProgram')
+            ->get();
 
-                })
-                ->toArray();
+        if ($qualificationTitlesQuery->isEmpty()) {
+            return ['' => 'No Qualification Titles available for the specified Scholarship Program.'];
+        }
+
+        $skillPriorities = SkillPriority::where('province_id', $provinceId)
+            ->where('available_slots', '>=', 10)
+            ->where('year', $year)
+            ->with('trainingProgram')
+            ->get();
+
+        if ($skillPriorities->isEmpty()) {
+            return ['' => 'No Skill Priorities available for the Province.'];
+        }
+
+        $qualifiedProgramIds = $skillPriorities->pluck('trainingProgram.*.id')->flatten()->unique()->toArray();
+
+        $qualificationTitles = $qualificationTitlesQuery->filter(function ($qualification) use ($institutionPrograms, $qualifiedProgramIds) {
+            return in_array($qualification->training_program_id, $institutionPrograms) && in_array($qualification->training_program_id, $qualifiedProgramIds);
+        })->mapWithKeys(function ($qualification) {
+            $title = $qualification->trainingProgram->title;
+
+            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                    return 'NC ' . strtoupper($matches[1]);
+                }, $title);
+            }
+
+            return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title} ({$qualification->scholarshipProgram->name})"];
+        })->toArray();
 
         return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }

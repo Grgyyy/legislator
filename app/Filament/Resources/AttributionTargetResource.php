@@ -2184,7 +2184,6 @@ class AttributionTargetResource extends Resource
         })->mapWithKeys(function ($qualification) {
             $title = $qualification->trainingProgram->title;
 
-            // Ensure NC pattern is correctly capitalized
             if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
                 $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
                     return 'NC ' . strtoupper($matches[1]);

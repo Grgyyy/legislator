@@ -1616,7 +1616,14 @@ class ProjectProposalTargetResource extends Resource
             return ['' => 'No Training Programs available for this Institution.'];
         }
 
-        $qualificationTitlesQuery = QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
+        $schoPro = ScholarshipProgram::where('id', $scholarshipProgramId)->first();
+        if (!$schoPro) {
+            return ['' => 'Invalid Scholarship Program.'];
+        }
+
+        $scholarshipPrograms = ScholarshipProgram::where('code', $schoPro->code)->pluck('id')->toArray();
+
+        $qualificationTitlesQuery = QualificationTitle::whereIn('scholarship_program_id', $scholarshipPrograms)
             ->where('status_id', 1)
             ->where('soc', 0)
             ->whereNull('deleted_at')
@@ -1650,7 +1657,7 @@ class ProjectProposalTargetResource extends Resource
                 }, $title);
             }
 
-            return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+            return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title} ({$qualification->scholarshipProgram->name})"];
         })->toArray();
 
         return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
