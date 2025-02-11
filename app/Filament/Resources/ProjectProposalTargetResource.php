@@ -1456,40 +1456,50 @@ class ProjectProposalTargetResource extends Resource
             return ['' => 'No Skill Priority available'];
         }
 
-        $skillPriorities = $tvi->district->province->skillPriorities()
-            ->where('year', $year)
-            ->where('available_slots', '>=', 10)
-            ->pluck('training_program_id')
-            ->toArray();
+        $provinceId = $tvi->district->province->id;
 
-        if (empty($skillPriorities)) {
-            return ['' => 'No Training Programs available for this Skill Priority.'];
-        }
-
-        $institutionPrograms = $tvi->trainingPrograms()
-            ->pluck('training_program_id')
-            ->toArray();
+        $institutionPrograms = $tvi->trainingPrograms()->pluck('training_programs.id')->toArray();
 
         if (empty($institutionPrograms)) {
             return ['' => 'No Training Programs available for this Institution.'];
         }
 
-        $qualificationTitles =
-            QualificationTitle::whereIn('training_program_id', $skillPriorities)
-                ->whereIn('training_program_id', $institutionPrograms)
-                ->where('scholarship_program_id', $scholarshipProgramId)
-                ->where('status_id', 1)
-                ->where('soc', 0)
-                ->whereNull('deleted_at')
-                ->with('trainingProgram')
-                ->get()
-                ->mapWithKeys(function ($qualification) {
-                    $title = $qualification->trainingProgram->title;
+        $qualificationTitlesQuery = QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
+            ->where('status_id', 1)
+            ->where('soc', 0)
+            ->whereNull('deleted_at')
+            ->with('trainingProgram')
+            ->get();
 
-                    return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+        if ($qualificationTitlesQuery->isEmpty()) {
+            return ['' => 'No Qualification Titles available for the specified Scholarship Program.'];
+        }
 
-                })
-                ->toArray();
+        $skillPriorities = SkillPriority::where('province_id', $provinceId)
+            ->where('available_slots', '>=', 10)
+            ->where('year', $year)
+            ->with('trainingProgram')
+            ->get();
+
+        if ($skillPriorities->isEmpty()) {
+            return ['' => 'No Skill Priorities available for the Province.'];
+        }
+
+        $qualifiedProgramIds = $skillPriorities->pluck('trainingProgram.*.id')->flatten()->unique()->toArray();
+
+        $qualificationTitles = $qualificationTitlesQuery->filter(function ($qualification) use ($institutionPrograms, $qualifiedProgramIds) {
+            return in_array($qualification->training_program_id, $institutionPrograms) && in_array($qualification->training_program_id, $qualifiedProgramIds);
+        })->mapWithKeys(function ($qualification) {
+            $title = $qualification->trainingProgram->title;
+
+            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                    return 'NC ' . strtoupper($matches[1]);
+                }, $title);
+            }
+
+            return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+        })->toArray();
 
         return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }

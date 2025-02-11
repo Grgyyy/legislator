@@ -135,6 +135,7 @@ class SkillPriorityResource extends Resource
                     ->required()
                     ->markAsRequired(false)
                     ->integer()
+                    ->disabled(fn($livewire) => $livewire->isEdit())
                     ->hidden(fn($livewire) => !$livewire->isEdit()),
 
                 TextInput::make('total_slots')
@@ -146,7 +147,6 @@ class SkillPriorityResource extends Resource
                     ->default(0)
                     ->minValue(0)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
-                    ->disabled(fn($livewire) => $livewire->isEdit())
                     ->dehydrated(),
 
                 TextInput::make('year')
@@ -187,7 +187,7 @@ class SkillPriorityResource extends Resource
                 TextColumn::make('qualification_title')
                     ->searchable()
                     ->label('LOT name'),
-                    TextColumn::make('trainingProgram')
+                TextColumn::make('trainingProgram.title')
                     ->searchable()
                     ->label('Qualification Titles')
                     ->getStateUsing(function ($record) {

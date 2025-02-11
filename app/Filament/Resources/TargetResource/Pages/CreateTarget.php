@@ -8,10 +8,12 @@ use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\Toolkit;
 use App\Models\Tvi;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -70,17 +72,13 @@ class CreateTarget extends CreateRecord
                 $institution = $this->getInstitution($targetData['tvi_id']);
                 $qualificationTitle = $this->getQualificationTitle($targetData['qualification_title_id']);
 
-                // $provinceAbdd = $this->getProvinceAbdd(
-                //     $targetData['abdd_id'],
-                //     $institution->district->province_id,
-                //     $targetData['allocation_year']
-                // );
-
                 $skillPriority = $this->getSkillPriority(
-                    $qualificationTitle->training_program_id,
+                    $qualificationTitle->trainingProgram->id,
+                    $institution->district ?? null,
                     $institution->district->province_id,
                     $targetData['allocation_year']
                 );
+
                 $numberOfSlots = $targetData['number_of_slots'] ?? 0;
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $targetData['allocation_year']);
 
@@ -89,24 +87,16 @@ class CreateTarget extends CreateRecord
                     throw new Exception('Insufficient allocation balance.');
                 }
 
-                // if ($provinceAbdd->available_slots < $numberOfSlots) {
-                //     $this->sendErrorNotification('Insufficient slots available in Province Abdd.');
-                //     throw new Exception('Insufficient slots available in Province Abdd.');
-                // }
-
                 if ($skillPriority->available_slots < $numberOfSlots) {
-                    $this->sendErrorNotification('Insufficient slots available in Province Abdd.');
-                    throw new Exception('Insufficient slots available in Province Abdd.');
+                    $this->sendSuccessNotification('Insufficient target beneficiaries available in Skill Priority.');
+                    throw new Exception('Insufficient allocation balance.');
                 }
 
-                // Create Target and Decrement Allocations/Slots
                 $target = $this->createTarget($targetData, $allocation, $institution, $qualificationTitle, $totals);
                 $allocation->decrement('balance', $totals['total_amount']);
                 $skillPriority->decrement('available_slots', $numberOfSlots);
 
-                // $provinceAbdd->decrement('available_slots', $numberOfSlots);
-
-                // Log the history
+              
                 $this->logTargetHistory($targetData, $target, $allocation, $totals);
 
                 $lastCreatedTarget = $target;
@@ -117,7 +107,6 @@ class CreateTarget extends CreateRecord
                 throw new Exception('No targets were created.');
             }
 
-            // Send success notification
             $this->sendSuccessNotification('Targets created successfully.');
 
             return $lastCreatedTarget;
@@ -129,6 +118,15 @@ class CreateTarget extends CreateRecord
         Notification::make()
             ->title('Success')
             ->success()
+            ->body($message)
+            ->send();
+    }
+
+    private function sendErrorNotification(string $message): void
+    {
+        Notification::make()
+            ->title('Error')
+            ->danger()
             ->body($message)
             ->send();
     }
@@ -172,54 +170,37 @@ class CreateTarget extends CreateRecord
         $institution = Tvi::find($tviId);
 
         if (!$institution) {
-            $this->sendErrorNotification('Institution not found.');
+            NotificationHandler::sendErrorNotification('Error', 'Institution not found.');
             throw new Exception('Institution not found.');
         }
 
         return $institution;
     }
 
-    // private function getProvinceAbdd(int $abddId, int $provinceId, int $appropriationYear): ProvinceAbdd
-    // {
-    //     $provinceAbdd = ProvinceAbdd::where([
-    //         'abdd_id' => $abddId,
-    //         'province_id' => $provinceId,
-    //         'year' => $appropriationYear,
-    //     ])->first();
-
-    //     if (!$provinceAbdd) {
-    //         $this->sendErrorNotification('Province Abdd Slots not found.');
-    //         throw new Exception('Province Abdd Slots not found.');
-    //     }
-
-    //     if ($provinceAbdd->available_slots <= 0) {
-    //         $this->sendErrorNotification('No available slots in Province Abdd.');
-    //         throw new Exception('No available slots in Province Abdd.');
-    //     }
-
-    //     return $provinceAbdd;
-    // }
-
-    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority
+    private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
     {
-        $skillPriority = SkillPriority::where([
-            'training_program_id' => $trainingProgram,
-            'province_id' => $provinceId,
-            'year' => $appropriationYear,
-        ])->first();
+        $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+            ->whereHas('skillPriority', function ($query) use ($districtId, $provinceId, $appropriationYear) {
+                $query->where('province_id', $provinceId)
+                    ->where('district_id', $districtId)
+                    ->where('year', $appropriationYear);
+            })
+            ->first();
 
-        if (!$skillPriority) {
-            $this->sendErrorNotification('Skill Priority not found.');
-            throw new Exception('Skill Priority not found.');
+        if (!$skillPrograms) {
+            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
+                    $query->where('province_id', $provinceId)
+                        ->where('year', $appropriationYear);
+                })
+                ->first();
         }
+        
+        $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
-        if ($skillPriority->available_slots <= 0) {
-            $this->sendErrorNotification('No available slots in Skill Priority');
-            throw new Exception('No available slots in Skill Priority.');
-        }
-
-        return $skillPriority;
+        return $skillsPriority;
     }
+
 
     private function getQualificationTitle(int $qualificationTitleId): QualificationTitle
     {
@@ -328,12 +309,5 @@ class CreateTarget extends CreateRecord
         ]);
     }
 
-    private function sendErrorNotification(string $message): void
-    {
-        Notification::make()
-            ->title('Error')
-            ->danger()
-            ->body($message)
-            ->send();
-    }
+    
 }

@@ -819,7 +819,7 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($state, $record) {
-                        $institutionType = $record->tvi->tviClass->tviType->name ?? '';
+                        $institutionType = $record->tvi->tviType->name ?? '';
                         $institutionClass = $record->tvi->tviClass->name ?? '';
 
                         return "{$institutionType} - {$institutionClass}";
@@ -1518,95 +1518,68 @@ class TargetResource extends Resource
             return ['' => 'No Skill Priority available'];
         }
 
-        $skillPriorities = $tvi->district->province->skillPriorities()
-            ->where('year', $year)
-            ->where('available_slots', '>=', 10)
-            ->pluck('training_program_id')
-            ->toArray();
+        $provinceId = $tvi->district->province->id;
 
-        if (empty($skillPriorities)) {
-            return ['' => 'No Training Programs available for this Skill Priority.'];
-        }
-
-        $institutionPrograms = $tvi->trainingPrograms()
-            ->pluck('training_program_id')
-            ->toArray();
+        // Fetch all training programs registered by the TVI
+        $institutionPrograms = $tvi->trainingPrograms()->pluck('training_programs.id')->toArray();
 
         if (empty($institutionPrograms)) {
             return ['' => 'No Training Programs available for this Institution.'];
         }
 
-        $qualificationTitles =
-            QualificationTitle::whereIn('training_program_id', $skillPriorities)
-                ->whereIn('training_program_id', $institutionPrograms)
-                ->where('scholarship_program_id', $scholarshipProgramId)
-                ->where('status_id', 1)
-                ->where('soc', 1)
-                ->whereNull('deleted_at')
-                ->with('trainingProgram')
-                ->get()
-                ->mapWithKeys(function ($qualification) {
-                    $title = $qualification->trainingProgram->title;
+        // Find all scholarship programs by matching the name or code
+        $schoPro = ScholarshipProgram::where('id', $scholarshipProgramId)->first();
+        if (!$schoPro) {
+            return ['' => 'Invalid Scholarship Program.'];
+        }
 
-                    // Check for 'NC' pattern and capitalize it
-                    if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
-                        $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                            return 'NC ' . strtoupper($matches[1]);
-                        }, $title);
-                    }
+        $scholarshipPrograms = ScholarshipProgram::where('code', $schoPro->code)->pluck('id')->toArray();
 
-                    return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title}"];
+        // Fetch qualification titles related to the matched scholarship programs
+        $qualificationTitlesQuery = QualificationTitle::whereIn('scholarship_program_id', $scholarshipPrograms)
+            ->where('status_id', 1)
+            ->where('soc', 1)
+            ->whereNull('deleted_at')
+            ->with('trainingProgram')
+            ->get();
 
-                })
-                ->toArray();
+        if ($qualificationTitlesQuery->isEmpty()) {
+            return ['' => 'No Qualification Titles available for the specified Scholarship Program.'];
+        }
+
+        // Fetch all skill priorities for the TVI province
+        $skillPriorities = SkillPriority::where('province_id', $provinceId)
+            ->where('available_slots', '>=', 10)
+            ->where('year', $year)
+            ->with('trainingProgram')
+            ->get();
+
+        if ($skillPriorities->isEmpty()) {
+            return ['' => 'No Skill Priorities available for the Province.'];
+        }
+
+        $qualifiedProgramIds = $skillPriorities->pluck('trainingProgram.*.id')->flatten()->unique()->toArray();
+
+        // Filter and map the qualification titles
+        $qualificationTitles = $qualificationTitlesQuery->filter(function ($qualification) use ($institutionPrograms, $qualifiedProgramIds) {
+            return in_array($qualification->training_program_id, $institutionPrograms) && in_array($qualification->training_program_id, $qualifiedProgramIds);
+        })->mapWithKeys(function ($qualification) {
+            $title = $qualification->trainingProgram->title;
+
+            // Ensure NC pattern is correctly capitalized
+            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
+                $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
+                    return 'NC ' . strtoupper($matches[1]);
+                }, $title);
+            }
+
+            return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title} ({$qualification->scholarshipProgram->name})"];
+        })->toArray();
 
         return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }
 
 
-
-    // protected static function getAbddSectors($tviId)
-    // {
-    //     $tvi = Tvi::with(['district.province'])->find($tviId);
-
-    //     if (!$tvi || !$tvi->district || !$tvi->district->province) {
-    //         return ['' => 'No ABDD sector available'];
-    //     }
-
-    //     $abddSectors = $tvi->district->province->abdds()
-    //         ->select('abdds.id', 'abdds.name')
-    //         ->pluck('name', 'id')
-    //         ->toArray();
-
-    //     return empty($abddSectors) ? ['' => 'No ABDD sector available'] : $abddSectors;
-    // }
-
-    // public function getFormattedParticularAttribute()
-    // {
-    //     $particular = $this->allocation->particular ?? null;
-
-    //     if (!$particular) {
-    //         return 'No particular available';
-    //     }
-
-    //     $district = $particular->district;
-    //     $municipality = $district ? $district->municipality : null;
-    //     $province = $municipality ? $municipality->province : null;
-
-    //     $districtName = $district ? $district->name : 'Unknown District';
-    //     $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-    //     $provinceName = $province ? $province->name : 'Unknown Province';
-
-    //     $subParticular = $particular->subParticular->name ?? 'Unknown Sub-Particular';
-
-    //     if ($subParticular === 'Party-list') {
-    //         return "{$subParticular} - {$particular->partylist->name}";
-    //     } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-    //         return "{$subParticular}";
-    //     } else {
-    //         return "{$subParticular} - {$districtName}, {$municipalityName}";
-    //     }
-    // }
 
     protected function getFormattedTotalAmountAttribute($total_amount)
     {
@@ -1681,36 +1654,6 @@ class TargetResource extends Resource
         return $query;
     }
 
-
-    // public static function getEloquentQuery(): Builder
-    // {
-    //     $query = parent::getEloquentQuery();
-    //     $routeParameter = request()->route('record');
-    //     $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
-    //     $user = auth()->user();
-
-    //     if ($pendingStatus) {
-    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
-    //             ->where('target_status_id', '=', $pendingStatus->id)
-    //             ->where('attribution_allocation_id', null);
-
-    //         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
-    //             $query->where('region_id', (int) $routeParameter);
-    //         }
-    //     }
-
-    //     // Add dynamic filtering for the user's region and role
-    //     if ($user && $user->hasRole('RO') && $user->region_id) {
-    //         $query->whereHas('tvi.district.province.region', function ($subQuery) use ($user) {
-    //             $subQuery->where('id', $user->region_id);
-    //         });
-    //     }
-
-    //     // Debugging: Log the generated query for inspection
-    //     Log::info('Generated Query', ['query' => $query->toSql(), 'bindings' => $query->getBindings()]);
-
-    //     return $query;
-    // }
     public static function canViewAny(): bool
     {
         /** @var \App\Models\User|null $user */
