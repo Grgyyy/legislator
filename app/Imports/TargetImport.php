@@ -98,18 +98,20 @@ class TargetImport implements ToModel, WithHeadingRow
                 ];
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
-                    throw new \Exception("Insufficient available slots in Skill Priorities.");
+                    throw new \Exception("Insufficient available slots in Skill Priorities to create the target.");
                 }
 
                 if ($allocation->balance < $totals['total_amount']) {
-                    throw new \Exception("Insufficient allocation balance.");
+                    throw new \Exception("Insufficient allocation balance to create the target.");
                 }
 
                 $target = Target::create($targetData);
-                $allocation->decrement('balance', $totals['total_amount']);
+
                 $skillPriority->decrement('available_slots', $numberOfSlots);
+                $allocation->decrement('balance', $totals['total_amount']);
 
                 $this->logTargetHistory($target, $allocation, $totals);
+
             });
         } catch (Throwable $e) {
             Log::error("Import failed: " . $e->getMessage());
@@ -171,13 +173,7 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$legislator) {
-            Notification::make()
-                ->title('Legislator Not Found')
-                ->body("No active legislator with an allocation found for name: {$legislatorName}")
-                ->danger()
-                ->send();
-
-            return null;
+            throw new \Exception("No active legislator with an allocation found for name: {$legislatorName}");
         }
 
         return $legislator;
@@ -189,18 +185,11 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$region) {
-            Notification::make()
-                ->title('Region Not Found')
-                ->body("Region with name '{$regionName}' not found.")
-                ->danger()
-                ->send();
-
-            return null;
+            throw new \Exception("Region with name '{$regionName}' not found.");
         }
 
         return $region;
     }
-
 
     protected function getProvince(string $provinceName, int $regionId)
     {
@@ -210,19 +199,11 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$province) {
-            Notification::make()
-                ->title('Province Not Found')
-                ->body("Province with name '{$provinceName}' not found.")
-                ->danger()
-                ->send();
-
-            return null;
+            throw new \Exception("Province with name '{$provinceName}' not found.");
         }
 
         return $province;
     }
-
-
     protected function getDistrict(string $districtName, int $provinceId)
     {
         $district = District::where('name', $districtName)
@@ -231,15 +212,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$district) {
-            Notification::make()
-                ->title('District Not Found')
-                ->body("District with name '{$districtName}' not found.")
-                ->danger()
-                ->send();
-
-            return null;
+            throw new \Exception("District with name '{$districtName}' not found.");
         }
-
         return $district;
     }
     protected function getPartylist(string $partylistName)
@@ -249,13 +223,7 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$partylist) {
-            Notification::make()
-                ->title('Partylist Not Found')
-                ->body("Partylist with name '{$partylistName}' not found.")
-                ->danger()
-                ->send();
-
-            return null;
+            throw new \Exception("Partylist with name '{$partylistName}' not found. ");
         }
 
         return $partylist;
@@ -268,13 +236,7 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$subParticular) {
-            Notification::make()
-                ->title('Sub-Particular Not Found')
-                ->body("Sub-Particular with name '{$subParticularName}' not found.")
-                ->danger()
-                ->send();
-
-            return null;
+            throw new \Exception("Sub-Particular with name '{$subParticularName}' not found.");
         }
 
         return $subParticular;
@@ -303,24 +265,20 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$scholarshipProgram) {
-            Notification::make()
-                ->title('Scholarship Program Not Found')
-                ->body("Scholarship Program with name '{$scholarshipProgramName}' not found.")
-                ->danger()
-                ->send();
-
-            return null;
+            throw new \Exception("Scholarship Program with name '{$scholarshipProgramName}' not found.");
         }
 
         return $scholarshipProgram;
     }
-    protected function getAllocation(int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
+
+    protected function getAllocation(int $attributorId, int $attributorParticularId, int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
     {
         $allocation = Allocation::where('legislator_id', $legislatorId)
+            ->where('attributor_id', $attributorId)
             ->where('particular_id', $particularId)
+            ->where('attributor_particular_id', $attributorParticularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('year', $appropriationYear)
-            ->where('soft_or_commitment', 'Soft')
             ->whereNull('deleted_at')
             ->first();
 
@@ -338,18 +296,11 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$abddSector) {
-            Notification::make()
-                ->title('ABDD Sector Not Found')
-                ->body("ABDD Sector with name '{$abddSectorName}' not found.")
-                ->danger()
-                ->send();
-
-            return null;
+            throw new \Exception("ABDD Sector with name '{$abddSectorName}' not found.");
         }
 
         return $abddSector;
     }
-
 
     protected function getDeliveryMode(string $deliveryModeName)
     {
@@ -358,13 +309,7 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$deliveryMode) {
-            Notification::make()
-                ->title('Delivery Mode Not Found')
-                ->body("Delivery Mode with name '{$deliveryModeName}' not found.")
-                ->danger()
-                ->send();
-
-            return null;
+            throw new \Exception("Delivery Mode with name '{$deliveryModeName}' not found.");
         }
 
         return $deliveryMode;
@@ -372,23 +317,18 @@ class TargetImport implements ToModel, WithHeadingRow
     protected function getLearningMode(string $learningModeName, int $deliveryModeId)
     {
         $learningMode = LearningMode::where('name', $learningModeName)
-            ->where('delivery_mode_id', $deliveryModeId)
+            ->whereHas('deliveryMode', function ($query) use ($deliveryModeId) {
+                $query->where('delivery_mode_id', $deliveryModeId);
+            })
             ->whereNull('deleted_at')
             ->first();
 
         if (!$learningMode) {
-            Notification::make()
-                ->title('Learning Mode Not Found')
-                ->body("Learning Mode with name '{$learningModeName}' not found.")
-                ->danger()
-                ->send();
-
-            return null;
+            throw new \Exception("Learning Mode with the specified name and associated Delivery Mode was not found.");
         }
 
         return $learningMode;
     }
-
     protected function getTvi(string $tviName)
     {
         $tvi = Tvi::where('name', $tviName)

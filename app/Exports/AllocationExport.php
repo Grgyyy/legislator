@@ -33,14 +33,14 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
     {
         return Allocation::query()
             ->with([
-                'attributor', // Load the attributor relationship
-                'attributorParticular.subParticular', // Fix nested subParticular
-                'legislator', // Load legislator
-                'particular.subParticular.fundSource', // Nested relationships
-                'particular.district.province.region', // Nested relationships
-                'particular.district.underMunicipality', // Nested municipality
-                'particular.partylist', // Partylist relationship
-                'scholarship_program' // Scholarship program
+                'attributor',
+                'attributorParticular.subParticular',
+                'legislator',
+                'particular.subParticular.fundSource',
+                'particular.district.province.region',
+                'particular.district.underMunicipality',
+                'particular.partylist',
+                'scholarship_program'
             ])
             ->select([
                 'id',
@@ -97,58 +97,38 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
         $particular = $record->particular;
 
         if (!$particular) {
-            return '-';
+            return 'N/A';
         }
 
-        $subParticularName = $particular->subParticular->name ?? '-';
-        $fundSourceName = $particular->subParticular->fundSource->name ?? '-';
-        $regionName = $particular->district->province->region->name ?? '-';
-        $underMunicipalityName = $particular->district->underMunicipality->name ?? '-';
-        $provinceName = $particular->province->name ?? '-';
-        $partyListName = $particular->partylist->name ?? '-';
-        $districtName = $particular->district->name ?? '-';
+        $district = $particular->district;
+        $municipality = $district ? $district->underMunicipality : null;
+        $districtName = $district ? $district->name : 'Unknown District';
+        $municipalityName = $municipality ? $municipality->name : '';
+        $provinceName = $district ? $district->province->name : 'Unknown Province';
+        $regionName = $district ? $district->province->region->name : 'Unknown Region';
 
-        // if ($fundSourceName === "CO Regular" || $fundSourceName === "RO Regular") {
-        //     return "$subParticularName - $regionName";
-        // } elseif ($subParticularName === 'District') {
-        //     if ($regionName === 'NCR') {
-        //         return "$districtName -  $underMunicipalityName";
-        //     } else {
-        //         return "$districtName - $provinceName";
-        //     }
-        // }
-        // // else {
-        // //     return $subParticularName;
-        // // }
+        $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
 
-        // // elseif ($fundSourceName === "CO Legislator Funds" && $subParticularName === "District") {
-        // //     return $regionName === "NCR"
-        // //         ? "$districtName - $underMunicipalityName"
-        // //         : $provinceName;
-        // // }
-        // elseif ($subParticularName === "Party-list") {
-        //     return $partyListName;
-        // } elseif (in_array($subParticularName, ["Senator", "House Speaker", "House Speaker (LAKAS)"], true)) {
-        //     return $subParticularName;
-        // }
+        $formattedName = '';
 
-        // return "N/A";
-
-
-        if ($fundSourceName === "CO Regular" || $fundSourceName === "RO Regular") {
-            return "$subParticularName - $regionName";
-        } elseif ($subParticularName === 'District') {
-            if ($regionName === 'NCR') {
-                return "$districtName - $underMunicipalityName";
+        if ($subParticular === 'Party-list') {
+            $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+            $formattedName = "{$subParticular} - {$partylistName}";
+        } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+            $formattedName = "{$subParticular}";
+        } elseif ($subParticular === 'District') {
+            if ($municipalityName) {
+                $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
             } else {
-                return "$districtName - $provinceName";
+                $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
             }
-        } elseif ($subParticularName === "Party-list") {
-            return $partyListName;
-        } elseif (in_array($subParticularName, ["Senator", "House Speaker", "House Speaker (LAKAS)"], true)) {
-            return $subParticularName;
+        } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+            $formattedName = "{$subParticular} - {$regionName}";
+        } else {
+            $formattedName = "{$subParticular} - {$regionName}";
         }
-        return "N/A";
+
+        return $formattedName;
     }
     public function headings(): array
     {
