@@ -977,7 +977,7 @@ class TargetResource extends Resource
                                     })
                                     ->first();
                             }
-                            
+
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             $skillsPriority->available_slots += $slots;
@@ -1034,7 +1034,7 @@ class TargetResource extends Resource
                                     })
                                     ->first();
                             }
-                            
+
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             $skillsPriority->available_slots -= $slots;
@@ -1100,7 +1100,7 @@ class TargetResource extends Resource
                                         })
                                         ->first();
                                 }
-                                
+
                                 $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                                 $skillsPriority->available_slots += $slots;
@@ -1113,9 +1113,9 @@ class TargetResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target')),
                     ForceDeleteBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete target ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete target')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each(function ($record) {
@@ -1161,7 +1161,7 @@ class TargetResource extends Resource
                                         })
                                         ->first();
                                 }
-                                
+
                                 $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                                 $skillsPriority->available_slots -= $slots;
@@ -1175,7 +1175,7 @@ class TargetResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore target ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore target')),
                     ExportBulkAction::make()
                         ->exports([
                             CustomPendingTargetExport::make()
@@ -1655,7 +1655,7 @@ class TargetResource extends Resource
                 })
                 ->first();
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         return $skillsPriority;
