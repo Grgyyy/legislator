@@ -2,16 +2,18 @@
 
 namespace App\Filament\Resources;
 
-use App\Exports\CustomExport\CustomMunicipalityExport;
-use App\Filament\Resources\MunicipalityResource\Pages;
 use App\Models\District;
-use App\Models\Municipality;
 use App\Models\Province;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use App\Models\Municipality;
+use Filament\Resources\Resource;
+use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
@@ -20,15 +22,14 @@ use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomMunicipalityExport;
+use App\Filament\Resources\MunicipalityResource\Pages;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class MunicipalityResource extends Resource
 {
@@ -205,6 +206,7 @@ class MunicipalityResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter municipality')),
             ])
             ->actions([
                 ActionGroup::make([

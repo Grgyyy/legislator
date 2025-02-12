@@ -228,7 +228,8 @@ class ToolkitResource extends Resource
             ])
             ->filters([
                 TrashedFilter::make()
-                    ->label('Records'),
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter toolkit')),
 
                 Filter::make('year')
                     ->form([

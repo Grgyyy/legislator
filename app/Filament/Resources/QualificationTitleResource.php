@@ -108,7 +108,7 @@ class QualificationTitleResource extends Resource
                     ->reactive()
                     ->live()
                     ->validationAttribute('scholarship program'),
-                
+
                 Fieldset::make('Costing')
                     ->schema([
                         TextInput::make('training_cost_pcc')
@@ -424,7 +424,8 @@ class QualificationTitleResource extends Resource
             ])
             ->filters([
                 TrashedFilter::make()
-                    ->label('Records'),
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter schedule of cost')),
 
                 Filter::make('filter')
                     ->form(function () {

@@ -13,7 +13,7 @@ class SkillPriorityPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'Planning Office', 'TESDO']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'Planning Office', 'TESDO', 'SMD Focal']);
     }
 
     /**
@@ -21,7 +21,7 @@ class SkillPriorityPolicy
      */
     public function view(User $user, SkillPriority $skillPriority): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'Planning Office', 'TESDO']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'Planning Office', 'TESDO', 'SMD Focal']);
     }
 
     /**
@@ -29,7 +29,7 @@ class SkillPriorityPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'Planning Office']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'Planning Office', 'SMD Focal', 'SMD Focal']);
     }
 
     /**
@@ -37,7 +37,7 @@ class SkillPriorityPolicy
      */
     public function update(User $user, SkillPriority $skillPriority): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'Planning Office']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'Planning Office', 'SMD Focal']);
     }
 
     /**

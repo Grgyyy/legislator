@@ -278,7 +278,8 @@ class TviResource extends Resource
             ])
             ->filters([
                 TrashedFilter::make()
-                    ->label('Records'),
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter institution')),
 
                 Filter::make('institution')
                     ->form(function () {
@@ -387,11 +388,13 @@ class TviResource extends Resource
                     Action::make('viewRecognition')
                         ->label('View Recognition')
                         ->url(fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id]))
-                        ->icon('heroicon-o-magnifying-glass'),
+                        ->icon('heroicon-o-magnifying-glass')
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('view recognition')),
                     Action::make('viewProgram')
                         ->label('View Training Programs')
                         ->url(fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id]))
-                        ->icon('heroicon-o-magnifying-glass'),
+                        ->icon('heroicon-o-magnifying-glass')
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('view recognition')),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();

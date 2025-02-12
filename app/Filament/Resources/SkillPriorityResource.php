@@ -105,8 +105,8 @@ class SkillPriorityResource extends Resource
                         $qualificationTitles = TrainingProgram::all();
 
                         return $qualificationTitles->mapWithKeys(function ($title) {
-                                $concatenatedName = $title->soc_code . " - " . $title->title;
-                                return [$title->id => $concatenatedName];
+                            $concatenatedName = $title->soc_code . " - " . $title->title;
+                            return [$title->id => $concatenatedName];
                         })->toArray() ?: ['no_qualification_title' => 'No qualification title available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_qualification_title')
@@ -202,7 +202,8 @@ class SkillPriorityResource extends Resource
             ])
             ->filters([
                 TrashedFilter::make()
-                    ->label('Records'),
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter skills priority')),
             ])
             ->actions([
                 ActionGroup::make([

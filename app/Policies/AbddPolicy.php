@@ -12,7 +12,7 @@ class AbddPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
 
     }
 
@@ -21,7 +21,7 @@ class AbddPolicy
      */
     public function view(User $user, Abdd $abdd): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
     }
 
     /**
@@ -29,7 +29,7 @@ class AbddPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
     }
 
     /**
@@ -37,7 +37,7 @@ class AbddPolicy
      */
     public function update(User $user, Abdd $abdd): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
     }
 
     /**

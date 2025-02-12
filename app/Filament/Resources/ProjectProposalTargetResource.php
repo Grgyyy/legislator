@@ -2,43 +2,38 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\ProjectProposalTargetResource\Pages;
-use App\Filament\Resources\ProjectProposalTargetResource\RelationManagers;
+use Auth;
+use App\Models\Tvi;
+use Filament\Forms;
 use App\Models\Abdd;
-use App\Models\Allocation;
-use App\Models\DeliveryMode;
-use App\Models\Legislator;
-use App\Models\Particular;
-use App\Models\ProjectProposalTarget;
-use App\Models\ProvinceAbdd;
-use App\Models\QualificationTitle;
-use App\Models\ScholarshipProgram;
-use App\Models\SkillPriority;
-use App\Models\SkillPrograms;
+use Filament\Tables;
 use App\Models\Status;
 use App\Models\Target;
-use App\Models\TargetStatus;
-use App\Models\Tvi;
-use App\Services\NotificationHandler;
-use Auth;
-use Filament\Forms;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
+use App\Models\Allocation;
+use App\Models\Legislator;
+use App\Models\Particular;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-
+use App\Models\DeliveryMode;
+use App\Models\ProvinceAbdd;
+use App\Models\TargetStatus;
 use Filament\Actions\Action;
+use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use Filament\Resources\Resource;
+use App\Models\QualificationTitle;
+use App\Models\ScholarshipProgram;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Repeater;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Filters\SelectFilter;
+use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -47,7 +42,10 @@ use pxlrbt\FilamentExcel\Exports\ExcelExport;
 use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Filament\Resources\ProjectProposalTargetResource\Pages;
+use App\Filament\Resources\ProjectProposalTargetResource\RelationManagers;
 
 class ProjectProposalTargetResource extends Resource
 {
@@ -389,7 +387,7 @@ class ProjectProposalTargetResource extends Resource
                             ->native(false)
                             // ->options(function ($get) {
                             //     $tviId = $get('tvi_id');
-
+    
                             //     return $tviId
                             //         ? self::getAbddSectors($tviId)
                             //         : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
@@ -777,7 +775,7 @@ class ProjectProposalTargetResource extends Resource
                                     ->native(false)
                                     // ->options(function ($get) {
                                     //     $tviId = $get('tvi_id');
-
+    
                                     //     return $tviId
                                     //         ? self::getAbddSectors($tviId)
                                     //         : ['no_abddd' => 'No ABDD sector available. Select an institution first.'];
@@ -863,23 +861,23 @@ class ProjectProposalTargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-
+    
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-
+    
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-
+    
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-
+    
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
                         //         }
                         //     })
-
+    
 
                     ];
                 }
@@ -977,8 +975,8 @@ class ProjectProposalTargetResource extends Resource
                     ->toggleable()
                     ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
-                
-                    TextColumn::make('location')
+
+                TextColumn::make('location')
                     ->label('Administrative Area')
                     ->searchable()
                     ->toggleable()
@@ -1079,7 +1077,8 @@ class ProjectProposalTargetResource extends Resource
             )
             ->filters([
                 TrashedFilter::make()
-                    ->label('Records'),
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter attributiont target')),
             ])
             ->actions([
                 ActionGroup::make([
@@ -1145,7 +1144,7 @@ class ProjectProposalTargetResource extends Resource
                                     })
                                     ->first();
                             }
-                            
+
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             $skillsPriority->available_slots += $slots;
@@ -1202,7 +1201,7 @@ class ProjectProposalTargetResource extends Resource
                                     })
                                     ->first();
                             }
-                            
+
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             $skillsPriority->available_slots -= $slots;
@@ -1267,7 +1266,7 @@ class ProjectProposalTargetResource extends Resource
                                         })
                                         ->first();
                                 }
-                                
+
                                 $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                                 $skillsPriority->available_slots += $slots;
@@ -1327,7 +1326,7 @@ class ProjectProposalTargetResource extends Resource
                                         })
                                         ->first();
                                 }
-                                
+
                                 $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                                 $skillsPriority->available_slots -= $slots;

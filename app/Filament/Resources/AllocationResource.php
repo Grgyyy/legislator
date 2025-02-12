@@ -368,7 +368,8 @@ class AllocationResource extends Resource
             ])
             ->filters([
                 TrashedFilter::make()
-                    ->label('Records'),
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter allocation')),
 
                 Filter::make('allocation')
                     ->form([

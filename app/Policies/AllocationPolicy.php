@@ -13,7 +13,7 @@ class AllocationPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO', 'SMD Focal']);
     }
 
     /**
@@ -21,7 +21,7 @@ class AllocationPolicy
      */
     public function view(User $user, Allocation $allocation): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO', 'SMD Focal']);
     }
 
     /**

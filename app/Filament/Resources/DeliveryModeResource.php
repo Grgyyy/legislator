@@ -20,6 +20,7 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -69,7 +70,9 @@ class DeliveryModeResource extends Resource
                 fn($record) => route('filament.admin.resources.learning-modes.showLearningMode', ['record' => $record->id]),
             )
             ->filters([
-                //
+                TrashedFilter::make()
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter delivery mode')),
             ])
             ->actions([
                 ActionGroup::make([
@@ -101,7 +104,7 @@ class DeliveryModeResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete delivery mode')),
                     ExportBulkAction::make()
                         ->exports([
                             CustomDeliveryModeExport::make()

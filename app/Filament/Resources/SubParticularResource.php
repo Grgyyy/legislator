@@ -99,7 +99,8 @@ class SubParticularResource extends Resource
             ])
             ->filters([
                 TrashedFilter::make()
-                    ->label('Records'),
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter particular types')),
 
                 Filter::make('fundSource')
                     ->form([

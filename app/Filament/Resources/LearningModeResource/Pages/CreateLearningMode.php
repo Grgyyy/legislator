@@ -3,9 +3,12 @@
 namespace App\Filament\Resources\LearningModeResource\Pages;
 
 use App\Filament\Resources\LearningModeResource;
-use Filament\Actions;
-use Filament\Actions\Action;
+use App\Helpers\Helper;
+use App\Models\LearningMode;
+use App\Models\DeliveryMode;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
 
 class CreateLearningMode extends CreateRecord
 {
@@ -31,5 +34,49 @@ class CreateLearningMode extends CreateRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
+    }
+
+    protected function handleRecordCreation(array $data): LearningMode
+    {
+        $this->validateUniqueLearningMode($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
+
+        $learningMode = DB::transaction(fn() => LearningMode::create([
+            'name' => $data['name'],
+        ]));
+
+        if (!empty($data['delivery_mode_id'])) {
+            $deliveryModes = DeliveryMode::whereIn('id', $data['delivery_mode_id'])->get();
+            $learningMode->deliveryMode()->attach($deliveryModes->pluck('id')->toArray());
+        }
+
+        NotificationHandler::sendSuccessNotification('Created', 'Learning Mode has been created successfully.');
+
+        return $learningMode;
+    }
+
+    protected function validateUniqueLearningMode($data)
+    {
+        $learningMode = LearningMode::withTrashed()
+            ->where('name', $data['name'])
+            ->first();
+
+        if ($learningMode) {
+            $message = $learningMode->deleted_at
+                ? 'A Learning Mode with this name has been deleted and must be restored before reuse.'
+                : 'A Learning Mode with this name already exists.';
+
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        if (!empty($data['delivery_mode_id'])) {
+            $existingDeliveryModes = DeliveryMode::whereIn('id', $data['delivery_mode_id'])->pluck('id')->toArray();
+            $missingModes = array_diff($data['delivery_mode_id'], $existingDeliveryModes);
+
+            if (!empty($missingModes)) {
+                NotificationHandler::handleValidationException('Invalid Delivery Mode', 'One or more selected delivery modes do not exist.');
+            }
+        }
     }
 }
