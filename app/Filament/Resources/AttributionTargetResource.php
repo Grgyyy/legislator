@@ -1474,7 +1474,8 @@ class AttributionTargetResource extends Resource
             ])
             ->filters([
                 TrashedFilter::make()
-                    ->label('Records'),
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter attribution target')),
             ])
             ->actions([
                 ActionGroup::make([
@@ -2115,7 +2116,7 @@ class AttributionTargetResource extends Resource
             ->where('attributor_particular_id', $attributorParticularId)
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
-            ->where('year', '>=', $yearNow - 1) 
+            ->where('year', '>=', $yearNow - 1)
             ->pluck('year', 'year')
             ->toArray() ?: ['no_allocation' => 'No allocation available'];
     }
@@ -2196,7 +2197,7 @@ class AttributionTargetResource extends Resource
         return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No Qualification Titles available'];
     }
 
-    
+
 
     public static function getEloquentQuery(): Builder
     {

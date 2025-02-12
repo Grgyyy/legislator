@@ -16,11 +16,11 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
 use Filament\Tables\Actions\ActionGroup;
-use League\CommonMark\Extension\CommonMark\Node\Block\Heading;
 use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Exports\CustomExport\CustomLearningModeExport;
 use App\Filament\Resources\LearningModeResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use League\CommonMark\Extension\CommonMark\Node\Block\Heading;
 use App\Filament\Resources\LearningModeResource\RelationManagers;
 
 class LearningModeResource extends Resource
@@ -72,7 +73,9 @@ class LearningModeResource extends Resource
                 // TextColumn::make('deliveryMode.name'),
             ])
             ->filters([
-                //
+                TrashedFilter::make()
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter learning mode')),
             ])
             ->actions([
                 ActionGroup::make([

@@ -1570,7 +1570,7 @@ class AttributionProjectProposalResource extends Resource
                                     })
                                     ->first();
                             }
-                            
+
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             $skillsPriority->available_slots += $slots;
@@ -1627,7 +1627,7 @@ class AttributionProjectProposalResource extends Resource
                                     })
                                     ->first();
                             }
-                            
+
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             $skillsPriority->available_slots -= $slots;
@@ -1691,7 +1691,7 @@ class AttributionProjectProposalResource extends Resource
                                         })
                                         ->first();
                                 }
-                                
+
                                 $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                                 $skillsPriority->available_slots += $slots;
@@ -1752,7 +1752,7 @@ class AttributionProjectProposalResource extends Resource
                                         })
                                         ->first();
                                 }
-                                
+
                                 $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                                 $skillsPriority->available_slots -= $slots;

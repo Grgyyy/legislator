@@ -18,6 +18,7 @@ use pxlrbt\FilamentExcel\Columns\Column;
 use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -60,7 +61,9 @@ class RecognitionResource extends Resource
                     ->label("Recoginition Title")
             ])
             ->filters([
-                //
+                TrashedFilter::make()
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter recognition')),
             ])
             ->actions([
                 ActionGroup::make([

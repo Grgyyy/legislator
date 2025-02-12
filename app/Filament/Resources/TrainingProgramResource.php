@@ -236,7 +236,8 @@ class TrainingProgramResource extends Resource
             ])
             ->filters([
                 TrashedFilter::make()
-                    ->label('Records'),
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter qualification title')),
 
                 Filter::make('filter')
                     ->form(function () {

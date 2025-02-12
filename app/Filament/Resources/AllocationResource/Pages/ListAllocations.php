@@ -7,6 +7,7 @@ use Filament\Actions\Action;
 use App\Exports\AllocationExport;
 use App\Imports\AllocationImport;
 use Filament\Actions\CreateAction;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
@@ -44,6 +45,7 @@ class ListAllocations extends ListRecords
                         ->disk('local')
                         ->directory('imports')
                         ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
+
                 ])
                 ->action(function (array $data) {
                     if (isset($data['file']) && is_string($data['file'])) {
@@ -60,7 +62,8 @@ class ListAllocations extends ListRecords
                             }
                         }
                     }
-                }),
+                })
+                ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']) || Auth::user()->can('import allocation')),
 
 
             Action::make('AllocationExport')
