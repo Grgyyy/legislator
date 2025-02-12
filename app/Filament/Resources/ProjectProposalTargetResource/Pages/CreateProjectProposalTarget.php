@@ -7,6 +7,8 @@ use App\Models\Allocation;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
@@ -78,6 +80,7 @@ class CreateProjectProposalTarget extends CreateRecord
 
                 $skillPriority = $this->getSkillPriority(
                     $qualificationTitle->training_program_id,
+                    $institution->district_id,
                     $institution->district->province_id,
                     $targetData['allocation_year']
                 );
@@ -202,25 +205,30 @@ class CreateProjectProposalTarget extends CreateRecord
     //     return $provinceAbdd;
     // }
 
-    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority
+    private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
     {
-        $skillPriority = SkillPriority::where([
-            'training_program_id' => $trainingProgram,
-            'province_id' => $provinceId,
-            'year' => $appropriationYear,
-        ])->first();
+        $active = Status::where('desc', 'Active')->first();
+        $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+            ->whereHas('skillPriority', function ($query) use ($districtId, $provinceId, $appropriationYear, $active) {
+                $query->where('province_id', $provinceId)
+                    ->where('district_id', $districtId)
+                    ->where('year', $appropriationYear)
+                    ->where('status_id', $active->id);
+            })
+            ->first();
 
-        if (!$skillPriority) {
-            $this->sendErrorNotification('Skill Priority not found.');
-            throw new Exception('Skill Priority not found.');
+        if (!$skillPrograms) {
+            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
+                    $query->where('province_id', $provinceId)
+                        ->where('year', $appropriationYear);
+                })
+                ->first();
         }
+        
+        $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
-        if ($skillPriority->available_slots <= 0) {
-            $this->sendErrorNotification('No available slots in Skill Priority');
-            throw new Exception('No available slots in Skill Priority.');
-        }
-
-        return $skillPriority;
+        return $skillsPriority;
     }
 
     private function getQualificationTitle(int $qualificationTitleId): QualificationTitle
