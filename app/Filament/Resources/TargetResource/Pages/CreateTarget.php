@@ -67,7 +67,6 @@ class CreateTarget extends CreateRecord
             $lastCreatedTarget = null;
 
             foreach ($data['targets'] as $targetData) {
-                $this->validateTargetData($targetData);
 
                 $allocation = $this->getAllocation($targetData);
                 $institution = $this->getInstitution($targetData['tvi_id']);
@@ -130,22 +129,6 @@ class CreateTarget extends CreateRecord
             ->danger()
             ->body($message)
             ->send();
-    }
-
-    private function validateTargetData(array $targetData): void
-    {
-        $requiredFields = [
-            'legislator_id', 'particular_id', 'scholarship_program_id',
-            'qualification_title_id', 'number_of_slots', 'tvi_id',
-            'appropriation_type', 'abdd_id', 'learning_mode_id', 'delivery_mode_id'
-        ];
-
-        foreach ($requiredFields as $field) {
-            if (empty($targetData[$field])) {
-                $this->sendErrorNotification("The field '$field' is required.");
-                throw new \InvalidArgumentException("The field '$field' is required.");
-            }
-        }
     }
 
     private function getAllocation(array $targetData): Allocation
@@ -271,7 +254,7 @@ class CreateTarget extends CreateRecord
             'qualification_title_soc_code' => $qualificationTitle->trainingProgram->soc_code,
             'qualification_title_name' => $qualificationTitle->trainingProgram->title,
             'number_of_slots' => $targetData['number_of_slots'],
-            'learning_mode_id' => $targetData['learning_mode_id'],
+            'learning_mode_id' => $targetData['learning_mode_id'] ?? null,
             'delivery_mode_id' => $targetData['delivery_mode_id'],
             'target_status_id' => 1,
         ], $totals));
@@ -293,7 +276,7 @@ class CreateTarget extends CreateRecord
             'qualification_title_name' => $target->qualification_title_name,
             'abdd_id' => $targetData['abdd_id'],
             'delivery_mode_id' => $targetData['delivery_mode_id'],
-            'learning_mode_id' => $targetData['learning_mode_id'],
+            'learning_mode_id' => $targetData['learning_mode_id'] ?? null,
             'number_of_slots' => $targetData['number_of_slots'],
             'total_training_cost_pcc' => $totals['total_training_cost_pcc'],
             'total_cost_of_toolkit_pcc' => $totals['total_cost_of_toolkit_pcc'],
