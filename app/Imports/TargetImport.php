@@ -273,12 +273,10 @@ class TargetImport implements ToModel, WithHeadingRow
         return $scholarshipProgram;
     }
 
-    protected function getAllocation(int $attributorId, int $attributorParticularId, int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
+    protected function getAllocation(int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
     {
         $allocation = Allocation::where('legislator_id', $legislatorId)
-            ->where('attributor_id', $attributorId)
             ->where('particular_id', $particularId)
-            ->where('attributor_particular_id', $attributorParticularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('year', $appropriationYear)
             ->whereNull('deleted_at')
