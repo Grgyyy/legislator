@@ -451,6 +451,11 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
                 })
                 ->first();
         }
+
+        if(!$skillPrograms) {
+            NotificationHandler::handleValidationException('Something went wrong', 'No available skill priority.');
+            return;
+        }
         
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
