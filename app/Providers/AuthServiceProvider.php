@@ -118,23 +118,16 @@ class AuthServiceProvider extends ServiceProvider
         SkillPriority::class => SkillPriorityPolicy::class,
         InstitutionProgram::class => InstitutionProgramPolicy::class,
         Toolkit::class => ToolkitPolicy::class,
+        Target::class => LegislativeTargetPolicy::class,
     ];
 
     public function boot(): void
     {
         $this->registerPolicies();
 
-        // Manually define Gates for duplicate policies
-        Gate::define('legislator-actions', [LegislativeTargetPolicy::class, 'handle']);
-        Gate::define('qualification-title-actions', [ProjectProposalPolicy::class, 'handle']);
-
-        // Example of adding more granular permissions
-        Gate::define('manage-legislator-targets', function ($user) {
-            return $user->hasPermissionTo('manage-legislator-targets');
-        });
-
-        Gate::define('manage-project-proposals', function ($user) {
-            return $user->hasPermissionTo('manage-project-proposals');
-        });
+        // Define custom gates for LegislativeTargetPolicy
+        Gate::define('view-legislative-targets-report', [LegislativeTargetPolicy::class, 'viewTargetReport']);
+        Gate::define('view-any-legislative-targets-report', [LegislativeTargetPolicy::class, 'viewAnyTargetReport']);
+        Gate::define('export-legislative-targets-report', [LegislativeTargetPolicy::class, 'exportTargetReport']);
     }
 }

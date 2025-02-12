@@ -394,7 +394,7 @@ class TviResource extends Resource
                         ->label('View Training Programs')
                         ->url(fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id]))
                         ->icon('heroicon-o-magnifying-glass')
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('view recognition')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('view training progrma')),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();

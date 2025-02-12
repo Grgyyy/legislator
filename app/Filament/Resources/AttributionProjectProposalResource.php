@@ -2,13 +2,11 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\SkillPriority;
-use App\Models\SkillPrograms;
-use App\Models\Status;
 use App\Models\Tvi;
 use Filament\Forms;
 use App\Models\Abdd;
 use Filament\Tables;
+use App\Models\Status;
 use App\Models\Target;
 use Filament\Forms\Form;
 use App\Models\Allocation;
@@ -19,7 +17,10 @@ use App\Models\DeliveryMode;
 use App\Models\ProvinceAbdd;
 use App\Models\TargetStatus;
 use Filament\Actions\Action;
+use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
 use App\Models\SubParticular;
+use App\Policies\TargetPolicy;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
@@ -1704,9 +1705,9 @@ class AttributionProjectProposalResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution project proposal ')),
                     ForceDeleteBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution project proposal ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution project proposal ')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each(function ($record) {
@@ -1766,7 +1767,7 @@ class AttributionProjectProposalResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution project proposal ')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -2310,6 +2311,24 @@ class AttributionProjectProposalResource extends Resource
 
         return $fundSource ? $fundSource->name : 'No fund source available';
     }
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->viewActionable($user);
+    }
+
+    public static function canUpdate($record): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->update($user, $record);
+    }
+
 
 }
 

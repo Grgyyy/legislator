@@ -1545,7 +1545,7 @@ class AttributionTargetResource extends Resource
                                     })
                                     ->first();
                             }
-                            
+
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             $skillsPriority->available_slots += $slots;
@@ -1602,7 +1602,7 @@ class AttributionTargetResource extends Resource
                                     })
                                     ->first();
                             }
-                            
+
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             $skillsPriority->available_slots -= $slots;
@@ -1671,7 +1671,7 @@ class AttributionTargetResource extends Resource
                                         })
                                         ->first();
                                 }
-                                
+
                                 $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                                 $skillsPriority->available_slots += $slots;
@@ -1684,7 +1684,7 @@ class AttributionTargetResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution target ')),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each(function ($record) {
@@ -1730,7 +1730,7 @@ class AttributionTargetResource extends Resource
                                         })
                                         ->first();
                                 }
-                                
+
                                 $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                                 $skillsPriority->available_slots -= $slots;
@@ -1744,14 +1744,14 @@ class AttributionTargetResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution target ')),
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected targets have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution target ')),
                     ExportBulkAction::make()
                         ->exports([
                             CustomAttributionTargetExport::make()

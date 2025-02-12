@@ -20,6 +20,7 @@ use App\Models\TargetStatus;
 use Filament\Actions\Action;
 use App\Models\SkillPriority;
 use App\Models\SkillPrograms;
+use App\Policies\TargetPolicy;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
@@ -1078,7 +1079,7 @@ class ProjectProposalTargetResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records')
-                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter attributiont target')),
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter attribution target')),
             ])
             ->actions([
                 ActionGroup::make([
@@ -1279,7 +1280,7 @@ class ProjectProposalTargetResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution target ')),
                     ForceDeleteBulkAction::make(),
                     RestoreBulkAction::make()
                         ->action(function ($records) {
@@ -1340,7 +1341,7 @@ class ProjectProposalTargetResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore target ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution target ')),
                     ExportBulkAction::make()
                         ->exports([
                             ExcelExport::make()
@@ -1761,4 +1762,22 @@ class ProjectProposalTargetResource extends Resource
 
         return 'Location information not available';
     }
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->viewActionable($user);
+    }
+
+    public static function canUpdate($record): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->update($user, $record);
+    }
+
 }

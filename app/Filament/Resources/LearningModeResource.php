@@ -107,7 +107,7 @@ class LearningModeResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete learning mode ')),
                     ExportBulkAction::make()
                         ->exports([
                             CustomLearningModeExport::make()
