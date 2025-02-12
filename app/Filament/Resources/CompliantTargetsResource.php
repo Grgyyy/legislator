@@ -1247,19 +1247,28 @@ class CompliantTargetsResource extends Resource
         return empty($scholarshipPrograms) ? ['' => 'No Scholarship Program Available'] : $scholarshipPrograms;
     }
 
-    protected static function getAllocationYear($legislatorId, $particularId, $scholarshipProgramId)
+    protected static function getAllocationYear($attributorId, $legislatorId, $attributorParticularId, $particularId, $scholarshipProgramId)
     {
         $yearNow = date('Y');
-        $allocations = Allocation::where('legislator_id', $legislatorId)
+    
+        $query = Allocation::where('legislator_id', $legislatorId)
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
-            ->whereIn('year', [$yearNow, $yearNow - 1])
-            ->pluck('year', 'year')
-            ->toArray();
-
+            ->whereIn('year', [$yearNow, $yearNow - 1]);
+    
+        // Apply attributor conditions if they are provided
+        if (!empty($attributorId)) {
+            $query->where('attributor_id', $attributorId)
+                  ->where('attributor_particular_id', $attributorParticularId);
+        }
+    
+        // Fetch allocation years
+        $allocations = $query->pluck('year', 'year')->toArray();
+    
         return empty($allocations) ? ['' => 'No Allocation Available.'] : $allocations;
     }
-
+    
+    
     protected static function getQualificationTitles($scholarshipProgramId, $tviId, $year)
     {
         $tvi = Tvi::with(['district.province'])->find($tviId);

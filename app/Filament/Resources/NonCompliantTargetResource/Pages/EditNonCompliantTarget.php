@@ -4,6 +4,8 @@ namespace App\Filament\Resources\NonCompliantTargetResource\Pages;
 
 use App\Filament\Resources\NonCompliantTargetResource;
 use App\Models\Allocation;
+use App\Models\District;
+use App\Models\Province;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationScholarship;
 use App\Models\QualificationTitle;
@@ -13,7 +15,9 @@ use App\Models\Status;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
+use App\Models\TrainingProgram;
 use App\Models\Tvi;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -87,7 +91,8 @@ class EditNonCompliantTarget extends EditRecord
                 $receiverParticularId = $record->allocation->particular_id;
 
                 if (is_null($receiverParticularId)) {
-                    throw new \Exception('Receiver Particular ID cannot be null');
+                    $message = "Receiver Particular ID cannot be null.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 // $receiverAllocation = Allocation::where('legislator_id', $receiverLegislatorId)
@@ -108,7 +113,8 @@ class EditNonCompliantTarget extends EditRecord
 
                 $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
                 if (!$qualificationTitle) {
-                    throw new \Exception('Qualification Title not found');
+                    $message = "Qualification Title not found.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 $allocation = Allocation::where('legislator_id', $receiverLegislatorId)
@@ -122,7 +128,8 @@ class EditNonCompliantTarget extends EditRecord
 
                 $institution = Tvi::find($data['tvi_id']);
                 if (!$institution) {
-                    throw new \Exception('Institution not found');
+                    $message = "Institution not found.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 $skillPriority = $this->getSkillPriority(
@@ -133,23 +140,16 @@ class EditNonCompliantTarget extends EditRecord
                 );
 
                 if (!$skillPriority) {
-                    throw new \Exception('Skill Priority not found');
+                    $message = "Skill Priority not found.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
-
-                // $provinceAbdd = ProvinceAbdd::where('province_id', $institution->district->province_id)
-                //     ->where('abdd_id', $data['abdd_id'] ?? null)
-                //     ->where('year', $data['allocation_year'] ?? null)
-                //     ->first();
-
-                // if (!$provinceAbdd) {
-                //     throw new \Exception('Province ABDD not found');
-                // }
 
                 $numberOfSlots = $data['number_of_slots'] ?? 0;
                 $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
 
                 if ($allocation->balance < $totalAmount) {
-                    throw new \Exception('Insufficient balance to process the transfer.');
+                    $message = "Insufficient balance to process the transfer.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
                 $allocation->balance -= $totalAmount;
                 $allocation->save();  
@@ -221,8 +221,8 @@ class EditNonCompliantTarget extends EditRecord
                 return $record;
             });
         } catch (\Exception $e) {
-            Log::error('Error updating record', ['exception' => $e]);
-            throw $e;
+            $message = "Failed to update target: " . $e->getMessage();
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
     private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
@@ -247,6 +247,20 @@ class EditNonCompliantTarget extends EditRecord
         }
         
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+        if (!$skillsPriority) {
+            $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
+            $province = Province::where('id', $provinceId)->first();
+            $district = District::where('id', $districtId)->first();
+        
+            if (!$trainingProgram || !$province || !$district) {
+                NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
+                return;
+            }
+        
+            $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
 
         return $skillsPriority;
     }

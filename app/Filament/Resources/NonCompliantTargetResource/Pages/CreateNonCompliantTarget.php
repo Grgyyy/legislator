@@ -4,7 +4,9 @@ namespace App\Filament\Resources\NonCompliantTargetResource\Pages;
 
 use App\Filament\Resources\NonCompliantTargetResource;
 use App\Models\Allocation;
+use App\Models\District;
 use App\Models\NonCompliantRemark;
+use App\Models\Province;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\SkillPriority;
@@ -13,6 +15,8 @@ use App\Models\Status;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
+use App\Models\TrainingProgram;
+use App\Services\NotificationHandler;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
@@ -64,16 +68,19 @@ class CreateNonCompliantTarget extends CreateRecord
 
                 $targetRecord = Target::find($data['target_id']);
                 if (!$targetRecord) {
-                    throw new \Exception('Target not found.');
+                    $message = "Target not found.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 $nonCompliantRecord = TargetStatus::where('desc', self::COMPLIANT_STATUS_DESC)->first();
                 if (!$nonCompliantRecord) {
-                    throw new \Exception('Compliant status not found.');
+                    $message = "Compliant status not found.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 if ($targetRecord->targetStatus->desc === 'Non-Compliant') {
-                    throw new \Exception('Target already marked as Non-Compliant.');
+                    $message = "Target already marked as Non-Compliant.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 $this->adjustResources($targetRecord, $data);
@@ -96,7 +103,8 @@ class CreateNonCompliantTarget extends CreateRecord
                 return $targetRecord;
             });
         } catch (\Exception $e) {
-            throw new \Exception("Failed to update target: " . $e->getMessage());
+            $message = "Failed to update target: " . $e->getMessage();
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
 
@@ -112,16 +120,19 @@ class CreateNonCompliantTarget extends CreateRecord
         );
 
         if (!$allocation) {
-            throw new \Exception('Allocation Not Found.');
+            $message = "Allocation Not Found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
         if (!$qualificationTitle) {
-            throw new \Exception('Qualification Title not found');
+            $message = "Qualification Title  Not Found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         if (!$previousSkillPrio) {
-            throw new \Exception('Skills Priority not found');
+            $message = "Skills Priority not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         $numberOfSlots = $targetRecord['number_of_slots'];
@@ -187,6 +198,20 @@ class CreateNonCompliantTarget extends CreateRecord
         }
         
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+        if (!$skillsPriority) {
+            $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
+            $province = Province::where('id', $provinceId)->first();
+            $district = District::where('id', $districtId)->first();
+        
+            if (!$trainingProgram || !$province || !$district) {
+                NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
+                return;
+            }
+        
+            $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
 
         return $skillsPriority;
     }

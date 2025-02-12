@@ -127,8 +127,8 @@ class CreateCompliantTargets extends CreateRecord
 
 
         if (!$quali) {
-            $this->sendErrorNotification('Qualification Title not found.');
-            throw new Exception('Qualification Title not found.');
+            $message = "Qualification Title not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         $step = ScholarshipProgram::where('name', 'STEP')->first();
