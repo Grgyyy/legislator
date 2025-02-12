@@ -13,7 +13,7 @@ class InstitutionClassAPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
     }
 
     /**
@@ -21,7 +21,7 @@ class InstitutionClassAPolicy
      */
     public function view(User $user, TviClass $tviClass): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
     }
 
     /**
@@ -29,7 +29,7 @@ class InstitutionClassAPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
     }
 
     /**
@@ -37,7 +37,7 @@ class InstitutionClassAPolicy
      */
     public function update(User $user, TviClass $tviClass): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
     }
 
     /**
