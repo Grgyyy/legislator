@@ -1076,8 +1076,18 @@ class ProjectProposalTargetResource extends Resource
                                     NotificationHandler::handleValidationException('Something went wrong', $message);
                             }
 
+                            if ($skillsPriority->available_slots < $slots) {
+                                    $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                            }
+
                             $skillsPriority->available_slots -= $slots;
                             $skillsPriority->save();
+
+                            if ($allocation->balance < $totalAmount + $totalCostOfToolkit) {
+                                $message = "Insuffucient Allocation Balance for {$allocation->legislator->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
+                            }
 
                             if ($allocation->balance < $totalAmount + $totalCostOfToolkit) {
                                 $message = "Insuffucient Allocation Balance for {$allocation->legislator->name}.";
