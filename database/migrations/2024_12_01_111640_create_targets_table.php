@@ -46,6 +46,7 @@ return new class extends Migration {
                 ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('learning_mode_id')
+                ->nullable()
                 ->constrained()
                 ->cascadeOnDelete();
             $table->integer('number_of_slots');
