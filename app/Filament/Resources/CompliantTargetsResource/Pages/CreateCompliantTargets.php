@@ -94,17 +94,20 @@ class CreateCompliantTargets extends CreateRecord
         return Target::findOrFail($targetId);
     }
 
-    private function findAllocation(array $data): Allocation
+    private function findAllocation(array $data): ?Allocation
     {
-        $allocation = Allocation::where('attributor_id', $data['sender_legislator_id'])
-            ->where('legislator_id', $data['legislator_id'])
-            ->where('attributor_particular_id', $data['sender_particular_id'])
-            ->where('particular_id', $data['particular_id'])
-            ->where('scholarship_program_id', $data['scholarship_program_id'])
-            ->where('year', $data['allocation_year'])
-            ->first();
-
-        return $allocation;
+        $query = Allocation::where('legislator_id', $data['attribution_receiver'])
+            ->where('particular_id', $data['attribution_receiver_particular'])
+            ->where('scholarship_program_id', $data['attribution_scholarship_program'])
+            ->where('year', $data['allocation_year']);
+    
+        // Apply attributor conditions if they are provided
+        if (!empty($data['attributor_id'])) {
+            $query->where('attributor_id', $data['attribution_sender'] ?? null)
+                  ->where('attributor_particular_id', $data['attribution_sender_particular'] ?? null);
+        }
+    
+        return $query->first();
     }
 
     private function findCompliantStatus(): TargetStatus

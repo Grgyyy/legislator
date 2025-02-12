@@ -8,6 +8,8 @@ use App\Models\NonCompliantRemark;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
@@ -102,11 +104,12 @@ class CreateNonCompliantTarget extends CreateRecord
     {
         $allocation = Allocation::find($targetRecord->allocation_id);
 
-        $previousSkillPrio = SkillPriority::where([
-            'training_program_id' => $targetRecord->qualification_title->training_program_id,
-            'province_id' => $targetRecord->tvi->district->province_id,
-            'year' => $targetRecord->allocation->year,
-        ]);
+        $previousSkillPrio = $this->getSkillPriority(
+            $targetRecord->qualification_title->training_program_id,
+            $targetRecord->tvi->district_id ?? null,
+            $targetRecord->tvi->district->province_id,
+           $targetRecord->allocation->year,
+        );
 
         if (!$allocation) {
             throw new \Exception('Allocation Not Found.');
@@ -160,5 +163,31 @@ class CreateNonCompliantTarget extends CreateRecord
             'description' => 'Marked as Non-Compliant',
             'user_id' => Auth::user()->id,
         ]);
+    }
+
+    private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
+    {
+        $active = Status::where('desc', 'Active')->first();
+        $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+            ->whereHas('skillPriority', function ($query) use ($districtId, $provinceId, $appropriationYear, $active) {
+                $query->where('province_id', $provinceId)
+                    ->where('district_id', $districtId)
+                    ->where('year', $appropriationYear)
+                    ->where('status_id', $active->id);
+            })
+            ->first();
+
+        if (!$skillPrograms) {
+            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
+                    $query->where('province_id', $provinceId)
+                        ->where('year', $appropriationYear);
+                })
+                ->first();
+        }
+        
+        $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+        return $skillsPriority;
     }
 }
