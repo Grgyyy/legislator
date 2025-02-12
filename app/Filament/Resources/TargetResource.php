@@ -609,6 +609,7 @@ class TargetResource extends Resource
                                     ->native(false)
                                     ->options(function () {
                                         return Abdd::whereNull('deleted_at')
+                                            ->whereNot('name', 'Not Applicable')
                                             ->pluck('name', 'id')
                                             ->toArray() ?: ['no_abdd' => 'No ABDD sectors available'];
                                     })
@@ -1636,13 +1637,6 @@ class TargetResource extends Resource
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         return $skillsPriority;
-    }
-
-
-
-    protected function getFormattedTotalAmountAttribute($total_amount)
-    {
-        return '₱' . number_format($this->$total_amount, 2, '.', ',');
     }
 
     protected static function getScholarshipProgramsOptions($legislatorId, $particularId)

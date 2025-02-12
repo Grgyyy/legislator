@@ -235,6 +235,9 @@ class TargetHistoryResource extends Resource
                     ->label("Processor's Name")
                     ->searchable()
                     ->toggleable(),
+
+                TextColumn::make("updated_at")
+                    ->label("Date Encoded")
             ])
             ->filters([
                 //

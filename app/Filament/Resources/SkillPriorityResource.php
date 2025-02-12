@@ -126,7 +126,7 @@ class SkillPriorityResource extends Resource
                     ->reactive(),
 
                 TextInput::make('qualification_title')
-                    ->label('Skill Priority Title')
+                    ->label('Lot Name')
                     ->required()
                     ->markAsRequired(false),
 
@@ -169,12 +169,15 @@ class SkillPriorityResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('provinces.name')
-                    ->label('Province'),
+                    ->label('Province')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('district.name')
                     ->label('District')
                     ->getStateUsing(function ($record) {
                         if ($record->district) {
-                            // Check if 'underMunicipality' exists before accessing it
                             if ($record->district->underMunicipality) {
                                 return $record->district->name . ' - ' . $record->district->underMunicipality->name;
                             } else {
@@ -184,19 +187,24 @@ class SkillPriorityResource extends Resource
                             return '-';
                         }
                     }),
+
                 TextColumn::make('qualification_title')
-                    ->searchable()
-                    ->label('LOT name'),
+                    ->label('Lot Name')
+                    ->searchable(),
+
                 TextColumn::make('trainingProgram.title')
                     ->searchable()
                     ->label('Qualification Titles')
                     ->getStateUsing(function ($record) {
                         return $record->trainingProgram->implode('title', ', ');
                     }),
+
                 TextColumn::make('available_slots')
                     ->label('Available Slots'),
+
                 TextColumn::make('total_slots')
                     ->label('Total Slots'),
+
                 TextColumn::make('year')
                     ->label('Year'),
             ])

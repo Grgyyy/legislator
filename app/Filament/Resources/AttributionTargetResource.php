@@ -9,7 +9,6 @@ use App\Models\Allocation;
 use App\Models\DeliveryMode;
 use App\Models\Legislator;
 use App\Models\Particular;
-use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
@@ -85,7 +84,6 @@ class AttributionTargetResource extends Resource
                                             })
                                             ->pluck('name', 'id')
                                             ->toArray() ?: ['no_legislator' => 'No attributors available'];
-
                                     })
                                     ->disabled()
                                     ->dehydrated()
@@ -1405,6 +1403,7 @@ class AttributionTargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution target ')),
+                    
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each(function ($record) {
@@ -1472,9 +1471,11 @@ class AttributionTargetResource extends Resource
                                 $record->deleted_at = null;
                                 $record->save();
                             });
+
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution target ')),
+                    
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
@@ -1482,6 +1483,7 @@ class AttributionTargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected targets have been deleted permanently.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution target ')),
+                    
                     ExportBulkAction::make()
                         ->exports([
                             CustomAttributionTargetExport::make()

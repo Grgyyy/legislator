@@ -59,8 +59,6 @@ class TviResource extends Resource
                 TextInput::make("school_id")
                     ->label('School ID')
                     ->placeholder('Enter school ID')
-                    ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->currencyMask(thousandSeparator: '', precision: 0)
