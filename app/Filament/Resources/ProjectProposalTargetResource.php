@@ -20,6 +20,7 @@ use App\Models\TargetStatus;
 use Filament\Actions\Action;
 use App\Models\SkillPriority;
 use App\Models\SkillPrograms;
+use App\Policies\TargetPolicy;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
@@ -1761,4 +1762,22 @@ class ProjectProposalTargetResource extends Resource
 
         return 'Location information not available';
     }
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->viewActionable($user);
+    }
+
+    public static function canUpdate($record): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->update($user, $record);
+    }
+
 }

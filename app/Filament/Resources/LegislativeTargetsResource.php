@@ -16,6 +16,7 @@ use App\Filament\Resources\LegislativeTargetsResource\Pages;
 use App\Filament\Resources\LegislativeTargetsResource\RelationManagers;
 use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Actions\ExportAction;
+use Illuminate\Support\Facades\Gate;
 
 class LegislativeTargetsResource extends Resource
 {
@@ -26,6 +27,16 @@ class LegislativeTargetsResource extends Resource
     protected static ?string $navigationGroup = "GENERAL REPORTS";
 
     protected static ?string $navigationLabel = 'Legislative Targets';
+
+    public static function canViewAny(): bool
+    {
+        return Gate::allows('view-any-legislative-targets-report');
+    }
+
+    public static function canAccess(): bool
+    {
+        return Gate::allows('view-any-legislative-targets-report');
+    }
 
     public static function form(Form $form): Form
     {

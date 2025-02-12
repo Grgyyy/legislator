@@ -2,13 +2,11 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\SkillPriority;
-use App\Models\SkillPrograms;
-use App\Models\Status;
 use App\Models\Tvi;
 use Filament\Forms;
 use App\Models\Abdd;
 use Filament\Tables;
+use App\Models\Status;
 use App\Models\Target;
 use Filament\Forms\Form;
 use App\Models\Allocation;
@@ -19,7 +17,10 @@ use App\Models\DeliveryMode;
 use App\Models\ProvinceAbdd;
 use App\Models\TargetStatus;
 use Filament\Actions\Action;
+use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
 use App\Models\SubParticular;
+use App\Policies\TargetPolicy;
 use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
@@ -2310,6 +2311,24 @@ class AttributionProjectProposalResource extends Resource
 
         return $fundSource ? $fundSource->name : 'No fund source available';
     }
+    public static function canViewAny(): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->viewActionable($user);
+    }
+
+    public static function canUpdate($record): bool
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before checking policies
+        return $user && app(TargetPolicy::class)->update($user, $record);
+    }
+
 
 }
 
