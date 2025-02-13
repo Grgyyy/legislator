@@ -20,6 +20,7 @@ use App\Models\Tvi;
 use App\Policies\TargetPolicy;
 use App\Services\NotificationHandler;
 use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -40,6 +41,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 
@@ -904,7 +906,13 @@ class TargetResource extends Resource
                     Action::make('viewComment')
                         ->label('View Comments')
                         ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
-                        ->icon('heroicon-o-chat-bubble-left-ellipsis'),
+                        ->icon('heroicon-o-chat-bubble-left-ellipsis')
+                        ->badge(fn($record) => $record->comments()->count())
+                        ->color(fn($record) => $record->comments()
+                            ->whereDoesntHave('readByUsers', function ($query) {
+                                $query->where('user_id', auth()->id());
+                            })
+                            ->exists() ? 'danger' : 'gray'),
 
                     Action::make('setAsCompliant')
                         ->label('Set as Compliant')

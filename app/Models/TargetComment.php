@@ -12,8 +12,28 @@ class TargetComment extends Model
     protected $fillable = [
         'target_id',
         'user_id',
-        'content'
+        'content',
+        'is_read'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($comment) {
+            $comment->user_id = auth()->id();
+        });
+    }
+
+    public function readByUsers()
+    {
+        return $this->hasMany(TargetCommentRead::class, 'target_comment_id');
+    }
+
+    public function isReadByUser($userId)
+    {
+        return $this->readByUsers()->where('user_id', $userId)->exists();
+    }
 
     public function target() {
         return $this->belongsTo(Target::class);
