@@ -1631,8 +1631,28 @@ class AttributionProjectProposalResource extends Resource
 
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
+                            if ($skillsPriority->available_slots < $slots) {
+                                    $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                            }
+
+                            if ($skillsPriority->available_slots < $slots) {
+                                    $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                            }
+
                             $skillsPriority->available_slots -= $slots;
                             $skillsPriority->save();
+
+                            if ($allocation->balance < $totalAmount + $totalCostOfToolkit) {
+                                $message = "Insuffucient Allocation Balance for {$allocation->legislator->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
+                            }
+
+                            if ($allocation->balance < $totalAmount + $totalCostOfToolkit) {
+                                $message = "Insuffucient Allocation Balance for {$allocation->legislator->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
+                            }
 
                             $allocation->balance -= $totalAmount + $totalCostOfToolkit;
                             $allocation->save();
@@ -1709,7 +1729,7 @@ class AttributionProjectProposalResource extends Resource
                     ForceDeleteBulkAction::make()
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution project proposal ')),
                     RestoreBulkAction::make()
-                        ->action(function ($records) {
+                    ->action(function ($records) {
                             $records->each(function ($record) {
                                 $allocation = $record->allocation;
                                 $totalAmount = $record->total_amount;
@@ -1756,9 +1776,19 @@ class AttributionProjectProposalResource extends Resource
 
                                 $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
+                                if ($skillsPriority->available_slots < $slots) {
+                                    $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                                }
+
                                 $skillsPriority->available_slots -= $slots;
                                 $skillsPriority->save();
 
+                                if ($allocation->balance < $totalAmount + $totalCostOfToolkit) {
+                                    $message = "Insuffucient Allocation Balance for {$allocation->legislator->name}.";
+                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                                }
+                                
                                 $allocation->balance -= $totalAmount + $totalCostOfToolkit;
                                 $allocation->save();
 

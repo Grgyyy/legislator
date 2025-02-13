@@ -4,6 +4,8 @@ namespace App\Filament\Resources\TargetResource\Pages;
 
 use App\Filament\Resources\TargetResource;
 use App\Models\Allocation;
+use App\Models\District;
+use App\Models\Province;
 use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
@@ -13,6 +15,7 @@ use App\Models\Status;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\Toolkit;
+use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Exception;
@@ -60,8 +63,8 @@ class CreateTarget extends CreateRecord
     {
         return DB::transaction(function () use ($data) {
             if (empty($data['targets'])) {
-                $this->sendErrorNotification('No target data found.');
-                throw new Exception('No target data found.');
+                $message = "No target data found.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             $lastCreatedTarget = null;
@@ -82,14 +85,14 @@ class CreateTarget extends CreateRecord
                 $numberOfSlots = $targetData['number_of_slots'] ?? 0;
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $targetData['allocation_year']);
 
-                if ($allocation->balance < round($totals['total_amount'], 2)) {
-                    $this->sendErrorNotification('Insufficient allocation balance.');
-                    throw new Exception('Insufficient allocation balance.');
+                if ($allocation->balance < $totals['total_amount']) {
+                    $message = "Insufficient allocation balance.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
-                    $this->sendSuccessNotification('Insufficient target beneficiaries available in Skill Priority.');
-                    throw new Exception('Insufficient allocation balance.');
+                    $message = "Insufficient target beneficiaries available in Skill Priority.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 $target = $this->createTarget($targetData, $allocation, $institution, $qualificationTitle, $totals);
@@ -103,8 +106,8 @@ class CreateTarget extends CreateRecord
             }
 
             if (!$lastCreatedTarget) {
-                $this->sendErrorNotification('No targets were created.');
-                throw new Exception('No targets were created.');
+                $message = "No targets were created.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             $this->sendSuccessNotification('Targets created successfully.');
@@ -142,8 +145,8 @@ class CreateTarget extends CreateRecord
         ])->first();
 
         if (!$allocation) {
-            $this->sendErrorNotification('Allocation not found.');
-            throw new Exception('Allocation not found.');
+            $message = "Allocation not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $allocation;
@@ -154,8 +157,8 @@ class CreateTarget extends CreateRecord
         $institution = Tvi::find($tviId);
 
         if (!$institution) {
-            NotificationHandler::sendErrorNotification('Error', 'Institution not found.');
-            throw new Exception('Institution not found.');
+            $message = "Institution not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $institution;
@@ -184,6 +187,20 @@ class CreateTarget extends CreateRecord
         
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
+        if (!$skillsPriority) {
+            $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
+            $province = Province::where('id', $provinceId)->first();
+            $district = District::where('id', $districtId)->first();
+        
+            if (!$trainingProgram || !$province || !$district) {
+                NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
+                return;
+            }
+        
+            $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
         return $skillsPriority;
     }
 
@@ -193,8 +210,8 @@ class CreateTarget extends CreateRecord
         $qualificationTitle = QualificationTitle::find($qualificationTitleId);
 
         if (!$qualificationTitle) {
-            $this->sendErrorNotification('Qualification Title not found.');
-            throw new Exception('Qualification Title not found.');
+            $message = "Qualification Title not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $qualificationTitle;
@@ -207,8 +224,8 @@ class CreateTarget extends CreateRecord
 
 
         if (!$quali) {
-            $this->sendErrorNotification('Qualification Title not found.');
-            throw new Exception('Qualification Title not found.');
+            $message = "Qualification Title not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         $step = ScholarshipProgram::where('name', 'STEP')->first();
@@ -218,8 +235,8 @@ class CreateTarget extends CreateRecord
         if ($quali->scholarship_program_id === $step->id) {
 
             if (!$costOfToolkitPcc) {
-                $this->sendErrorNotification('Please add STEP Toolkits.');
-                throw new Exception('Please add STEP Toolkits.');
+                $message = "STEP Toolkits are required before proceeding. Please add them first";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;

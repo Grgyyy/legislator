@@ -12,6 +12,7 @@ use App\Models\SkillPrograms;
 use App\Models\Status;
 use App\Models\TargetHistory;
 use App\Models\Tvi;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
@@ -78,7 +79,8 @@ class EditAttributionTarget extends EditRecord
 
             foreach ($requiredFields as $field) {
                 if (empty($data[$field])) {
-                    throw new \InvalidArgumentException("The field '$field' is required.");
+                    $message = "The field '$field' is required.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
             }
 
@@ -120,12 +122,14 @@ class EditAttributionTarget extends EditRecord
                 ->first();
 
             if (!$allocation) {
-                throw new Exception('Allocation not found');
+                $message = "Allocation not found.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
             if (!$qualificationTitle) {
-                throw new Exception('Qualification Title not found');
+                $message = "Qualification Title not found";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             $numberOfSlots = $data['number_of_slots'] ?? 0;
@@ -140,8 +144,8 @@ class EditAttributionTarget extends EditRecord
             if ($qualificationTitle->scholarship_program_id === $step->id) {
                 
                 if (!$costOfToolkitPcc) {
-                    $this->sendErrorNotification('Please add STEP Toolkits.');
-                    throw new Exception('Please add STEP Toolkits.');
+                    $message = "STEP Toolkits are required before proceeding. Please add them first";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
@@ -164,11 +168,13 @@ class EditAttributionTarget extends EditRecord
 
             $institution = Tvi::find($data['tvi_id']);
             if (!$institution) {
-                throw new Exception('Institution not found');
+                $message = "Institution not found";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             if ($allocation->balance + $record->total_amount < $total_amount) {
-                throw new Exception('Insufficient funds in sender allocation');
+                $message = "Insufficient funds in sender allocation.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             $previousSkillPrio = $this->getSkillPriority(
@@ -179,8 +185,9 @@ class EditAttributionTarget extends EditRecord
             );
 
             if (!$previousSkillPrio) {
-                $this->sendErrorNotification('Previous Skill Priority not found.');
-                throw new Exception('Previous Skill Priority not found.');
+                $message = "Previous Skill Priority not found.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
+                    
             }
 
             $skillPriority = $this->getSkillPriority(
@@ -190,9 +197,9 @@ class EditAttributionTarget extends EditRecord
                 $data['allocation_year']
             );
 
-            if (!$skillPriority) {
-                $this->sendErrorNotification('Skill Priority not found.');
-                throw new Exception('Skill Priority not found.');
+            if ($skillPriority->available_slots < $numberOfSlots) {
+                $message = "Skill Priority for {$qualificationTitle->trainingProgram->title} under District {$institution->district->name} in {$institution->district->province->name} not found.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             $allocation->balance += $record->total_amount;

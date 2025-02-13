@@ -136,6 +136,7 @@ class CreateProjectProposal extends CreateRecord
                 ? 'A qualification title with the provided details has been deleted and must be restored before reuse.'
                 : 'A qualification title with the provided details already exists.';
 
+            
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

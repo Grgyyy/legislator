@@ -10,6 +10,8 @@ use App\Models\SkillPrograms;
 use App\Models\Status;
 use App\Models\SubParticular;
 use App\Models\TargetStatus;
+use App\Models\TrainingProgram;
+use App\Services\NotificationHandler;
 use Auth;
 use Throwable;
 use App\Models\Tvi;
@@ -100,11 +102,13 @@ class TargetImport implements ToModel, WithHeadingRow
                 ];
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
-                    throw new \Exception("Insufficient available slots in Skill Priorities to create the target.");
+                    $message = "Insufficient target benificiaries in Skill Priorities of the {$qualificationTitle->trainingProgram->title} under the under District {$tvi->district->name} in {$tvi->district->province->name} to create the target.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 if ($allocation->balance < $totals['total_amount']) {
-                    throw new \Exception("Insufficient allocation balance to create the target.");
+                    $message = "Insufficient allocation balance to create the target.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
                 $target = Target::create($targetData);
@@ -116,8 +120,8 @@ class TargetImport implements ToModel, WithHeadingRow
 
             });
         } catch (Throwable $e) {
-            Log::error("Import failed: " . $e->getMessage());
-            throw $e;
+            $message = "Import failed: ". $e->getMessage();
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
     }
@@ -145,7 +149,8 @@ class TargetImport implements ToModel, WithHeadingRow
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {
-                throw new \Exception("The field '{$field}' is required and cannot be null or empty. No changes were saved.");
+                $message = "The field '{$field}' is required and cannot be null or empty. No changes were saved.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
         }
     }
@@ -153,7 +158,8 @@ class TargetImport implements ToModel, WithHeadingRow
     protected function validateNumberOfSlots(int $number_of_slots)
     {
         if ($number_of_slots < 10 || $number_of_slots > 25) {
-            throw new \Exception("The field '{$number_of_slots}' in Number of Slot should be greater than or equal to 10 and less than equal to 25 ");
+            $message = "The field '{$number_of_slots}' in Number of Slot should be greater than or equal to 10 and less than equal to 25";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
 
@@ -162,7 +168,8 @@ class TargetImport implements ToModel, WithHeadingRow
         $currentYear = date('Y');
         $pastYear = $currentYear - 1;
         if ($year != $currentYear && $year != $pastYear) {
-            throw new \Exception("The provided year '{$year}' must be either the current year '{$currentYear}' or the previous year '{$pastYear}'.");
+            $message = "The provided year '{$year}' must be either the current year '{$currentYear}' or the previous year '{$pastYear}'.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
 
@@ -175,7 +182,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$legislator) {
-            throw new \Exception("No active legislator with an allocation found for name: {$legislatorName}");
+            $message = "No active legislator with an allocation found for name: {$legislatorName}.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $legislator;
@@ -187,7 +195,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$region) {
-            throw new \Exception("Region with name '{$regionName}' not found.");
+            $message = "Region with name '{$regionName}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $region;
@@ -201,7 +210,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$province) {
-            throw new \Exception("Province with name '{$provinceName}' not found.");
+            $message = "Province with name '{$provinceName}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $province;
@@ -214,7 +224,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$district) {
-            throw new \Exception("District with name '{$districtName}' not found.");
+            $message = "District with name '{$districtName}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
         return $district;
     }
@@ -225,7 +236,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$partylist) {
-            throw new \Exception("Partylist with name '{$partylistName}' not found. ");
+            $message = "Partylist with name '{$partylistName}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $partylist;
@@ -238,7 +250,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$subParticular) {
-            throw new \Exception("Sub-Particular with name '{$subParticularName}' not found.");
+            $message = "Sub-Particular with name '{$subParticularName}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $subParticular;
@@ -254,7 +267,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$particular) {
-            throw new \Exception("Particular with name '{$subParticular->name}' not found.");
+            $message = "Particular with name '{$subParticular->name}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $particular;
@@ -267,7 +281,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$scholarshipProgram) {
-            throw new \Exception("Scholarship Program with name '{$scholarshipProgramName}' not found.");
+            $message = "Scholarship Program with name '{$scholarshipProgramName}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $scholarshipProgram;
@@ -283,7 +298,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$allocation) {
-            throw new \Exception("No allocation found matching the provided legislator, particular, scholarship program, and year.");
+            $message = "No allocation found matching the provided legislator, particular, scholarship program, and year.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $allocation;
@@ -296,7 +312,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$abddSector) {
-            throw new \Exception("ABDD Sector with name '{$abddSectorName}' not found.");
+            $message = "ABDD Sector with name '{$abddSectorName}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $abddSector;
@@ -309,7 +326,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$deliveryMode) {
-            throw new \Exception("Delivery Mode with name '{$deliveryModeName}' not found.");
+            $message = "Delivery Mode with name '{$deliveryModeName}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $deliveryMode;
@@ -324,7 +342,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$learningMode) {
-            throw new \Exception("Learning Mode with the specified name and associated Delivery Mode was not found.");
+            $message = "Learning Mode with the specified name and associated Delivery Mode was not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $learningMode;
@@ -336,7 +355,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$tvi) {
-            throw new \Exception("Institution with name '{$tviName}' not found.");
+            $message = "Institution with name '{$tviName}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $tvi;
@@ -352,7 +372,8 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$qualificationTitle) {
-            throw new \Exception("Qualification Title with name '{$qualificationTitleName}' not found.");
+            $message = "Qualification Title with name '{$qualificationTitleName}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $qualificationTitle;
@@ -366,7 +387,8 @@ class TargetImport implements ToModel, WithHeadingRow
 
 
         if (!$quali) {
-            throw new \Exception("Qualification Title with name '{$qualificationTitle->trainingProgram->title}' not found.");
+            $message = "Qualification Title with name '{$qualificationTitle->trainingProgram->title}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         $step = ScholarshipProgram::where('name', 'STEP')->first();
@@ -414,8 +436,27 @@ class TargetImport implements ToModel, WithHeadingRow
                 })
                 ->first();
         }
+
+        if(!$skillPrograms) {
+            NotificationHandler::handleValidationException('Something went wrong', 'No available skill priority.');
+            return;
+        }
         
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+        if (!$skillsPriority) {
+            $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
+            $province = Province::where('id', $provinceId)->first();
+            $district = District::where('id', $districtId)->first();
+        
+            if (!$trainingProgram || !$province || !$district) {
+                NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
+                return;
+            }
+        
+            $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
 
         return $skillsPriority;
     }
