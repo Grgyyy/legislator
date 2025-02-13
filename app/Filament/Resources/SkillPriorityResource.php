@@ -2,43 +2,43 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\CustomExport\CustomSkillsPriorityExport;
+use App\Filament\Resources\SkillPriorityResource\Pages;
 use App\Models\District;
-use App\Models\QualificationTitle;
-use Filament\Tables;
 use App\Models\Province;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
+use App\Models\QualificationTitle;
 use App\Models\SkillPriority;
-use PhpParser\Node\Stmt\Label;
 use App\Models\TrainingProgram;
-use Filament\Resources\Resource;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\HtmlString;
-use Filament\Tables\Actions\Action;
-use Illuminate\Support\Facades\Log;
-use Filament\Support\Enums\MaxWidth;
-use Illuminate\Support\Facades\Auth;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Support\Enums\MaxWidth;
+use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\SkillPriorityResource\Pages;
-use App\Exports\CustomExport\CustomSkillsPriorityExport;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\HtmlString;
+use PhpParser\Node\Stmt\Label;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class SkillPriorityResource extends Resource
 {
@@ -302,7 +302,7 @@ class SkillPriorityResource extends Resource
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
-                                ->withFilename(date('Y-m-d') . '-skill-priorities-export.xlsx'),
+                                ->withFilename(date('Y-m-d') . '-skill_priority_export.xlsx'),
                         ])
                 ]),
             ]);

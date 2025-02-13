@@ -2,48 +2,48 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\SkillPriority;
-use App\Models\Tvi;
-use Filament\Forms;
-use App\Models\Abdd;
-use App\Models\User;
-use Filament\Tables;
-use App\Models\Target;
-use Filament\Forms\Form;
-use App\Models\Allocation;
-use App\Models\Legislator;
-use App\Models\Particular;
-use Filament\Tables\Table;
-use App\Models\DeliveryMode;
-use App\Models\TargetRemark;
-use App\Models\TargetStatus;
-use Filament\Actions\Action;
-use App\Models\SubParticular;
-use App\Policies\TargetPolicy;
-use Filament\Resources\Resource;
-use App\Models\NonCompliantTarget;
-use App\Models\QualificationTitle;
-use App\Models\ScholarshipProgram;
-use Illuminate\Support\Facades\Auth;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Textarea;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Filament\Resources\NonCompliantTargetResource\Pages;
 use App\Filament\Resources\NonCompliantTargetResource\RelationManagers;
+use App\Models\Abdd;
+use App\Models\Allocation;
+use App\Models\DeliveryMode;
+use App\Models\Legislator;
+use App\Models\NonCompliantTarget;
+use App\Models\Particular;
+use App\Models\QualificationTitle;
+use App\Models\ScholarshipProgram;
+use App\Models\SkillPriority;
+use App\Models\SubParticular;
+use App\Models\Target;
+use App\Models\TargetRemark;
+use App\Models\TargetStatus;
+use App\Models\Tvi;
+use App\Models\User;
+use App\Policies\TargetPolicy;
+use Filament\Actions\Action;
+use Filament\Forms;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class NonCompliantTargetResource extends Resource
 {
@@ -652,7 +652,8 @@ class NonCompliantTargetResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditACtion::make()
-                        ->hidden(fn($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed())
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'TESDO', 'SMD Head']) || Auth::user()->can('delete target ')),
                     Action::make('viewHistory')
                         ->label('View History')
                         ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))

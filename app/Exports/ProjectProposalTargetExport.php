@@ -3,12 +3,12 @@
 namespace App\Exports;
 
 use App\Models\Target;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -20,27 +20,32 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
 {
     private $columns = [
         'fund_source' => 'Fund Source',
-        'allocation.legislator.name' => 'Legislator',
         'allocation.soft_or_commitment' => 'Source of Fund',
-        'appropriation_type' => 'Appropriation Type',
-        'allocation.year' => 'Allocation',
+        'allocation.legislator.name' => 'Legislator',
         'allocation.legislator.particular.subParticular' => 'Particular',
-        'municipality_name' => 'Municipality',
-        'district_name' => 'District',
-        'municipality.province.name' => 'Province',
-        'region_name' => 'Region',
+        'appropriation_type' => 'Appropriation Type',
+        'allocation.year' => 'Appropriation Year',
+
         'institution_name' => 'Institution',
         'institution_type' => 'Institution Type',
         'institution_class' => 'Institution Class',
+
+        'district_name' => 'District',
+        'municipality_name' => 'Municipality',
+        'municipality.province.name' => 'Province',
+        'region_name' => 'Region',
+
         'qualification_code' => 'Qualification Code',
-        'qualification_title_soc_code' => 'Qualification SOC Code',
         'qualification_name' => 'Qualification Title',
+        'scholarship_program' => 'Scholarship Program',
+
         'abdd_sector' => 'ABDD Sector',
         'tvet_sector' => 'TVET Sector',
         'priority_sector' => 'Priority Sector',
+
         'delivery_mode' => 'Delivery Mode',
         'learning_mode' => 'Learning Mode',
-        'scholarship_program' => 'Scholarship Program',
+
         'number_of_slots' => 'No. of Slots',
         'training_cost_per_slot' => 'Training Cost',
         'cost_of_toolkit_per_slot' => 'Cost of Toolkit',
@@ -53,6 +58,7 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
         'uniform_allowance_per_slot' => 'Uniform Allowance',
         'misc_fee_per_slot' => 'Miscellaneous Fee',
         'total_amount_per_slot' => 'PCC',
+
         'total_training_cost_pcc' => 'Total Training Cost',
         'total_cost_of_toolkit_pcc' => 'Total Cost of Toolkit',
         'total_training_support_fund' => 'Total Training Support Fund',
@@ -120,7 +126,7 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PENDING TARGET'],
+            ['PROJECT PROPOSAL PENDING TARGETS'],
             [''],
         ];
 
@@ -131,27 +137,31 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
     {
         return [
             $this->getFundSource($record),
-            $record->allocation->legislator->name ?? '-',
             $record->allocation->soft_or_commitment ?? '-',
+            $record->allocation->legislator->name ?? '-',
+            $this->getParticular($record),
             $record->appropriation_type,
             $record->allocation->year,
-            $this->getParticular($record),
-            $record->municipality->name ?? '-',
+
+            $record->tvi->name ?? '-',
+            $record->tvi->tviType->name ?? '-',
+            $record->tvi->tviClass->name ?? '-',
+
             $record->district->name ?? '-',
+            $record->municipality->name ?? '-',
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
-            $record->tvi->name ?? '-',
-            $record->tvi->tviClass->tviType->name ?? '-',
-            $record->tvi->tviClass->name ?? '-',
+
             $record->qualification_title_code ?? '-',
-            $record->qualification_title_soc_code ?? '-',
-            $record->qualification_title_name ?? '-',
+            $this->getQualificationTitle($record),
+            $record->allocation->scholarship_program->name ?? '-',
+
             $record->abdd->name ?? '-',
             $record->qualification_title->trainingProgram->tvet->name ?? '-',
             $record->qualification_title->trainingProgram->priority->name ?? '-',
+
             $record->deliveryMode->name ?? '-',
             $record->learningMode->name ?? '-',
-            $record->allocation->scholarship_program->name ?? '-',
             $record->number_of_slots,
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
@@ -177,6 +187,14 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
             $this->formatCurrency($record->total_amount),
             $record->targetStatus->desc ?? '-',
         ];
+    }
+
+    private function getQualificationTitle($record)
+    {
+        $qualificationCode = $record->qualification_title_soc_code ?? '';
+        $qualificationName = $record->qualification_title_name ?? '';
+
+        return "{$qualificationCode} - {$qualificationName}";
     }
 
     private function getFundSource($record)

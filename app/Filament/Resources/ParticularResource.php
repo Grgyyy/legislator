@@ -2,10 +2,11 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\CustomExport\CustomParticularExport;
 use App\Filament\Resources\ParticularResource\Pages;
 use App\Models\District;
-use App\Models\Partylist;
 use App\Models\Particular;
+use App\Models\Partylist;
 use App\Models\SubParticular;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
@@ -25,7 +26,6 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Exports\CustomExport\CustomParticularExport;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -241,7 +241,7 @@ class ParticularResource extends Resource
                                         return $record->district->province->region ? $record->district->province->region->name : '-';
                                     }),
                             ])
-                            ->withFilename(date('m-d-Y') . ' - Particulars')
+                            ->withFilename(date('m-d-Y') . ' - particular_export')
                     ]),
                 ]),
             ]);

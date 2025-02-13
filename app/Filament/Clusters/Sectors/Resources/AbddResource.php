@@ -2,6 +2,7 @@
 
 namespace App\Filament\Clusters\Sectors\Resources;
 
+use App\Exports\CustomExport\CustomAbddSectorExport;
 use App\Filament\Clusters\Sectors;
 use App\Filament\Clusters\Sectors\Resources\AbddResource\Pages;
 use App\Models\Abdd;
@@ -23,7 +24,6 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Exports\CustomExport\CustomAbddSectorExport;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -125,7 +125,7 @@ class AbddResource extends Resource
                                     Column::make('name')
                                         ->heading('ABDD Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - ABDD Sectors')
+                                ->withFilename(date('m-d-Y') . ' - abdd_sector_export')
                         ]),
                 ]),
             ]);

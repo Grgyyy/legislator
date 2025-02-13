@@ -13,6 +13,8 @@ use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
 use App\Models\SubParticular;
 use App\Models\Target;
 use App\Models\TargetStatus;
@@ -290,7 +292,7 @@ class AttributionTargetResource extends Resource
                                     ->reactive()
                                     ->live()
                                     ->validationAttribute('qualification title'),
-                                    
+
                                 Select::make('abdd_id')
                                     ->label('ABDD Sector')
                                     ->required()
@@ -306,7 +308,7 @@ class AttributionTargetResource extends Resource
                                     ->disableOptionWhen(fn($value) => $value === 'no_abdd')
                                     ->disableOptionWhen(fn($value) => $value === 'no_abdd')
                                     ->validationAttribute('ABDD sector'),
-        
+
                                 Select::make('delivery_mode_id')
                                     ->label('Delivery Mode')
                                     ->required()
@@ -416,7 +418,7 @@ class AttributionTargetResource extends Resource
                                                 $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                                 $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-                            
+
                                                 if (count($AttributorParticularOptions) === 1) {
                                                     $set('attribution_sender_particular', key($AttributorParticularOptions));
                                                 } else {
@@ -500,7 +502,7 @@ class AttributionTargetResource extends Resource
                                                 $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -584,7 +586,7 @@ class AttributionTargetResource extends Resource
                                                 $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -670,7 +672,7 @@ class AttributionTargetResource extends Resource
                                                 $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -759,7 +761,7 @@ class AttributionTargetResource extends Resource
 
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -805,7 +807,7 @@ class AttributionTargetResource extends Resource
                                                 }
 
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1029,6 +1031,7 @@ class AttributionTargetResource extends Resource
                     }),
 
                 TextColumn::make('allocation.legislator.name')
+                    ->label('Legislator')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -1080,6 +1083,13 @@ class AttributionTargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
+
+                TextColumn::make('location')
+                    ->label('Address')
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => self::getLocationNames($record)),
+
                 TextColumn::make('tvi.tviType.name')
                     ->label('Institution Class')
                     ->searchable()
@@ -1090,12 +1100,6 @@ class AttributionTargetResource extends Resource
 
                         return "{$institutionType} - {$institutionClass}";
                     }),
-
-                TextColumn::make('location')
-                    ->label('Address')
-                    ->searchable()
-                    ->toggleable()
-                    ->getStateUsing(fn($record) => self::getLocationNames($record)),
 
                 TextColumn::make('qualification_title_code')
                     ->label('Qualification Code')
@@ -1187,18 +1191,18 @@ class AttributionTargetResource extends Resource
                         ->label('View History')
                         ->icon('heroicon-o-clock')
                         ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id])),
-                    
+
                     Action::make('viewComment')
                         ->label('View Comments')
                         ->icon('heroicon-o-chat-bubble-left-ellipsis')
                         ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id])),
-                    
+
                     Action::make('setAsCompliant')
                         ->label('Set as Compliant')
                         ->icon('heroicon-o-check-circle')
                         ->url(fn($record) => route('filament.admin.resources.compliant-targets.create', ['record' => $record->id]))
                         ->visible(fn() => !Auth::user()->hasRole('TESDO')),
-                    
+
                     Action::make('setAsNonCompliant')
                         ->label('Set as Non-compliant')
                         ->icon('heroicon-o-x-circle')
@@ -1574,7 +1578,7 @@ class AttributionTargetResource extends Resource
                                         ->heading('Institution Class'),
 
                                     Column::make('district.name')
-                                            ->heading('District'),
+                                        ->heading('District'),
 
                                     Column::make('municipality.name')
                                         ->heading('Municipality'),
@@ -1585,15 +1589,19 @@ class AttributionTargetResource extends Resource
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
 
-                                        Column::make('qualification_title_code')
-                                        ->heading('Qualification Code'),
-
-                                    Column::make('qualification_title_soc_code')
-                                        ->heading('Qualification SoC Code'),
+                                    Column::make('qualification_title_code')
+                                        ->heading('Qualification Code')
+                                        ->getStateUsing(fn($record) => $record->qualification_title_code ?? '-'),
 
                                     Column::make('qualification_title_name')
-                                        ->heading('Qualification Title'),
-                                    
+                                        ->heading('Qualification Title')
+                                        ->formatStateUsing(function ($state, $record) {
+                                            $qualificationCode = $record->qualification_title_soc_code ?? '';
+                                            $qualificationName = $record->qualification_title_name ?? '';
+
+                                            return "{$qualificationCode} - {$qualificationName}";
+                                        }),
+
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
 
@@ -1783,13 +1791,13 @@ class AttributionTargetResource extends Resource
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Attribution Targets')
+                                ->withFilename(date('m-d-Y') . ' - attribution_target_export')
                         ]),
                 ]),
             ]);
     }
-    
-    
+
+
     private static function getParticularOptions($legislatorId)
     {
         if (!$legislatorId) {
@@ -1880,8 +1888,8 @@ class AttributionTargetResource extends Resource
         }
 
         return 'Location information not available';
-    } 
-    
+    }
+
     protected static function getQualificationTitles($scholarshipProgramId, $tviId, $year)
     {
         $tvi = Tvi::with(['district.province'])->find($tviId);
@@ -1950,7 +1958,7 @@ class AttributionTargetResource extends Resource
             ->pluck('name', 'id')
             ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
     }
-    
+
     protected static function calculateCostPerSlot($record, $costProperty)
     {
         $totalCost = $record->{$costProperty};

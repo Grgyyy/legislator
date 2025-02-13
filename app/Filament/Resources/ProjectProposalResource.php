@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\CustomExport\CustomProjectProposalProgramExport;
 use App\Filament\Resources\ProjectProposalResource\Pages;
 use App\Models\Priority;
 use App\Models\ScholarshipProgram;
@@ -31,7 +32,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Exports\CustomExport\CustomProjectProposalProgramExport;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
@@ -346,7 +346,7 @@ class ProjectProposalResource extends Resource
                                     Column::make('priority.name')
                                         ->heading('Priority Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Project Proposal Programs')
+                                ->withFilename(date('m-d-Y') . ' - project_proposal_program_export')
                         ]),
                 ]),
             ]);

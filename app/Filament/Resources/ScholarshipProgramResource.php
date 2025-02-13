@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\CustomExport\CustomScholarshipProgramExport;
 use App\Filament\Resources\ScholarshipProgramResource\Pages;
 use App\Models\ScholarshipProgram;
 use App\Services\NotificationHandler;
@@ -24,7 +25,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Exports\CustomExport\CustomScholarshipProgramExport;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
@@ -154,7 +154,7 @@ class ScholarshipProgramResource extends Resource
                                     Column::make('desc')
                                         ->heading('Description'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Scholarship Programs')
+                                ->withFilename(date('m-d-Y') . ' - scholarship_program_export')
                         ]),
                 ]),
             ]);

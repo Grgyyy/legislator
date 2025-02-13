@@ -2,6 +2,7 @@
 
 namespace App\Filament\Clusters\Sectors\Resources;
 
+use App\Exports\CustomExport\CustomTvetSectorExport;
 use App\Filament\Clusters\Sectors;
 use App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
 use App\Models\Tvet;
@@ -23,7 +24,6 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Exports\CustomExport\CustomTvetSectorExport;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -125,7 +125,7 @@ class TvetResource extends Resource
                                     Column::make('name')
                                         ->heading('TVET Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - TVET Sectors')
+                                ->withFilename(date('m-d-Y') . ' - tvet_sector_export')
                         ]),
                 ]),
             ]);

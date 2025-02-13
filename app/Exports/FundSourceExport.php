@@ -29,7 +29,7 @@ class FundSourceExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['FUND SOURCE'],
+            ['FUND SOURCES'],
             [''],
         ];
 

@@ -2,21 +2,21 @@
 
 namespace App\Filament\Resources\AttributionProjectProposalResource\Pages;
 
+use App\Exports\AttributionProjectProposalExport;
+use App\Filament\Resources\AttributionProjectProposalResource;
+use App\Imports\AttributionProjectProposalImport;
+use App\Imports\ProjectProposalImport;
+use App\Services\NotificationHandler;
 use Filament\Actions;
+
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
-
-use App\Imports\ProjectProposalImport;
-use PhpOffice\PhpSpreadsheet\Exception;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Exports\AttributionProjectProposalExport;
-use App\Imports\AttributionProjectProposalImport;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
-use App\Filament\Resources\AttributionProjectProposalResource;
+use PhpOffice\PhpSpreadsheet\Exception;
 
 
 class ListAttributionProjectProposals extends ListRecords
@@ -36,7 +36,7 @@ class ListAttributionProjectProposals extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new AttributionProjectProposalExport, 'attribution_project_proposal_target_export.xlsx');
+                        return Excel::download(new AttributionProjectProposalExport, 'attribution_project_proposal_pending_target_export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

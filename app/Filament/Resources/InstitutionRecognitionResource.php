@@ -2,39 +2,38 @@
 
 namespace App\Filament\Resources;
 
-use Date;
-use Carbon\Carbon;
-use App\Models\Tvi;
-use Filament\Forms;
-use Filament\Tables;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use App\Models\Recognition;
-use Filament\Resources\Resource;
-use Illuminate\Support\Facades\Auth;
-use App\Services\NotificationHandler;
-use Filament\Forms\Components\Select;
-use App\Models\InstitutionRecognition;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Forms\Components\DatePicker;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use App\Exports\CustomExport\CustomInstitutionRecognitionExport;
 use App\Filament\Resources\InstitutionRecognitionResource\Pages;
-use App\Filament\Resources\InstitutionRecognitionResource\RelationManagers;
+use App\Models\InstitutionRecognition;
+use App\Models\Recognition;
+use App\Models\Tvi;
+use App\Services\NotificationHandler;
+use Carbon\Carbon;
+use Date;
+use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class InstitutionRecognitionResource extends Resource
 {
@@ -90,9 +89,9 @@ class InstitutionRecognitionResource extends Resource
                     ->markAsRequired(false)
                     ->native(false)
                     ->weekStartsOnSunday()
-                    ->closeOnDateSelection()
-                    ->minDate(today())
-                    ->rules(['after_or_equal:today']),
+                    ->closeOnDateSelection(),
+                // ->minDate(today()),
+                // ->rules(['after_or_equal:today']),
 
                 DatePicker::make('expiration_date')
                     ->label('Expiration Date')
@@ -101,8 +100,14 @@ class InstitutionRecognitionResource extends Resource
                     ->native(false)
                     ->weekStartsOnSunday()
                     ->closeOnDateSelection()
-                    ->minDate(fn($get) => $get('accreditation_date') ? Carbon::parse($get('accreditation_date'))->addDay() : today()->addDay())
-                    ->rules(['after:accreditation_date']),
+                    ->minDate(fn($get) => $get('accreditation_date')
+                        ? Carbon::parse($get('accreditation_date'))->addDay()->greaterThan(today())
+                        ? Carbon::parse($get('accreditation_date'))->addDay()
+                        : today()->addDay()
+                        : today()->addDay())
+                    ->rules(['after:today', 'after:accreditation_date']),
+
+
 
 
 
@@ -197,7 +202,7 @@ class InstitutionRecognitionResource extends Resource
                                         ->heading('Expiration Date')
                                         ->formatStateUsing(fn($state) => Carbon::parse($state)->format('F j, Y')),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Institution Recognitions')
+                                ->withFilename(date('m-d-Y') . ' - institution_recognition_export')
                         ])
                 ]),
             ]);

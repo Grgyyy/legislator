@@ -5,12 +5,12 @@ namespace App\Exports;
 use App\Models\Tvet;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class TvetExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
@@ -35,7 +35,7 @@ class TvetExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['TVET SECTOR'],
+            ['TVET SECTORS'],
             [''],
         ];
 

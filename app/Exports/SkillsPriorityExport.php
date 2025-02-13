@@ -5,37 +5,53 @@ namespace App\Exports;
 use App\Models\SkillPriority;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class SkillsPriorityExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 {
     private array $columns = [
         'province_id' => 'Province',
-        'training_program_id' => 'Training Program',
+        'district_id' => 'District',
+        'qualification_title' => 'LOT Name',
+        'training_program_title' => 'Qualification Titles',
         'available_slots' => 'Available Slots',
         'total_slots' => 'Total Slots',
         'year' => 'Year',
     ];
 
+
     public function query(): Builder
     {
         return SkillPriority::query()
-            ->select(array_keys($this->columns));
+            ->with('trainingProgram')
+            ->select([
+                'id',
+                'province_id',
+                'district_id',
+                'qualification_title',
+                'available_slots',
+                'total_slots',
+                'year',
+            ]);
     }
+
+
 
     public function map($record): array
     {
         return [
-            $record->provinces->name,
-            $record->trainingPrograms->title,
-            $record->available_slots,
-            $record->total_slots,
-            $record->year,
+            $record->provinces->name ?? '-',
+            $this->getDistrict($record),
+            $record->qualification_title ?? '-',
+            $this->getTrainingProgram($record),
+            $record->available_slots ?? 0,
+            $record->total_slots ?? 0,
+            $record->year ?? '-',
         ];
     }
 
@@ -96,6 +112,26 @@ class SkillsPriorityExport implements FromQuery, WithMapping, WithStyles, WithHe
 
         return $sheet;
     }
+
+    private function getDistrict($record)
+    {
+        if ($record->district) {
+            if ($record->district->underMunicipality) {
+                return $record->district->name . ' - ' . $record->district->underMunicipality->name;
+            } else {
+                return $record->district->name;
+            }
+        } else {
+            return '-';
+        }
+    }
+
+    private function getTrainingProgram($record)
+    {
+
+        return $record->trainingProgram->implode('title', ', ');
+    }
+
 
 
 

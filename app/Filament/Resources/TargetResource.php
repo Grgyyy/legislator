@@ -12,6 +12,8 @@ use App\Models\Particular;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
 use App\Models\Target;
 use App\Models\TargetStatus;
 use App\Models\Tvi;
@@ -158,7 +160,7 @@ class TargetResource extends Resource
                                     ->pluck('name', 'id')
                                     ->mapWithKeys(function ($name, $id) {
                                         $tvi = Tvi::find($id);
-                                        
+
                                         return [$id => "{$tvi->school_id} - {$tvi->name}"];
                                     })
                                     ->toArray() ?: ['no_tvi' => 'No institutions available'];
@@ -217,7 +219,7 @@ class TargetResource extends Resource
                             ->markAsRequired(false)
                             ->searchable()
                             ->preload()
-                            ->native(false) 
+                            ->native(false)
                             ->options(function () {
                                 $deliveryModes = DeliveryMode::all();
 
@@ -232,7 +234,7 @@ class TargetResource extends Resource
                             ->label('Learning Mode')
                             ->searchable()
                             ->preload()
-                            ->native(false) 
+                            ->native(false)
                             ->options(function ($get) {
                                 $deliveryModeId = $get('delivery_mode_id');
                                 $learningModes = [];
@@ -275,7 +277,7 @@ class TargetResource extends Resource
                                 //     ->label('Absorptive Capacity ID')
                                 //     ->placeholder('Enter an AbsCap ID')
                                 //     ->numeric(),
-                                
+    
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -466,7 +468,7 @@ class TargetResource extends Resource
                                         if (!$state) {
                                             $set('allocation_year', null);
                                             $set('appropriation_type', null);
-                                            
+
                                             return;
                                         }
 
@@ -728,7 +730,7 @@ class TargetResource extends Resource
 
                         return $fundSource ? $fundSource->name : '-';
                     }),
-                
+
                 TextColumn::make('allocation.soft_or_commitment')
                     ->label('Source of Fund')
                     ->sortable()
@@ -770,7 +772,7 @@ class TargetResource extends Resource
                             }
                         }
                     }),
-                
+
                 TextColumn::make('appropriation_type')
                     ->label('Appropriation Type')
                     ->sortable()
@@ -781,14 +783,14 @@ class TargetResource extends Resource
                     ->label('Appropriation Year')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),      
+                    ->toggleable(),
 
                 TextColumn::make('tvi.name')
                     ->label('Institution')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                
+
                 TextColumn::make('tvi.tviClass.name')
                     ->label('Institution Class')
                     ->sortable()
@@ -971,7 +973,7 @@ class TargetResource extends Resource
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
-                        }),
+                        })->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
 
                     RestoreAction::make()
                         ->action(function ($record) {
@@ -1021,8 +1023,8 @@ class TargetResource extends Resource
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             if ($skillsPriority->available_slots < $slots) {
-                                    $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
-                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                                $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
                             }
 
                             $skillsPriority->available_slots -= $slots;
@@ -1112,7 +1114,7 @@ class TargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected target have been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
-                    
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each(function ($record) {
@@ -1173,7 +1175,7 @@ class TargetResource extends Resource
                                     $message = "Insuffucient Allocation Balance for {$allocation->legislator->name}.";
                                     NotificationHandler::handleValidationException('Something went wrong', $message);
                                 }
-                                
+
                                 $allocation->balance -= $totalAmount + $totalCostOfToolkit;
                                 $allocation->save();
 
@@ -1184,7 +1186,7 @@ class TargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected target have been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore target ')),
-                    
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
@@ -1192,7 +1194,7 @@ class TargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected targets have been deleted permanently.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete target ')),
-                    
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomPendingTargetExport::make()
@@ -1211,11 +1213,11 @@ class TargetResource extends Resource
                                         }),
 
                                     Column::make('allocation.soft_or_commitment')
-                                            ->heading('Source of Fund'),
+                                        ->heading('Source of Fund'),
 
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
-                                    
+
                                     Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
@@ -1251,8 +1253,9 @@ class TargetResource extends Resource
                                     Column::make('allocation.year')
                                         ->heading('Appropriation Year'),
 
-                                    Column::make('tvi.tviClass.name')
-                                        ->heading('Institution Class'),
+
+                                    Column::make('tvi.name')
+                                        ->heading('Institution'),
 
                                     Column::make('tvi.tviType.name')
                                         ->heading('Institution Type'),
@@ -1272,15 +1275,20 @@ class TargetResource extends Resource
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
 
-                                    Column::make('qualification_title_code')
-                                        ->heading('Qualification Code'),
 
-                                    Column::make('qualification_title_soc_code')
-                                        ->heading('Qualification SoC Code'),
+                                    Column::make('qualification_title_code')
+                                        ->heading('Qualification Code')
+                                        ->getStateUsing(fn($record) => $record->qualification_title_code ?? '-'),
 
                                     Column::make('qualification_title_name')
-                                        ->heading('Qualification Title'),
-                                    
+                                        ->heading('Qualification Title')
+                                        ->formatStateUsing(function ($state, $record) {
+                                            $qualificationCode = $record->qualification_title_soc_code ?? '';
+                                            $qualificationName = $record->qualification_title_name ?? '';
+
+                                            return "{$qualificationCode} - {$qualificationName}";
+                                        }),
+
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
 
@@ -1469,7 +1477,7 @@ class TargetResource extends Resource
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Targets')
+                                ->withFilename(date('m-d-Y') . ' - pending_target_export')
                         ]),
                 ]),
             ]);
@@ -1699,7 +1707,7 @@ class TargetResource extends Resource
 
         return $user && app(TargetPolicy::class)->update($user, $record);
     }
-    
+
     public static function getPages(): array
     {
         return [

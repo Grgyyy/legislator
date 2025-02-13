@@ -79,22 +79,5 @@ class TargetRemarkResource extends Resource
             'edit' => Pages\EditTargetRemark::route('/{record}/edit'),
         ];
     }
-    public static function canViewAny(): bool
-    {
-        /** @var \App\Models\User|null $user */
-        $user = Auth::user();
-
-        // Ensure the user is authenticated before checking policies
-        return $user && app(TargetPolicy::class)->viewActionable($user);
-    }
-
-    public static function canUpdate($record): bool
-    {
-        /** @var \App\Models\User|null $user */
-        $user = Auth::user();
-
-        // Ensure the user is authenticated before checking policies
-        return $user && app(TargetPolicy::class)->update($user, $record);
-    }
 
 }

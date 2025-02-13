@@ -2,76 +2,63 @@
 
 namespace App\Exports\CustomExport;
 
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class CustomInstitutionRecognitionExport extends ExcelExport
 {
     public function headings(): array
     {
-        $customHeadings = [
+        return [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
             ['INSTITUTION RECOGNITIONS'],
             [''],
+            ['Institution', 'Institution Recognition', 'Accreditation Date', 'Expiration Date'],
         ];
-
-        $columnHeadings = [
-            'Institution',
-            'Recognition Title',
-            'Accreditation Date',
-            'Expiration Date',
-        ];
-        return array_merge($customHeadings, [$columnHeadings]);
     }
 
-    public function styles(Worksheet $sheet)
+    public function registerEvents(): array
     {
-        $columnCount = count($this->columns);
-        $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+                $sheet = $event->sheet->getDelegate();
+                $columnCount = count($this->getColumns());
+                $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
-        $sheet->mergeCells("A1:{$lastColumn}1");
-        $sheet->mergeCells("A2:{$lastColumn}2");
-        $sheet->mergeCells("A3:{$lastColumn}3");
-        $sheet->mergeCells("A4:{$lastColumn}4");
+                foreach (range(1, 4) as $row) {
+                    $sheet->mergeCells("A{$row}:{$lastColumn}{$row}");
+                }
 
-        $headerStyle = [
-            'font' => ['bold' => true, 'size' => 14],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
+                $headerStyle = [
+                    'font' => ['bold' => true, 'size' => 14],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
+                ];
+
+                $boldStyle = [
+                    'font' => ['bold' => true],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
+                ];
+
+                $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
+                $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($boldStyle);
+                $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
+
+                foreach (range(1, $columnCount) as $colIndex) {
+                    $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colIndex))->setAutoSize(true);
+                }
+            }
         ];
-
-        $subHeaderStyle = [
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
-        ];
-
-        $boldStyle = [
-            'font' => ['bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
-        ];
-
-        $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
-        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($subHeaderStyle);
-        $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
-
-        foreach (range(1, $columnCount) as $colIndex) {
-            $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
-        }
-
-        return $sheet;
     }
-
     private function formatCurrency($amount)
     {
         // Use the NumberFormatter class to format the currency in the Filipino Peso (PHP)

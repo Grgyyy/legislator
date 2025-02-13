@@ -5,9 +5,9 @@ namespace App\Exports;
 use App\Models\InstitutionProgram;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -17,7 +17,7 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
     private $columns = [
         'institution_programs.tvi_id' => 'Institution',
         'training_programs.soc_code' => 'Schedule of Cost',
-        'training_programs.title' => 'Training Program',
+        'training_programs.title' => 'Qualification Title',
     ];
 
     public function query(): Builder
