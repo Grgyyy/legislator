@@ -2,17 +2,18 @@
 
 namespace App\Filament\Clusters\Sectors\Resources\TvetResource\Pages;
 
-use Exception;
 use App\Exports\TvetExport;
+use App\Filament\Clusters\Sectors\Resources\TvetResource;
 use App\Imports\TvetImport;
+use App\Services\NotificationHandler;
+use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
-use App\Filament\Clusters\Sectors\Resources\TvetResource;
 
 class ListTvets extends ListRecords
 {
@@ -73,7 +74,7 @@ class ListTvets extends ListRecords
 
                         try {
                             Excel::import(new TvetImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The TVET sectors have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the TVET sectors: ' . $e->getMessage());
@@ -83,7 +84,8 @@ class ListTvets extends ListRecords
                             }
                         }
                     }
-                }),
+                })
+                ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('import tvet')),
         ];
     }
 }

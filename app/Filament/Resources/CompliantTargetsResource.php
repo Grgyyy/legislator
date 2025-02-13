@@ -2,43 +2,43 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\SkillPriority;
-use App\Models\Tvi;
+use App\Filament\Resources\CompliantTargetsResource\Pages;
 use App\Models\Abdd;
-use App\Models\User;
-use Filament\Forms\Components\Fieldset;
-use Filament\Tables;
-use App\Models\Target;
-use Filament\Forms\Form;
 use App\Models\Allocation;
+use App\Models\DeliveryMode;
 use App\Models\Legislator;
 use App\Models\Particular;
-use Filament\Tables\Table;
-use App\Models\DeliveryMode;
-use App\Models\TargetRemark;
-use App\Models\TargetStatus;
-use Filament\Actions\Action;
-use App\Models\SubParticular;
-use App\Policies\TargetPolicy;
-use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
+use App\Models\SkillPriority;
+use App\Models\SubParticular;
+use App\Models\Target;
+use App\Models\TargetRemark;
+use App\Models\TargetStatus;
+use App\Models\Tvi;
+use App\Models\User;
+use App\Policies\TargetPolicy;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
-use Illuminate\Support\Facades\Auth;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Filament\Resources\CompliantTargetsResource\Pages;
-use Filament\Forms\Components\Section;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class CompliantTargetsResource extends Resource
 {
@@ -109,13 +109,13 @@ class CompliantTargetsResource extends Resource
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         // if (count($appropriationYearOptions) === 1) {
                                         //     $set('attribution_appropriation_type', key($appropriationYearOptions));
                                         // }
-                    
+
                                         // $currentYear = now()->year;
-                    
+
                                         if (count($AttributorParticularOptions) === 1) {
                                             $set('attribution_sender_particular', key($AttributorParticularOptions));
                                         } else {
@@ -203,7 +203,7 @@ class CompliantTargetsResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -255,16 +255,16 @@ class CompliantTargetsResource extends Resource
                                     ->options(function ($get) {
                                         $legislatorId = $get('attribution_sender');
                                         $particularId = $get('attribution_sender_particular');
-                                
+
                                         if ($legislatorId) {
                                             $programs = ScholarshipProgram::whereHas('allocation', function ($query) use ($legislatorId, $particularId) {
                                                 $query->where('attributor_id', $legislatorId)
                                                     ->when($particularId, fn($q) => $q->where('attributor_particular_id', $particularId));
                                             })->pluck('name', 'id')->toArray();
-                                
+
                                             return !empty($programs) ? $programs : ['no_scholarship_program' => 'No scholarship program available'];
                                         }
-                                
+
                                         // If no attributor is selected, show all scholarship programs
                                         return ScholarshipProgram::pluck('name', 'id')->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
                                     })
@@ -277,41 +277,41 @@ class CompliantTargetsResource extends Resource
                                             $set('attribution_appropriation_type', null);
                                             return;
                                         }
-                                
+
                                         $attributorId = $get('attribution_sender');
                                         $particularId = $get('attribution_sender_particular');
-                                
+
                                         $allocations = Allocation::where('attributor_id', $attributorId)
                                             ->where('attributor_particular_id', $particularId)
                                             ->where('scholarship_program_id', $state)
                                             ->with('particular', 'scholarship_program')
                                             ->get();
-                                
+
                                         $legislatorOptions = $allocations->pluck('legislator.name', 'legislator.id')->toArray();
                                         $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
                                         $appropriationType = self::getAppropriationTypeOptions($state);
-                                
+
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
-                                
+
                                         if (count($legislatorOptions) === 1) {
                                             $set('attribution_receiver', key($legislatorOptions));
                                         } else {
                                             $set('attribution_receiver', null);
                                         }
-                                
+
                                         if (count($particularOptions) === 1) {
                                             $set('attribution_receiver_particular', key($particularOptions));
                                         } else {
                                             $set('attribution_receiver_particular', null);
                                         }
-                                
+
                                         if (count($appropriationYearOptions) === 1) {
                                             $set('allocation_year', key($appropriationYearOptions));
                                             $appropriationType = self::getAppropriationTypeOptions(key($appropriationYearOptions));
-                                
+
                                             if (count($appropriationType) === 1) {
                                                 $set('attribution_appropriation_type', key($appropriationType));
                                             }
@@ -357,7 +357,7 @@ class CompliantTargetsResource extends Resource
                                         }
                                         else {
                                             $scholarshipProgramId = $get('attribution_scholarship_program');
-                                            
+
                                             $allocations = Allocation::where('scholarship_program_id', $scholarshipProgramId)
                                                 ->with('legislator')
                                                 ->get()
@@ -393,7 +393,7 @@ class CompliantTargetsResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -486,7 +486,7 @@ class CompliantTargetsResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -534,7 +534,7 @@ class CompliantTargetsResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -830,7 +830,8 @@ class CompliantTargetsResource extends Resource
                         ->label('View Comments')
                         ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
                         ->icon('heroicon-o-chat-bubble-left-ellipsis'),
-                    DeleteAction::make(),
+                    DeleteAction::make()
+                            ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
                 ]),
             ])
             ->bulkActions([
@@ -1250,25 +1251,25 @@ class CompliantTargetsResource extends Resource
     protected static function getAllocationYear($attributorId, $legislatorId, $attributorParticularId, $particularId, $scholarshipProgramId)
     {
         $yearNow = date('Y');
-    
+
         $query = Allocation::where('legislator_id', $legislatorId)
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->whereIn('year', [$yearNow, $yearNow - 1]);
-    
+
         // Apply attributor conditions if they are provided
         if (!empty($attributorId)) {
             $query->where('attributor_id', $attributorId)
                   ->where('attributor_particular_id', $attributorParticularId);
         }
-    
+
         // Fetch allocation years
         $allocations = $query->pluck('year', 'year')->toArray();
-    
+
         return empty($allocations) ? ['' => 'No Allocation Available.'] : $allocations;
     }
-    
-    
+
+
     protected static function getQualificationTitles($scholarshipProgramId, $tviId, $year)
     {
         $tvi = Tvi::with(['district.province'])->find($tviId);

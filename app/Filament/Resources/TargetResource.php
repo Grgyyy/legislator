@@ -2,46 +2,46 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Tvi;
+use App\Exports\CustomExport\CustomPendingTargetExport;
+use App\Filament\Resources\TargetResource\Pages;
 use App\Models\Abdd;
-use App\Models\Status;
-use App\Models\Target;
-use Filament\Forms\Form;
 use App\Models\Allocation;
+use App\Models\DeliveryMode;
 use App\Models\Legislator;
 use App\Models\Particular;
-use Filament\Tables\Table;
-use App\Models\DeliveryMode;
-use App\Models\TargetStatus;
-use Filament\Actions\Action;
-use App\Models\SkillPriority;
-use App\Models\SkillPrograms;
-use App\Policies\TargetPolicy;
-use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use Illuminate\Support\Facades\Auth;
+use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
+use App\Models\Target;
+use App\Models\TargetStatus;
+use App\Models\Tvi;
+use App\Policies\TargetPolicy;
 use App\Services\NotificationHandler;
-use Filament\Forms\Components\Select;
+use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\DeleteAction;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use App\Filament\Resources\TargetResource\Pages;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Exports\CustomExport\CustomPendingTargetExport;
+use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
 
 class TargetResource extends Resource
 {
@@ -973,7 +973,7 @@ class TargetResource extends Resource
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
-                        }),
+                        })->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
 
                     RestoreAction::make()
                         ->action(function ($record) {
@@ -1023,8 +1023,8 @@ class TargetResource extends Resource
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             if ($skillsPriority->available_slots < $slots) {
-                                    $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
-                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                                $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
                             }
 
                             $skillsPriority->available_slots -= $slots;
@@ -1175,7 +1175,7 @@ class TargetResource extends Resource
                                     $message = "Insuffucient Allocation Balance for {$allocation->legislator->name}.";
                                     NotificationHandler::handleValidationException('Something went wrong', $message);
                                 }
-                                
+
                                 $allocation->balance -= $totalAmount + $totalCostOfToolkit;
                                 $allocation->save();
 

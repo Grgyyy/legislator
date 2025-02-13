@@ -2,17 +2,18 @@
 
 namespace App\Filament\Clusters\Sectors\Resources\PriorityResource\Pages;
 
+use App\Exports\PriorityExport;
+use App\Filament\Clusters\Sectors\Resources\PriorityResource;
+use App\Imports\TenPrioImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
-use App\Imports\TenPrioImport;
-use App\Exports\PriorityExport;
 use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
-use App\Filament\Clusters\Sectors\Resources\PriorityResource;
 
 class ListPriorities extends ListRecords
 {
@@ -74,7 +75,7 @@ class ListPriorities extends ListRecords
 
                         try {
                             Excel::import(new TenPrioImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The ten priorities sectors have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the ten priorities sectors: ' . $e->getMessage());
@@ -84,7 +85,8 @@ class ListPriorities extends ListRecords
                             }
                         }
                     }
-                }),
+                })
+                ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('import tvet')),
         ];
     }
 }

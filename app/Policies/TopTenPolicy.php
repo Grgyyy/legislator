@@ -28,7 +28,7 @@ class TopTenPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
 
     /**
@@ -36,7 +36,7 @@ class TopTenPolicy
      */
     public function update(User $user, Priority $priority): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'SMD Focal']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
 
     /**
