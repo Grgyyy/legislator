@@ -32,7 +32,7 @@ class TargetPolicy
 
     public function update(User $user, Target $target): bool
     {
-        if ($user->hasRole(['SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin'])) {
+        if ($user->hasRole(['SMD Head', 'TESDO', 'Admin', 'Super Admin'])) {
             return true;
         }
         return false;

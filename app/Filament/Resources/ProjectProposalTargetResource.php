@@ -4,23 +4,27 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProjectProposalTargetResource\Pages;
 use App\Models\Abdd;
-use App\Models\DeliveryMode;
-use App\Models\Tvi;
-use Filament\Tables;
-use App\Models\Status;
-use App\Models\Target;
-use Filament\Forms\Form;
 use App\Models\Allocation;
+use App\Models\DeliveryMode;
 use App\Models\Legislator;
 use App\Models\Particular;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
+use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
+use App\Models\Target;
+use App\Models\TargetStatus;
+use App\Models\Tvi;
+use App\Policies\TargetPolicy;
 use App\Services\NotificationHandler;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -35,8 +39,8 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use Illuminate\Support\Facades\Auth;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
@@ -194,7 +198,7 @@ class ProjectProposalTargetResource extends Resource
                                     ->pluck('name', 'id')
                                     ->mapWithKeys(function ($name, $id) {
                                         $tvi = Tvi::find($id);
-                                        
+
                                         return [$id => "{$tvi->school_id} - {$tvi->name}"];
                                     })
                                     ->toArray() ?: ['no_tvi' => 'No institutions available'];
@@ -253,7 +257,7 @@ class ProjectProposalTargetResource extends Resource
                             ->markAsRequired(false)
                             ->searchable()
                             ->preload()
-                            ->native(false) 
+                            ->native(false)
                             ->options(function () {
                                 $deliveryModes = DeliveryMode::all();
 
@@ -608,7 +612,7 @@ class ProjectProposalTargetResource extends Resource
                                             ->pluck('name', 'id')
                                             ->mapWithKeys(function ($name, $id) {
                                                 $tvi = Tvi::find($id);
-                                               
+
                                                 return [$id => "{$tvi->school_id} - {$tvi->name}"];
                                             })
                                             ->toArray() ?: ['no_tvi' => 'No institution available'];
@@ -789,9 +793,9 @@ class ProjectProposalTargetResource extends Resource
                     }),
 
                 TextColumn::make('allocation.soft_or_commitment')
-                        ->label('Source of Fund')
-                        ->searchable()
-                        ->toggleable(),
+                    ->label('Source of Fund')
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make('allocation.legislator.name')
                     ->sortable()
@@ -824,7 +828,7 @@ class ProjectProposalTargetResource extends Resource
                         }
                     }),
 
-                    TextColumn::make('appropriation_type')
+                TextColumn::make('appropriation_type')
                     ->label('Appropriation Type')
                     ->sortable()
                     ->searchable()
@@ -834,14 +838,14 @@ class ProjectProposalTargetResource extends Resource
                     ->label('Appropriation Year')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),      
+                    ->toggleable(),
 
                 TextColumn::make('tvi.name')
                     ->label('Institution')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                
+
                 TextColumn::make('tvi.tviClass.name')
                     ->label('Institution Class')
                     ->sortable()
@@ -950,7 +954,7 @@ class ProjectProposalTargetResource extends Resource
                         ->label('View History')
                         ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
                         ->icon('heroicon-o-magnifying-glass'),
-                    
+
                     Action::make('viewComment')
                         ->label('View Comments')
                         ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
@@ -1072,13 +1076,13 @@ class ProjectProposalTargetResource extends Resource
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             if ($skillsPriority->available_slots < $slots) {
-                                    $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
-                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                                $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
                             }
 
                             if ($skillsPriority->available_slots < $slots) {
-                                    $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
-                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                                $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
                             }
 
                             $skillsPriority->available_slots -= $slots;
@@ -1114,58 +1118,58 @@ class ProjectProposalTargetResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                    ->action(function ($records) {
-                        $records->each(function ($record) {
-                            $allocation = $record->allocation;
-                            $totalAmount = $record->total_amount;
+                        ->action(function ($records) {
+                            $records->each(function ($record) {
+                                $allocation = $record->allocation;
+                                $totalAmount = $record->total_amount;
 
-                            $qualificationTitleId = $record->qualification_title_id;
-                            $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+                                $qualificationTitleId = $record->qualification_title_id;
+                                $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
 
-                            $provinceId = $record->tvi->district->province_id;
-                            $districtId = $record->tvi->district_id;
+                                $provinceId = $record->tvi->district->province_id;
+                                $districtId = $record->tvi->district_id;
 
-                            $quali = QualificationTitle::find($qualificationTitleId);
-                            $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+                                $quali = QualificationTitle::find($qualificationTitleId);
+                                $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
 
-                            $stepId = ScholarshipProgram::where('name', 'STEP')->first();
-                            $compliant = TargetStatus::where("desc", "Compliant")->first();
+                                $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                                $compliant = TargetStatus::where("desc", "Compliant")->first();
 
-                            $slots = $record->number_of_slots;
-                            $totalCostOfToolkit = 0;
+                                $slots = $record->number_of_slots;
+                                $totalCostOfToolkit = 0;
 
-                            if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+                                if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
 
-                                $toolkit->available_number_of_toolkits += $slots;
-                                $toolkit->save();
-                            }
+                                    $toolkit->available_number_of_toolkits += $slots;
+                                    $toolkit->save();
+                                }
 
-                            $active = Status::where('desc', 'Active')->first();
-                            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
-                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
-                                    $query->where('province_id', $provinceId)
-                                        ->where('district_id', $districtId)
-                                        ->where('year', $allocation->year)
-                                        ->where('status_id', $active->id);
-                                })
-                                ->first();
-
-                            if (!$skillPrograms) {
+                                $active = Status::where('desc', 'Active')->first();
                                 $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
-                                    ->whereHas('skillPriority', function ($query) use ($record) {
-                                        $query->where('province_id', $record->tvi->district->province_id)
-                                            ->where('year', $record->allocation->year);
+                                    ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
+                                        $query->where('province_id', $provinceId)
+                                            ->where('district_id', $districtId)
+                                            ->where('year', $allocation->year)
+                                            ->where('status_id', $active->id);
                                     })
                                     ->first();
-                            }
-                            
-                            $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
-                            $skillsPriority->available_slots += $slots;
-                            $skillsPriority->save();
+                                if (!$skillPrograms) {
+                                    $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                        ->whereHas('skillPriority', function ($query) use ($record) {
+                                            $query->where('province_id', $record->tvi->district->province_id)
+                                                ->where('year', $record->allocation->year);
+                                        })
+                                        ->first();
+                                }
 
-                            $allocation->balance += $totalAmount + $totalCostOfToolkit;
-                            $allocation->save();
+                                $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                                $skillsPriority->available_slots += $slots;
+                                $skillsPriority->save();
+
+                                $allocation->balance += $totalAmount + $totalCostOfToolkit;
+                                $allocation->save();
 
                                 $record->delete();
                             });
@@ -1233,7 +1237,7 @@ class ProjectProposalTargetResource extends Resource
                                     $message = "Insuffucient Allocation Balance for {$allocation->legislator->name}.";
                                     NotificationHandler::handleValidationException('Something went wrong', $message);
                                 }
-                                
+
                                 $allocation->balance -= $totalAmount + $totalCostOfToolkit;
                                 $allocation->save();
 

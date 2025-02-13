@@ -2,44 +2,46 @@
 
 namespace App\Filament\Resources;
 
-use App\Exports\CustomExport\CustomPendingTargetExport;
-use App\Filament\Resources\TargetResource\Pages;
+use App\Models\Tvi;
 use App\Models\Abdd;
+use App\Models\Status;
+use App\Models\Target;
+use Filament\Forms\Form;
 use App\Models\Allocation;
-use App\Models\DeliveryMode;
 use App\Models\Legislator;
 use App\Models\Particular;
+use Filament\Tables\Table;
+use App\Models\DeliveryMode;
+use App\Models\TargetStatus;
+use Filament\Actions\Action;
+use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Policies\TargetPolicy;
+use Filament\Resources\Resource;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
-use App\Models\SkillPriority;
-use App\Models\Target;
-use App\Models\TargetStatus;
-use App\Models\Tvi;
-use App\Policies\TargetPolicy;
-use App\Services\NotificationHandler;
-use Filament\Actions\Action;
-use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\DeleteBulkAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Services\NotificationHandler;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Repeater;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TextInput;
+use Filament\Tables\Actions\ActionGroup;
 use pxlrbt\FilamentExcel\Columns\Column;
+use Filament\Tables\Actions\DeleteAction;
+use Illuminate\Database\Eloquent\Builder;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use App\Filament\Resources\TargetResource\Pages;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Exports\CustomExport\CustomPendingTargetExport;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 
 class TargetResource extends Resource
 {
@@ -158,7 +160,7 @@ class TargetResource extends Resource
                                     ->pluck('name', 'id')
                                     ->mapWithKeys(function ($name, $id) {
                                         $tvi = Tvi::find($id);
-                                        
+
                                         return [$id => "{$tvi->school_id} - {$tvi->name}"];
                                     })
                                     ->toArray() ?: ['no_tvi' => 'No institutions available'];
@@ -217,7 +219,7 @@ class TargetResource extends Resource
                             ->markAsRequired(false)
                             ->searchable()
                             ->preload()
-                            ->native(false) 
+                            ->native(false)
                             ->options(function () {
                                 $deliveryModes = DeliveryMode::all();
 
@@ -232,7 +234,7 @@ class TargetResource extends Resource
                             ->label('Learning Mode')
                             ->searchable()
                             ->preload()
-                            ->native(false) 
+                            ->native(false)
                             ->options(function ($get) {
                                 $deliveryModeId = $get('delivery_mode_id');
                                 $learningModes = [];
@@ -275,7 +277,7 @@ class TargetResource extends Resource
                                 //     ->label('Absorptive Capacity ID')
                                 //     ->placeholder('Enter an AbsCap ID')
                                 //     ->numeric(),
-                                
+    
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -466,7 +468,7 @@ class TargetResource extends Resource
                                         if (!$state) {
                                             $set('allocation_year', null);
                                             $set('appropriation_type', null);
-                                            
+
                                             return;
                                         }
 
@@ -728,7 +730,7 @@ class TargetResource extends Resource
 
                         return $fundSource ? $fundSource->name : '-';
                     }),
-                
+
                 TextColumn::make('allocation.soft_or_commitment')
                     ->label('Source of Fund')
                     ->sortable()
@@ -770,7 +772,7 @@ class TargetResource extends Resource
                             }
                         }
                     }),
-                
+
                 TextColumn::make('appropriation_type')
                     ->label('Appropriation Type')
                     ->sortable()
@@ -781,14 +783,14 @@ class TargetResource extends Resource
                     ->label('Appropriation Year')
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),      
+                    ->toggleable(),
 
                 TextColumn::make('tvi.name')
                     ->label('Institution')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
-                
+
                 TextColumn::make('tvi.tviClass.name')
                     ->label('Institution Class')
                     ->sortable()
@@ -1112,7 +1114,7 @@ class TargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected target have been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
-                    
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each(function ($record) {
@@ -1184,7 +1186,7 @@ class TargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected target have been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore target ')),
-                    
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
@@ -1192,7 +1194,7 @@ class TargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected targets have been deleted permanently.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete target ')),
-                    
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomPendingTargetExport::make()
@@ -1211,11 +1213,11 @@ class TargetResource extends Resource
                                         }),
 
                                     Column::make('allocation.soft_or_commitment')
-                                            ->heading('Source of Fund'),
+                                        ->heading('Source of Fund'),
 
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
-                                    
+
                                     Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
@@ -1280,7 +1282,7 @@ class TargetResource extends Resource
 
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
-                                    
+
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
 
@@ -1699,7 +1701,7 @@ class TargetResource extends Resource
 
         return $user && app(TargetPolicy::class)->update($user, $record);
     }
-    
+
     public static function getPages(): array
     {
         return [
