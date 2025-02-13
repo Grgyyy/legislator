@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\CustomExport\CustomToolkitExport;
 use App\Filament\Resources\ToolkitResource\Pages;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
@@ -17,10 +18,9 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use App\Exports\CustomExport\CustomToolkitExport;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -351,7 +351,7 @@ class ToolkitResource extends Resource
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Toolkits')
+                                ->withFilename(date('m-d-Y') . ' - toolkit_export')
                         ])
 
                 ]),

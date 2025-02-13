@@ -7,11 +7,11 @@ use App\Filament\Resources\TviResource\Pages;
 use App\Models\District;
 use App\Models\InstitutionClass;
 use App\Models\Municipality;
-use App\Services\NotificationHandler;
 use App\Models\Province;
 use App\Models\Tvi;
 use App\Models\TviClass;
 use App\Models\TviType;
+use App\Services\NotificationHandler;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -469,7 +469,7 @@ class TviResource extends Resource
                                     Column::make('address')
                                         ->heading('Address'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Institutions')
+                                ->withFilename(date('m-d-Y') . ' - institution_export')
                         ]),
 
                 ])

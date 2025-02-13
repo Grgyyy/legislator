@@ -3,12 +3,12 @@
 namespace App\Exports;
 
 use App\Models\Target;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -27,18 +27,19 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
         'allocation.legislator.name' => 'Legislator',
         'allocation.legislator.particular.subParticular' => 'Particular',
         'appropriation_type' => 'Appropriation Type',
-        'allocation.year' => 'Allocation',
+        'allocation.year' => 'Appropriation Year',
 
         'institution_name' => 'Institution',
+        'institution_type' => 'Institution Type',
+        'institution_class' => 'Institution Class',
         'district_name' => 'District',
         'municipality_name' => 'Municipality',
         'municipality.province.name' => 'Province',
         'region_name' => 'Region',
-        'institution_class' => 'Institution Class',
-        'institution_type' => 'Institution Type',
 
         'qualification_title_code' => 'Qualification Code',
         'qualification_title_name' => 'Qualification Title',
+        'allocation.scholarship_program.name' => 'Scholarship Program',
 
         'abdd.name' => 'ABDD Sector',
         'qualification_title.trainingProgram.tvet.name' => 'TVET Sector',
@@ -46,8 +47,6 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
 
         'deliveryMode.name' => 'Delivery Mode',
         'learningMode.name' => 'Learning Mode',
-
-        'allocation.scholarship_program.name' => 'Scholarship Program',
 
         'number_of_slots' => 'No. of Slots',
         'training_cost_per_slot' => 'Training Cost',
@@ -86,6 +85,7 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
                 'tvi_name',
                 'abdd_id',
                 'qualification_title_id',
+                'qualification_title_soc_code',
                 'qualification_title_code',
                 'qualification_title_name',
                 'delivery_mode_id',
@@ -144,15 +144,18 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
             $record->allocation->year,
 
             $record->tvi->name ?? '-',
+            $record->tvi->tviType->name ?? '-',
+            $record->tvi->tviClass->name ?? '-',
+
             $record->district->name ?? '-',
             $record->municipality->name ?? '-',
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
-            $record->tvi->tviClass->name ?? '-',
-            $record->tvi->tviType->name ?? '-',
+
 
             $record->qualification_title_code ?? '-',
-            $record->qualification_title_name ?? '-',
+            $this->getQualificationTitle($record),
+            $record->allocation->scholarship_program->name ?? '-',
 
             $record->abdd->name ?? '-',
             $record->qualification_title->trainingProgram->tvet->name ?? '-',
@@ -160,8 +163,6 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
 
             $record->deliveryMode->name ?? '-',
             $record->learningMode->name ?? '-',
-
-            $record->allocation->scholarship_program->name ?? '-',
 
             $record->number_of_slots,
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
@@ -189,6 +190,14 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
             $this->formatCurrency($record->total_amount),
             $record->targetStatus->desc ?? '-',
         ];
+    }
+
+    private function getQualificationTitle($record)
+    {
+        $qualificationCode = $record->qualification_title_soc_code ?? '';
+        $qualificationName = $record->qualification_title_name ?? '';
+
+        return "{$qualificationCode} - {$qualificationName}";
     }
     private function getAttributor($record)
     {

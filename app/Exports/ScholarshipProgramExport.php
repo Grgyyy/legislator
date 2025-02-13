@@ -40,7 +40,7 @@ class ScholarshipProgramExport implements FromQuery, WithMapping, WithStyles, Wi
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['SCHOLARSHIP PROGRAM'],
+            ['SCHOLARSHIP PROGRAMS'],
             [''],
         ];
 

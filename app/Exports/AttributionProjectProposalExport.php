@@ -2,14 +2,14 @@
 
 namespace App\Exports;
 
-use App\Models\Target;
 use App\Models\Allocation;
-use Illuminate\Support\Facades\DB;
+use App\Models\Target;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -26,22 +26,27 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
         'allocation.legislator.particular.subParticular' => 'Particular',
         'appropriation_type' => 'Appropriation Type',
         'allocation.year' => 'Appropriation Year',
+
         'institution_name' => 'Institution',
         'institution_type' => 'Institution Type',
         'institution_class' => 'Institution Class',
-        'municipality_name' => 'Municipality',
+
         'district_name' => 'District',
+        'municipality_name' => 'Municipality',
         'municipality.province.name' => 'Province',
         'region_name' => 'Region',
-        'scholarship_program' => 'Scholarship Program',
+
         'qualification_code' => 'Qualification Code',
-        'qualification_title_soc_code' => 'Qualification SOC Code',
         'qualification_name' => 'Qualification Title',
+        'scholarship_program' => 'Scholarship Program',
+
         'abdd_sector' => 'ABDD Sector',
         'tvet_sector' => 'TVET Sector',
         'priority_sector' => 'Priority Sector',
+
         'delivery_mode' => 'Delivery Mode',
         'learning_mode' => 'Learning Mode',
+
         'number_of_slots' => 'No. of Slots',
         'training_cost_per_slot' => 'Training Cost',
         'cost_of_toolkit_per_slot' => 'Cost of Toolkit',
@@ -54,6 +59,7 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
         'uniform_allowance_per_slot' => 'Uniform Allowance',
         'misc_fee_per_slot' => 'Miscellaneous Fee',
         'total_amount_per_slot' => 'PCC',
+
         'total_training_cost_pcc' => 'Total Training Cost',
         'total_cost_of_toolkit_pcc' => 'Total Cost of Toolkit',
         'total_training_support_fund' => 'Total Training Support Fund',
@@ -121,7 +127,7 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PENDING TARGET'],
+            ['ATTRIBUTION PROJECT PROPOSAL PENDING TARGETS'],
             [''],
         ];
 
@@ -139,22 +145,27 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
             $this->getParticular($record),
             $record->appropriation_type,
             $record->allocation->year,
-            $record->municipality->name ?? '-',
+
+            $record->tvi->name ?? '-',
+            $record->tvi->tviType->name ?? '-',
+            $record->tvi->tviClass->name ?? '-',
+
             $record->district->name ?? '-',
+            $record->municipality->name ?? '-',
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
-            $record->tvi->name ?? '-',
-            $record->tvi->tviClass->tviType->name ?? '-',
-            $record->tvi->tviClass->name ?? '-',
+
             $record->qualification_title_code ?? '-',
-            $record->qualification_title_soc_code ?? '-',
-            $record->qualification_title_name ?? '-',
+            $this->getQualificationTitle($record),
+            $record->allocation->scholarship_program->name ?? '-',
+
             $record->abdd->name ?? '-',
             $record->qualification_title->trainingProgram->tvet->name ?? '-',
             $record->qualification_title->trainingProgram->priority->name ?? '-',
+
             $record->deliveryMode->name ?? '-',
             $record->learningMode->name ?? '-',
-            $record->allocation->scholarship_program->name ?? '-',
+
             $record->number_of_slots,
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
@@ -167,6 +178,7 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_uniform_allowance')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_misc_fee')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_amount')),
+
             $this->formatCurrency($record->total_training_cost_pcc),
             $this->formatCurrency($record->total_cost_of_toolkit_pcc),
             $this->formatCurrency($record->total_training_support_fund),
@@ -181,6 +193,15 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
             $record->targetStatus->desc ?? '-',
         ];
     }
+
+    private function getQualificationTitle($record)
+    {
+        $qualificationCode = $record->qualification_title_soc_code ?? '-';
+        $qualificationName = $record->qualification_title_name ?? '-';
+
+        return "{$qualificationCode} - {$qualificationName}";
+    }
+
 
     private function getFundSource($record)
     {

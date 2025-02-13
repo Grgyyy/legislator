@@ -5,9 +5,9 @@ namespace App\Exports;
 use App\Models\DeliveryMode;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -18,6 +18,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class DeliveryModeExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private $columns = [
+        'acronym' => 'Delivery Mode Acronym',
         'name' => 'Delivery Mode',
     ];
 
@@ -32,7 +33,7 @@ class DeliveryModeExport implements FromQuery, WithHeadings, WithStyles, WithMap
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['DELIVERY MODE'],
+            ['DELIVERY MODES'],
             [''],
         ];
 
@@ -42,6 +43,7 @@ class DeliveryModeExport implements FromQuery, WithHeadings, WithStyles, WithMap
     public function map($record): array
     {
         return [
+            $record->acronym,
             $record->name,
         ];
     }

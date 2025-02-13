@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\CustomExport\CustomQualificationTitleExport;
 use App\Filament\Resources\TrainingProgramResource\Pages;
 use App\Models\Priority;
 use App\Models\ScholarshipProgram;
@@ -30,7 +31,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Exports\CustomExport\CustomQualificationTitleExport;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
@@ -441,7 +441,7 @@ class TrainingProgramResource extends Resource
                                     Column::make('priority.name')
                                         ->heading('Priority Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Qualification Titles')
+                                ->withFilename(date('m-d-Y') . ' - qualification_title_export')
                         ]),
                 ]),
             ]);

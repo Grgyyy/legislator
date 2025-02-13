@@ -302,7 +302,7 @@ class SkillPriorityResource extends Resource
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
-                                ->withFilename(date('Y-m-d') . '-skill-priorities-export.xlsx'),
+                                ->withFilename(date('Y-m-d') . '-skill_priority_export.xlsx'),
                         ])
                 ]),
             ]);

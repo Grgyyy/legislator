@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\CustomExport\CustomProjectProposalPendingTargetExport;
 use App\Filament\Resources\ProjectProposalTargetResource\Pages;
 use App\Models\Abdd;
 use App\Models\Allocation;
@@ -753,17 +754,17 @@ class ProjectProposalTargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-    
+
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-    
+
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-    
+
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-    
+
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
@@ -1249,42 +1250,25 @@ class ProjectProposalTargetResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution target ')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomProjectProposalPendingTargetExport::make()
                                 ->withColumns([
                                     Column::make('fund_source')
                                         ->heading('Fund Source')
                                         ->getStateUsing(function ($record) {
-                                            $legislator = $record->allocation->legislator;
-
-                                            if (!$legislator) {
-                                                return 'No legislator available';
-                                            }
-
-                                            $particulars = $legislator->particular;
-
-                                            if ($particulars->isEmpty()) {
-                                                return 'No particular available';
-                                            }
-
                                             $particular = $record->allocation->particular;
                                             $subParticular = $particular->subParticular;
                                             $fundSource = $subParticular ? $subParticular->fundSource : null;
 
-                                            return $fundSource ? $fundSource->name : 'No fund source available';
+                                            return $fundSource ? $fundSource->name : '-';
                                         }),
 
-
-                                    Column::make('allocation.legislator.name')
-                                        ->heading('Legislator'),
 
                                     Column::make('allocation.soft_or_commitment')
                                         ->heading('Source of Fund'),
 
-                                    Column::make('appropriation_type')
-                                        ->heading('Appropriation Type'),
 
-                                    Column::make('allocation.year')
-                                        ->heading('Allocation'),
+                                    Column::make('allocation.legislator.name')
+                                        ->heading('Legislator'),
 
                                     Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
@@ -1318,11 +1302,29 @@ class ProjectProposalTargetResource extends Resource
                                                 return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
                                             }
                                         }),
-                                    Column::make('municipality.name')
-                                        ->heading('Municipality'),
+
+
+                                    Column::make('appropriation_type')
+                                        ->heading('Appropriation Type'),
+
+                                    Column::make('allocation.year')
+                                        ->heading('Appropriation Year'),
+
+
+                                    Column::make('tvi.name')
+                                        ->heading('Institution'),
+
+                                    Column::make('tvi.tviType.name')
+                                        ->heading('Institution Type'),
+
+                                    Column::make('tvi.tviClass.name')
+                                        ->heading('Institution Class'),
 
                                     Column::make('district.name')
                                         ->heading('District'),
+
+                                    Column::make('municipality.name')
+                                        ->heading('Municipality'),
 
                                     Column::make('tvi.district.province.name')
                                         ->heading('Province'),
@@ -1330,23 +1332,24 @@ class ProjectProposalTargetResource extends Resource
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
 
-                                    Column::make('tvi.name')
-                                        ->heading('Institution'),
 
-                                    Column::make('tvi.tviClass.tviType.name')
-                                        ->heading('Institution Type'),
-
-                                    Column::make('tvi.tviClass.name')
-                                        ->heading('Institution Class'),
 
                                     Column::make('qualification_title_code')
-                                        ->heading('Qualification Code'),
-
-                                    Column::make('qualification_title_soc_code')
-                                        ->heading('Schedule of Cost Code'),
+                                        ->heading('Qualification Code')
+                                        ->getStateUsing(fn($record) => $record->qualification_title_code ?? '-'),
 
                                     Column::make('qualification_title_name')
-                                        ->heading('Qualification Title'),
+                                        ->heading('Qualification Title')
+                                        ->formatStateUsing(function ($state, $record) {
+                                            $qualificationCode = $record->qualification_title_soc_code ?? '';
+                                            $qualificationName = $record->qualification_title_name ?? '';
+
+                                            return "{$qualificationCode} - {$qualificationName}";
+                                        }),
+
+                                    Column::make('allocation.scholarship_program.name')
+                                        ->heading('Scholarship Program'),
+
 
                                     Column::make('abdd.name')
                                         ->heading('ABDD Sector'),
@@ -1357,17 +1360,182 @@ class ProjectProposalTargetResource extends Resource
                                     Column::make('qualification_title.trainingProgram.priority.name')
                                         ->heading('Priority Sector'),
 
+
                                     Column::make('deliveryMode.name')
                                         ->heading('Delivery Mode'),
 
                                     Column::make('learningMode.name')
                                         ->heading('Learning Mode'),
 
-                                    Column::make('allocation.scholarship_program.name')
-                                        ->heading('Scholarship Program'),
+
 
                                     Column::make('number_of_slots')
                                         ->heading('No. of slots'),
+
+                                    Column::make('training_cost_per_slot')
+                                        ->heading('Training Cost')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('cost_of_toolkit_per_slot')
+                                        ->heading('Cost of Toolkit')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('training_support_fund_per_slot')
+                                        ->heading('Training Support Fund')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_support_fund'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('assessment_fee_per_slot')
+                                        ->heading('Assessment Fee')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_assessment_fee'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('entrepreneurship_fee_per_slot')
+                                        ->heading('Entrepreneurship Fee')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_entrepreneurship_fee'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('new_normal_assistance_per_slot')
+                                        ->heading('New Normal Assistance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_new_normal_assistance'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('accident_insurance_per_slot')
+                                        ->heading('Accident Insurance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_accident_insurance'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('book_allowance_per_slot')
+                                        ->heading('Book Allowance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_book_allowance'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('uniform_allowance_per_slot')
+                                        ->heading('Uniform Allowance')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_uniform_allowance'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('misc_fee_per_slot')
+                                        ->heading('Miscellaneous Fee')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_misc_fee'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_amount_per_slot')
+                                        ->heading('PCC')
+                                        ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_amount'))
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_training_cost_pcc')
+                                        ->heading('Total Training Cost')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_cost_of_toolkit_pcc')
+                                        ->heading('Total Cost of Toolkit')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_training_support_fund')
+                                        ->heading('Total Training Support Fund')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_assessment_fee')
+                                        ->heading('Total Assessment Fee')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_entrepreneurship_fee')
+                                        ->heading('Total Entrepreneurship Fee')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_new_normal_assisstance')
+                                        ->heading('Total New Normal Assistance')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_accident_insurance')
+                                        ->heading('Total Accident Insurance')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_book_allowance')
+                                        ->heading('Total Book Allowance')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_uniform_allowance')
+                                        ->heading('Total Uniform Allowance')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_misc_fee')
+                                        ->heading('Total Miscellaneous Fee')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
+
+                                    Column::make('total_amount')
+                                        ->heading('Total PCC')
+                                        ->formatStateUsing(function ($state) {
+                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
+                                            return $formatter->formatCurrency($state, 'PHP');
+                                        }),
 
                                     Column::make('total_amount')
                                         ->heading('Total PCC')
@@ -1379,7 +1547,7 @@ class ProjectProposalTargetResource extends Resource
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Targets')
+                                ->withFilename(date('m-d-Y') . ' - project_proposal_pending_target_export')
                         ]),
                 ]),
             ]);

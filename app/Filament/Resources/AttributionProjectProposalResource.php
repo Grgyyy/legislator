@@ -2,53 +2,54 @@
 
 namespace App\Filament\Resources;
 
-use App\Models\Tvi;
-use Filament\Forms;
-use App\Models\Abdd;
-use Filament\Tables;
-use App\Models\Status;
-use App\Models\Target;
-use Filament\Forms\Form;
-use App\Models\Allocation;
-use App\Models\Legislator;
-use App\Models\Particular;
-use Filament\Tables\Table;
-use App\Models\DeliveryMode;
-use App\Models\ProvinceAbdd;
-use App\Models\TargetStatus;
-use Filament\Actions\Action;
-use App\Models\SkillPriority;
-use App\Models\SkillPrograms;
-use App\Models\SubParticular;
-use App\Policies\TargetPolicy;
-use Filament\Resources\Resource;
-use App\Models\QualificationTitle;
-use App\Models\ScholarshipProgram;
-use Illuminate\Support\Facades\Auth;
-use App\Services\NotificationHandler;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Fieldset;
-use Filament\Forms\Components\Repeater;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Components\TextInput;
-use Filament\Tables\Actions\ActionGroup;
-use pxlrbt\FilamentExcel\Columns\Column;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables\Actions\RestoreAction;
-use Filament\Tables\Filters\TrashedFilter;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
-use Filament\Tables\Actions\ForceDeleteAction;
-use Filament\Tables\Actions\RestoreBulkAction;
-use Filament\Tables\Actions\ForceDeleteBulkAction;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use App\Exports\CustomExport\CustomAttributionProposalExport;
 use App\Filament\Resources\AttributionProjectProposalResource\Pages;
 use App\Filament\Resources\AttributionProjectProposalResource\RelationManagers;
+use App\Models\Abdd;
+use App\Models\Allocation;
+use App\Models\DeliveryMode;
+use App\Models\Legislator;
+use App\Models\Particular;
+use App\Models\ProvinceAbdd;
+use App\Models\QualificationTitle;
+use App\Models\ScholarshipProgram;
+use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
+use App\Models\SubParticular;
+use App\Models\Target;
+use App\Models\TargetStatus;
+use App\Models\Tvi;
+use App\Policies\TargetPolicy;
+use App\Services\NotificationHandler;
+use Filament\Actions\Action;
+use Filament\Forms;
+use Filament\Forms\Components\Fieldset;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\ForceDeleteAction;
+use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
+use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TrashedFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
+use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class AttributionProjectProposalResource extends Resource
 {
@@ -118,13 +119,13 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         // if (count($appropriationYearOptions) === 1) {
                                         //     $set('attribution_appropriation_type', key($appropriationYearOptions));
                                         // }
-                    
+
                                         // $currentYear = now()->year;
-                    
+
                                         if (count($AttributorParticularOptions) === 1) {
                                             $set('attribution_sender_particular', key($AttributorParticularOptions));
                                         } else {
@@ -209,7 +210,7 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -296,7 +297,7 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -384,7 +385,7 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -474,7 +475,7 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -519,7 +520,7 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-                    
+
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -724,13 +725,13 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-                            
+
                                                 // if (count($appropriationYearOptions) === 1) {
                                                 //     $set('attribution_appropriation_type', key($appropriationYearOptions));
                                                 // }
-                            
+
                                                 // $currentYear = now()->year;
-                            
+
                                                 if (count($AttributorParticularOptions) === 1) {
                                                     $set('attribution_sender_particular', key($AttributorParticularOptions));
                                                 } else {
@@ -815,7 +816,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -902,7 +903,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -990,7 +991,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1080,7 +1081,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1125,7 +1126,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1632,13 +1633,13 @@ class AttributionProjectProposalResource extends Resource
                             $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
                             if ($skillsPriority->available_slots < $slots) {
-                                    $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
-                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                                $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
                             }
 
                             if ($skillsPriority->available_slots < $slots) {
-                                    $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
-                                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                                $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
                             }
 
                             $skillsPriority->available_slots -= $slots;
@@ -1729,7 +1730,7 @@ class AttributionProjectProposalResource extends Resource
                     ForceDeleteBulkAction::make()
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution project proposal ')),
                     RestoreBulkAction::make()
-                    ->action(function ($records) {
+                        ->action(function ($records) {
                             $records->each(function ($record) {
                                 $allocation = $record->allocation;
                                 $totalAmount = $record->total_amount;
@@ -1788,7 +1789,7 @@ class AttributionProjectProposalResource extends Resource
                                     $message = "Insuffucient Allocation Balance for {$allocation->legislator->name}.";
                                     NotificationHandler::handleValidationException('Something went wrong', $message);
                                 }
-                                
+
                                 $allocation->balance -= $totalAmount + $totalCostOfToolkit;
                                 $allocation->save();
 
@@ -1800,7 +1801,7 @@ class AttributionProjectProposalResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution project proposal ')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomAttributionProposalExport::make()
                                 ->withColumns([
                                     Column::make('fund_source')
                                         ->heading('Fund Source')
@@ -1823,6 +1824,10 @@ class AttributionProjectProposalResource extends Resource
 
                                             return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
+
+                                    Column::make('allocation.soft_or_commitment')
+                                        ->heading('Soft or Commitment'),
+
                                     Column::make('allocation.attributor.name')
                                         ->heading('Attribution Sender')
                                         ->getStateUsing(function ($record) {
@@ -1860,12 +1865,7 @@ class AttributionProjectProposalResource extends Resource
                                         }),
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
-                                    Column::make('allocation.soft_or_commitment')
-                                        ->heading('Soft or Commitment'),
-                                    Column::make('appropriation_type')
-                                        ->heading('Appropriation Type'),
-                                    Column::make('allocation.year')
-                                        ->heading('Appropriation Year'),
+
                                     Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
@@ -1893,40 +1893,66 @@ class AttributionProjectProposalResource extends Resource
                                             }
                                         }),
 
-                                    Column::make('municipality.name')
-                                        ->heading('Municipality'),
+                                    Column::make('appropriation_type')
+                                        ->heading('Appropriation Type'),
+
+                                    Column::make('allocation.year')
+                                        ->heading('Appropriation Year'),
+
+                                    Column::make('tvi.name')
+                                        ->heading('Institution'),
+
+                                    Column::make('tvi.tviType.name')
+                                        ->heading('Institution Type'),
+
+                                    Column::make('tvi.tviClass.name')
+                                        ->heading('Institution Class(A)'),
+
+
                                     Column::make('district.name')
                                         ->heading('District'),
+                                    Column::make('municipality.name')
+                                        ->heading('Municipality'),
                                     Column::make('tvi.district.province.name')
                                         ->heading('Province'),
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
-                                    Column::make('tvi.name')
-                                        ->heading('Institution'),
-                                    Column::make('tvi.tviClass.tviType.name')
-                                        ->heading('Institution Type'),
-                                    Column::make('tvi.tviClass.name')
-                                        ->heading('Institution Class(A)'),
+
                                     Column::make('qualification_title_code')
-                                        ->heading('Qualification Code'),
-                                    Column::make('qualification_title_soc_code')
-                                        ->heading('Schedule of Cost Code'),
+                                        ->heading('Qualification Code')
+                                        ->getStateUsing(fn($record) => $record->qualification_title_code ?? '-'),
+
                                     Column::make('qualification_title_name')
-                                        ->heading('Qualification Title'),
-                                    Column::make('abdd.name')
-                                        ->heading('ABDD Sector'),
-                                    Column::make('qualification_title.trainingProgram.tvet.name')
-                                        ->heading('TVET Sector'),
-                                    Column::make('qualification_title.trainingProgram.priority.name')
-                                        ->heading('Priority Sector'),
-                                    Column::make('deliveryMode.name')
-                                        ->heading('Delivery Mode'),
-                                    Column::make('learningMode.name')
-                                        ->heading('Learning Mode'),
+                                        ->heading('Qualification Title')
+                                        ->formatStateUsing(function ($state, $record) {
+                                            $qualificationCode = $record->qualification_title_soc_code ?? '';
+                                            $qualificationName = $record->qualification_title_name ?? '';
+
+                                            return "{$qualificationCode} - {$qualificationName}";
+                                        }),
+
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
+
+                                    Column::make('abdd.name')
+                                        ->heading('ABDD Sector'),
+
+                                    Column::make('qualification_title.trainingProgram.tvet.name')
+                                        ->heading('TVET Sector'),
+
+                                    Column::make('qualification_title.trainingProgram.priority.name')
+                                        ->heading('Priority Sector'),
+
+                                    Column::make('deliveryMode.name')
+                                        ->heading('Delivery Mode'),
+
+                                    Column::make('learningMode.name')
+                                        ->heading('Learning Mode'),
+
+
                                     Column::make('number_of_slots')
                                         ->heading('No. of slots'),
+
                                     Column::make('training_cost_per_slot')
                                         ->heading('Training Cost')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
@@ -2097,7 +2123,7 @@ class AttributionProjectProposalResource extends Resource
                                         ->heading('Status'),
 
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Project Proposals')
+                                ->withFilename(date('m-d-Y') . ' - attribution_project_proposal_pending_target')
                         ]),
                 ]),
             ]);

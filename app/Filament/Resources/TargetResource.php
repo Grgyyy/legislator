@@ -1253,8 +1253,9 @@ class TargetResource extends Resource
                                     Column::make('allocation.year')
                                         ->heading('Appropriation Year'),
 
-                                    Column::make('tvi.tviClass.name')
-                                        ->heading('Institution Class'),
+
+                                    Column::make('tvi.name')
+                                        ->heading('Institution'),
 
                                     Column::make('tvi.tviType.name')
                                         ->heading('Institution Type'),
@@ -1274,14 +1275,19 @@ class TargetResource extends Resource
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
 
-                                    Column::make('qualification_title_code')
-                                        ->heading('Qualification Code'),
 
-                                    Column::make('qualification_title_soc_code')
-                                        ->heading('Qualification SoC Code'),
+                                    Column::make('qualification_title_code')
+                                        ->heading('Qualification Code')
+                                        ->getStateUsing(fn($record) => $record->qualification_title_code ?? '-'),
 
                                     Column::make('qualification_title_name')
-                                        ->heading('Qualification Title'),
+                                        ->heading('Qualification Title')
+                                        ->formatStateUsing(function ($state, $record) {
+                                            $qualificationCode = $record->qualification_title_soc_code ?? '';
+                                            $qualificationName = $record->qualification_title_name ?? '';
+
+                                            return "{$qualificationCode} - {$qualificationName}";
+                                        }),
 
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
@@ -1471,7 +1477,7 @@ class TargetResource extends Resource
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Targets')
+                                ->withFilename(date('m-d-Y') . ' - pending_target_export')
                         ]),
                 ]),
             ]);
