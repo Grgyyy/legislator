@@ -192,7 +192,8 @@ class UserResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected users have been deleted permanently.');
                         }),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

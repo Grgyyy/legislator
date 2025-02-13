@@ -1795,7 +1795,8 @@ class AttributionTargetResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - attribution_target_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

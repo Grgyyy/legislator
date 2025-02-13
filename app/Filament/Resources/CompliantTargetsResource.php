@@ -1270,7 +1270,8 @@ class CompliantTargetsResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - compliant_target_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id])

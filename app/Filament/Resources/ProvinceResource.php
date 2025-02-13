@@ -176,7 +176,8 @@ class ProvinceResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - province_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

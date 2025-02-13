@@ -256,7 +256,8 @@ class TargetHistoryResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

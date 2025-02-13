@@ -471,6 +471,7 @@ class TviResource extends Resource
                         ]),
 
                 ])
+                ->label('Select Action'),
             ]);
     }
 

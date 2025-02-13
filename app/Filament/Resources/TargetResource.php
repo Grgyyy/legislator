@@ -1480,7 +1480,8 @@ class TargetResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - pending_target_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

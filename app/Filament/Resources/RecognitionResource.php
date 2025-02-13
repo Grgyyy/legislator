@@ -121,7 +121,8 @@ class RecognitionResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - recognition_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

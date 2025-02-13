@@ -228,7 +228,8 @@ class LegislatorResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Legislators'),
                         ])
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

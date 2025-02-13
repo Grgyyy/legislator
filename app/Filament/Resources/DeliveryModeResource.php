@@ -118,7 +118,8 @@ class DeliveryModeResource extends Resource
                         ])
 
 
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

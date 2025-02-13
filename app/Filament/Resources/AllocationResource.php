@@ -682,7 +682,8 @@ class AllocationResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - allocation_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

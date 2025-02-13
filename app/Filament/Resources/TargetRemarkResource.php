@@ -60,7 +60,8 @@ class TargetRemarkResource extends Resource
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target remarks ')),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

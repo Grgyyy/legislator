@@ -312,7 +312,8 @@ class SkillPriorityResource extends Resource
                                 ])
                                 ->withFilename(date('Y-m-d') . '-skill_priority_export.xlsx'),
                         ])
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

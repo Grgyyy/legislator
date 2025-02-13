@@ -123,7 +123,8 @@ class InstitutionClassResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - institution_class_b_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

@@ -1028,8 +1028,8 @@ class NonCompliantTargetResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - non_compliant_target_export')
                         ]),
-                ]),
-
+                ])
+                ->label('Select Action'),
             ]);
     }
 

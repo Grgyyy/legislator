@@ -130,8 +130,8 @@ class RegionResource extends Resource
                                 ])
                                 ->withFilename(now()->format('m-d-Y') . ' - region_export'),
                         ]),
-
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 
