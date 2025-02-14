@@ -139,5 +139,108 @@ class DistrictSeeder extends Seeder
             }
         }
 
+
+
+        $cebuMunicipality = DB::table('municipalities')
+                ->where('name', 'City of Cebu')
+                ->first();
+
+        if ($cebuMunicipality) {
+            for ($i = 1; $i <= 2; $i++) {
+                $districtName = "District {$i}";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $cebuMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $cebuMunicipality->id,
+                        'province_id' => $cebuMunicipality->province_id,
+                    ])->id;
+
+                    if ($i < 3) {
+                        DB::table('district_municipalities')->insert([
+                            'district_id' => $districtId,
+                            'municipality_id' => $cebuMunicipality->id,
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $lapulapuMunicipality = DB::table('municipalities')
+                ->where('name', 'City of Lapu-Lapu')
+                ->first();
+
+        if ($lapulapuMunicipality) {
+                $districtName = "Lone District";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $lapulapuMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $lapulapuMunicipality->id,
+                        'province_id' => $lapulapuMunicipality->province_id,
+                    ])->id;
+
+                    DB::table('district_municipalities')->insert([
+                        'district_id' => $districtId,
+                        'municipality_id' => $lapulapuMunicipality->id,
+                    ]);
+            
+                }
+        }
+
+        $madaueMunicipality = DB::table('municipalities')
+                ->where('name', 'City of Mandaue')
+                ->first();
+
+        if ($madaueMunicipality) {
+                $districtName = "Lone District";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $madaueMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $madaueMunicipality->id,
+                        'province_id' => $madaueMunicipality->province_id,
+                    ])->id;
+
+                    DB::table('district_municipalities')->insert([
+                        'district_id' => $districtId,
+                        'municipality_id' => $madaueMunicipality->id,
+                    ]);
+
+                }
+        }
+
+        $cebuId = DB::table('provinces')
+            ->where('name', 'Cebu')
+            ->value('id');
+
+        for ($i = 1; $i <= 7; $i++) {
+            $districtName = "District {$i}";
+            $districtExists = DB::table('districts')
+                ->where('name', $districtName)
+                ->whereNull('municipality_id')
+                ->where('province_id', $cebuId)
+                ->exists();
+
+            if (!$districtExists) {
+                $districtId = District::create([
+                    'name' => $districtName,
+                    'province_id' => $cebuId,
+                ])->id;
+            }
+        }
+
     }
 }

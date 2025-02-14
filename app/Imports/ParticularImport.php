@@ -112,7 +112,7 @@ class ParticularImport implements ToModel, WithHeadingRow
             ->whereNull('deleted_at');
     
         if($row['particular'] === 'District') {
-            if($row['region'] === 'NCR') {
+            if($row['municipality'] !== 'Not Applicable') {
                 $municipality = Municipality::where('name', $row['municipality'])
                     ->where('province_id', $province->id)
                     ->whereNull('deleted_at')
@@ -122,9 +122,15 @@ class ParticularImport implements ToModel, WithHeadingRow
                     throw new \Exception("The Municipality named '{$row['municipality']}' is not existing.");
                 }
 
+                // dd($municipality);
+
                 $districtQuery->where('municipality_id', $municipality->id);
             }
+            else {
+                $districtQuery->where('municipality_id', null);
+            }
         }
+        
 
         $district = $districtQuery->first();
 

@@ -226,5 +226,33 @@ class MunicipalitySeeder extends Seeder
         }        
 
 
+        $cebuProvince = DB::table('provinces')
+            ->where('name', 'Cebu')
+            ->first();
+
+        if ($cebuProvince) {
+            $cebuMunicipalities = [
+                ['code' => '0730600000', 'name' => 'City of Cebu', 'class' => '1st'],
+                ['code' => '0731100000', 'name' => 'City of Lapu-Lapu', 'class' => '1st'],
+                ['code' => '0731300000', 'name' => 'City of Mandaue', 'class' => '1st'],
+            ];
+
+            foreach ($cebuMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $cebuProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $cebuProvince->id,
+                    ]);
+                }
+            }
+        }   
+
+
     }
 }
