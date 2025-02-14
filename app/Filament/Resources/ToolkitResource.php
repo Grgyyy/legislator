@@ -156,7 +156,7 @@ class ToolkitResource extends Resource
             ->emptyStateHeading('No toolkits available')
             ->columns([
                 TextColumn::make('qualificationTitles')
-                    ->label('Qualification Title')
+                    ->label('SOC Title')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
