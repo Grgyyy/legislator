@@ -13,6 +13,7 @@ class InstitutionProgram extends Model
     protected $fillable = [
         'tvi_id',
         'training_program_id',
+        'status_id'
     ];
 
     public function tvi()
@@ -23,5 +24,10 @@ class InstitutionProgram extends Model
     public function trainingProgram()
     {
         return $this->belongsTo(TrainingProgram::class, 'training_program_id');
+    }
+
+    public function status()
+    {
+        return $this->belongsTo(Status::class, 'status_id');
     }
 }

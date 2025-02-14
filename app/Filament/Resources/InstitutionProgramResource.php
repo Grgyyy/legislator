@@ -8,6 +8,7 @@ use App\Filament\Resources\InstitutionProgramResource\RelationManagers;
 use App\Models\InstitutionProgram;
 use App\Models\Province;
 use App\Models\Region;
+use App\Models\Status;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
@@ -15,6 +16,7 @@ use Filament\Forms;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
+use Filament\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
@@ -27,6 +29,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -100,6 +103,20 @@ class InstitutionProgramResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_training_program')
                     ->live(),
+
+                Select::make('status_id')
+                    ->relationship('status', 'desc')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
+                    ->default(1)
+                    ->native(false)
+                    ->options(function () {
+                        return Status::all()
+                            ->pluck('desc', 'id')
+                            ->toArray() ?: ['no_status' => 'No status available'];
+                    })
+                    ->validationAttribute('status'),
             ]);
     }
 
@@ -116,6 +133,15 @@ class InstitutionProgramResource extends Resource
                 TextColumn::make('trainingProgram.title')
                     ->label('Qualification Title')
                     ->searchable(),
+                SelectColumn::make('status_id')
+                    ->label('Status')
+                    ->options([
+                        '1' => 'Active',
+                        '2' => 'Inactive',
+                    ])
+                    ->disablePlaceholderSelection()
+                    ->extraAttributes(['style' => 'width: 125px;'])
+            
                 // ->formatStateUsing(function ($state) {
                 //     if (!$state) {
                 //         return $state;
