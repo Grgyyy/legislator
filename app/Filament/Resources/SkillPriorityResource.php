@@ -8,11 +8,13 @@ use App\Models\District;
 use App\Models\Province;
 use App\Models\QualificationTitle;
 use App\Models\SkillPriority;
+use App\Models\Status;
 use App\Models\TrainingProgram;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Tables;
@@ -26,6 +28,7 @@ use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -161,6 +164,20 @@ class SkillPriorityResource extends Resource
                     ->validationMessages([
                         'min' => 'The allocation year must be at least ' . date('Y') . '.',
                     ]),
+                
+                Select::make('status_id')
+                    ->relationship('status', 'desc')
+                    ->required()
+                    ->markAsRequired(false)
+                    ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
+                    ->default(1)
+                    ->native(false)
+                    ->options(function () {
+                        return Status::all()
+                            ->pluck('desc', 'id')
+                            ->toArray() ?: ['no_status' => 'No status available'];
+                    })
+                    ->validationAttribute('status'),
             ]);
     }
 
@@ -194,19 +211,28 @@ class SkillPriorityResource extends Resource
 
                 TextColumn::make('trainingProgram.title')
                     ->searchable()
-                    ->label('Qualification Titles')
+                    ->label('SOC Title')
                     ->getStateUsing(function ($record) {
                         return $record->trainingProgram->implode('title', ', ');
                     }),
 
-                TextColumn::make('available_slots')
-                    ->label('Available Slots'),
-
                 TextColumn::make('total_slots')
-                    ->label('Total Slots'),
+                        ->label('Total Target Beneficiaries'),
+
+                TextColumn::make('available_slots')
+                    ->label('Available Target Beneficiaries'),
 
                 TextColumn::make('year')
                     ->label('Year'),
+
+                SelectColumn::make('status_id')
+                    ->label('Status')
+                    ->options([
+                        '1' => 'Active',
+                        '2' => 'Inactive',
+                    ])
+                    ->disablePlaceholderSelection()
+                    ->extraAttributes(['style' => 'width: 125px;'])
             ])
             ->filters([
                 TrashedFilter::make()
