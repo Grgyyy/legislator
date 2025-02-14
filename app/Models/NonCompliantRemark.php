@@ -24,4 +24,5 @@ class NonCompliantRemark extends Model
     {
         return $this->belongsTo(TargetRemark::class);
     }
+
 }

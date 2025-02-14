@@ -3,12 +3,12 @@
 namespace App\Exports;
 
 use App\Models\Target;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -16,24 +16,36 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping
 {
     private array $columns = [
-        'fund_source' => 'Allocation Type',
-        'attributionAllocation.legislator.name' => 'Legislator I',
-        'allocation.legislator.name' => 'Legislator II',
-        'allocation.legislator.particular.subParticular' => 'Particular',
+        'fund_source' => 'Fund Source',
         'allocation.soft_or_commitment' => 'Source of Fund',
+        'attributionAllocation.legislator.name' => 'Attributor',
+        'attributionAllocation.legislator.particular.subParticular' => 'Attribution Particular',
+        'allocation.legislator.name' => 'Legislator',
+        'allocation.legislator.particular.subParticular' => 'Particular',
         'appropriation_type' => 'Appropriation Type',
-        'allocation.year' => 'Allocation Year',
+        'allocation.year' => 'Appropriation Year',
+
+        'institution_name' => 'Institution',
+        'institution_type' => 'Institution Type',
+        'institution_class' => 'Institution Class',
+
         'district_name' => 'District',
         'municipality_name' => 'Municipality',
         'municipality.province.name' => 'Province',
         'region_name' => 'Region',
-        'institution_name' => 'Institution',
-        'scholarship_program' => 'Scholarship Program',
+
+        'qualification_code' => 'Qualification Code',
         'qualification_name' => 'Qualification Title',
-        'priority_sector' => 'Priority Sector',
-        'tvet_sector' => 'TVET Sector',
+        'scholarship_program' => 'Scholarship Program',
+
         'abdd_sector' => 'ABDD Sector',
-        'number_of_slots' => 'No. of slots',
+        'tvet_sector' => 'TVET Sector',
+        'priority_sector' => 'Priority Sector',
+
+        'delivery_mode' => 'Delivery Mode',
+        'learning_mode' => 'Learning Mode',
+
+        'number_of_slots' => 'No. of Slots',
         'training_cost_per_slot' => 'Training Cost',
         'cost_of_toolkit_per_slot' => 'Cost of Toolkit',
         'training_support_fund_per_slot' => 'Training Support Fund',
@@ -45,6 +57,7 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
         'uniform_allowance_per_slot' => 'Uniform Allowance',
         'misc_fee_per_slot' => 'Miscellaneous Fee',
         'total_amount_per_slot' => 'PCC',
+
         'total_training_cost_pcc' => 'Total Training Cost',
         'total_cost_of_toolkit_pcc' => 'Total Cost of Toolkit',
         'total_training_support_fund' => 'Total Training Support Fund',
@@ -67,8 +80,7 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
             ->when(request()->user()->role === 'RO', function (Builder $query) {
                 $query->where('region_id', request()->user()->region_id);
             })
-            ->where('target_status_id', 2)
-            ->whereNull('attribution_allocation_id');
+            ->where('target_status_id', 2);
     }
 
     public function headings(): array
@@ -76,7 +88,7 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
         return [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['COMPLIANT TARGET'],
+            ['COMPLIANT TARGETS'],
             [''],
             array_values($this->columns),
         ];
@@ -86,24 +98,47 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
     {
         return array_merge([
             $this->getFundSource($record),
-            $record->attributionAllocation->legislator->name ?? '-',
-            $record->allocation->legislator->name ?? '-',
-            $this->getParticular($record),
             $record->allocation->soft_or_commitment ?? '-',
+            $this->attributionSender($record),
+            $this->attributionParticular($record),
+            $this->getLegislator($record->allocation),
+            $this->getParticular($record),
             $record->appropriation_type,
             $record->allocation->year,
-            $record->tvi->district->name ?? '-',
+
+            $record->tvi->name ?? '-',
+            $record->tvi->tviType->name ?? '-',
+            $record->tvi->tviClass->name ?? '-',
+
+            $record->district->name ?? '-',
             $record->municipality->name ?? '-',
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
-            $record->tvi->name ?? '-',
+
+            $record->qualification_title_code ?? '-',
+            $this->getQualificationTitle($record),
             $record->allocation->scholarship_program->name ?? '-',
-            $record->qualification_title->trainingProgram->title ?? '-',
-            $record->qualification_title->trainingProgram->priority->name ?? '-',
-            $record->qualification_title->trainingProgram->tvet->name ?? '-',
+
             $record->abdd->name ?? '-',
+            $record->qualification_title->trainingProgram->tvet->name ?? '-',
+            $record->qualification_title->trainingProgram->priority->name ?? '-',
+
+            $record->deliveryMode->name ?? '-',
+            $record->learningMode->name ?? '-',
+
             $record->number_of_slots,
-        ], $this->mapCostPerSlot($record), [
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_support_fund')),
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_assessment_fee')),
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_entrepreneurship_fee')),
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_new_normal_assisstance')),
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_accident_insurance')),
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_book_allowance')),
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_uniform_allowance')),
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_misc_fee')),
+            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_amount')),
+
             $this->formatCurrency($record->total_training_cost_pcc),
             $this->formatCurrency($record->total_cost_of_toolkit_pcc),
             $this->formatCurrency($record->total_training_support_fund),
@@ -115,7 +150,8 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
             $this->formatCurrency($record->total_uniform_allowance),
             $this->formatCurrency($record->total_misc_fee),
             $this->formatCurrency($record->total_amount),
-            $record->targetStatus->desc ?? 'No status available',
+
+            $record->targetStatus->desc ?? '-',
         ]);
     }
 
@@ -126,10 +162,57 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
     }
 
     // Helper method to fetch particular details
-    private function getParticular($record): string
+    private function getQualificationTitle($record)
+    {
+        $qualificationCode = $record->qualification_title_soc_code ?? '';
+        $qualificationName = $record->qualification_title_name ?? '';
+
+        return "{$qualificationCode} - {$qualificationName}";
+    }
+
+    private function attributionSender($record)
+    {
+        return $record->allocation->attributor ? $record->allocation->attributor->name : '-';
+    }
+
+    private function attributionParticular($record)
+    {
+        $particular = $record->allocation->attributorParticular;
+
+        if (!$particular) {
+            return '-';
+        }
+
+        $district = $particular->district;
+        $districtName = $district ? $district->name : '';
+
+        if ($districtName === 'Not Applicable') {
+            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+            } else {
+                return $particular->subParticular->name ?? '-';
+            }
+        } else {
+            if ($particular->district->underMunicipality) {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+            } else {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+            }
+        }
+    }
+    private function getLegislator($allocation)
+    {
+        return $allocation->legislator->name ?? '-';
+    }
+
+
+    /**
+     * Retrieve the particular from the record.
+     */
+    private function getParticular($record)
     {
         $particulars = $record->allocation->legislator->particular;
-        return $particulars->isNotEmpty() ? $particulars->first()->subParticular->name ?? 'No sub-particular available' : 'No particular available';
+        return $particulars->isNotEmpty() ? ($particulars->first()->subParticular->name ?? '-') : '-';
     }
 
     // Helper method to format currency values

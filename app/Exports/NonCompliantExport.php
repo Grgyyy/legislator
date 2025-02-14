@@ -3,12 +3,13 @@
 namespace App\Exports;
 
 use App\Models\Target;
-use Illuminate\Support\Facades\DB;
+use App\Models\TargetRemark;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
@@ -19,30 +20,36 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
      * Column definitions for export with their headings.
      */
     private $columns = [
-        'abscap_id' => 'Absorptive Capacity',
+        // 'abscap_id' => 'Absorptive Capacity',
         'fund_source' => 'Fund Source',
-        'attributionAllocation.legislator.name' => 'Attribution Sender',
+        'allocation.soft_or_commitment' => 'Source of Fund',
+        'attributionAllocation.legislator.name' => 'Attributor',
         'attributionAllocation.legislator.particular.subParticular' => 'Attribution Particular',
         'allocation.legislator.name' => 'Legislator',
-        'allocation.soft_or_commitment' => 'Source of Fund',
-        'appropriation_type' => 'Appropriation Type',
-        'allocation.year' => 'Allocation',
         'allocation.legislator.particular.subParticular' => 'Particular',
-        'municipality_name' => 'Municipality',
-        'district_name' => 'District',
-        'municipality.province.name' => 'Province',
-        'region_name' => 'Region',
+        'appropriation_type' => 'Appropriation Type',
+        'allocation.year' => 'Appropriation Year',
+
         'institution_name' => 'Institution',
         'institution_type' => 'Institution Type',
         'institution_class' => 'Institution Class',
+
+        'district_name' => 'District',
+        'municipality_name' => 'Municipality',
+        'municipality.province.name' => 'Province',
+        'region_name' => 'Region',
+
         'qualification_code' => 'Qualification Code',
         'qualification_name' => 'Qualification Title',
+        'scholarship_program' => 'Scholarship Program',
+
         'abdd_sector' => 'ABDD Sector',
         'tvet_sector' => 'TVET Sector',
         'priority_sector' => 'Priority Sector',
+
         'delivery_mode' => 'Delivery Mode',
         'learning_mode' => 'Learning Mode',
-        'scholarship_program' => 'Scholarship Program',
+
         'number_of_slots' => 'No. of Slots',
         'training_cost_per_slot' => 'Training Cost',
         'cost_of_toolkit_per_slot' => 'Cost of Toolkit',
@@ -55,6 +62,7 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         'uniform_allowance_per_slot' => 'Uniform Allowance',
         'misc_fee_per_slot' => 'Miscellaneous Fee',
         'total_amount_per_slot' => 'PCC',
+
         'total_training_cost_pcc' => 'Total Training Cost',
         'total_cost_of_toolkit_pcc' => 'Total Cost of Toolkit',
         'total_training_support_fund' => 'Total Training Support Fund',
@@ -66,12 +74,11 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         'total_uniform_allowance' => 'Total Uniform Allowance',
         'total_misc_fee' => 'Total Miscellaneous Fee',
         'total_amount' => 'Total PCC',
+        'nonCompliantRemark.target_remarks.remarks' => 'Remarks',
+        'nonCompliantRemark.others_remarks' => 'Other',
         'status' => 'Status',
     ];
 
-    /**
-     * Define the query for retrieving pending targets.
-     */
     public function query()
     {
         return Target::query()
@@ -79,10 +86,11 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
                 'attributionAllocation.legislator.particular.subParticular',
                 'allocation.legislator.particular.subParticular',
                 'municipality.province.region',
-                'tvi.tviClass.tviType',
+                'tvi.tviType',
                 'qualification_title.trainingProgram.tvet',
                 'qualification_title.trainingProgram.priority',
                 'allocation.scholarship_program',
+                'nonCompliantRemark.target_remarks',
             ])
             ->select([
                 'abscap_id',
@@ -94,6 +102,7 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
                 'abdd_id',
                 'qualification_title_id',
                 'qualification_title_code',
+                'qualification_title_soc_code',
                 'qualification_title_name',
                 'delivery_mode_id',
                 'learning_mode_id',
@@ -118,57 +127,56 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
             ->when(request()->user()->role === 'RO', function (Builder $query) {
                 $query->where('region_id', request()->user()->region_id);
             })
-            ->where('target_status_id', 3)
-            ->whereNull('attribution_allocation_id');
+            ->where('target_status_id', 3);
     }
 
 
 
-    /**
-     * Define the headings for the Excel export.
-     */
     public function headings(): array
     {
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['NON-COMPLIANT TARGET'],
+            ['NON-COMPLIANT TARGETS'],
             [''],
         ];
 
         return array_merge($customHeadings, [array_values($this->columns)]);
     }
 
-    /**
-     * Map the data for each row in the export.
-     */
     public function map($record): array
     {
         return [
-            $record->abscap_id,
+            // $record->abscap_id,
             $this->getFundSource($record),
-            $this->attributionSender($record->attributionAllocation),
-            $this->attributionParticular($record->attributionAllocation),
-            $this->getLegislator($record->allocation),
             $record->allocation->soft_or_commitment ?? '-',
+            $this->attributionSender($record),
+            $this->attributionParticular($record),
+            $this->getLegislator($record->allocation),
+            $this->getParticular($record),
             $record->appropriation_type,
             $record->allocation->year,
-            $this->getParticular($record),
-            $record->municipality->name ?? '-',
+
+            $record->tvi->name ?? '-',
+            $record->tvi->tviType->name ?? '-',
+            $record->tvi->tviClass->name ?? '-',
+
             $record->district->name ?? '-',
+            $record->municipality->name ?? '-',
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
-            $record->tvi->name ?? '-',
-            $record->tvi->tviClass->tviType->name ?? '-',
-            $record->tvi->tviClass->name ?? '-',
+
             $record->qualification_title_code ?? '-',
-            $record->qualification_title_code ?? '-',
+            $this->getQualificationTitle($record),
+            $record->allocation->scholarship_program->name ?? '-',
+
             $record->abdd->name ?? '-',
             $record->qualification_title->trainingProgram->tvet->name ?? '-',
             $record->qualification_title->trainingProgram->priority->name ?? '-',
+
             $record->deliveryMode->name ?? '-',
             $record->learningMode->name ?? '-',
-            $record->allocation->scholarship_program->name ?? '-',
+
             $record->number_of_slots,
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
@@ -181,6 +189,7 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_uniform_allowance')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_misc_fee')),
             $this->formatCurrency($this->calculateCostPerSlot($record, 'total_amount')),
+
             $this->formatCurrency($record->total_training_cost_pcc),
             $this->formatCurrency($record->total_cost_of_toolkit_pcc),
             $this->formatCurrency($record->total_training_support_fund),
@@ -192,26 +201,66 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
             $this->formatCurrency($record->total_uniform_allowance),
             $this->formatCurrency($record->total_misc_fee),
             $this->formatCurrency($record->total_amount),
+
+            $this->getRemarks($record),
+            $this->getOtherRemarks($record),
+
             $record->targetStatus->desc ?? '-',
         ];
     }
 
-    /**
-     * Retrieve the fund source from the record.
-     */
-
-
-    private function attributionSender($attributionAllocation)
+    public function getRemarks($record)
     {
-        return $attributionAllocation->legislator->name ?? '-';
+        return $record->nonCompliantRemark->target_remarks->remarks ?? 'N/A';
     }
 
-    /**
-     * Get SubParticular Name safely.
-     */
-    private function attributionParticular($attributionAllocation)
+
+
+    public function getOtherRemarks($record)
     {
-        return $attributionAllocation->legislator->particular->subParticular->name ?? '-';
+        return $record->nonCompliantRemark->others_remarks ?? 'N/A';
+    }
+
+
+
+
+    private function getQualificationTitle($record)
+    {
+        $qualificationCode = $record->qualification_title_soc_code ?? '';
+        $qualificationName = $record->qualification_title_name ?? '';
+
+        return "{$qualificationCode} - {$qualificationName}";
+    }
+
+    private function attributionSender($record)
+    {
+        return $record->allocation->attributor ? $record->allocation->attributor->name : '-';
+    }
+
+    private function attributionParticular($record)
+    {
+        $particular = $record->allocation->attributorParticular;
+
+        if (!$particular) {
+            return '-';
+        }
+
+        $district = $particular->district;
+        $districtName = $district ? $district->name : '';
+
+        if ($districtName === 'Not Applicable') {
+            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+            } else {
+                return $particular->subParticular->name ?? '-';
+            }
+        } else {
+            if ($particular->district->underMunicipality) {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+            } else {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+            }
+        }
     }
     private function getLegislator($allocation)
     {
@@ -224,8 +273,33 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
      */
     private function getParticular($record)
     {
-        $particulars = $record->allocation->legislator->particular;
-        return $particulars->isNotEmpty() ? ($particulars->first()->subParticular->name ?? '-') : '-';
+
+        $legislator = $record->allocation->legislator;
+        $particulars = $legislator->particular;
+
+        $particular = $particulars->first();
+        $district = $particular->district;
+        $municipality = $district ? $district->underMunicipality : null;
+
+        $districtName = $district ? $district->name : '';
+        $provinceName = $district ? $district->province->name : '';
+        $municipalityName = $municipality ? $municipality->name : '';
+
+        if ($districtName === 'Not Applicable') {
+            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+            } else {
+                return $particular->subParticular->name ?? '-';
+            }
+        } else {
+            if ($municipality === '') {
+                return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
+            } else {
+                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
+            }
+        }
+
+
     }
     private function getFundSource($record)
     {
