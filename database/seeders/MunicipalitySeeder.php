@@ -254,5 +254,31 @@ class MunicipalitySeeder extends Seeder
         }   
 
 
+        $zamboangaProvince = DB::table('provinces')
+            ->where('name', 'Zamboanga del Sur')
+            ->first();
+
+        if ($cebuProvince) {
+            $zamboangaMunicipalities = [
+                ['code' => '0931700000', 'name' => 'City of Zamboanga', 'class' => '1st'],
+            ];
+
+            foreach ($zamboangaMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $zamboangaProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $zamboangaProvince->id,
+                    ]);
+                }
+            }
+        }   
+
+
     }
 }
