@@ -13,12 +13,12 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Tables\Columns\TextColumn;
 
 class TargetHistoryResource extends Resource
 {
@@ -238,6 +238,11 @@ class TargetHistoryResource extends Resource
 
                 TextColumn::make("updated_at")
                     ->label("Date Encoded")
+                    ->formatStateUsing(fn ($state) => 
+                        \Carbon\Carbon::parse($state)->format('M j, Y') . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 
+                        \Carbon\Carbon::parse($state)->format('h:i A')
+                    )
+                    ->html()
             ])
             ->filters([
                 //
