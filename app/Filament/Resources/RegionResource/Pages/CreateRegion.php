@@ -53,8 +53,10 @@ class CreateRegion extends CreateRecord
 
     protected function validateUniqueRegion($data)
     {
+        $name = trim($data['name']);
+
         $region = Region::withTrashed()
-            ->where('name', $data['name'])
+            ->whereRaw('TRIM(name) = ?', $name)
             ->first();
 
         if ($region) {
