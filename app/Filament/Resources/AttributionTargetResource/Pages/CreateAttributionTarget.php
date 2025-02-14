@@ -19,10 +19,10 @@ use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Filament\Notifications\Notification;
 
 class CreateAttributionTarget extends CreateRecord
 {
@@ -73,7 +73,7 @@ class CreateAttributionTarget extends CreateRecord
                 $requiredFields = [
                         'attribution_sender', 'attribution_sender_particular', 'attribution_scholarship_program',
                         'allocation_year', 'attribution_appropriation_type', 'attribution_receiver', 'attribution_receiver_particular',
-                        'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots', 'learning_mode_id',
+                        'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots',
                     ];
         
                     foreach ($requiredFields as $field) {
