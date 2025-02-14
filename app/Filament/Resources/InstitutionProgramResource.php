@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Exports\CustomExport\CustomInstitutionQualificationTitleExport;
 use App\Filament\Resources\InstitutionProgramResource\Pages;
 use App\Filament\Resources\InstitutionProgramResource\RelationManagers;
+use App\Models\District;
 use App\Models\InstitutionProgram;
 use App\Models\Province;
 use App\Models\Region;
@@ -72,11 +73,6 @@ class InstitutionProgramResource extends Resource
                         return Tvi::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
                             ->mapWithKeys(function ($name, $id) {
-                                // $name = preg_replace_callback(
-                                //     '/(\d)([a-zA-Z])/',
-                                //     fn($matches) => $matches[1] . strtoupper($matches[2]),
-                                //     ucwords($name)
-                                // );
                                 return [$id => $name];
                             })
                             ->toArray() ?: ['no_tvi' => 'No institution available'];
@@ -171,7 +167,9 @@ class InstitutionProgramResource extends Resource
                                     Select::make('region_id')
                                         ->label('Region')
                                         ->placeholder('All')
-                                        ->options(Region::pluck('name', 'id'))
+                                        ->options(Region::whereNot('name', 'Not Applicable')
+                                            ->pluck('name', 'id')
+                                        )
                                         ->afterStateUpdated(function (callable $set, $state) {
                                             $set('province_id', null);
                                         })
@@ -189,6 +187,55 @@ class InstitutionProgramResource extends Resource
                                         })
                                         ->reactive(),
                                 ]),
+
+                            Select::make('tvi_id')
+                                ->label('Institution')
+                                ->placeholder('Select institution')
+                                ->searchable()
+                                ->options(function ($get) {
+                                    $provinceId = $get('province_id');
+                            
+                                    $districtIds = District::where('province_id', $provinceId)->pluck('id');
+                            
+                                    return Tvi::whereIn('district_id', $districtIds)
+                                        ->whereNot('name', 'Not Applicable')
+                                        ->get()
+                                        ->mapWithKeys(fn($tvi) => [$tvi->id => "{$tvi->school_id} - {$tvi->name}"]);
+                                })
+                                ->reactive(),
+
+                                Select::make('training_program_id')
+                                ->label('Qualification Title')
+                                ->placeholder('All')
+                                ->searchable()
+                                ->options(function ($get) {
+                                    $provinceId = $get('province_id');
+                                    $tviId = $get('tvi_id');
+                            
+                                    if (!$provinceId) {
+                                        return [];
+                                    }
+                            
+                                    $districtIds = District::where('province_id', $provinceId)
+                                        ->pluck('id');
+                            
+                                    $tviIds = Tvi::whereIn('district_id', $districtIds)
+                                        ->pluck('id');
+                            
+                                    if ($tviId) {
+                                        $tviIds = [$tviId];
+                                    }
+                            
+                                    return TrainingProgram::whereHas('tvis', function ($query) use ($tviIds) {
+                                            $query->whereIn('tvi_id', $tviIds);
+                                        })
+                                        ->get()
+                                        ->mapWithKeys(function ($program) {
+                                            return [$program->id => "{$program->soc_code} - {$program->title}"];
+                                        })
+                                        ->toArray();
+                                })
+                                ->reactive()
                         ];
                     })
                     ->query(function (Builder $query, array $data): Builder {
@@ -204,6 +251,18 @@ class InstitutionProgramResource extends Resource
                                 fn(Builder $query, $provinceId) => $query->whereHas('tvi.district.province', function ($query) use ($provinceId) {
                                     $query->where('id', $provinceId);
                                 })
+                            )
+
+                            ->when(
+                                $data['tvi_id'] ?? null,
+                                fn(Builder $query, $tviId) => $query->where('tvi_id', $tviId)
+                            )
+
+                            ->when(
+                                $data['training_program_id'] ?? null,
+                                fn(Builder $query, $trainingProgramId) => $query->whereHas('trainingProgram', function ($query) use ($trainingProgramId) {
+                                    $query->where('id', $trainingProgramId);
+                                })
                             );
                     })
                     ->indicateUsing(function (array $data): array {
@@ -215,6 +274,20 @@ class InstitutionProgramResource extends Resource
 
                         if (!empty($data['province_id'])) {
                             $indicators[] = 'Province: ' . Province::find($data['province_id'])->name;
+                        }
+
+                        if (!empty($data['tvi_id'])) {
+                            $tvi = Tvi::find($data['tvi_id']);
+                            if ($tvi) {
+                                $indicators[] = 'Institution: ' . $tvi->school_id . ' - ' . $tvi->name;
+                            }
+                        }
+
+                        if (!empty($data['training_program_id'])) {
+                            $trainingProgram = TrainingProgram::find($data['training_program_id']);
+                            if ($trainingProgram) {
+                                $indicators[] = 'Qualification Title: ' . $trainingProgram->soc_code . ' - ' . $trainingProgram->title;
+                            }
                         }
 
                         return $indicators;
