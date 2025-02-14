@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\CustomExport\CustomNonCompliantTarget;
 use App\Filament\Resources\NonCompliantTargetResource\Pages;
 use App\Filament\Resources\NonCompliantTargetResource\RelationManagers;
 use App\Models\Abdd;
@@ -417,60 +418,51 @@ class NonCompliantTargetResource extends Resource
                         return $fundSource ? $fundSource->name : 'No fund source available';
                     }),
 
-
-                TextColumn::make('attributionAllocation.legislator.name')
-                    ->label('Attribution Sender')
-                    ->sortable()
+                TextColumn::make('allocation.soft_or_commitment')
+                    ->label('Source of Fund')
                     ->searchable()
                     ->toggleable(),
+
+
+                TextColumn::make('attributionAllocation.legislator.name')
+                    ->label('Attributor')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        return $record->allocation->attributor ? $record->allocation->attributor->name : '-';
+                    }),
 
                 TextColumn::make('attributionAllocation.legislator.particular.subParticular')
                     ->label('Attribution Particular')
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
-                        // Check if attributionAllocation exists
-                        if (!$record->attributionAllocation) {
-                            return '';
+                        $particular = $record->allocation->attributorParticular;
+
+                        if (!$particular) {
+                            return '-';
                         }
 
-                        $legislator = $record->attributionAllocation->legislator;
-
-                        $particulars = $legislator->particular;
-
-                        $particular = $particulars->first();
                         $district = $particular->district;
-                        $municipality = $district ? $district->underMunicipality : null;
-
-                        $districtName = $district ? $district->name : 'Unknown District';
-                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                        $districtName = $district ? $district->name : '';
 
                         if ($districtName === 'Not Applicable') {
                             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
                             } else {
-                                return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                return $particular->subParticular->name ?? '-';
                             }
                         } else {
-                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                            if ($particular->district->underMunicipality) {
+                                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+                            } else {
+                                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                            }
                         }
                     }),
 
                 TextColumn::make('allocation.legislator.name')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('allocation.soft_or_commitment')
-                    ->label('Source of Fund')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('appropriation_type')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('allocation.year')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),
@@ -481,91 +473,113 @@ class NonCompliantTargetResource extends Resource
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $legislator = $record->allocation->legislator;
-
-                        if (!$legislator) {
-                            return 'No legislator available';
-                        }
-
                         $particulars = $legislator->particular;
-
-                        if ($particulars->isEmpty()) {
-                            return 'No particular available';
-                        }
 
                         $particular = $particulars->first();
                         $district = $particular->district;
                         $municipality = $district ? $district->underMunicipality : null;
 
-                        $districtName = $district ? $district->name : 'Unknown District';
-                        $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                        $districtName = $district ? $district->name : '';
+                        $provinceName = $district ? $district->province->name : '';
+                        $municipalityName = $municipality ? $municipality->name : '';
 
                         if ($districtName === 'Not Applicable') {
                             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
                             } else {
-                                return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                return $particular->subParticular->name ?? '-';
                             }
                         } else {
-                            return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}";
+                            if ($municipality === '') {
+                                return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
+                            } else {
+                                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
+                            }
                         }
                     }),
 
-                TextColumn::make('municipality.name')
+
+                TextColumn::make('appropriation_type')
+                    ->label('Appropriation Type')
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('district.name')
+                TextColumn::make('allocation.year')
+                    ->label('Appropriation Year')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('tvi.district.municipality.province.name')
-                    ->searchable()
-                    ->toggleable(),
 
-                TextColumn::make('tvi.district.municipality.province.region.name')
-                    ->searchable()
-                    ->toggleable(),
 
                 TextColumn::make('tvi.name')
                     ->label('Institution')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+
+                TextColumn::make('location')
+                    ->label('Address')
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+                    ->getStateUsing(fn($record) => self::getLocationNames($record)),
 
-                TextColumn::make('tvi.tviClass.tviType.name')
-                    ->label('Institution Type')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('tvi.tviClass.name')
+                TextColumn::make('tvi.tviType.name')
                     ->label('Institution Class')
                     ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($state, $record) {
+                        $institutionType = $record->tvi->tviType->name ?? '';
+                        $institutionClass = $record->tvi->tviClass->name ?? '';
+
+                        return "{$institutionType} - {$institutionClass}";
+                    }),
+
+                TextColumn::make('district.name')
+                    ->label('District')
+                    ->searchable()
                     ->toggleable(),
+
+                TextColumn::make('municipality.name')
+                    ->label('Municipality')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('tvi.district.province.name')
+                    ->label('Province')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('tvi.district.province.region.name')
+                    ->label('Region')
+                    ->searchable()
+                    ->toggleable(),
+
 
                 TextColumn::make('qualification_title_code')
                     ->label('Qualification Code')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => $record->qualification_title_code ?? '-'),
 
                 TextColumn::make('qualification_title_name')
                     ->label('Qualification Title')
+                    ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(function ($state) {
-                        if (!$state) {
-                            return $state;
-                        }
+                    ->formatStateUsing(function ($state, $record) {
+                        $qualificationCode = $record->qualification_title_soc_code ?? '';
+                        $qualificationName = $record->qualification_title_name ?? '';
 
-                        $state = ucwords($state);
-
-                        if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                            $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                return 'NC ' . strtoupper($matches[1]);
-                            }, $state);
-                        }
-
-                        return $state;
+                        return "{$qualificationCode} - {$qualificationName}";
                     }),
+
+
+                TextColumn::make('allocation.scholarship_program.name')
+                    ->label('Scholarship Program')
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make('abdd.name')
                     ->label('ABDD Sector')
@@ -574,6 +588,11 @@ class NonCompliantTargetResource extends Resource
 
                 TextColumn::make('qualification_title.trainingProgram.tvet.name')
                     ->label('TVET Sector')
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make('qualification_title.trainingProgram.priority.name')
+                    ->label('Priority Sector')
                     ->searchable()
                     ->toggleable(),
 
@@ -592,15 +611,6 @@ class NonCompliantTargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('qualification_title.trainingProgram.priority.name')
-                    ->label('Priority Sector')
-                    ->searchable()
-                    ->toggleable(),
-
-                TextColumn::make('allocation.scholarship_program.name')
-                    ->label('Scholarship Program')
-                    ->searchable()
-                    ->toggleable(),
 
                 TextColumn::make('number_of_slots')
                     ->label('Number of Slots')
@@ -670,7 +680,7 @@ class NonCompliantTargetResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution project proposal ')),
                     ExportBulkAction::make()
                         ->exports([
-                            ExcelExport::make()
+                            CustomNonCompliantTarget::make()
                                 ->withColumns([
                                     // Column::make('abscap_id')
                                     //     ->heading('Absorptive Capacity'),
@@ -695,110 +705,135 @@ class NonCompliantTargetResource extends Resource
 
                                             return $fundSource ? $fundSource->name : 'No fund source available';
                                         }),
+
+
+                                    Column::make('allocation.soft_or_commitment')
+                                        ->heading('Soft or Commitment'),
+
                                     Column::make('allocation.attributor.name')
-                                        ->heading('Attribution Sender')
+                                        ->heading('Attributor')
                                         ->getStateUsing(function ($record) {
-                                            if (!$record->allocation->attributor) {
-                                                return '-';
-                                            } else {
-                                                return $record->allocation->attributor->name;
-                                            }
+                                            return $record->allocation->attributor ? $record->allocation->attributor->name : '-';
                                         }),
+
                                     Column::make('allocation.attributorParticular.subParticular')
                                         ->heading('Attributor Particular')
                                         ->getStateUsing(function ($record) {
                                             $particular = $record->allocation->attributorParticular;
-                                            $district = $particular->district;
-                                            $municipality = $district ? $district->underMunicipality : null;
 
-                                            $districtName = $district ? $district->name : 'Unknown District';
-                                            $municipalityName = $municipality ? $municipality->name : '';
-                                            $provinceName = $district ? $district->province->name : 'Unknown Province';
-                                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
+                                            if (!$particular) {
+                                                return '-';
+                                            }
+
+                                            $district = $particular->district;
+                                            $districtName = $district ? $district->name : '';
 
                                             if ($districtName === 'Not Applicable') {
                                                 if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                                     return "{$particular->subParticular->name} - {$particular->partylist->name}";
                                                 } else {
-                                                    return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                                    return $particular->subParticular->name ?? '-';
                                                 }
                                             } else {
-                                                if ($municipality) {
-                                                    return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
+                                                if ($particular->district->underMunicipality) {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
                                                 } else {
-                                                    return "{$particular->subParticular->name} - {$districtName}, {$provinceName}, {$regionName}";
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
                                                 }
                                             }
                                         }),
+
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
-                                    Column::make('allocation.soft_or_commitment')
-                                        ->heading('Soft or Commitment'),
-                                    Column::make('appropriation_type')
-                                        ->heading('Appropriation Type'),
-                                    Column::make('allocation.year')
-                                        ->heading('Appropriation Year'),
+
                                     Column::make('allocation.legislator.particular.subParticular')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
-                                            $particular = $record->allocation->particular;
+                                            $legislator = $record->allocation->legislator;
+                                            $particulars = $legislator->particular;
+
+                                            $particular = $particulars->first();
                                             $district = $particular->district;
                                             $municipality = $district ? $district->underMunicipality : null;
 
-                                            $districtName = $district ? $district->name : 'Unknown District';
+                                            $districtName = $district ? $district->name : '';
+                                            $provinceName = $district ? $district->province->name : '';
                                             $municipalityName = $municipality ? $municipality->name : '';
-                                            $provinceName = $district ? $district->province->name : 'Unknown Province';
-                                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
 
                                             if ($districtName === 'Not Applicable') {
                                                 if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                                                     return "{$particular->subParticular->name} - {$particular->partylist->name}";
                                                 } else {
-                                                    return $particular->subParticular->name ?? 'Unknown SubParticular';
+                                                    return $particular->subParticular->name ?? '-';
                                                 }
                                             } else {
-                                                if ($municipality) {
-                                                    return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
+                                                if ($municipality === '') {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
                                                 } else {
-                                                    return "{$particular->subParticular->name} - {$districtName}, {$provinceName}, {$regionName}";
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
                                                 }
                                             }
                                         }),
 
-                                    Column::make('municipality.name')
-                                        ->heading('Municipality'),
-                                    Column::make('district.name')
-                                        ->heading('District'),
-                                    Column::make('tvi.district.province.name')
-                                        ->heading('Province'),
-                                    Column::make('tvi.district.province.region.name')
-                                        ->heading('Region'),
+                                    Column::make('appropriation_type')
+                                        ->heading('Appropriation Type'),
+
+                                    Column::make('allocation.year')
+                                        ->heading('Appropriation Year'),
+
                                     Column::make('tvi.name')
                                         ->heading('Institution'),
-                                    Column::make('tvi.tviClass.tviType.name')
+
+                                    Column::make('tvi.tviType.name')
                                         ->heading('Institution Type'),
+
                                     Column::make('tvi.tviClass.name')
-                                        ->heading('Institution Class(A)'),
+                                        ->heading('Institution Class'),
+
+                                    Column::make('district.name')
+                                        ->heading('District'),
+
+                                    Column::make('municipality.name')
+                                        ->heading('Municipality'),
+
+                                    Column::make('tvi.district.province.name')
+                                        ->heading('Province'),
+
+                                    Column::make('tvi.district.province.region.name')
+                                        ->heading('Region'),
+
                                     Column::make('qualification_title_code')
-                                        ->heading('Qualification Code'),
-                                    Column::make('qualification_title_soc_code')
-                                        ->heading('Schedule of Cost Code'),
+                                        ->heading('Qualification Code')
+                                        ->getStateUsing(fn($record) => $record->qualification_title_code ?? '-'),
+
                                     Column::make('qualification_title_name')
-                                        ->heading('Qualification Title'),
+                                        ->heading('Qualification Title')
+                                        ->formatStateUsing(function ($state, $record) {
+                                            $qualificationCode = $record->qualification_title_soc_code ?? '';
+                                            $qualificationName = $record->qualification_title_name ?? '';
+
+                                            return "{$qualificationCode} - {$qualificationName}";
+                                        }),
+
+                                    Column::make('allocation.scholarship_program.name')
+                                        ->heading('Scholarship Program'),
+
                                     Column::make('abdd.name')
                                         ->heading('ABDD Sector'),
                                     Column::make('qualification_title.trainingProgram.tvet.name')
                                         ->heading('TVET Sector'),
                                     Column::make('qualification_title.trainingProgram.priority.name')
                                         ->heading('Priority Sector'),
+
                                     Column::make('deliveryMode.name')
                                         ->heading('Delivery Mode'),
+
                                     Column::make('learningMode.name')
                                         ->heading('Learning Mode'),
-                                    Column::make('allocation.scholarship_program.name')
-                                        ->heading('Scholarship Program'),
+
                                     Column::make('number_of_slots')
                                         ->heading('No. of slots'),
+
                                     Column::make('training_cost_per_slot')
                                         ->heading('Training Cost')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
@@ -993,7 +1028,7 @@ class NonCompliantTargetResource extends Resource
                                         ->heading('Status'),
 
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Non-Compliant Targets')
+                                ->withFilename(date('m-d-Y') . ' - non_compliant_target_export')
                         ]),
                 ]),
 
@@ -1034,6 +1069,13 @@ class NonCompliantTargetResource extends Resource
         return $query;
     }
 
+    private function getQualificationTitle($record)
+    {
+        $qualificationCode = $record->qualification_title_soc_code ?? '-';
+        $qualificationName = $record->qualification_title_name ?? '-';
+
+        return "{$qualificationCode} - {$qualificationName}";
+    }
 
     protected static function getAppropriationTypeOptions($year)
     {
@@ -1213,6 +1255,25 @@ class NonCompliantTargetResource extends Resource
         return $fundSource ? $fundSource->name : 'No Fund Source Available';
     }
 
+    protected static function getLocationNames($record): string
+    {
+        $tvi = $record->tvi;
+
+        if ($tvi) {
+            $districtName = $tvi->district->name ?? '';
+            $provinceName = $tvi->district->province->name ?? '';
+            $regionName = $tvi->district->province->region->name ?? '';
+            $municipalityName = $tvi->district->underMunicipality->name ?? '';
+
+            if ($regionName === 'NCR') {
+                return "{$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
+            } else {
+                return "{$municipalityName}, {$districtName}, {$provinceName}, {$regionName}";
+            }
+        }
+
+        return 'Location information not available';
+    }
 
 
     public static function canViewAny(): bool

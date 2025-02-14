@@ -2,19 +2,19 @@
 
 namespace App\Filament\Resources\LegislativeTargetsResource\Pages;
 
+use App\Exports\PendingTargetExport;
 use App\Filament\Resources\LegislativeTargetsResource;
 use App\Models\Allocation;
 use App\Models\Legislator;
-use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
+use App\Services\NotificationHandler;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use App\Exports\PendingTargetExport;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
-use PhpOffice\PhpSpreadsheet\Exception;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
+use PhpOffice\PhpSpreadsheet\Exception;
 
 class ListAllocation extends ListRecords
 {
