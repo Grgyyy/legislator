@@ -19,6 +19,7 @@ use App\Models\TrainingProgram;
 use App\Services\NotificationHandler;
 use Filament\Actions;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -100,12 +101,23 @@ class CreateNonCompliantTarget extends CreateRecord
                     ]
                 );
 
+                $this->sendSuccessNotification('Target/Project Proposal updated successfully.');
+
                 return $targetRecord;
             });
         } catch (\Exception $e) {
             $message = "Failed to update target: " . $e->getMessage();
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
+    }
+
+    private function sendSuccessNotification(string $message): void
+    {
+        Notification::make()
+            ->title('Success')
+            ->success()
+            ->body($message)
+            ->send();
     }
 
     private function adjustResources(Target $targetRecord, array $data): void

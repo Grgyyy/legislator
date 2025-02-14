@@ -85,10 +85,21 @@ class CreateCompliantTargets extends CreateRecord
             $this->logTargetHistory($target);
             $this->updateTarget($target, $allocation->id, $data, $totals, $compliantStatus->id);
 
+            $this->sendSuccessNotification('Project Proposal/s updated successfully.');
+
             return $target;
         });
     }
 
+    private function sendSuccessNotification(string $message): void
+    {
+        Notification::make()
+            ->title('Success')
+            ->success()
+            ->body($message)
+            ->send();
+    }
+    
     private function findTarget($targetId): Target
     {
         return Target::findOrFail($targetId);
