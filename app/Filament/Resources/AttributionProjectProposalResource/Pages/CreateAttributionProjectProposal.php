@@ -17,11 +17,11 @@ use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Auth;
-use Filament\Notifications\Notification;
 use Exception;
-use Illuminate\Support\Facades\DB;
 use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\DB;
 
 class CreateAttributionProjectProposal extends CreateRecord
 {
@@ -72,7 +72,7 @@ class CreateAttributionProjectProposal extends CreateRecord
                 $requiredFields = [
                     'attribution_sender', 'attribution_sender_particular', 'attribution_scholarship_program',
                     'allocation_year', 'attribution_appropriation_type', 'attribution_receiver', 'attribution_receiver_particular',
-                    'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots', 'learning_mode_id',
+                    'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots',
                 ];
 
                 foreach ($requiredFields as $field) {
@@ -234,7 +234,7 @@ class CreateAttributionProjectProposal extends CreateRecord
                 NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
-            $this->sendSuccessNotification('Targets created successfully.');
+            $this->sendSuccessNotification('Project Proposal/s created successfully.');
 
             return $lastCreatedTarget;
         });

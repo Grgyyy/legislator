@@ -15,6 +15,7 @@ use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
@@ -74,7 +75,7 @@ class EditAttributionTarget extends EditRecord
             $requiredFields = [
                 'attribution_sender', 'attribution_sender_particular', 'attribution_scholarship_program',
                 'allocation_year', 'attribution_appropriation_type', 'attribution_receiver', 'attribution_receiver_particular',
-                'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots', 'learning_mode_id',
+                'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots',
             ];
 
             foreach ($requiredFields as $field) {
@@ -269,10 +270,20 @@ class EditAttributionTarget extends EditRecord
                 'user_id' => Auth::user()->id,
             ]);
 
-
+            $this->sendSuccessNotification('Targets created successfully.');
             return $record;
         });
     }
+
+    private function sendSuccessNotification(string $message): void
+    {
+        Notification::make()
+            ->title('Success')
+            ->success()
+            ->body($message)
+            ->send();
+    }
+
 
     private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
     {

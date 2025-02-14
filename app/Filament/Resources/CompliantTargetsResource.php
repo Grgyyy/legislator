@@ -640,8 +640,6 @@ class CompliantTargetsResource extends Resource
 
                             Select::make('learning_mode_id')
                                 ->label('Learning Mode')
-                                ->required()
-                                ->markAsRequired(false)
                                 ->searchable()
                                 ->preload()
                                 ->native(false)
@@ -660,9 +658,7 @@ class CompliantTargetsResource extends Resource
                                         ? $learningModes
                                         : ['no_learning_modes' => 'No learning modes available'];
                                 })
-                                ->disableOptionWhen(fn($value) => $value === 'no_learning_modes')
-                                ->disabled()
-                                ->dehydrated(),
+                                ->disableOptionWhen(fn($value) => $value === 'no_learning_modes'),
 
                             Select::make('abdd_id')
                                 ->label('ABDD Sector')

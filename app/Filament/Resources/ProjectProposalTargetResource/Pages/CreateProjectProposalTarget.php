@@ -4,6 +4,8 @@ namespace App\Filament\Resources\ProjectProposalTargetResource\Pages;
 
 use App\Filament\Resources\ProjectProposalTargetResource;
 use App\Models\Allocation;
+use App\Models\District;
+use App\Models\Province;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
@@ -11,7 +13,9 @@ use App\Models\SkillPrograms;
 use App\Models\Status;
 use App\Models\Target;
 use App\Models\TargetHistory;
+use App\Models\TrainingProgram;
 use App\Models\Tvi;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions;
 use Filament\Actions\Action;
@@ -59,8 +63,8 @@ class CreateProjectProposalTarget extends CreateRecord
     {
         return DB::transaction(function () use ($data) {
             if (empty($data['targets'])) {
-                $this->sendErrorNotification('No target data found.');
-                throw new Exception('No target data found.');
+                $message = "No target data found.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             $lastCreatedTarget = null;
@@ -72,12 +76,6 @@ class CreateProjectProposalTarget extends CreateRecord
                 $institution = $this->getInstitution($targetData['tvi_id']);
                 $qualificationTitle = $this->getQualificationTitle($targetData['qualification_title_id']);
 
-                // $provinceAbdd = $this->getProvinceAbdd(
-                //     $targetData['abdd_id'],
-                //     $institution->district->province_id,
-                //     $targetData['allocation_year']
-                // );
-
                 $skillPriority = $this->getSkillPriority(
                     $qualificationTitle->training_program_id,
                     $institution->district_id,
@@ -88,36 +86,27 @@ class CreateProjectProposalTarget extends CreateRecord
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $targetData['allocation_year'], $targetData['per_capita_cost']);
 
                 if ($allocation->balance < round($totals['total_amount'], 2)) {
-                    $this->sendErrorNotification('Insufficient allocation balance.');
-                    throw new Exception('Insufficient allocation balance.');
+                    $message = "Insufficient allocation balance.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
-
-                // if ($provinceAbdd->available_slots < $numberOfSlots) {
-                //     $this->sendErrorNotification('Insufficient slots available in Province Abdd.');
-                //     throw new Exception('Insufficient slots available in Province Abdd.');
-                // }
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
-                    $this->sendErrorNotification('Insufficient slots available in Province Abdd.');
-                    throw new Exception('Insufficient slots available in Province Abdd.');
+                    $message = "Insufficient target benificiary available in Skill Priority.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
-                // Create Target and Decrement Allocations/Slots
                 $target = $this->createTarget($targetData, $allocation, $institution, $qualificationTitle, $totals);
                 $allocation->decrement('balance', $totals['total_amount']);
                 $skillPriority->decrement('available_slots', $numberOfSlots);
 
-                // $provinceAbdd->decrement('available_slots', $numberOfSlots);
-
-                // Log the history
                 $this->logTargetHistory($targetData, $target, $allocation, $totals);
 
                 $lastCreatedTarget = $target;
             }
 
             if (!$lastCreatedTarget) {
-                $this->sendErrorNotification('No targets were created.');
-                throw new Exception('No targets were created.');
+                $message = "No targets were created.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             // Send success notification
@@ -141,13 +130,13 @@ class CreateProjectProposalTarget extends CreateRecord
         $requiredFields = [
             'legislator_id', 'particular_id', 'scholarship_program_id',
             'qualification_title_id', 'number_of_slots', 'tvi_id',
-            'appropriation_type', 'abdd_id', 'learning_mode_id', 'delivery_mode_id'
+            'appropriation_type', 'abdd_id', 'delivery_mode_id'
         ];
 
         foreach ($requiredFields as $field) {
             if (empty($targetData[$field])) {
-                $this->sendErrorNotification("The field '$field' is required.");
-                throw new \InvalidArgumentException("The field '$field' is required.");
+                $message = "The field '$field' is required.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
         }
     }
@@ -165,8 +154,8 @@ class CreateProjectProposalTarget extends CreateRecord
         ->first();
 
         if (!$allocation) {
-            $this->sendErrorNotification('Allocation not found.');
-            throw new Exception('Allocation not found.');
+            $message = "Allocation not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $allocation;
@@ -177,33 +166,12 @@ class CreateProjectProposalTarget extends CreateRecord
         $institution = Tvi::find($tviId);
 
         if (!$institution) {
-            $this->sendErrorNotification('Institution not found.');
-            throw new Exception('Institution not found.');
+            $message = "Institution not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $institution;
     }
-
-    // private function getProvinceAbdd(int $abddId, int $provinceId, int $appropriationYear): ProvinceAbdd
-    // {
-    //     $provinceAbdd = ProvinceAbdd::where([
-    //         'abdd_id' => $abddId,
-    //         'province_id' => $provinceId,
-    //         'year' => $appropriationYear,
-    //     ])->first();
-
-    //     if (!$provinceAbdd) {
-    //         $this->sendErrorNotification('Province Abdd Slots not found.');
-    //         throw new Exception('Province Abdd Slots not found.');
-    //     }
-
-    //     if ($provinceAbdd->available_slots <= 0) {
-    //         $this->sendErrorNotification('No available slots in Province Abdd.');
-    //         throw new Exception('No available slots in Province Abdd.');
-    //     }
-
-    //     return $provinceAbdd;
-    // }
 
     private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
     {
@@ -228,6 +196,20 @@ class CreateProjectProposalTarget extends CreateRecord
         
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
+        if (!$skillsPriority) {
+            $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
+            $province = Province::where('id', $provinceId)->first();
+            $district = District::where('id', $districtId)->first();
+        
+            if (!$trainingProgram || !$province || !$district) {
+                NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
+                return;
+            }
+        
+            $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
         return $skillsPriority;
     }
 
@@ -236,8 +218,8 @@ class CreateProjectProposalTarget extends CreateRecord
         $qualificationTitle = QualificationTitle::find($qualificationTitleId);
 
         if (!$qualificationTitle) {
-            $this->sendErrorNotification('Qualification Title not found.');
-            throw new Exception('Qualification Title not found.');
+            $message = "Qualification Title not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         return $qualificationTitle;
@@ -250,8 +232,8 @@ class CreateProjectProposalTarget extends CreateRecord
 
 
         if (!$quali) {
-            $this->sendErrorNotification('Qualification Title not found.');
-            throw new Exception('Qualification Title not found.');
+            $message = "Qualification Title not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
         $step = ScholarshipProgram::where('name', 'STEP')->first();
@@ -261,8 +243,8 @@ class CreateProjectProposalTarget extends CreateRecord
         if ($quali->scholarship_program_id === $step->id) {
             
             if (!$costOfToolkitPcc) {
-                $this->sendErrorNotification('Please add STEP Toolkits.');
-                throw new Exception('Please add STEP Toolkits.');
+                $message = "STEP Toolkits are required before proceeding. Please add them first";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
             $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;

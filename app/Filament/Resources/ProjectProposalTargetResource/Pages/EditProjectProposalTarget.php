@@ -163,7 +163,7 @@ class EditProjectProposalTarget extends EditRecord
         $requiredFields = [
             'legislator_id', 'particular_id', 'scholarship_program_id',
             'qualification_title_id', 'number_of_slots', 'tvi_id',
-            'appropriation_type', 'abdd_id', 'learning_mode_id',
+            'appropriation_type', 'abdd_id',
         ];
 
         foreach ($requiredFields as $field) {
