@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources\DistrictResource\Pages;
 
+use App\Exports\DistrictExport;
+use App\Filament\Resources\DistrictResource;
+use App\Imports\DistrictImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
-use App\Exports\DistrictExport;
-use App\Imports\DistrictImport;
 use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
-use App\Filament\Resources\DistrictResource;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListDistricts extends ListRecords
@@ -30,21 +30,6 @@ class ListDistricts extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
-
-            Action::make('DistrictExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new DistrictExport, 'district_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
 
 
             Action::make('DistrictImport')
@@ -64,7 +49,7 @@ class ListDistricts extends ListRecords
 
                         try {
                             Excel::import(new DistrictImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The districts have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the districts: ' . $e->getMessage());
@@ -74,6 +59,21 @@ class ListDistricts extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('DistrictExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new DistrictExport, now()->format('m-d-Y') . ' - ' . 'district_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }

@@ -1580,7 +1580,9 @@ class AttributionProjectProposalResource extends Resource
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution project proposal target')),
+
                     RestoreAction::make()
                         ->action(function ($record) {
                             $allocation = $record->allocation;
@@ -1658,8 +1660,12 @@ class AttributionProjectProposalResource extends Resource
                             $record->save();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
-                        }),
-                    ForceDeleteAction::make(),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore attribution project proposal target')),
+
+                    ForceDeleteAction::make()
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('force delete attribution project proposal target')),
+
                 ])
             ])
             ->bulkActions([
@@ -1722,9 +1728,11 @@ class AttributionProjectProposalResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution project proposal ')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution project proposal target')),
+
                     ForceDeleteBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution project proposal ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution project proposal target')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each(function ($record) {
@@ -1794,7 +1802,8 @@ class AttributionProjectProposalResource extends Resource
                             });
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution project proposal ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution project proposal target')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomAttributionProposalExport::make()

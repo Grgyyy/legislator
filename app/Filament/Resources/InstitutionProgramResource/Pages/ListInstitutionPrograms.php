@@ -2,19 +2,19 @@
 
 namespace App\Filament\Resources\InstitutionProgramResource\Pages;
 
+use App\Exports\InsitutionQualificationTitleExport;
+use App\Filament\Resources\InstitutionProgramResource;
+use App\Imports\InstitutionClassImport;
+use App\Imports\InstitutionProgramImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
-use App\Imports\InstitutionClassImport;
-use App\Imports\InstitutionProgramImport;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Exports\InsitutionQualificationTitleExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
-use App\Filament\Resources\InstitutionProgramResource;
 
 class ListInstitutionPrograms extends ListRecords
 {
@@ -43,21 +43,6 @@ class ListInstitutionPrograms extends ListRecords
                 ->icon('heroicon-m-plus'),
 
 
-            Action::make('InsitutionQualificationTitleExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new InsitutionQualificationTitleExport, 'institution_qualification_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
-
 
             Action::make('TviImport')
                 ->label('Import')
@@ -85,6 +70,21 @@ class ListInstitutionPrograms extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('InsitutionQualificationTitleExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new InsitutionQualificationTitleExport, now()->format('m-d-Y') . ' - ' . 'institution_qualification_title_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }

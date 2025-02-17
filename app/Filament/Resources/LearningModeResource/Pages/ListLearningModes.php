@@ -2,17 +2,17 @@
 
 namespace App\Filament\Resources\LearningModeResource\Pages;
 
+use App\Exports\LearningModeExport;
+use App\Filament\Resources\LearningModeResource;
+use App\Imports\LearningModeImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use App\Exports\LearningModeExport;
-use App\Imports\LearningModeImport;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\LearningModeResource;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListLearningModes extends ListRecords
@@ -31,21 +31,6 @@ class ListLearningModes extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-
-            Action::make('LearningModeExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-up')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new LearningModeExport, 'learning_mode_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    }
-                }),
 
             Action::make('LearningModeImport')
                 ->label('Import')
@@ -72,6 +57,21 @@ class ListLearningModes extends ListRecords
                                 unlink($filePath);
                             }
                         }
+                    }
+                }),
+
+            Action::make('LearningModeExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-up')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new LearningModeExport, now()->format('m-d-Y') . ' - ' . 'learning_mode_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
                     }
                 }),
         ];

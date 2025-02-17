@@ -2,18 +2,18 @@
 
 namespace App\Filament\Resources\SubParticularResource\Pages;
 
+use App\Exports\ParticularTypesExport;
 use App\Filament\Resources\SubParticularResource;
 use App\Imports\ParticularTypesImport;
+use App\Models\SubParticular;
 use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
-use App\Models\SubParticular;
 use Filament\Actions\CreateAction;
-use Illuminate\Validation\ValidationException;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\ParticularTypesExport;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ListSubParticulars extends ListRecords
 {
@@ -41,21 +41,6 @@ class ListSubParticulars extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('ParticularTypesExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new ParticularTypesExport, 'particular_types_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
-
             Action::make('ParticularTypesImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
@@ -73,7 +58,7 @@ class ListSubParticulars extends ListRecords
 
                         try {
                             Excel::import(new ParticularTypesImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The particular types have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the particular types: ' . $e->getMessage());
@@ -83,6 +68,21 @@ class ListSubParticulars extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('ParticularTypesExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ParticularTypesExport, now()->format('m-d-Y') . ' - ' . 'particular_types_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }

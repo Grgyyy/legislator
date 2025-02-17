@@ -74,6 +74,7 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         'total_uniform_allowance' => 'Total Uniform Allowance',
         'total_misc_fee' => 'Total Miscellaneous Fee',
         'total_amount' => 'Total PCC',
+
         'nonCompliantRemark.target_remarks.remarks' => 'Remarks',
         'nonCompliantRemark.others_remarks' => 'Other',
         'status' => 'Status',
@@ -82,16 +83,6 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
     public function query()
     {
         return Target::query()
-            ->with([
-                'attributionAllocation.legislator.particular.subParticular',
-                'allocation.legislator.particular.subParticular',
-                'municipality.province.region',
-                'tvi.tviType',
-                'qualification_title.trainingProgram.tvet',
-                'qualification_title.trainingProgram.priority',
-                'allocation.scholarship_program',
-                'nonCompliantRemark.target_remarks',
-            ])
             ->select([
                 'abscap_id',
                 'allocation_id',
@@ -127,6 +118,24 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
             ->when(request()->user()->role === 'RO', function (Builder $query) {
                 $query->where('region_id', request()->user()->region_id);
             })
+            ->with([
+                'attributionAllocation.legislator.particular.subParticular',
+                'allocation.legislator.particular.subParticular',
+                'municipality.province.region',
+                'tvi.tviType',
+                'qualification_title.trainingProgram.tvet',
+                'qualification_title.trainingProgram.priority',
+                'allocation.scholarship_program',
+            ])
+            ->with([
+                'nonCompliantRemark' => function ($query) {
+                    $query->select('id', 'target_remarks_id', 'others_remarks');
+                },
+                'nonCompliantRemark.target_remarks' => function ($query) {
+                    $query->select('id', 'non_compliant_remark_id', 'remarks');
+                },
+            ])
+
             ->where('target_status_id', 3);
     }
 
@@ -209,19 +218,24 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         ];
     }
 
+
     public function getRemarks($record)
     {
-        return $record->nonCompliantRemark->target_remarks->remarks ?? 'N/A';
-    }
+        if (!$record->nonCompliantRemark || $record->nonCompliantRemark->target_remarks->isEmpty()) {
+            return 'N/A';
+        }
 
+        return $record->nonCompliantRemark->target_remarks->pluck('remarks')->implode(', ');
+    }
 
 
     public function getOtherRemarks($record)
     {
+        if (!$record->nonCompliantRemark) {
+            return 'N/A';
+        }
         return $record->nonCompliantRemark->others_remarks ?? 'N/A';
     }
-
-
 
 
     private function getQualificationTitle($record)

@@ -30,19 +30,6 @@ class ListFundSources extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('FundSourceExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-up')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new FundSourceExport, 'fund_source_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    }
-                }),
-
             Action::make('FundSourceImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
@@ -61,7 +48,7 @@ class ListFundSources extends ListRecords
 
                         try {
                             Excel::import(new FundSourceImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The fund sources have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the fund sources: ' . $e->getMessage());
@@ -70,6 +57,19 @@ class ListFundSources extends ListRecords
                                 unlink($filePath);
                             }
                         }
+                    }
+                }),
+
+            Action::make('FundSourceExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-up')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new FundSourceExport, now()->format('m-d-Y') . ' - ' . 'fund_source_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
                     }
                 }),
         ];

@@ -2,18 +2,18 @@
 
 namespace App\Filament\Resources\SkillPriorityResource\Pages;
 
+use App\Exports\SkillsPriorityExport;
+use App\Filament\Resources\SkillPriorityResource;
+use App\Imports\SkillsPriorityImport;
+use App\Imports\TargetImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
-use App\Imports\TargetImport;
 use Filament\Actions\CreateAction;
-use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\SkillsPriorityExport;
-use App\Imports\SkillsPriorityImport;
-use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\SkillPriorityResource;
+use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListSkillPriorities extends ListRecords
@@ -68,7 +68,7 @@ class ListSkillPriorities extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new SkillsPriorityExport, 'skills_priority_export.xlsx');
+                        return Excel::download(new SkillsPriorityExport, now()->format('m-d-Y') . ' - ' . 'skills_priority_export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

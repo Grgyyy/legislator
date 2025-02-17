@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Exports\CustomExport\CustomLegislatorExport;
 use App\Filament\Resources\LegislatorResource\Pages;
 use App\Models\Legislator;
 use App\Models\Particular;
@@ -29,7 +30,6 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Exports\CustomExport\CustomLegislatorExport;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
@@ -226,7 +226,7 @@ class LegislatorResource extends Resource
                                     Column::make('status.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Legislators'),
+                                ->withFilename(date('m-d-Y') . ' - legislator_export'),
                         ])
                 ])
                 ->label('Select Action'),

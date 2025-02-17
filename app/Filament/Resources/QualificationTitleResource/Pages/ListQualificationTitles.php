@@ -19,7 +19,7 @@ class ListQualificationTitles extends ListRecords
     protected static string $resource = QualificationTitleResource::class;
 
     protected static ?string $title = 'Schedule of Cost';
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -40,19 +40,6 @@ class ListQualificationTitles extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('ScheduleOfCostExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-up')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new ScheduleOfCostExport, 'schedule_of_cost_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
-
             Action::make('QualificationTitleImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
@@ -70,7 +57,7 @@ class ListQualificationTitles extends ListRecords
 
                         try {
                             Excel::import(new QualificationTitleImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The schedule of costs have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the schedule of costs: ' . $e->getMessage());
@@ -80,7 +67,20 @@ class ListQualificationTitles extends ListRecords
                             }
                         }
                     }
-                })
+                }),
+
+            Action::make('ScheduleOfCostExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-up')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ScheduleOfCostExport, now()->format('m-d-Y') . ' - ' . 'schedule_of_cost_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
         ];
     }
 }

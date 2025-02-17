@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\MunicipalityResource\Pages;
 
+use App\Exports\MunicipalityExport;
+use App\Filament\Resources\MunicipalityResource;
+use App\Imports\MunicipalityImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use App\Exports\MunicipalityExport;
-use App\Imports\MunicipalityImport;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\MunicipalityResource;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListMunicipalities extends ListRecords
@@ -30,20 +30,6 @@ class ListMunicipalities extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('MunicipalityExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new MunicipalityExport, 'municipality_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
 
             Action::make('MunicipalityImport')
                 ->label('Import')
@@ -62,7 +48,7 @@ class ListMunicipalities extends ListRecords
 
                         try {
                             Excel::import(new MunicipalityImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The municipalities have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the municipalities: ' . $e->getMessage());
@@ -72,6 +58,21 @@ class ListMunicipalities extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('MunicipalityExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new MunicipalityExport, now()->format('m-d-Y') . ' - ' . 'municipality_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }

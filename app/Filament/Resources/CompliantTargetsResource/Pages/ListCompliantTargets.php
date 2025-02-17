@@ -2,14 +2,14 @@
 
 namespace App\Filament\Resources\CompliantTargetsResource\Pages;
 
+use App\Exports\CompliantTargetExport;
+use App\Exports\NonCompliantExport;
+use App\Filament\Resources\CompliantTargetsResource;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
-use App\Exports\NonCompliantExport;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
-use App\Exports\CompliantTargetExport;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\CompliantTargetsResource;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListCompliantTargets extends ListRecords
@@ -25,7 +25,7 @@ class ListCompliantTargets extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new CompliantTargetExport, 'compliant_target_export.xlsx');
+                        return Excel::download(new CompliantTargetExport, now()->format('m-d-Y') . ' - ' . 'compliant_target_export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

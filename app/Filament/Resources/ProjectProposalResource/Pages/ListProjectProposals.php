@@ -19,7 +19,7 @@ class ListProjectProposals extends ListRecords
     protected static string $resource = ProjectProposalResource::class;
 
     protected static ?string $title = 'Project Proposal Programs';
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -40,19 +40,6 @@ class ListProjectProposals extends ListRecords
                 ->icon('heroicon-m-plus')
                 ->label('New'),
 
-            Action::make('ProjectProposalExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-up')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new ProjectProposalExport, 'project_proposal_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
-
             Action::make('ProjectProposalProgramImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
@@ -70,7 +57,7 @@ class ListProjectProposals extends ListRecords
 
                         try {
                             Excel::import(new ProjectProposalProgramImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The project proposal programs have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the project proposal programs: ' . $e->getMessage());
@@ -80,6 +67,19 @@ class ListProjectProposals extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('ProjectProposalExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-up')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ProjectProposalExport, now()->format('m-d-Y') . ' - ' . 'project_proposal_program_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }
