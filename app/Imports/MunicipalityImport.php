@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\District;
 use App\Models\Municipality;
 use App\Models\Province;
@@ -17,26 +18,33 @@ class MunicipalityImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    public function model(array $row) 
+    public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $regionId = $this->getRegionId($row['region']);
-                $provinceId = $this->getProvinceId($row['province'], $regionId);
-                $districtId = $this->getDistrictId($row['district'], $provinceId);
+                $regionName = Helper::capitalizeWords($row['region']);
+                $provinceName = Helper::capitalizeWords($row['province']);
+                $districtName = Helper::capitalizeWords($row['district']);
+                $municipalityName = Helper::capitalizeWords($row['municipality']);
+                $municipalityClassName = Helper::capitalizeWords($row['class']);
+
+                $regionId = $this->getRegionId($regionName);
+                $provinceId = $this->getProvinceId($provinceName, $regionId);
+                $districtId = $this->getDistrictId($districtName, $provinceId);
 
                 $municipalityRecord = Municipality::where('code', $row['code'])
-                    ->where('name', $row['municipality'])
+                    ->where('name', $municipalityName)
+                    ->where('class', $municipalityClassName)
                     ->where('province_id', $provinceId)
                     ->first();
 
-                if (!$municipalityRecord) { 
+                if (!$municipalityRecord) {
                     $municipalityRecord = Municipality::create([
                         'code' => $row['code'],
-                        'name' => $row['municipality'],
-                        'class' => $row['class'],
+                        'name' => $municipalityName,
+                        'class' => $municipalityClassName,
                         'province_id' => $provinceId
                     ]);
 
@@ -44,8 +52,7 @@ class MunicipalityImport implements ToModel, WithHeadingRow
                 }
 
                 return $municipalityRecord;
-            }
-            catch (Throwable $e) {
+            } catch (Throwable $e) {
                 Log::error('Failed to import municipality: ' . $e->getMessage());
 
                 throw $e;
@@ -64,39 +71,42 @@ class MunicipalityImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function getRegionId(string $region) {
+    protected function getRegionId(string $region)
+    {
         $regionRecord = Region::where("name", $region)->first();
-        
+
         if (!$regionRecord) {
             throw new \Exception("Region with the name '{$region}' does not exist.");
         }
-    
+
         return $regionRecord->id;
     }
 
-    protected function getProvinceId(string $province, int $regionId) {
+    protected function getProvinceId(string $province, int $regionId)
+    {
         $provinceRecord = Province::where("name", $province)
             ->where("region_id", $regionId)
             ->first();
-        
+
         if (!$provinceRecord) {
             throw new \Exception("Province with the name '{$province}' does not exist.");
         }
-    
+
         return $provinceRecord->id;
     }
 
-    protected function getDistrictId(string $district, int $provinceId) {
+    protected function getDistrictId(string $district, int $provinceId)
+    {
         $districtRecord = District::where("name", $district)
             ->where("province_id", $provinceId)
             ->first();
 
         $province = Province::find($provinceId);
-        
+
         if (!$districtRecord) {
             throw new \Exception("District with the name '{$district}' under the province of '{$province->name}' does not exist.");
         }
-    
+
         return $districtRecord->id;
     }
 }

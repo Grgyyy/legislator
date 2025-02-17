@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\QualificationTitle;
 use App\Models\TrainingProgram;
 use Illuminate\Support\Facades\DB;
@@ -21,8 +22,11 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                $trainingProgramId = $this->getTrainingProgramId($row['training_program'], $row['soc_code']);
-                $scholarshipProgramId = $this->getScholarshipProgramId($row['scholarship_program'], $trainingProgramId);
+                $trainingProgramName = Helper::capitalizeWords($row['training_program']);
+                $scholarshipProgramName = Helper::capitalizeWords($row['scholarship_program']);
+
+                $trainingProgramId = $this->getTrainingProgramId($trainingProgramName, $row['soc_code']);
+                $scholarshipProgramId = $this->getScholarshipProgramId($scholarshipProgramName, $trainingProgramId);
 
                 $costs = [
                     'training_cost_pcc' => isset($row['training_cost_pcc']) ? (float) $row['training_cost_pcc'] : 0,
@@ -63,7 +67,7 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
                 return $qualificationTitle;
             } catch (Throwable $e) {
                 Log::error('Failed to import Qualification Title: ' . $e->getMessage());
-                
+
                 throw $e;
             }
         });

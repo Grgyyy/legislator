@@ -2,8 +2,9 @@
 
 namespace App\Imports;
 
-use App\Models\Region;
+use App\Helpers\Helper; // Add this line to import the Helper class
 use App\Models\Province;
+use App\Models\Region;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
@@ -14,21 +15,18 @@ use Throwable;
 class ProvinceImport implements ToModel, WithHeadingRow
 {
     use Importable;
-
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $region_id = $this->getRegionId($row['region']);
+                $regionName = Helper::capitalizeWords($row['region']);
+                $provinceName = Helper::capitalizeWords($row['province']);
 
-                $provinceIsExist = Province::where('name', $row['province'])
+                $region_id = $this->getRegionId($regionName);
+
+                $provinceIsExist = Province::where('name', $provinceName)
                     ->where('region_id', $region_id)
                     ->where('code', $row['code'])
                     ->exists();
@@ -36,7 +34,7 @@ class ProvinceImport implements ToModel, WithHeadingRow
                 if (!$provinceIsExist) {
                     return new Province([
                         'code' => $row['code'],
-                        'name' => $row['province'],
+                        'name' => $provinceName,
                         'region_id' => $region_id,
                     ]);
                 }

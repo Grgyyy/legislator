@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\District;
 use App\Models\Legislator;
 use App\Models\Municipality;
@@ -27,15 +28,15 @@ class LegislatorImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                $subParticularRecord = $this->getSubParticularName($row['particular']);
-                $partylistRecord = $this->getPartylist($row['partylist']);
-                $districtRecord = $this->getDistrict($row);
-                $particularRecord = $this->getParticular($subParticularRecord->id, $partylistRecord->id, $districtRecord->id);
+                $subParticularName = $this->getSubParticularName(Helper::capitalizeWords($row['particular']));
+                $partylistName = $this->getPartylist(Helper::capitalizeWords($row['partylist']));
+                $districtName = $this->getDistrict($row);
+                $particularName = $this->getParticular($subParticularName->id, $partylistName->id, $districtName->id);
 
-                $legislator = Legislator::firstOrCreate(['name' => $row['legislator']]);
+                $legislator = Legislator::firstOrCreate(['name' => Helper::capitalizeWords($row['legislator'])]);
 
-                if (!$legislator->particular()->where('particular_id', $particularRecord->id)->exists()) {
-                    $legislator->particular()->attach($particularRecord->id);
+                if (!$legislator->particular()->where('particular_id', $particularName->id)->exists()) {
+                    $legislator->particular()->attach($particularName->id);
                 }
 
             } catch (Throwable $e) {
@@ -56,32 +57,35 @@ class LegislatorImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function getSubParticularName(string $subParticularName) {
+    protected function getSubParticularName(string $subParticularName)
+    {
         $subParticular = SubParticular::where('name', $subParticularName)
             ->whereNull('deleted_at')
             ->first();
 
-        if(!$subParticular) {
-            throw new \Exception("The Partcular named '{$subParticularName}' is not existing.");
+        if (!$subParticular) {
+            throw new \Exception("The Particular named '{$subParticularName}' is not existing.");
         }
 
         return $subParticular;
     }
 
-    protected function getPartylist(string $partylistName) {
+    protected function getPartylist(string $partylistName)
+    {
         $partylist = Partylist::where('name', $partylistName)
             ->whereNull('deleted_at')
             ->first();
 
-        if(!$partylist) {
+        if (!$partylist) {
             throw new \Exception("The Partylist named '{$partylistName}' is not existing.");
         }
 
         return $partylist;
     }
 
-    protected function getDistrict(array $row) {
-        $region = Region::where('name', $row['region'])
+    protected function getDistrict(array $row)
+    {
+        $region = Region::where('name', Helper::capitalizeWords($row['region']))
             ->whereNull('deleted_at')
             ->first();
 
@@ -89,22 +93,22 @@ class LegislatorImport implements ToModel, WithHeadingRow
             throw new \Exception("The Region named '{$row['region']}' is not existing.");
         }
 
-        $province = Province::where('name', $row['province'])
+        $province = Province::where('name', Helper::capitalizeWords($row['province']))
             ->where('region_id', $region->id)
             ->whereNull('deleted_at')
             ->first();
-        
+
         if (!$province) {
             throw new \Exception("The Province named '{$row['province']}' is not existing.");
         }
 
-        $districtQuery = District::where('name', $row['district'])
+        $districtQuery = District::where('name', Helper::capitalizeWords($row['district']))
             ->where('province_id', $province->id)
             ->whereNull('deleted_at');
-    
-        if($row['particular'] === 'District') {
-            if($row['region'] === 'NCR') {
-                $municipality = Municipality::where('name', $row['municipality'])
+
+        if ($row['particular'] === 'District') {
+            if ($row['region'] === 'NCR') {
+                $municipality = Municipality::where('name', Helper::capitalizeWords($row['municipality']))
                     ->where('province_id', $province->id)
                     ->whereNull('deleted_at')
                     ->first();
@@ -119,23 +123,24 @@ class LegislatorImport implements ToModel, WithHeadingRow
 
         $district = $districtQuery->first();
 
-        if (!$province) {
+        if (!$district) {
             throw new \Exception("The District named '{$row['district']}' under Province named '{$row['province']}' is not existing.");
         }
 
         return $district;
     }
 
-    protected function getParticular(int $subParticularId, int $partylistId, int $districtId) {
+    protected function getParticular(int $subParticularId, int $partylistId, int $districtId)
+    {
         $subParticular = SubParticular::find($subParticularId);
-        
+
         $particular = Particular::where('sub_particular_id', $subParticularId)
             ->where('partylist_id', $partylistId)
             ->where('district_id', $districtId)
             ->whereNull('deleted_at')
             ->first();
 
-        if(!$particular) {
+        if (!$particular) {
             throw new \Exception("The Particular named '{$subParticular->name}' is not existing.");
         }
 

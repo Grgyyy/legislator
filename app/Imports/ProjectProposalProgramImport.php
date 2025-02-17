@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;  // Import the Helper class
 use App\Models\Priority;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
@@ -22,7 +23,6 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
 
     public function __construct()
     {
-        // Get the count of existing programs where soc is 0, and set currentSocCode
         $this->currentSocCode = TrainingProgram::where('soc', 0)->count();
     }
 
@@ -32,7 +32,7 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
             $this->validateRow($row);
 
             return DB::transaction(function () use ($row) {
-                $programName = $row['project_proposal_program_name'];
+                $programName = Helper::capitalizeWords($row['project_proposal_program_name']);
 
                 $projectProposalProgram = TrainingProgram::where('title', $programName)
                     ->where('soc', 1)
@@ -43,17 +43,14 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
                 $scholarshipPrograms = ScholarshipProgram::whereIn('code', ['TTSP', 'TWSP'])->get();
 
                 if (!$projectProposalProgram) {
-                    // Increment the currentSocCode to generate the next proposal
                     $this->currentSocCode++;
                     $formattedSocCode = $this->formatSocCode($this->currentSocCode);
 
-                    // Ensure the generated SOC code is unique
                     while (TrainingProgram::where('soc_code', $formattedSocCode)->exists()) {
                         $this->currentSocCode++;
                         $formattedSocCode = $this->formatSocCode($this->currentSocCode);
                     }
 
-                    // Check if the program already exists with soc = 0
                     $existingProgram = TrainingProgram::where('title', $programName)
                         ->where('soc', 0)
                         ->first();
@@ -70,13 +67,11 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
                         $projectProposalProgram = $existingProgram;
                     }
 
-                    // Sync the scholarship programs by ID
                     $projectProposalProgram->scholarshipPrograms()->syncWithoutDetaching(
                         $scholarshipPrograms->pluck('id')->toArray()
                     );
 
                     foreach ($scholarshipPrograms as $scholarshipProgram) {
-                        // Check if QualificationTitle already exists
                         $qualificationTitleExists = QualificationTitle::where('training_program_id', $projectProposalProgram->id)
                             ->where('scholarship_program_id', $scholarshipProgram->id)
                             ->where('soc', 0)

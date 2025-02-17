@@ -5,8 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Filament\Notifications\Notification;
-use Illuminate\Validation\ValidationException;
 
 class Tvi extends Model
 {
@@ -23,7 +21,7 @@ class Tvi extends Model
         'address',
     ];
 
-    public function tviType() 
+    public function tviType()
     {
         return $this->belongsTo(TviType::class);
     }

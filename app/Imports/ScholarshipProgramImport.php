@@ -1,6 +1,7 @@
 <?php
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\ScholarshipProgram;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,11 +14,6 @@ class ScholarshipProgramImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model/null
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
@@ -25,6 +21,8 @@ class ScholarshipProgramImport implements ToModel, WithHeadingRow
         return DB::transaction(function () use ($row) {
 
             try {
+                $formattedDescription = Helper::capitalizeWords($row['description']);
+
                 $scholarshipProgram = ScholarshipProgram::where('name', $row['scholarship_program'])
                     ->where('code', $row['code'])
                     ->exists();
@@ -34,13 +32,12 @@ class ScholarshipProgramImport implements ToModel, WithHeadingRow
                     return new ScholarshipProgram([
                         'code' => $row['code'],
                         'name' => $row['scholarship_program'],
-                        'desc' => $row['description']
+                        'desc' => $formattedDescription
                     ]);
-
                 }
             } catch (Throwable $e) {
                 Log::error('Failed to import training program: ' . $e->getMessage());
-                
+
                 throw $e;
             }
         });

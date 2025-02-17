@@ -1,7 +1,7 @@
 <?php
-
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\FundSource;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,23 +14,19 @@ class FundSourceImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $fundSourceIsExist = FundSource::where('name', $row['fund_source'])
-                    ->exists();
+                $fundSourceName = Helper::capitalizeWords($row['fund_source']);
+
+                $fundSourceIsExist = FundSource::where('name', $fundSourceName)->exists();
 
                 if (!$fundSourceIsExist) {
                     return new FundSource([
-                        'name' => $row['fund_source'],
+                        'name' => $fundSourceName,
                     ]);
                 }
             } catch (Throwable $e) {

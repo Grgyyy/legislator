@@ -2,37 +2,35 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper; // Import the Helper class
 use App\Models\DeliveryMode;
 use App\Models\LearningMode;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Throwable;
-use Maatwebsite\Excel\Concerns\Importable;
 
 class LearningModeImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
+                $learningModeName = Helper::capitalizeWords($row['learning_mode']);
+
                 $deliveryMode = DeliveryMode::where('acronym', $row['delivery_mode_acronym'])->first();
                 if (!$deliveryMode) {
                     throw new \Exception("Delivery Mode with acronym '{$row['delivery_mode_acronym']}' not found.");
                 }
 
                 $learningMode = LearningMode::firstOrCreate(
-                    ['name' => $row['learning_mode']]
+                    ['name' => $learningModeName]
                 );
 
                 if (!$learningMode->deliveryMode()->where('delivery_mode_id', $deliveryMode->id)->exists()) {

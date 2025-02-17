@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Imports;
 
 use App\Models\District;
@@ -19,36 +20,30 @@ class ParticularImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $subParticularRecord = $this->getSubParticularName($row['particular']);
-                $partylistRecord = $this->getPartylist($row['partylist']);
-                $districtRecord = $this->getDistrict($row);
+                $subParticularName = $this->getSubParticularName($row['particular']);
+                $partylistName = $this->getPartylist($row['partylist']);
+                $districtName = $this->getDistrict($row);
 
-                $particularExists = Particular::where('sub_particular_id', $subParticularRecord->id)
-                    ->where('district_id', $districtRecord->id)
-                    ->where('partylist_id', $partylistRecord->id)
+                $particularExists = Particular::where('sub_particular_id', $subParticularName->id)
+                    ->where('district_id', $districtName->id)
+                    ->where('partylist_id', $partylistName->id)
                     ->exists();
 
                 if (!$particularExists) {
                     return new Particular([
-                        'sub_particular_id' => $subParticularRecord->id,
-                        'partylist_id' => $partylistRecord->id,
-                        'district_id' => $districtRecord->id,
+                        'sub_particular_id' => $subParticularName->id,
+                        'partylist_id' => $partylistName->id,
+                        'district_id' => $districtName->id,
                     ]);
                 }
             } catch (Throwable $e) {
                 Log::error('Failed to import particular: ' . $e->getMessage());
-                
                 throw $e;
             }
         });
@@ -65,34 +60,37 @@ class ParticularImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function getSubParticularName(string $subParticularName) {
+    protected function getSubParticularName(string $subParticularName)
+    {
         $subParticular = SubParticular::where('name', $subParticularName)
             ->whereNull('deleted_at')
             ->first();
 
-        if(!$subParticular) {
-            throw new \Exception("The Partcular named '{$subParticularName}' is not existing.");
+        if (!$subParticular) {
+            throw new \Exception("The Particular named '{$subParticularName}' is not existing.");
         }
 
         return $subParticular;
     }
 
-    protected function getPartylist(string $partylistName) {
+    protected function getPartylist(string $partylistName)
+    {
         $partylist = Partylist::where('name', $partylistName)
             ->whereNull('deleted_at')
             ->first();
 
-        if(!$partylist) {
+        if (!$partylist) {
             throw new \Exception("The Partylist named '{$partylistName}' is not existing.");
         }
 
         return $partylist;
     }
 
-    protected function getDistrict(array $row) {
+    protected function getDistrict(array $row)
+    {
         $region = Region::where('name', $row['region'])
-        ->whereNull('deleted_at')
-        ->first();
+            ->whereNull('deleted_at')
+            ->first();
 
         if (!$region) {
             throw new \Exception("The Region named '{$row['region']}' is not existing.");
@@ -102,7 +100,7 @@ class ParticularImport implements ToModel, WithHeadingRow
             ->where('region_id', $region->id)
             ->whereNull('deleted_at')
             ->first();
-        
+
         if (!$province) {
             throw new \Exception("The Province named '{$row['province']}' is not existing.");
         }
@@ -110,9 +108,9 @@ class ParticularImport implements ToModel, WithHeadingRow
         $districtQuery = District::where('name', $row['district'])
             ->where('province_id', $province->id)
             ->whereNull('deleted_at');
-    
-        if($row['particular'] === 'District') {
-            if($row['municipality'] !== 'Not Applicable') {
+
+        if ($row['particular'] === 'District') {
+            if ($row['municipality'] !== 'Not Applicable') {
                 $municipality = Municipality::where('name', $row['municipality'])
                     ->where('province_id', $province->id)
                     ->whereNull('deleted_at')
@@ -122,19 +120,15 @@ class ParticularImport implements ToModel, WithHeadingRow
                     throw new \Exception("The Municipality named '{$row['municipality']}' is not existing.");
                 }
 
-                // dd($municipality);
-
                 $districtQuery->where('municipality_id', $municipality->id);
-            }
-            else {
+            } else {
                 $districtQuery->where('municipality_id', null);
             }
         }
-        
 
         $district = $districtQuery->first();
 
-        if (!$province) {
+        if (!$district) {
             throw new \Exception("The District named '{$row['district']}' under Province named '{$row['province']}' is not existing.");
         }
 

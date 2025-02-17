@@ -2,7 +2,8 @@
 
 namespace App\Imports;
 
-use App\Models\FundSource; 
+use App\Helpers\Helper;
+use App\Models\FundSource;
 use App\Models\SubParticular;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,43 +16,41 @@ class ParticularTypesImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
-
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $fundSourceId = $this->getFundResource($row['fund_source']);
+                $fundSourceName = Helper::capitalizeWords($row['fund_source']);
+                $particularTypeName = Helper::capitalizeWords($row['particular_type']);
+
+                $fundSourceId = $this->getFundResource($fundSourceName);
 
                 if (!$fundSourceId) {
-                    throw new \Exception("Validation error: Fund source '{$row['fund_source']}' does not exist.");
+                    throw new \Exception("Validation error: Fund source '{$fundSourceName}' does not exist.");
                 }
 
-                $particularTypeExist = SubParticular::where('name', $row['particular_type'])
+                $particularTypeExist = SubParticular::where('name', $particularTypeName)
                     ->where('fund_source_id', $fundSourceId)
                     ->exists();
 
                 if (!$particularTypeExist) {
                     return new SubParticular([
-                        'name' => $row['particular_type'],
+                        'name' => $particularTypeName,
                         'fund_source_id' => $fundSourceId,
                     ]);
                 }
             } catch (Throwable $e) {
                 Log::error('Failed to import SubParticular: ' . $e->getMessage());
-                
+
                 throw $e;
             }
         });
     }
 
-    protected function validateRow(array $row) {
+    protected function validateRow(array $row)
+    {
         $requiredFields = ['particular_type', 'fund_source'];
 
         foreach ($requiredFields as $field) {
@@ -61,7 +60,8 @@ class ParticularTypesImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function getFundResource($fundSourceName) {
+    protected function getFundResource($fundSourceName)
+    {
         $fundSource = FundSource::where('name', $fundSourceName)->first();
 
         return $fundSource ? $fundSource->id : null;
