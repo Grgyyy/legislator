@@ -7,12 +7,12 @@ use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
 use App\Models\Tvet;
-use Throwable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class ProjectProposalProgramImport implements ToModel, WithHeadingRow
 {
@@ -40,7 +40,7 @@ class ProjectProposalProgramImport implements ToModel, WithHeadingRow
 
                 $tvetSector = Tvet::where('name', 'Not Applicable')->first();
                 $prioSector = Priority::where('name', 'Not Applicable')->first();
-                $scholarshipPrograms = ScholarshipProgram::all();
+                $scholarshipPrograms = ScholarshipProgram::whereIn('code', ['TTSP', 'TWSP'])->get();
 
                 if (!$projectProposalProgram) {
                     // Increment the currentSocCode to generate the next proposal

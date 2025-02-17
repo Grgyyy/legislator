@@ -106,22 +106,6 @@ class EditNonCompliantTarget extends EditRecord
                     NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
-                // $receiverAllocation = Allocation::where('legislator_id', $receiverLegislatorId)
-                //     ->where('particular_id', $receiverParticularId)
-                //     ->where('scholarship_program_id', $data['scholarship_program_id'] ?? null)
-                //     ->where('year', $data['allocation_year'] ?? null)
-                //     ->first();
-
-                // if (!$receiverAllocation) {
-                //     throw new \Exception('Receiver Particular ID cannot be null');
-                // }
-
-                // $senderAllocation = Allocation::where('legislator_id', $senderLegislatorId)
-                //     ->where('particular_id', $senderParticularId)
-                //     ->where('scholarship_program_id', $data['scholarship_program_id'] ?? null)
-                //     ->where('year', $data['allocation_year'] ?? null)
-                //     ->first();
-
                 $qualificationTitle = QualificationTitle::find($data['qualification_title_id']);
                 if (!$qualificationTitle) {
                     $message = "Qualification Title not found.";
@@ -164,9 +148,6 @@ class EditNonCompliantTarget extends EditRecord
                 }
                 $allocation->balance -= $totalAmount;
                 $allocation->save();  
-
-                // $provinceAbdd->available_slots -= $numberOfSlots;
-                // $provinceAbdd->save();
 
                 $skillPriority->available_slots -= $numberOfSlots;
                 $skillPriority->save();
@@ -234,6 +215,7 @@ class EditNonCompliantTarget extends EditRecord
         } catch (\Exception $e) {
             $message = "Failed to update target: " . $e->getMessage();
             NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw $e;
         }
     }
     private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
