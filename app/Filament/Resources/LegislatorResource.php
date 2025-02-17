@@ -279,7 +279,6 @@ class LegislatorResource extends Resource
         return $record->particular->map(function ($particular, $index) use ($record) {
             $districtName = $particular->district->name ?? '-';
             $provinceName = $particular->district->province->name ?? '-';
-            $regionName = $particular->district->province->region->name ?? '-';
 
             $municipalityName = $particular->district->underMunicipality->name ?? null;
 
@@ -295,13 +294,13 @@ class LegislatorResource extends Resource
                 if ($municipalityName) {
                     $municipalityFormatted = "{$districtName}, {$municipalityName}, {$provinceName}";
                 } else {
-                    $municipalityFormatted = "{$districtName}, {$provinceName}, {$regionName}";
+                    $municipalityFormatted = "{$districtName}, {$provinceName}";
                 }
                 return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $municipalityFormatted . $comma . '</div>';
             } elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $regionName . $comma . '</div>';
+                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . $comma . '</div>';
             } else {
-                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . ' - ' . $regionName . $comma . '</div>';
+                return '<div style="' . $paddingTop . '">' . $particular->subParticular->name . $comma . '</div>';
             }
         })->implode('');
     }
