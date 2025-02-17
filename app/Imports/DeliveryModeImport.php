@@ -2,40 +2,35 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper; // Import the Helper class
 use App\Models\DeliveryMode;
-use App\Models\LearningMode;
-use Throwable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class DeliveryModeImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     * @throws Throwable
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
+                $deliveryModeName = Helper::capitalizeWords($row['delivery_mode_name']);
 
-                $deliveryModeExists = DeliveryMode::where('name', $row['delivery_mode_name'])
+                $deliveryModeExists = DeliveryMode::where('name', $deliveryModeName)
                     ->where('acronym', $row['delivery_mode_acronym'])
                     ->exists();
 
                 if (!$deliveryModeExists) {
                     return new DeliveryMode([
                         'acronym' => $row['delivery_mode_acronym'],
-                        'name' => $row['delivery_mode_name']
+                        'name' => $deliveryModeName
                     ]);
                 }
 
@@ -57,4 +52,3 @@ class DeliveryModeImport implements ToModel, WithHeadingRow
         }
     }
 }
-

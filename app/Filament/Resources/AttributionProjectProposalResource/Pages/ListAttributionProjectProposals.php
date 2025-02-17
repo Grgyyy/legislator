@@ -31,21 +31,6 @@ class ListAttributionProjectProposals extends ListRecords
                 ->icon('heroicon-m-plus')
                 ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
 
-            Action::make('AttributionProjectProposalExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new AttributionProjectProposalExport, 'attribution_project_proposal_pending_target_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    }
-                }),
-
             Action::make('TargetImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-up')
@@ -74,6 +59,21 @@ class ListAttributionProjectProposals extends ListRecords
                     }
                 })
                 ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+
+            Action::make('AttributionProjectProposalExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new AttributionProjectProposalExport, now()->format('m-d-Y') . ' - ' . 'attribution_project_proposal_pending_target_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
         ];
     }
 

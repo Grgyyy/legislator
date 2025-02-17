@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Exports\CustomExport;
 
 use Maatwebsite\Excel\Events\AfterSheet;
@@ -6,23 +7,18 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
-class CustomRegionExport extends ExcelExport
+class CustomTargetRemarksExport extends ExcelExport
 {
-    /**
-     * Define the custom headings.
-     */
     public function headings(): array
     {
         return [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['REGIONS'],
+            ['TARGET REMARKS'],
             [''],
-            ['PSG Code', 'Region'],
+            ['Remarks'],
         ];
     }
-
-
     public function registerEvents(): array
     {
         return [

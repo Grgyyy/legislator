@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\LegislatorResource\Pages;
 
+use App\Exports\LegislatorExport;
+use App\Filament\Resources\LegislatorResource;
+use App\Imports\LegislatorImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
-use App\Exports\LegislatorExport;
-use App\Imports\LegislatorImport;
 use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\LegislatorResource;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListLegislators extends ListRecords
@@ -29,21 +29,6 @@ class ListLegislators extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
-
-            Action::make('LegislatorExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new LegislatorExport, 'legislator_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
 
 
 
@@ -65,7 +50,7 @@ class ListLegislators extends ListRecords
 
                         try {
                             Excel::import(new LegislatorImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The legislators have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the legislators: ' . $e->getMessage());
@@ -75,6 +60,21 @@ class ListLegislators extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('LegislatorExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new LegislatorExport, now()->format('m-d-Y') . ' - ' . 'legislator_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }

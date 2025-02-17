@@ -675,7 +675,8 @@ class NonCompliantTargetResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution project proposal ')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution project proposal target')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomNonCompliantTarget::make()

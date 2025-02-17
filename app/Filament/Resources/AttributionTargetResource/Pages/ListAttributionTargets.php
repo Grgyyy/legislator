@@ -2,19 +2,19 @@
 
 namespace App\Filament\Resources\AttributionTargetResource\Pages;
 
+use App\Exports\AttributionTargetExport;
+use App\Filament\Resources\AttributionTargetResource;
+use App\Imports\AdminAttributionTargetImport;
+use App\Imports\AttributionTargetImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
-use App\Exports\AttributionTargetExport;
-use App\Imports\AttributionTargetImport;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Imports\AdminAttributionTargetImport;
-use App\Filament\Resources\AttributionTargetResource;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 
 
@@ -34,21 +34,6 @@ class ListAttributionTargets extends ListRecords
                 ->icon('heroicon-m-plus')
                 ->label('New')
                 ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
-
-            Action::make('AttributionTargetExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new AttributionTargetExport, 'attribution_target_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    }
-                }),
 
 
             Action::make('AttributionTargetImport')
@@ -98,7 +83,22 @@ class ListAttributionTargets extends ListRecords
                     }
                 })
                 // ->visible(fn() => Auth::user()->hasRole('Super Admin')),
-                ->visible(false)
+                ->visible(false),
+
+            Action::make('AttributionTargetExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new AttributionTargetExport, now()->format('m-d-Y') . ' - ' . 'attribution_target_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
         ];
     }
 

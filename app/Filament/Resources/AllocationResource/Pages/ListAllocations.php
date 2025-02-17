@@ -2,20 +2,20 @@
 
 namespace App\Filament\Resources\AllocationResource\Pages;
 
+use App\Exports\AllocationExport;
+use App\Filament\Resources\AllocationResource;
+use App\Filament\Resources\AllocationResource\Widgets\StatsOverview;
+use App\Imports\AllocationImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
-use App\Exports\AllocationExport;
-use App\Imports\AllocationImport;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Filament\Pages\Concerns\ExposesTableToWidgets;
+use Filament\Resources\Pages\ListRecords;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
-use Filament\Forms\Components\FileUpload;
-use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\AllocationResource;
-use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Maatwebsite\Excel\Validators\ValidationException;
-use App\Filament\Resources\AllocationResource\Widgets\StatsOverview;
 
 class ListAllocations extends ListRecords
 {
@@ -71,7 +71,7 @@ class ListAllocations extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new AllocationExport, 'allocation_export.xlsx');
+                        return Excel::download(new AllocationExport, now()->format('m-d-Y') . ' - ' . 'allocation_export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

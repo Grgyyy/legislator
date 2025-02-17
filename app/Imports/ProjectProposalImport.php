@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\Abdd;
 use App\Models\Allocation;
 use App\Models\DeliveryMode;
@@ -45,34 +46,32 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
             $this->validateYear($row['appropriation_year']);
 
             DB::transaction(function () use ($row) {
-                $legislator = $this->getLegislatorId($row['legislator']);
-                $region = $this->getRegion($row['region']);
-                $province = $this->getProvince($row['province'], $region->id);
-                $district = $this->getDistrict($row['district'], $province->id);
-                $partylist = $this->getPartylist($row['partylist']);
-                $sub_particular = $this->getSubParticular($row['particular']);
+                $legislator = $this->getLegislatorId(Helper::capitalizeWords($row['legislator']));
+                $region = $this->getRegion(Helper::capitalizeWords($row['region']));
+                $province = $this->getProvince(Helper::capitalizeWords($row['province']), $region->id);
+                $district = $this->getDistrict(Helper::capitalizeWords($row['district']), $province->id);
+                $partylist = $this->getPartylist(Helper::capitalizeWords($row['partylist']));
+                $sub_particular = $this->getSubParticular(Helper::capitalizeWords($row['particular']));
                 $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
-                $scholarship_program = $this->getScholarshipProgram($row['scholarship_program']);
+                $scholarship_program = $this->getScholarshipProgram(Helper::capitalizeWords($row['scholarship_program']));
                 $allocation = $this->getAllocation($legislator->id, $particular->id, $scholarship_program->id, $row['appropriation_year']);
-                $abddSector = $this->getAbddSector($row['abdd_sector']);
-                $delivery_mode = $this->getDeliveryMode($row['delivery_mode']);
-                $learning_mode = $this->getLearningMode($row['learning_mode'], $delivery_mode->id);
-                $tvi = $this->getTvi($row['institution']);
+                $abddSector = $this->getAbddSector(Helper::capitalizeWords($row['abdd_sector']));
+                $delivery_mode = $this->getDeliveryMode(Helper::capitalizeWords($row['delivery_mode']));
+                $learning_mode = $this->getLearningMode(Helper::capitalizeWords($row['learning_mode']), $delivery_mode->id);
+                $tvi = $this->getTvi(Helper::capitalizeWords($row['institution']));
                 $numberOfSlots = $row['number_of_slots'];
 
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $row['soc_code'], $row['qualification_title_scholarship_program'], $scholarship_program);
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $row['appropriation_year']);
 
-                if ($row['per_capita_cost'])  {
-                    if($row['per_capita_cost'] > 0) {
-                        $cost = $row['per_capita_cost']* $numberOfSlots;
-                    }
-                    else {
+                if ($row['per_capita_cost']) {
+                    if ($row['per_capita_cost'] > 0) {
+                        $cost = $row['per_capita_cost'] * $numberOfSlots;
+                    } else {
                         $message = "The Per Capita Cost Value must be greater than 0. No changes are saved.";
                         NotificationHandler::handleValidationException('Something went wrong', $message);
                     }
-                }
-                else {
+                } else {
                     $message = "The Per Capita Cost is required. No changes are saved.";
                     NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
@@ -133,10 +132,11 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
             });
         } catch (Throwable $e) {
             Log::error("Import failed: " . $e->getMessage());
-            
+
             throw $e;
         }
     }
+
 
     protected function validateRow(array $row)
     {
@@ -384,7 +384,7 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
 
     protected function getQualificationTitle(string $qualificationTitleName, string $socCode, string $qualCodeSchoPro, $scholarshipProgram)
     {
-        
+
         $scholarship = ScholarshipProgram::where('name', $qualCodeSchoPro)
             ->first();
 
@@ -399,8 +399,8 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
         }
 
         $qualSchoPro = ScholarshipProgram::where('name', $qualCodeSchoPro)
-                        ->where('code', $scholarshipProgram->name)
-                        ->first();
+            ->where('code', $scholarshipProgram->name)
+            ->first();
 
         if (!$qualSchoPro) {
             $message = "Scholarship Program named '{$qualCodeSchoPro}' with a code of '{$scholarshipProgram->name}' not found.";
@@ -410,7 +410,7 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
         $qualificationTitle = QualificationTitle::where('scholarship_program_id', $qualSchoPro->id)
             ->whereHas('trainingProgram', function ($query) use ($qualificationTitleName, $socCode) {
                 $query->where('title', $qualificationTitleName)
-                ->where('soc_code', $socCode);
+                    ->where('soc_code', $socCode);
             })
             ->whereNull('deleted_at')
             ->first();
@@ -479,23 +479,23 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
                 ->first();
         }
 
-        if(!$skillPrograms) {
+        if (!$skillPrograms) {
             NotificationHandler::handleValidationException('Something went wrong', 'No available skill priority.');
             return;
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

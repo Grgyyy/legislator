@@ -2,20 +2,20 @@
 
 namespace App\Filament\Resources\ProvinceResource\Pages;
 
-use Exception;
-use Notification;
-use Filament\Actions\Action;
 use App\Exports\ProvinceExport;
+use App\Filament\Resources\ProvinceResource;
 use App\Imports\ProvinceImport;
-use Illuminate\Http\UploadedFile;
-use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
 use App\Services\NotificationHandler;
-use Illuminate\Support\Facades\Storage;
+use Exception;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\ProvinceResource;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
+use Notification;
 
 class ListProvinces extends ListRecords
 {
@@ -33,20 +33,6 @@ class ListProvinces extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('ProvinceExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new ProvinceExport, 'province_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
 
             Action::make('ProvinceImport')
                 ->label('Import')
@@ -65,7 +51,7 @@ class ListProvinces extends ListRecords
 
                         try {
                             Excel::import(new ProvinceImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The provinces have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the provinces: ' . $e->getMessage());
@@ -75,6 +61,21 @@ class ListProvinces extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('ProvinceExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ProvinceExport, now()->format('m-d-Y') . ' - ' . 'province_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }

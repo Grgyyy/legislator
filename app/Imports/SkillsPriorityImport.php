@@ -2,17 +2,18 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper; // Add this import
+use App\Models\District;
 use App\Models\Municipality;
+use App\Models\Province;
+use App\Models\Region;
 use App\Models\SkillPriority;
 use App\Models\Status;
 use App\Models\TrainingProgram;
-use App\Models\Region;
-use App\Models\Province;
-use App\Models\District;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class SkillsPriorityImport implements ToModel, WithHeadingRow
@@ -26,11 +27,16 @@ class SkillsPriorityImport implements ToModel, WithHeadingRow
             $this->validateYear((int) $row['year']);
 
             DB::transaction(function () use ($row) {
-                $qualificationTitle = $this->getTrainingProgram($row['qualification_title'], $row['soc_code']);
-                $region = $this->getRegion($row['region']);
-                $province = $this->getProvince($row['province'], $region->id);
-                $municipality = $this->getMunicipality($row['municipality'] ?? null, $province);
-                $district = $this->getDistrict($row['district'] ?? null, $province, $municipality);
+                $qualificationTitle = Helper::capitalizeWords(trim($row['qualification_title']));
+                $regionName = Helper::capitalizeWords(trim($row['region']));
+                $provinceName = Helper::capitalizeWords(trim($row['province']));
+                $municipalityName = isset($row['municipality']) ? Helper::capitalizeWords(trim($row['municipality'])) : null;
+                $districtName = isset($row['district']) ? Helper::capitalizeWords(trim($row['district'])) : null;
+
+                $region = $this->getRegion($regionName);
+                $province = $this->getProvince($provinceName, $region->id);
+                $municipality = $this->getMunicipality($municipalityName, $province);
+                $district = $this->getDistrict($districtName, $province, $municipality);
 
                 $status = Status::where('desc', 'Active')->first();
 
@@ -54,6 +60,7 @@ class SkillsPriorityImport implements ToModel, WithHeadingRow
                 $skillPriority->status_id = $status->id;
                 $skillPriority->save();
 
+                $qualificationTitle = $this->getTrainingProgram($qualificationTitle, $row['soc_code']);
                 $skillPriority->trainingProgram()->syncWithoutDetaching([$qualificationTitle->id]);
 
                 return $skillPriority;

@@ -18,4 +18,5 @@ class TargetRemark extends Model
         return $this->hasMany(NonCompliantRemark::class);
     }
 
+
 }

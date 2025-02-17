@@ -2,35 +2,33 @@
 
 namespace App\Imports;
 
-use Throwable;
+use App\Helpers\Helper;
 use App\Models\Recognition;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class RecognitionImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $recognitionExist = Recognition::where('name', $row['recognition_title'])
+                $recognitionTitle = Helper::capitalizeWords($row['recognition_title']);
+
+                $recognitionExist = Recognition::where('name', $recognitionTitle)
                     ->exists();
 
                 if (!$recognitionExist) {
                     return new Recognition([
-                        'name' => $row['recognition_title'],
+                        'name' => $recognitionTitle,
                     ]);
                 }
             } catch (Throwable $e) {
@@ -42,11 +40,6 @@ class RecognitionImport implements ToModel, WithHeadingRow
         });
     }
 
-    /**
-     *
-     * @param array $row
-     * @throws \Exception
-     */
     protected function validateRow(array $row)
     {
         if (empty($row['recognition_title'])) {

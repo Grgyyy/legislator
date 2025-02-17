@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\Allocation;
 use App\Models\District;
 use App\Models\Legislator;
@@ -12,11 +13,10 @@ use App\Models\Province;
 use App\Models\Region;
 use App\Models\ScholarshipProgram;
 use App\Models\SubParticular;
-use App\Services\NotificationHandler;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Throwable;
 
@@ -30,20 +30,27 @@ class AllocationImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                // Get legislator and attributor details (attributor_id may be null)
-                $legislatorRecord = $this->getLegislatorId($row['legislator']);
-                $attributorRecord = $row['attributor'] ? $this->getLegislatorId($row['attributor']) : null;
-                $subParticularRecord = $this->getSubParticularName($row['particular']);
-                $attributorSubParticularRecord = $row['attributor_particular'] ? $this->getSubParticularName($row['attributor_particular']) : null;
-                $partylistRecord = $this->getPartylist($row['partylist']);
+                $legislatorName = Helper::capitalizeWords($row['legislator']);
+                $attributorName = $row['attributor'] ? Helper::capitalizeWords($row['attributor']) : null;
+                $subParticularName = Helper::capitalizeWords($row['particular']);
+                $attributorParticularName = $row['attributor_particular'] ? Helper::capitalizeWords($row['attributor_particular']) : null;
+                $partylistName = Helper::capitalizeWords($row['partylist']);
+                $districtName = Helper::capitalizeWords($row['district']);
+                $provinceName = Helper::capitalizeWords($row['province']);
+                $regionName = Helper::capitalizeWords($row['region']);
+                $scholarshipProgramName = Helper::capitalizeWords($row['scholarship_program']);
+                $legislatorRecord = $this->getLegislatorId($legislatorName);
+                $attributorRecord = $attributorName ? $this->getLegislatorId($attributorName) : null;
+                $subParticularRecord = $this->getSubParticularName($subParticularName);
+                $attributorSubParticularRecord = $attributorParticularName ? $this->getSubParticularName($attributorParticularName) : null;
+                $partylistRecord = $this->getPartylist($partylistName);
                 $districtRecord = $this->getDistrict($row);
                 $particularRecord = $this->getParticularRecord($subParticularRecord->id, $partylistRecord->id, $districtRecord->id);
-                $attributorParticularRecord = $row['attributor_particular'] ? $this->getAttributorParticularRecord($attributorSubParticularRecord->id, $row['attributor_region']) : null;
-                $scholarshipProgramRecord = $this->getScholarshipProgram($row['scholarship_program']);
+                $attributorParticularRecord = $attributorParticularName ? $this->getAttributorParticularRecord($attributorSubParticularRecord->id, $row['attributor_region']) : null;
+                $scholarshipProgramRecord = $this->getScholarshipProgram($scholarshipProgramName);
                 $allocation = $row['allocation'];
                 $adminCost = $allocation * 0.02;
 
-                // Check if the allocation already exists (handle attributor_id properly)
                 $allocationRecord = Allocation::where('legislator_id', $legislatorRecord->id)
                     ->where('attributor_id', $attributorRecord ? $attributorRecord->id : null)
                     ->where('attributor_particular_id', $attributorParticularRecord ? $attributorParticularRecord->id : null)
@@ -60,10 +67,9 @@ class AllocationImport implements ToModel, WithHeadingRow
 
                     throw new \Exception($message);
                 } else {
-                    // Create a new allocation if not found
                     $allocationRecord = Allocation::create([
                         'soft_or_commitment' => $row['soft_or_commitment'],
-                        'attributor_id' => $attributorRecord ? $attributorRecord->id : null, // Only assign if not null
+                        'attributor_id' => $attributorRecord ? $attributorRecord->id : null,
                         'legislator_id' => $legislatorRecord->id,
                         'particular_id' => $particularRecord->id,
                         'attributor_particular_id' => $attributorParticularRecord ? $attributorParticularRecord->id : null,
@@ -98,7 +104,7 @@ class AllocationImport implements ToModel, WithHeadingRow
         }
 
         if ($row['attributor'] != null) {
-            if($row['legislator'] === $row['attributor']) {
+            if ($row['legislator'] === $row['attributor']) {
                 throw new \Exception("Validation error: The field 'legislator' and 'attribution' must be different. No changes were saved.");
             }
         }
@@ -116,34 +122,37 @@ class AllocationImport implements ToModel, WithHeadingRow
         return $legislator;
     }
 
-    protected function getSubParticularName(string $subParticularName) {
+    protected function getSubParticularName(string $subParticularName)
+    {
         $subParticular = SubParticular::where('name', $subParticularName)
             ->whereNull('deleted_at')
             ->first();
 
-        if(!$subParticular) {
+        if (!$subParticular) {
             throw new \Exception("The Partcular named '{$subParticularName}' is not existing.");
         }
 
         return $subParticular;
     }
 
-    protected function getPartylist(string $partylistName) {
+    protected function getPartylist(string $partylistName)
+    {
         $partylist = Partylist::where('name', $partylistName)
             ->whereNull('deleted_at')
             ->first();
 
-        if(!$partylist) {
+        if (!$partylist) {
             throw new \Exception("The Partylist named '{$partylistName}' is not existing.");
         }
 
         return $partylist;
     }
 
-    protected function getDistrict(array $row) {
+    protected function getDistrict(array $row)
+    {
         $region = Region::where('name', $row['region'])
-        ->whereNull('deleted_at')
-        ->first();
+            ->whereNull('deleted_at')
+            ->first();
 
         if (!$region) {
             throw new \Exception("The Region named '{$row['region']}' is not existing.");
@@ -162,8 +171,8 @@ class AllocationImport implements ToModel, WithHeadingRow
             ->where('province_id', $province->id)
             ->whereNull('deleted_at');
 
-        if($row['particular'] === 'District') {
-            if($row['region'] === 'NCR') {
+        if ($row['particular'] === 'District') {
+            if ($row['region'] === 'NCR') {
                 $municipality = Municipality::where('name', $row['municipality'])
                     ->where('province_id', $province->id)
                     ->whereNull('deleted_at')
@@ -187,7 +196,8 @@ class AllocationImport implements ToModel, WithHeadingRow
 
     }
 
-    protected function getParticularRecord(int $subParticularId, int $partylistId, int $districtId) {
+    protected function getParticularRecord(int $subParticularId, int $partylistId, int $districtId)
+    {
         $particular = Particular::where('sub_particular_id', $subParticularId)
             ->where('partylist_id', $partylistId)
             ->where('district_id', $districtId)
@@ -202,12 +212,13 @@ class AllocationImport implements ToModel, WithHeadingRow
         return $particular;
     }
 
-    protected function getAttributorParticularRecord(int $subParticularId, string $regionName) {
+    protected function getAttributorParticularRecord(int $subParticularId, string $regionName)
+    {
 
         $region = Region::where('name', $regionName)
             ->first();
 
-        if(!$region) {
+        if (!$region) {
             throw new \Exception("The Region named '{$regionName}' is not existing.");
         }
 
@@ -237,7 +248,8 @@ class AllocationImport implements ToModel, WithHeadingRow
     }
 
 
-    protected function getScholarshipProgram(string $scholarshipProgramName) {
+    protected function getScholarshipProgram(string $scholarshipProgramName)
+    {
         $scholarshipProgram = ScholarshipProgram::where('name', $scholarshipProgramName)
             ->first();
 

@@ -1263,7 +1263,8 @@ class AttributionTargetResource extends Resource
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution target')),
 
                     RestoreAction::make()
                         ->action(function ($record) {
@@ -1332,14 +1333,16 @@ class AttributionTargetResource extends Resource
                             $record->save();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore attribution target')),
 
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Target has been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('force delete attribution target')),
                 ]),
             ])
             ->bulkActions([
@@ -1403,7 +1406,7 @@ class AttributionTargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution target ')),
-                    
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each(function ($record) {
@@ -1475,7 +1478,7 @@ class AttributionTargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution target ')),
-                    
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
@@ -1483,7 +1486,7 @@ class AttributionTargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected targets have been deleted permanently.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete attribution target ')),
-                    
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomAttributionTargetExport::make()
@@ -1796,7 +1799,7 @@ class AttributionTargetResource extends Resource
                                 ->withFilename(date('m-d-Y') . ' - attribution_target_export')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

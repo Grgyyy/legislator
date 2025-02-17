@@ -2,13 +2,14 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\InstitutionProgram;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Throwable;
 
@@ -22,7 +23,8 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                $institution = $this->getInstitution($row['institution']);
+                $institutionName = Helper::capitalizeWords($row['institution']);
+                $institution = $this->getInstitution($institutionName);
                 $trainingPrograms = $this->getTrainingPrograms($row['training_program']);
 
                 $createdRecords = [];
@@ -65,8 +67,7 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
 
     protected function getInstitution(string $institutionName)
     {
-        $institutionName = strtolower(trim($institutionName));
-        $institution = Tvi::whereRaw('LOWER(name) = ?', [$institutionName])->first();
+        $institution = Tvi::where('name', $institutionName)->first();
 
         if (!$institution) {
             throw new \Exception("Institution with name '{$institutionName}' not found. No changes were saved.");
@@ -77,7 +78,7 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
 
     protected function getTrainingPrograms(string $trainingProgramNames)
     {
-        $trainingProgramNames = array_map('trim', explode(',', strtolower($trainingProgramNames)));
+        $trainingProgramNames = array_map('trim', explode(',', $trainingProgramNames));
 
         $trainingPrograms = TrainingProgram::whereIn(DB::raw('LOWER(title)'), $trainingProgramNames)->get();
 

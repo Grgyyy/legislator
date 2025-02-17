@@ -2,10 +2,16 @@
 
 namespace App\Filament\Resources\TargetRemarkResource\Pages;
 
+use App\Exports\RegionExport;
+use App\Exports\TargetRemarksExport;
 use App\Filament\Resources\TargetRemarkResource;
-use Filament\Actions;
+use App\Services\NotificationHandler;
+use Exception;
+use Filament\Actions\Action;
 use Filament\Pages\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ListTargetRemarks extends ListRecords
 {
@@ -26,7 +32,24 @@ class ListTargetRemarks extends ListRecords
         return [
             CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
+                ->label('New'),
+
+            Action::make('TargetRemarksExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new TargetRemarksExport, now()->format('m-d-Y') . ' - ' . 'target_remarks_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
+                }),
+
+
         ];
     }
 }

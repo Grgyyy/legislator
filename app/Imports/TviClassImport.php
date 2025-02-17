@@ -2,38 +2,32 @@
 
 namespace App\Imports;
 
-use Throwable;
+use App\Helpers\Helper;
 use App\Models\TviClass;
-use App\Models\TviType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
-use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-
+use Throwable;
 
 class TviClassImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $classIsExist = TviClass::where('name', $row['institution_class'])
-                    ->exists();
+                $institutionClassName = Helper::capitalizeWords($row['institution_class']);
+
+                $classIsExist = TviClass::where('name', $institutionClassName)->exists();
 
                 if (!$classIsExist) {
                     return new TviClass([
-                        'name' => $row['institution_class'],
+                        'name' => $institutionClassName,
                     ]);
                 }
 
@@ -44,11 +38,6 @@ class TviClassImport implements ToModel, WithHeadingRow
         });
     }
 
-    /**
-     *
-     * @param array $row
-     * @throws \Exception
-     */
     protected function validateRow(array $row)
     {
         $requiredFields = ['institution_class'];

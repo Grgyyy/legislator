@@ -2,17 +2,18 @@
 
 namespace App\Imports;
 
-use Throwable;
-use Carbon\Carbon;
-use App\Models\Tvi;
+use App\Helpers\Helper;
+use App\Models\InstitutionRecognition;
 use App\Models\Recognition;
+use App\Models\Tvi;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use App\Models\InstitutionRecognition;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Imports\HeadingRowFormatter;
+use Throwable;
 
 HeadingRowFormatter::default('none');
 
@@ -32,8 +33,11 @@ class InstitutionRecognitionImport implements ToModel, WithHeadingRow
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
-            $tviId = $this->getTvi($row['Institution']);
-            $recognitionId = $this->getRecognition($row['Recognition']);
+            $institutionName = Helper::capitalizeWords(trim($row['Institution']));
+            $recognitionTitle = Helper::capitalizeWords(trim($row['Recognition']));
+
+            $tviId = $this->getTvi($institutionName);
+            $recognitionId = $this->getRecognition($recognitionTitle);
             $accreditationDate = $this->convertExcelDate($row['Accreditation Date']);
             $expirationDate = $this->convertExcelDate($row['Expiration Date']);
 

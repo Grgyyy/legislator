@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\District;
 use App\Models\Municipality;
 use App\Models\Province;
@@ -17,28 +18,27 @@ class DistrictImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
-
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $region_id = $this->getRegionId($row['region']);
-                $province_id = $this->getProvinceId($region_id, $row['province']);
+                $regionName = Helper::capitalizeWords($row['region']);
+                $provinceName = Helper::capitalizeWords($row['province']);
+                $municipalityName = Helper::capitalizeWords($row['municipality']);
+                $districtName = Helper::capitalizeWords($row['district']);
+
+                $region_id = $this->getRegionId($regionName);
+                $province_id = $this->getProvinceId($region_id, $provinceName);
                 $isNCR = Region::find($region_id)->name === 'NCR';
                 $municipality_id = null;
 
                 if ($isNCR) {
-                    $municipality_id = $this->getMunicipalityId($province_id, $row['municipality']);
+                    $municipality_id = $this->getMunicipalityId($province_id, $municipalityName);
                 }
 
-                $districtIsExist = District::where('name', $row['district'])
+                $districtIsExist = District::where('name', $districtName)
                     ->where('code', $row['code'])
                     ->where('province_id', $province_id)
                     ->exists();
@@ -46,7 +46,7 @@ class DistrictImport implements ToModel, WithHeadingRow
                 if (!$districtIsExist) {
                     $district = District::create([
                         'code' => $row['code'],
-                        'name' => $row['district'],
+                        'name' => $districtName,
                         'municipality_id' => $municipality_id,
                         'province_id' => $province_id,
                         'region_id' => $region_id,
@@ -80,14 +80,13 @@ class DistrictImport implements ToModel, WithHeadingRow
 
     public function getRegionId(string $regionName)
     {
-
         $region = Region::where('name', $regionName)
             ->whereNull('deleted_at')
             ->first();
 
         if (!$region) {
             Log::error("Region not found: Name = '{$regionName}'");
-            
+
             throw new \Exception("Region not found: Name = '{$regionName}'. No changes were saved.");
         }
 

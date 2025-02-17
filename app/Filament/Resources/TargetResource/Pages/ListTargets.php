@@ -2,20 +2,20 @@
 
 namespace App\Filament\Resources\TargetResource\Pages;
 
-use Filament\Actions\Action;
-use App\Imports\TargetImport;
-use App\Imports\AdminTargetImport;
-use Filament\Actions\CreateAction;
-use Illuminate\Support\Facades\Log;
 use App\Exports\PendingTargetExport;
-use Illuminate\Support\Facades\Auth;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Filament\Resources\TargetResource;
+use App\Imports\AdminTargetImport;
+use App\Imports\TargetImport;
 use App\Services\NotificationHandler;
-use PhpOffice\PhpSpreadsheet\Exception;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\TargetResource;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
+use PhpOffice\PhpSpreadsheet\Exception;
 
 class ListTargets extends ListRecords
 {
@@ -43,21 +43,6 @@ class ListTargets extends ListRecords
                 ->icon('heroicon-m-plus')
                 ->label('New')
                 ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
-
-            Action::make('PendingTargetExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new PendingTargetExport, 'pending_target_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    }
-                }),
 
 
 
@@ -119,7 +104,22 @@ class ListTargets extends ListRecords
                     }
                 })
                 // ->visible(fn() => Auth::user()->hasRole('Super Admin')),
-                ->visible(false)
+                ->visible(false),
+
+            Action::make('PendingTargetExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new PendingTargetExport, now()->format('m-d-Y') . ' - ' . 'pending_target_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
         ];
     }
 }

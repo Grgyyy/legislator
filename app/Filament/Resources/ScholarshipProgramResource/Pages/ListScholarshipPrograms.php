@@ -30,19 +30,6 @@ class ListScholarshipPrograms extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('ScholarshipProgramExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-up')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new ScholarshipProgramExport, 'scholarship_program_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
-
             Action::make('ScholarshipProgramImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
@@ -60,7 +47,7 @@ class ListScholarshipPrograms extends ListRecords
 
                         try {
                             Excel::import(new ScholarshipProgramImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The scholarship programs have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the scholarship programs: ' . $e->getMessage());
@@ -70,6 +57,19 @@ class ListScholarshipPrograms extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('ScholarshipProgramExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-up')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ScholarshipProgramExport, now()->format('m-d-Y') . ' - ' . 'scholarship_program_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }

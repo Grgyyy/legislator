@@ -41,21 +41,6 @@ class ListProjectProposalTargets extends ListRecords
                 ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
 
 
-            Action::make('ProjectProposalTargetExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new ProjectProposalTargetExport, 'project_proposal_pending_target_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    }
-                }),
-
 
             Action::make('TargetImport')
                 ->label('Import')
@@ -85,6 +70,21 @@ class ListProjectProposalTargets extends ListRecords
                     }
                 })
                 ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+
+            Action::make('ProjectProposalTargetExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ProjectProposalTargetExport, now()->format('m-d-Y') . ' - ' . 'project_proposal_pending_target_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    }
+                }),
         ];
     }
 }

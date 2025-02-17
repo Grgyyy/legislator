@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\TviTypeResource\Pages;
 
+use App\Exports\InsitutionTypeExport;
+use App\Filament\Resources\TviTypeResource;
+use App\Imports\TviTypeImport;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
-use App\Imports\TviTypeImport;
 use Filament\Actions\CreateAction;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\InsitutionTypeExport;
-use App\Services\NotificationHandler;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Pages\ListRecords;
-use App\Filament\Resources\TviTypeResource;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
 
 class ListTviTypes extends ListRecords
@@ -40,21 +40,6 @@ class ListTviTypes extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-            Action::make('InsitutionTypeExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new InsitutionTypeExport, 'institution_type_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
-
 
             Action::make('TviTypeImport')
                 ->label('Import')
@@ -82,6 +67,21 @@ class ListTviTypes extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('InsitutionTypeExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new InsitutionTypeExport, now()->format('m-d-Y') . ' - ' . 'institution_type_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\Abdd;
 use App\Models\Allocation;
 use App\Models\DeliveryMode;
@@ -66,6 +67,15 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
 
                 $scholarship_program = $this->getScholarshipProgram($row['scholarship_program']);
 
+                $row['attributor'] = Helper::capitalizeWords($row['attributor']);
+                $row['attributor_region'] = Helper::capitalizeWords($row['attributor_region']);
+                $row['attributor_particular'] = Helper::capitalizeWords($row['attributor_particular']);
+                $row['region'] = Helper::capitalizeWords($row['region']);
+                $row['province'] = Helper::capitalizeWords($row['province']);
+                $row['district'] = Helper::capitalizeWords($row['district']);
+                $row['partylist'] = Helper::capitalizeWords($row['partylist']);
+                $row['particular'] = Helper::capitalizeWords($row['particular']);
+                $row['scholarship_program'] = Helper::capitalizeWords($row['scholarship_program']);
 
                 $allocation = $this->getAllocation($attributor->id, $attribution_particular->id, $legislator->id, $particular->id, $scholarship_program->id, $row['appropriation_year']);
 
@@ -115,7 +125,6 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
                     'appropriation_type' => $row['appropriation_type'],
                     'target_status_id' => $pendingStatus->id,
                 ];
-
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
                     throw new Exception("Insufficient available slots in Skill Priorities to create the target.");
@@ -401,8 +410,8 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
     {
 
         $qualSchoPro = ScholarshipProgram::where('name', $qualCodeSchoPro)
-                        ->where('code', $scholarshipProgram->name)
-                        ->first();
+            ->where('code', $scholarshipProgram->name)
+            ->first();
 
         if (!$qualSchoPro) {
             throw new Exception("Scholarship Program named '{$qualCodeSchoPro}' with a code of '{$scholarshipProgram->name}' not found.");
@@ -411,7 +420,7 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
         $qualificationTitle = QualificationTitle::where('scholarship_program_id', $qualSchoPro->id)
             ->whereHas('trainingProgram', function ($query) use ($qualificationTitleName, $socCode) {
                 $query->where('title', $qualificationTitleName)
-                ->where('soc_code', $socCode);
+                    ->where('soc_code', $socCode);
             })
             ->whereNull('deleted_at')
             ->first();
@@ -461,10 +470,11 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
                 ->first();
         }
 
-        if(!$skillPrograms) {
-            throw new Exception("No available skill priority.");
+        if (!$skillPrograms) {
+            NotificationHandler::handleValidationException('Something went wrong', 'No available skill priority.');
+            return;
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         return $skillsPriority;

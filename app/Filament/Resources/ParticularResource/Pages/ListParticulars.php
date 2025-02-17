@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ParticularResource\Pages;
 
+use App\Exports\ParticularExport;
 use App\Filament\Resources\ParticularResource;
 use App\Imports\ParticularImport;
 use App\Models\FundSource;
@@ -13,6 +14,7 @@ use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Resources\Components\Tab;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ListParticulars extends ListRecords
@@ -30,21 +32,6 @@ class ListParticulars extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus'),
-
-            Action::make('ParticularExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
-                ->action(function (array $data) {
-                    try {
-                        return Excel::download(new ParticularExport, 'particular_export.xlsx');
-                    } catch (ValidationException $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
-                    };
-                }),
 
 
             Action::make('ParticularImport')
@@ -64,7 +51,7 @@ class ListParticulars extends ListRecords
 
                         try {
                             Excel::import(new ParticularImport, $filePath);
-                            
+
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The particulars have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the particulars: ' . $e->getMessage());
@@ -74,6 +61,21 @@ class ListParticulars extends ListRecords
                             }
                         }
                     }
+                }),
+
+            Action::make('ParticularExport')
+                ->label('Export')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function (array $data) {
+                    try {
+                        return Excel::download(new ParticularExport, now()->format('m-d-Y') . ' - ' . 'particular_export.xlsx');
+                    } catch (ValidationException $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'Spreadsheet error: ' . $e->getMessage());
+                    } catch (Exception $e) {
+                        NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
+                    };
                 }),
         ];
     }

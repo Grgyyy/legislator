@@ -2,23 +2,26 @@
 
 namespace App\Filament\Resources;
 
-use Filament\Forms;
-use Filament\Tables;
-use Filament\Forms\Form;
-use Filament\Tables\Table;
-use App\Models\TargetRemark;
-use App\Policies\TargetPolicy;
-use Filament\Resources\Resource;
-use Illuminate\Support\Facades\Auth;
-use Filament\Forms\Components\Textarea;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Actions\ActionGroup;
-use Filament\Tables\Actions\DeleteAction;
-use Filament\Tables\Actions\BulkActionGroup;
-use Filament\Tables\Actions\DeleteBulkAction;
+use App\Exports\CustomExport\CustomTargetRemarksExport;
 use App\Filament\Resources\TargetRemarkResource\Pages;
 use App\Filament\Resources\TargetRemarkResource\RelationManagers;
+use App\Models\TargetRemark;
+use App\Policies\TargetPolicy;
+use Filament\Forms;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Form;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
+use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
+use pxlrbt\FilamentExcel\Columns\Column;
 
 class TargetRemarkResource extends Resource
 {
@@ -60,8 +63,19 @@ class TargetRemarkResource extends Resource
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target remarks ')),
-                ])
-                ->label('Select Action'),
+
+                    ExportBulkAction::make()
+                        ->exports([
+                            CustomTargetRemarksExport::make()
+                                ->withColumns([
+                                    Column::make('remarks')
+                                        ->heading('Remarks')
+
+                                ])
+                                ->withFilename(now()->format('m-d-Y') . ' - target_remarks_export'),
+                        ]),
+
+                ]),
             ]);
     }
 

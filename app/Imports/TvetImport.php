@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\Tvet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,27 +15,24 @@ class TvetImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $sectorIsExist = Tvet::where('name', $row['sector_name'])->exists();
+                $sectorName = Helper::capitalizeWords($row['sector_name']);
+
+                $sectorIsExist = Tvet::where('name', $sectorName)->exists();
 
                 if (!$sectorIsExist) {
                     return new Tvet([
-                        'name' => $row['sector_name'],
+                        'name' => $sectorName,
                     ]);
                 }
             } catch (Throwable $e) {
                 Log::error('Failed to import TVET Sectors: ' . $e->getMessage());
-               
+
                 throw $e;
             }
         });

@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\Partylist;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,27 +15,24 @@ class PartylistImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
-                $partylistExist = Partylist::where('name', $row['partylist_name'])->exists();
+                $partylistName = Helper::capitalizeWords($row['partylist_name']);
 
-                if(!$partylistExist) {
+                $partylistExist = Partylist::where('name', $partylistName)->exists();
+
+                if (!$partylistExist) {
                     return new Partylist([
-                        'name' => $row['partylist_name'],
+                        'name' => $partylistName,
                     ]);
                 }
             } catch (Throwable $e) {
                 Log::error('Failed to import partylist: ' . $e->getMessage());
-                
+
                 throw $e;
             }
         });

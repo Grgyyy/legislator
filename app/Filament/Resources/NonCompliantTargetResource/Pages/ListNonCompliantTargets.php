@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\NonCompliantTargetResource\Pages;
 
+use App\Exports\AttributionTargetExport;
+use App\Exports\NonCompliantExport;
+use App\Filament\Resources\NonCompliantTargetResource;
+use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
-use App\Exports\NonCompliantExport;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Services\NotificationHandler;
-use App\Exports\AttributionTargetExport;
 use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
-use App\Filament\Resources\NonCompliantTargetResource;
 
 class ListNonCompliantTargets extends ListRecords
 {
@@ -28,7 +28,7 @@ class ListNonCompliantTargets extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new NonCompliantExport, 'non_compliant_target_export.xlsx');
+                        return Excel::download(new NonCompliantExport, now()->format('m-d-Y') . ' - ' . 'non_compliant_target_export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

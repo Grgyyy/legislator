@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\Region;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,25 +15,22 @@ class RegionImport implements ToModel, WithHeadingRow
 {
     use Importable;
 
-    /**
-     * @param array $row
-     *
-     * @return \Illuminate\Database\Eloquent\Model|null
-     */
     public function model(array $row)
     {
         $this->validateRow($row);
 
         return DB::transaction(function () use ($row) {
             try {
+                $regionName = Helper::capitalizeWords($row['region']);
+
                 $regionIsExist = Region::where('code', $row['code'])
-                    ->where('name', $row['region'])
+                    ->where('name', $regionName)
                     ->exists();
 
                 if (!$regionIsExist) {
                     return new Region([
                         'code' => $row['code'],
-                        'name' => $row['region'],
+                        'name' => $regionName,
                     ]);
                 }
             } catch (Throwable $e) {
@@ -45,7 +43,7 @@ class RegionImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        if (empty($row['code']) && ($row['region'])) {
+        if (empty($row['code']) || empty($row['region'])) {
             throw new \Exception("Validation error: The field 'region' is required and cannot be null or empty. No changes were saved.");
         }
     }

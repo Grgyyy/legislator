@@ -2,20 +2,19 @@
 
 namespace App\Imports;
 
-use App\Models\Region;
-use App\Models\TrainingProgram;
-use App\Models\Tvi;
+use App\Helpers\Helper;
 use App\Models\District;
-use App\Models\TviClass;
 use App\Models\InstitutionClass;
 use App\Models\Municipality;
 use App\Models\Province;
+use App\Models\Region;
+use App\Models\Tvi;
+use App\Models\TviClass;
 use App\Models\TviType;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Throwable;
 
@@ -30,12 +29,12 @@ class TviImport implements ToModel, WithHeadingRow
         return DB::transaction(function () use ($row) {
             try {
                 $tviTypeId = $this->getInstitutionType($row['institution_type']);
-                $tviClassId = !empty($row['institution_class_a']) && is_string($row['institution_class_a']) 
-                    ? $this->getInstitutionClassA($row['institution_class_a']) 
+                $tviClassId = !empty($row['institution_class_a']) && is_string($row['institution_class_a'])
+                    ? $this->getInstitutionClassA($row['institution_class_a'])
                     : null;
 
-                $institutionClassId = !empty($row['institution_class_b']) && is_string($row['institution_class_b']) 
-                    ? $this->getInstitutionClassB($row['institution_class_b']) 
+                $institutionClassId = !empty($row['institution_class_b']) && is_string($row['institution_class_b'])
+                    ? $this->getInstitutionClassB($row['institution_class_b'])
                     : null;
 
                 $regionId = $this->getRegionId($row['region']);
@@ -44,15 +43,16 @@ class TviImport implements ToModel, WithHeadingRow
                 $districtId = $this->getDistrictId($regionId, $provinceId, $municipalityId, $row['district']);
                 $tviCode = $row['school_id'] ? $row['school_id'] : null;
 
-                // Fetch or create TVI record
-                $tviRecord = Tvi::where(DB::raw('LOWER(name)'), strtolower($row['institution_name']))
+                $institutionName = Helper::capitalizeWords($row['institution_name']);
+
+                $tviRecord = Tvi::where(DB::raw('LOWER(name)'), strtolower($institutionName))
                     ->where('address', $row['full_address'])
                     ->first();
 
                 if (!$tviRecord) {
                     $tviRecord = Tvi::create([
-                        'school_id' => $row['school_id'],
-                        'name' => $row['institution_name'],
+                        'school_id' => $tviCode,
+                        'name' => $institutionName,
                         'tvi_type_id' => $tviTypeId,
                         'institution_class_id' => $institutionClassId,
                         'tvi_class_id' => $tviClassId,
@@ -65,9 +65,9 @@ class TviImport implements ToModel, WithHeadingRow
                 return $tviRecord;
 
             } catch (Throwable $e) {
-                DB::rollBack(); // Rollback the transaction in case of error
+                DB::rollBack();
                 Log::error("An error occurred while importing row: " . json_encode($row) . " Error: " . $e->getMessage());
-                throw $e; // Re-throw the exception to handle it outside of the transaction
+                throw $e;
             }
         });
     }
@@ -83,7 +83,7 @@ class TviImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function getInstitutionType(string $institutionType) 
+    protected function getInstitutionType(string $institutionType)
     {
         $type = TviType::where("name", $institutionType)
             ->whereNull("deleted_at")

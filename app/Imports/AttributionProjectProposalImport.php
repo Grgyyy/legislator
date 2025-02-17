@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Helpers\Helper;
 use App\Models\Abdd;
 use App\Models\Allocation;
 use App\Models\DeliveryMode;
@@ -45,14 +46,15 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             $this->validateYear($row['appropriation_year']);
 
             DB::transaction(function () use ($row) {
-                  // Attributor
-                  $attributor = $this->getAttributorId($row['attributor']);
-                  $attribution_region = $this->getRegion($row['attributor_region']);
-                  $attribution_province = $this->getProvince('Not Applicable', $attribution_region->id);
-                  $attribution_district = $this->getDistrict('Not Applicable', $attribution_province->id);
-                  $attribution_partylist = $this->getPartylist('Not Applicable');
-                  $attribution_sub_particular = $this->getSubParticular($row['attributor_particular']);
-                  $attribution_particular = $this->getAttributorParticularRecord($attribution_sub_particular->id, $attribution_region->name);
+                $programName = Helper::capitalizeWords($row['project_proposal_program_name']);
+
+                $attributor = $this->getAttributorId($row['attributor']);
+                $attribution_region = $this->getRegion($row['attributor_region']);
+                $attribution_province = $this->getProvince('Not Applicable', $attribution_region->id);
+                $attribution_district = $this->getDistrict('Not Applicable', $attribution_province->id);
+                $attribution_partylist = $this->getPartylist('Not Applicable');
+                $attribution_sub_particular = $this->getSubParticular($row['attributor_particular']);
+                $attribution_particular = $this->getAttributorParticularRecord($attribution_sub_particular->id, $attribution_region->name);
 
                 // Receiver
                 $legislator = $this->getLegislatorId($row['legislator']);
@@ -64,7 +66,6 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                 $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
 
                 $scholarship_program = $this->getScholarshipProgram($row['scholarship_program']);
-
 
                 $allocation = $this->getAllocation($attributor->id, $attribution_particular->id, $legislator->id, $particular->id, $scholarship_program->id, $row['appropriation_year']);
 
@@ -86,16 +87,14 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
 
                 $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
-                if ($row['per_capita_cost'])  {
-                    if($row['per_capita_cost'] > 0) {
-                        $cost = $row['per_capita_cost']* $numberOfSlots;
-                    }
-                    else {
+                if ($row['per_capita_cost']) {
+                    if ($row['per_capita_cost'] > 0) {
+                        $cost = $row['per_capita_cost'] * $numberOfSlots;
+                    } else {
                         $message = "The Per Capita Cost Value must be greater than 0. No changes are saved.";
                         NotificationHandler::handleValidationException('Something went wrong', $message);
                     }
-                }
-                else {
+                } else {
                     throw new \Exception("The Per Capita Cost is required. No changes are saved.");
                 }
 
@@ -103,13 +102,13 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                     'allocation_id' => $allocation->id,
                     'district_id' => $tvi->district_id,
                     'municipality_id' => $tvi->municipality_id,
-                    'tvi_id'  => $tvi->id,
+                    'tvi_id' => $tvi->id,
                     'tvi_name' => $tvi->name,
                     'abdd_id' => $abddSector->id,
                     'qualification_title_id' => $qualificationTitle->id,
                     'qualification_title_code' => $qualificationTitle->trainingProgram->code,
                     'qualification_title_soc_code' => $qualificationTitle->trainingProgram->soc_code,
-                    'qualification_title_name' => $qualificationTitle->trainingProgram->title,
+                    'qualification_title_name' => Helper::capitalizeWords($qualificationTitle->trainingProgram->title),
                     'delivery_mode_id' => $delivery_mode->id,
                     'learning_mode_id' => $learning_mode->id,
                     'number_of_slots' => $row['number_of_slots'],
@@ -128,7 +127,6 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                     'target_status_id' => $pendingStatus->id,
                 ];
 
-                
                 if ($skillPriority->available_slots < $numberOfSlots) {
                     $message = "Insufficient available slots in Skill Priorities to create the target.";
                     NotificationHandler::handleValidationException('Something went wrong', $message);
@@ -507,22 +505,23 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                 ->first();
         }
 
-        if(!$skillPrograms) {
+        if (!$skillPrograms) {
             NotificationHandler::handleValidationException('Something went wrong', 'No available skill priority.');
             return;
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         return $skillsPriority;
     }
 
-    protected function getAttributorParticularRecord(int $subParticularId, string $regionName) {
+    protected function getAttributorParticularRecord(int $subParticularId, string $regionName)
+    {
 
         $region = Region::where('name', $regionName)
             ->first();
 
-        if(!$region) {
+        if (!$region) {
             $message = "The Region named '{$regionName}' is not existing.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

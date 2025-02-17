@@ -754,17 +754,17 @@ class ProjectProposalTargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-
+    
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-
+    
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-
+    
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-
+    
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
@@ -1027,7 +1027,8 @@ class ProjectProposalTargetResource extends Resource
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete project proposal target ')),
 
                     RestoreAction::make()
                         ->action(function ($record) {
@@ -1106,14 +1107,16 @@ class ProjectProposalTargetResource extends Resource
                             $record->save();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore project proposal target ')),
 
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Target has been deleted permanently.');
-                        }),
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
                 ])
             ])
             ->bulkActions([
@@ -1177,7 +1180,10 @@ class ProjectProposalTargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution target ')),
-                    ForceDeleteBulkAction::make(),
+
+                    ForceDeleteBulkAction::make()
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('force delete project proposal target ')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each(function ($record) {
@@ -1248,6 +1254,7 @@ class ProjectProposalTargetResource extends Resource
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore attribution target ')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomProjectProposalPendingTargetExport::make()
