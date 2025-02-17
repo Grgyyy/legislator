@@ -2,36 +2,36 @@
 
 namespace App\Imports;
 
+use App\Models\Abdd;
+use App\Models\Allocation;
 use App\Models\DeliveryMode;
+use App\Models\District;
 use App\Models\LearningMode;
+use App\Models\Legislator;
+use App\Models\Municipality;
 use App\Models\Particular;
+use App\Models\Partylist;
+use App\Models\Province;
+use App\Models\QualificationTitle;
+use App\Models\Region;
+use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
 use App\Models\SkillPrograms;
 use App\Models\Status;
 use App\Models\SubParticular;
+use App\Models\Target;
+use App\Models\TargetHistory;
 use App\Models\TargetStatus;
 use App\Models\TrainingProgram;
+use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Auth;
-use Throwable;
-use App\Models\Tvi;
-use App\Models\Abdd;
-use App\Models\Region;
-use App\Models\Target;
-use App\Models\District;
-use App\Models\Province;
-use App\Models\Partylist;
-use App\Models\Allocation;
-use App\Models\Legislator;
-use App\Models\Municipality;
-use App\Models\TargetHistory;
-use App\Models\QualificationTitle;
-use App\Models\ScholarshipProgram;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class AttributionProjectProposalImport implements ToModel, WithHeadingRow
 {
@@ -74,7 +74,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                 $tvi = $this->getTvi($row['institution']);
                 $numberOfSlots = $row['number_of_slots'];
 
-                $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $scholarship_program->id);
+                $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $row['soc_code'], $scholarship_program->id);
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
 
                 $skillPriority = $this->getSkillPriority(
@@ -167,6 +167,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             'appropriation_year',
             'appropriation_type',
             'institution',
+            'soc_code',
             'qualification_title',
             'abdd_sector',
             'delivery_mode',
@@ -426,11 +427,12 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
         return $tvi;
     }
 
-    protected function getQualificationTitle(string $qualificationTitleName, int $scholarshipProgramId)
+    protected function getQualificationTitle(string $qualificationTitleName, string $socCode, int $scholarshipProgramId)
     {
         $qualificationTitle = QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
-            ->whereHas('trainingProgram', function ($query) use ($qualificationTitleName) {
-                $query->where('title', $qualificationTitleName);
+            ->whereHas('trainingProgram', function ($query) use ($qualificationTitleName, $socCode) {
+                $query->where('title', $qualificationTitleName)
+                    ->where('soc_code', $socCode);
             })
             ->whereNull('deleted_at')
             ->first();

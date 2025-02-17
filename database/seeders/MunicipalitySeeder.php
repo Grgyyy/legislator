@@ -217,6 +217,7 @@ class MunicipalitySeeder extends Seeder
 
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
                         'name' => $municipality['name'],
                         'class' => $municipality['class'],
                         'province_id' => $rizalProvince->id,
@@ -245,6 +246,7 @@ class MunicipalitySeeder extends Seeder
 
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
                         'name' => $municipality['name'],
                         'class' => $municipality['class'],
                         'province_id' => $cebuProvince->id,
@@ -271,6 +273,7 @@ class MunicipalitySeeder extends Seeder
 
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
                         'name' => $municipality['name'],
                         'class' => $municipality['class'],
                         'province_id' => $zamboangaProvince->id,
