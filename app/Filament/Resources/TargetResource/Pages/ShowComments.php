@@ -7,8 +7,8 @@ use App\Filament\Resources\TargetHistoryResource;
 use App\Models\Province;
 use App\Models\Region;
 use App\Models\TargetComment;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Actions\CreateAction;
+use Filament\Resources\Pages\ListRecords;
 
 class ShowComments extends ListRecords
 {
@@ -26,6 +26,24 @@ class ShowComments extends ListRecords
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
+    }
+    
+    public function mount(): void
+    {
+        $targetId = $this->getTargetId();
+        $userId = auth()->id();
+
+        $unreadComments = TargetComment::where('target_id', $targetId)
+            ->whereDoesntHave('readByUsers', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->get();
+
+        foreach ($unreadComments as $comment) {
+            $comment->readByUsers()->create(['user_id' => $userId]);
+        }
+
+        $this->dispatch('commentsRead');
     }
 
     protected function getCreatedNotificationTitle(): ?string

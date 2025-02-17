@@ -122,7 +122,8 @@ class LearningModeResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - learning_mode_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

@@ -59,8 +59,6 @@ class TviResource extends Resource
                 TextInput::make("school_id")
                     ->label('School ID')
                     ->placeholder('Enter school ID')
-                    ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->numeric()
                     ->currencyMask(thousandSeparator: '', precision: 0)
@@ -220,7 +218,8 @@ class TviResource extends Resource
                     ->label("School ID")
                     ->sortable()
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => $record->schoolId ?? '-'),
 
                 TextColumn::make("name")
                     ->label("Institution")
@@ -473,6 +472,7 @@ class TviResource extends Resource
                         ]),
 
                 ])
+                ->label('Select Action'),
             ]);
     }
 

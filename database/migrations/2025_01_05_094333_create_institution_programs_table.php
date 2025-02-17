@@ -19,6 +19,10 @@ return new class extends Migration
             $table->foreignId('training_program_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('status_id')
+            ->nullable()
+            ->constrained('statuses')
+            ->cascadeOnDelete();
             $table->timestamps();
             $table->softDeletes();
         });

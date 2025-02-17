@@ -204,7 +204,8 @@ class InstitutionRecognitionResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - institution_recognition_export')
                         ])
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

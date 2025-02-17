@@ -156,7 +156,8 @@ class ScholarshipProgramResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - scholarship_program_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

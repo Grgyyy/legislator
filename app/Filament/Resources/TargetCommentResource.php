@@ -8,14 +8,14 @@ use App\Models\TargetComment;
 use Filament\Forms;
 use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Text;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Forms\Components\Text;
 use Illuminate\Database\Eloquent\Builder;
 
 class TargetCommentResource extends Resource
@@ -104,15 +104,21 @@ class TargetCommentResource extends Resource
             ->columns([
                 TextColumn::make('user.name')->label('Author'),
                 TextColumn::make('content'),
-                TextColumn::make('created_at')
-                    ->formatStateUsing(fn($state) => \Carbon\Carbon::parse($state)->format('F j, Y')),
+                TextColumn::make("updated_at")
+                    ->label("Date Encoded")
+                    ->formatStateUsing(fn ($state) => 
+                        \Carbon\Carbon::parse($state)->format('M j, Y') . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 
+                        \Carbon\Carbon::parse($state)->format('h:i A')
+                    )
+                    ->html()
             ])
             ->filters([])
             ->actions([])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

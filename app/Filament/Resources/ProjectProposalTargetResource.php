@@ -1549,7 +1549,8 @@ class ProjectProposalTargetResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - project_proposal_pending_target_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

@@ -156,7 +156,7 @@ class ToolkitResource extends Resource
             ->emptyStateHeading('No toolkits available')
             ->columns([
                 TextColumn::make('qualificationTitles')
-                    ->label('Qualification Title')
+                    ->label('SOC Title')
                     ->sortable()
                     ->searchable()
                     ->toggleable()
@@ -354,7 +354,8 @@ class ToolkitResource extends Resource
                                 ->withFilename(date('m-d-Y') . ' - toolkit_export')
                         ])
 
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

@@ -125,7 +125,8 @@ class TviTypeResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - institution_type_export')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 

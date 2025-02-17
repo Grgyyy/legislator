@@ -2121,7 +2121,8 @@ class AttributionProjectProposalResource extends Resource
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - attribution_project_proposal_pending_target')
                         ]),
-                ]),
+                ])
+                ->label('Select Action'),
             ]);
     }
 
