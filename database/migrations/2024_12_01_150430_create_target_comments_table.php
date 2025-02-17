@@ -19,6 +19,7 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
             $table->longText('content');
+            $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
     }
