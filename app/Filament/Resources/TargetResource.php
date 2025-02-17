@@ -15,17 +15,21 @@ use App\Models\SkillPriority;
 use App\Models\SkillPrograms;
 use App\Models\Status;
 use App\Models\Target;
+use App\Models\TargetComment;
 use App\Models\TargetStatus;
 use App\Models\Tvi;
 use App\Policies\TargetPolicy;
 use App\Services\NotificationHandler;
-use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\View;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -42,6 +46,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\HtmlString;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 
@@ -905,14 +910,58 @@ class TargetResource extends Resource
 
                     Action::make('viewComment')
                         ->label('View Comments')
-                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        // ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
                         ->icon('heroicon-o-chat-bubble-left-ellipsis')
                         ->badge(fn($record) => $record->comments()->count())
                         ->color(fn($record) => $record->comments()
-                            ->whereDoesntHave('readByUsers', function ($query) {
-                                $query->where('user_id', auth()->id());
-                            })
-                            ->exists() ? 'danger' : 'gray'),
+                        ->whereDoesntHave('readByUsers', function ($query) {
+                            $query->where('user_id', auth()->id());
+                        })
+                        ->exists() ? 'info' : 'gray')
+                        ->modalHeading('Comments')
+                        ->modalSubmitActionLabel('Comment')
+                        ->modalWidth('2xl')
+                        ->modalContent(function (Target $record): HtmlString {
+                            $comments = $record->comments()->latest()->get();
+
+                            $commentsHtml = collect($comments)->map(function ($comment) {
+                                $username = e($comment->user->name);
+                                $content = e($comment->content);
+                                $timeAgo = $comment->created_at->diffForHumans();
+
+                                return "
+                                    <div class='p-2'>
+                                        <div class='bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-gray-900 dark:text-gray-100'>
+                                            <div class='flex items-center text-gray-900 dark:text-gray-100 mb-2'>
+                                                <span class='font-bold' style='margin-right: 10px;'>{$username}</span>
+                                                <small class='text-gray-500 dark:text-gray-400'>{$timeAgo}</small>
+                                            </div>
+                                            <div class='text-gray-800 dark:text-gray-200'>{$content}</div>
+                                        </div>
+                                    </div>
+                                ";
+                            })->implode('');
+
+                            return new HtmlString("
+                                <div class='max-h-96 overflow-y-auto pb-2'>
+                                    " . ($commentsHtml ?: "<p class='text-gray-500 dark:text-gray-400 text-center'>No comments yet.</p>") . "
+                                </div>
+                            ");
+                        })
+                        ->form([
+                            Textarea::make('content')
+                                ->label('Your Comment')
+                                ->required(),
+                        ])
+                        ->action(function (array $data, $record): void {
+                            TargetComment::create([
+                                'target_id' => $record->id,
+                                'user_id' => auth()->id(),
+                                'content' => $data['content'],
+                            ]);
+
+                            NotificationHandler::sendSuccessNotification('Saved', 'Allocation has been added successfully.');
+                        }),
 
                     Action::make('setAsCompliant')
                         ->label('Set as Compliant')
@@ -1722,7 +1771,7 @@ class TargetResource extends Resource
             'create' => Pages\CreateTarget::route('/create'),
             'edit' => Pages\EditTarget::route('/{record}/edit'),
             'showHistory' => Pages\ShowHistory::route('/{record}/history'),
-            'showComments' => Pages\ShowComments::route('/{record}/comments'),
+            // 'showComments' => Pages\ShowComments::route('/{record}/comments'),
         ];
     }
 }
