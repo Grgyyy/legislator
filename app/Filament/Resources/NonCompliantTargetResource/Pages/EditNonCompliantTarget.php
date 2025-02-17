@@ -55,12 +55,23 @@ class EditNonCompliantTarget extends EditRecord
     protected function getRedirectUrl(): string
     {
         $record = $this->record;
-        $attributionAllocation = $record->attribution_allocation_id;
+        $attributionAllocation = $record->allocation->attributor;
+        $program = $record->qualification_title->soc;
 
         if ($attributionAllocation) {
-            return route('filament.admin.resources.attribution-targets.index');
+            if ($program === 1) {
+                return route('filament.admin.resources.attribution-targets.index');
+            }
+            else {
+                return route('filament.admin.resources.attribution-project-proposals.index');
+            }
         } else {
-            return route('filament.admin.resources.targets.index');
+            if ($program === 1) {
+                return route('filament.admin.resources.targets.index');
+            }
+            else {
+                return route('filament.admin.resources.project-proposal-targets.index');
+            }
         }
     }
 
