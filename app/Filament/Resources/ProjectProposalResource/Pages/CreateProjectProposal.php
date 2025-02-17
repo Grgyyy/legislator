@@ -83,7 +83,8 @@ class CreateProjectProposal extends CreateRecord
                 'soc' => 0,
             ]);
 
-            $scholarshipProgramIds = ScholarshipProgram::pluck('id');
+            $scholarshipProgramIds = ScholarshipProgram::whereIn('code', ['TTSP', 'TWSP'])->pluck('id');
+
 
             if ($scholarshipProgramIds->isNotEmpty()) {
                 $projectProposalProgram->scholarshipPrograms()->sync($scholarshipProgramIds);
