@@ -25,6 +25,7 @@ use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Auth;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
@@ -59,7 +60,7 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
                 $tvi = $this->getTvi($row['institution']);
                 $numberOfSlots = $row['number_of_slots'];
 
-                $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $scholarship_program->id);
+                $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $row['soc_code'], $row['qualification_title_scholarship_program'], $scholarship_program);
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $row['appropriation_year']);
 
                 if ($row['per_capita_cost'])  {
@@ -150,7 +151,9 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
             'appropriation_year',
             'appropriation_type',
             'institution',
+            'soc_code',
             'qualification_title',
+            'qualification_title_scholarship_program',
             'abdd_sector',
             'delivery_mode',
             'learning_mode',
@@ -379,11 +382,35 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
         return $tvi;
     }
 
-    protected function getQualificationTitle(string $qualificationTitleName, int $scholarshipProgramId)
+    protected function getQualificationTitle(string $qualificationTitleName, string $socCode, string $qualCodeSchoPro, $scholarshipProgram)
     {
-        $qualificationTitle = QualificationTitle::where('scholarship_program_id', $scholarshipProgramId)
-            ->whereHas('trainingProgram', function ($query) use ($qualificationTitleName) {
-                $query->where('title', $qualificationTitleName);
+        
+        $scholarship = ScholarshipProgram::where('name', $qualCodeSchoPro)
+            ->first();
+
+        if (!$scholarship) {
+            $message = "The scholarship program named'{$qualCodeSchoPro}' does not exists.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        if ($scholarship->code !== 'TWSP' && $scholarship->code !== 'TTSP') {
+            $message = "The Project Proposal is permitted to use only TWSP and TTSP scholarship programs.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        $qualSchoPro = ScholarshipProgram::where('name', $qualCodeSchoPro)
+                        ->where('code', $scholarshipProgram->name)
+                        ->first();
+
+        if (!$qualSchoPro) {
+            $message = "Scholarship Program named '{$qualCodeSchoPro}' with a code of '{$scholarshipProgram->name}' not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+
+        $qualificationTitle = QualificationTitle::where('scholarship_program_id', $qualSchoPro->id)
+            ->whereHas('trainingProgram', function ($query) use ($qualificationTitleName, $socCode) {
+                $query->where('title', $qualificationTitleName)
+                ->where('soc_code', $socCode);
             })
             ->whereNull('deleted_at')
             ->first();
