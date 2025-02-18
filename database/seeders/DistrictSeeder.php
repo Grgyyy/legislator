@@ -517,5 +517,62 @@ class DistrictSeeder extends Seeder
             }
         }
 
+
+        $davaoMunicipality = DB::table('municipalities')
+                ->where('name', 'City of Davao')
+                ->first();
+
+        if ($davaoMunicipality) {
+            for ($i = 1; $i <= 3; $i++) {
+                $districtName = "District {$i}";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $davaoMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $davaoMunicipality->id,
+                        'province_id' => $davaoMunicipality->province_id,
+                    ])->id;
+
+                    if ($i < 3) {
+                        DB::table('district_municipalities')->insert([
+                            'district_id' => $districtId,
+                            'municipality_id' => $davaoMunicipality->id,
+                        ]);
+                    }
+                }
+            }
+        }
+
+
+        $gensanMunicipality = DB::table('municipalities')
+                ->where('name', 'City of General Santos')
+                ->first();
+
+        if ($gensanMunicipality) {
+            $districtName = "Lone District";
+            $districtExists = DB::table('districts')
+                ->where('name', $districtName)
+                ->where('municipality_id', $gensanMunicipality->id)
+                ->exists();
+
+            if (!$districtExists) {
+                $districtId = District::create([
+                    'name' => $districtName,
+                    'municipality_id' => $gensanMunicipality->id,
+                    'province_id' => $gensanMunicipality->province_id,
+                ])->id;
+
+                DB::table('district_municipalities')->insert([
+                    'district_id' => $districtId,
+                    'municipality_id' => $gensanMunicipality->id,
+                ]);
+
+            }
+        }
+
     }
 }
