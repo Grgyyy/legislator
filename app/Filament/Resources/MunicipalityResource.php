@@ -77,9 +77,11 @@ class MunicipalityResource extends Resource
                     ->preload()
                     ->default(function ($get) {
                         $districtId = request()->get('district_id');
-                        $district = District::find($districtId);
+                        if ($districtId) {
+                            $district = District::find($districtId);
 
-                        return $district->province_id;
+                            return $district->province_id;
+                        }
                     })
                     ->native(false)
                     ->options(function () {
