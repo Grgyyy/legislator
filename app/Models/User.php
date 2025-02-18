@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Filament\Models\Contracts\FilamentUser;
@@ -12,21 +13,15 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-
 class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
-
 
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->avatar_url ? Storage::url($this->avatar_url) : null;
     }
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
         'name',
         'email',
@@ -46,27 +41,16 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return $this->belongsToMany(Target::class, 'target_seen_by');
     }
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
-    // Correct relationship methods
     public function region()
     {
         return $this->belongsToMany(Region::class, 'user_regions')->withTimestamps();
@@ -77,9 +61,19 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return $this->belongsToMany(Province::class, 'user_regions')->withTimestamps();
     }
 
+    public function districtMunicipalities()
+    {
+        return $this->belongsToMany(DistrictMunicipality::class, 'user_regions')->withTimestamps();
+    }
+
     public function district()
     {
-        return $this->belongsToMany(District::class, 'user_regions')->withTimestamps();
+        return $this->belongsToMany(District::class, 'district_municipalities', 'municipality_id', 'district_id')->withTimestamps();
+    }
+
+    public function municipalities()
+    {
+        return $this->belongsToMany(Municipality::class, 'district_municipalities', 'district_id', 'municipality_id')->withTimestamps();
     }
 
     public function canAccessPanel(Panel $panel): bool
@@ -121,7 +115,6 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             'BARMM'
         ];
 
-
         foreach ($regionRoles as $regionRole) {
             if ($this->hasRole($regionRole)) {
                 if ($this->region && $this->region->name === $regionRole) {
@@ -131,6 +124,4 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         }
         return false;
     }
-
-
 }

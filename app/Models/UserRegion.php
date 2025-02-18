@@ -18,9 +18,9 @@ class UserRegion extends Model
     {
         return $this->belongsToMany(User::class, 'user_regions')->withTimestamps();
     }
-    public function district()
+    public function districtMunicipality()
     {
-        return $this->belongsToMany(District::class, 'user_regions')->withTimestamps();
+        return $this->belongsToMany(DistrictMunicipality::class, 'user_regions')->withTimestamps();
     }
 
 }

@@ -12,7 +12,6 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Define fixed roles
         $roles = [
             'Super Admin',
             'Admin',
@@ -25,7 +24,6 @@ class RoleSeeder extends Seeder
             'PO/DO',
         ];
 
-        // Create roles if not already present
         foreach ($roles as $roleName) {
             Role::firstOrCreate(['name' => $roleName]);
         }

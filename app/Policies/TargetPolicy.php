@@ -14,12 +14,12 @@ class TargetPolicy
             return true;
         }
 
-        return $user->hasRole(['SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin']);
+        return $user->hasRole(['SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin', 'RO', 'PO/DO']);
     }
 
     public function view(User $user, Target $target): bool
     {
-        return $user->hasRole(['TESDO', 'SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin']);
+        return $user->hasRole(['TESDO', 'SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin', 'RO', 'PO/DO']);
     }
 
     public function create(User $user): bool
@@ -40,12 +40,12 @@ class TargetPolicy
 
     public function viewPending(User $user): bool
     {
-        return $user->hasRole('TESDO') || $user->hasRole(['SMD Head', 'SMD Focal', 'Admin', 'Super Admin']);
+        return $user->hasRole('TESDO') || $user->hasRole(['SMD Head', 'SMD Focal', 'Admin', 'Super Admin', 'RO', 'PO/DO']);
     }
 
     public function viewActionable(User $user): bool
     {
-        return $user->hasRole(['SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin']);
+        return $user->hasRole(['SMD Head', 'SMD Focal', 'TESDO', 'Admin', 'Super Admin', 'RO', 'PO/DO']);
     }
 
     public function delete(User $user, Target $target): bool

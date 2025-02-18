@@ -79,22 +79,30 @@ class UserResource extends Resource
                     ->relationship('roles', 'name')
                     ->preload(),
 
-                Select::make('district')
-                    ->label('District')
-                    ->relationship('district', 'name')
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->preload()
-                    ->multiple(fn($get) => request()->get('district_id') === null)
-                    ->default(fn($get) => request()->get('district_id'))
-                    ->native(false)
-                    ->options(function () {
-                        return District::all()
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_district' => 'No District available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_district')
-                    ->validationAttribute('district'),
+                // Select::make('municipality')
+                //     ->label('District')
+                //     ->relationship('municipality', 'name')
+                //     ->markAsRequired(false)
+                //     ->searchable()
+                //     ->preload()
+                //     ->multiple(fn($get) => request()->get('district_id') === null)
+                //     ->default(fn() => request()->get('district_id'))
+                //     ->native(false)
+                //     ->options(
+                //         fn() => District::whereHas('municipality') // Fetching districts that have municipalities
+                //             ->with('municipality') // Eager load municipalities for each district
+                //             ->get()
+                //             ->flatMap(function ($district) {
+                //                 return $district->municipality->mapWithKeys(function ($municipality) {
+                //                     return [$municipality->id => $municipality->name];
+                //                 });
+                //             })
+                //             ->toArray() ?: ['no_district' => 'No District available']
+                //     )
+                //     ->disableOptionWhen(fn($value) => $value === 'no_district')
+                //     ->validationAttribute('district'),
+
+
 
                 Select::make('province')
                     ->label('Province')
@@ -151,26 +159,6 @@ class UserResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('district.name')
-                    ->label('District')
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(function ($record) {
-                        $district = $record->district->sortBy('name')->pluck('name')->toArray();
-
-                        $districtHtml = array_map(function ($name, $index) use ($district) {
-                            $comma = ($index < count($district) - 1) ? ', ' : '';
-
-                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
-
-                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
-
-                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
-                        }, $district, array_keys($district));
-
-                        return implode('', $districtHtml);
-                    })
-                    ->html(),
 
                 TextColumn::make('province.name')
                     ->label('Province')

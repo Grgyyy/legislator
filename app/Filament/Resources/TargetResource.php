@@ -1583,7 +1583,7 @@ class TargetResource extends Resource
                                 ->withFilename(date('m-d-Y') . ' - pending_target_export')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 
@@ -1764,15 +1764,41 @@ class TargetResource extends Resource
         return 0;
     }
 
+    // public static function getEloquentQuery(): Builder
+    // {
+    //     $query = parent::getEloquentQuery();
+    //     $routeParameter = request()->route('record');
+    //     $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
+
+    //     if ($pendingStatus) {
+    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
+    //             ->where('target_status_id', '=', $pendingStatus->id)
+    //             ->whereHas('qualification_title', function ($subQuery) {
+    //                 $subQuery->where('soc', 1);
+    //             })
+    //             ->whereHas('allocation', function ($subQuery) {
+    //                 $subQuery->whereNull('attributor_id')
+    //                     ->where('soft_or_commitment', 'Soft');
+    //             });
+
+    //         if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
+    //             $query->where('region_id', (int) $routeParameter);
+    //         }
+    //     }
+
+    //     return $query;
+    // }
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        $routeParameter = request()->route('record');
+        $user = auth()->user();
         $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
         if ($pendingStatus) {
+            // Query for target statuses, qualification titles, and allocations
             $query->withoutGlobalScopes([SoftDeletingScope::class])
-                ->where('target_status_id', '=', $pendingStatus->id)
+                ->where('target_status_id', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
                     $subQuery->where('soc', 1);
                 })
@@ -1781,13 +1807,56 @@ class TargetResource extends Resource
                         ->where('soft_or_commitment', 'Soft');
                 });
 
-            if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
-                $query->where('region_id', (int) $routeParameter);
+            if ($user) {
+                // Dynamically check user associations
+                $userRegionIds = $user->region()->pluck('regions.id')->toArray();
+                $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
+                $userDistrictIds = $user->districtMunicipalities()->pluck('district_municipalities.district_id')->toArray();
+
+                // If the user is associated with a district or province, treat as PO/DO, else RO if associated with a region
+                $isPO_DO = !empty($userDistrictIds) || !empty($userProvinceIds);
+                $isRO = !empty($userRegionIds);
+
+                // Apply location-based filtering if user is PO/DO or RO
+                if ($isPO_DO) {
+                    // PO/DO logic - associated with district or province
+                    $query->where(function ($q) use ($userProvinceIds, $userDistrictIds) {
+                        if (!empty($userProvinceIds)) {
+                            $q->orWhereHas('district', function ($subQuery) use ($userProvinceIds) {
+                                $subQuery->whereIn('province_id', $userProvinceIds);
+                            });
+                        }
+
+                        if (!empty($userDistrictIds)) {
+                            $q->orWhereHas('district', function ($subQuery) use ($userDistrictIds) {
+                                $subQuery->whereIn('district_municipalities.district_id', $userDistrictIds);
+                            });
+                        }
+                    });
+                }
+
+                if ($isRO) {
+                    // RO logic - associated with region
+                    $query->where(function ($q) use ($userRegionIds) {
+                        if (!empty($userRegionIds)) {
+                            $q->orWhereHas('district', function ($subQuery) use ($userRegionIds) {
+                                $subQuery->whereHas('province', function ($provinceQuery) use ($userRegionIds) {
+                                    $provinceQuery->whereIn('region_id', $userRegionIds);
+                                });
+                            });
+                        }
+                    });
+                }
             }
         }
 
         return $query;
     }
+
+
+
+
+
 
     public static function canViewAny(): bool
     {
