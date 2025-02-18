@@ -520,6 +520,33 @@ class MunicipalitySeeder extends Seeder
                 }
             }
         } 
+
+
+        $agusanDelNorteProvince = DB::table('provinces')
+        ->where('name', 'Agusan del Norte')
+        ->first();
+
+        if ($agusanDelNorteProvince) {
+            $agusanDelNorteMunicipalities = [
+                ['code' => '1630400000', 'name' => 'City of Butuan', 'class' => '1st'],
+            ];
+
+            foreach ($agusanDelNorteMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $agusanDelNorteProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $agusanDelNorteProvince->id,
+                    ]);
+                }
+            }
+        } 
         
     }
 }
