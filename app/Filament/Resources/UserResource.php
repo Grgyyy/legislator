@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Models\District;
 use App\Models\Province;
 use App\Models\Region;
 use App\Models\User;
@@ -78,40 +79,56 @@ class UserResource extends Resource
                     ->relationship('roles', 'name')
                     ->preload(),
 
-                Select::make('province_id')
+                Select::make('district')
+                    ->label('District')
+                    ->relationship('district', 'name')
+                    ->markAsRequired(false)
+                    ->searchable()
+                    ->preload()
+                    ->multiple(fn($get) => request()->get('district_id') === null)
+                    ->default(fn($get) => request()->get('district_id'))
+                    ->native(false)
+                    ->options(function () {
+                        return District::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_district' => 'No District available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_district')
+                    ->validationAttribute('district'),
+
+                Select::make('province')
                     ->label('Province')
-                    ->options(Province::pluck('name', 'id'))
+                    ->relationship('province', 'name')
+                    ->markAsRequired(false)
                     ->searchable()
-                    ->reactive()
-                    ->afterStateUpdated(function (callable $set, $state) {
-
-                        $set('region_id', null);
-
-                        $provinceId = $state;
-
-                        $regions = $provinceId
-                            ? Region::whereHas('provinces', fn($query) => $query->where('id', $provinceId))->pluck('name', 'id')
-                            : Region::pluck('name', 'id');
-
-                        $set('region_id', null);
-                        if ($regions->count() === 1) {
-                            $set('region_id', $regions->keys()->first());
-                        }
+                    ->preload()
+                    ->multiple(fn($get) => request()->get('province_id') === null)
+                    ->default(fn($get) => request()->get('province_id'))
+                    ->native(false)
+                    ->options(function () {
+                        return Province::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_province' => 'No Province available'];
                     })
-                    ->live()
-                    ->preload(),
+                    ->disableOptionWhen(fn($value) => $value === 'no_province')
+                    ->validationAttribute('province'),
 
-                Select::make('region_id')
+                Select::make('region')
                     ->label('Region')
-                    ->options(function (callable $get) {
-                        $provinceId = $get('province_id');
-                        return $provinceId
-                            ? Region::whereHas('provinces', fn($query) => $query->where('id', $provinceId))->pluck('name', 'id')
-                            : Region::pluck('name', 'id');
-                    })
+                    ->relationship('region', 'name')
+                    ->markAsRequired(false)
                     ->searchable()
-                    ->reactive()
-                    ->preload(),
+                    ->preload()
+                    ->multiple(fn($get) => request()->get('region_id') === null)
+                    ->default(fn($get) => request()->get('region_id'))
+                    ->native(false)
+                    ->options(function () {
+                        return Region::all()
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_region' => 'No Region available'];
+                    })
+                    ->disableOptionWhen(fn($value) => $value === 'no_region')
+                    ->validationAttribute('region'),
 
             ]);
     }
@@ -134,15 +151,70 @@ class UserResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make("province.name")
+                TextColumn::make('district.name')
+                    ->label('District')
+                    ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($record) {
+                        $district = $record->district->sortBy('name')->pluck('name')->toArray();
+
+                        $districtHtml = array_map(function ($name, $index) use ($district) {
+                            $comma = ($index < count($district) - 1) ? ', ' : '';
+
+                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+
+                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+
+                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
+                        }, $district, array_keys($district));
+
+                        return implode('', $districtHtml);
+                    })
+                    ->html(),
+
+                TextColumn::make('province.name')
                     ->label('Province')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(function ($record) {
+                        $province = $record->province->sortBy('name')->pluck('name')->toArray();
 
-                TextColumn::make("region.name")
+                        $provinceHtml = array_map(function ($name, $index) use ($province) {
+                            $comma = ($index < count($province) - 1) ? ', ' : '';
+
+                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+
+                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+
+                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
+                        }, $province, array_keys($province));
+
+                        return implode('', $provinceHtml);
+                    })
+                    ->html(),
+
+                TextColumn::make('region.name')
                     ->label('Region')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->formatStateUsing(function ($record) {
+                        $region = $record->region->sortBy('name')->pluck('name')->toArray();
+
+                        $regionHtml = array_map(function ($name, $index) use ($region) {
+                            $comma = ($index < count($region) - 1) ? ', ' : '';
+
+                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+
+                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+
+                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
+                        }, $region, array_keys($region));
+
+                        return implode('', $regionHtml);
+                    })
+                    ->html(),
+
+
             ])
             ->filters([
                 TrashedFilter::make()
