@@ -69,12 +69,17 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     // Correct relationship methods
     public function region()
     {
-        return $this->belongsTo(Region::class);
+        return $this->belongsToMany(Region::class, 'user_regions')->withTimestamps();
     }
 
     public function province()
     {
-        return $this->belongsTo(Province::class);
+        return $this->belongsToMany(Province::class, 'user_regions')->withTimestamps();
+    }
+
+    public function district()
+    {
+        return $this->belongsToMany(District::class, 'user_regions')->withTimestamps();
     }
 
     public function canAccessPanel(Panel $panel): bool
