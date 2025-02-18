@@ -940,13 +940,16 @@ class TargetResource extends Resource
                                 $username = e($comment->user->name);
                                 $content = e($comment->content);
                                 $timeAgo = $comment->created_at->diffForHumans();
-                    
+                                $createdAt = $comment->created_at->format('j M, g:i A');
+
                                 return "
                                     <div class='p-2'>
                                         <div class='bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-gray-900 dark:text-gray-100'>
-                                            <div class='flex items-center text-gray-900 dark:text-gray-100 mb-2'>
+                                            <div class='flex justify-between items-center text-gray-900 dark:text-gray-100 mb-2'>
                                                 <span class='font-bold' style='margin-right: 10px;'>{$username}</span>
-                                                <small class='text-gray-500 dark:text-gray-400'>{$timeAgo}</small>
+                                                <small class='text-gray-500 dark:text-gray-400' title='{$createdAt}'>
+                                                    {$createdAt}
+                                                </small>
                                             </div>
                                             <div class='text-gray-800 dark:text-gray-200'>{$content}</div>
                                         </div>
@@ -1138,6 +1141,11 @@ class TargetResource extends Resource
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('force delete target ')),
 
                 ])
+                // ->badge(fn($record) => $record->comments()->whereDoesntHave('readByUsers', function ($query) {
+                //     $query->where('user_id', auth()->id());
+                // })->count() > 0 ? $record->comments()->whereDoesntHave('readByUsers', function ($query) {
+                //     $query->where('user_id', auth()->id());
+                // })->count() : null)           
             ])
             ->bulkActions([
                 BulkActionGroup::make([
