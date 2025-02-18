@@ -468,6 +468,58 @@ class MunicipalitySeeder extends Seeder
             }
         }   
 
+
+        $davaoDelSurProvince = DB::table('provinces')
+            ->where('name', 'Davao del Sur')
+            ->first();
+
+        if ($davaoDelSurProvince) {
+            $davaoDelSurMunicipalities = [
+                ['code' => '1130700000', 'name' => 'City of Davao', 'class' => '1st'],
+            ];
+
+            foreach ($davaoDelSurMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $davaoDelSurProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $davaoDelSurProvince->id,
+                    ]);
+                }
+            }
+        } 
+
+        $southCotabatoProvince = DB::table('provinces')
+            ->where('name', 'South Cotabato')
+            ->first();
+
+        if ($southCotabatoProvince) {
+            $southCotabatoMunicipalities = [
+                ['code' => '1230800000', 'name' => 'City of General Santos', 'class' => '1st'],
+            ];
+
+            foreach ($southCotabatoMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $southCotabatoProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $southCotabatoProvince->id,
+                    ]);
+                }
+            }
+        } 
         
     }
 }
