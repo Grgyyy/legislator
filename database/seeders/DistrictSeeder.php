@@ -89,6 +89,75 @@ class DistrictSeeder extends Seeder
             }
         }
 
+
+        // ------------------------
+
+        $lagunaMunicipalities = [
+            ['name' => 'City of Biñan', 'districts' => 1],
+            ['name' => 'City of Calamba', 'districts' => 1],
+            ['name' => 'City of Santa Rosa', 'districts' => 1],
+        ];
+
+        foreach ($lagunaMunicipalities as $lagunaMunicipality) {
+            $municipality = DB::table('municipalities')
+                ->where('name', $lagunaMunicipality['name'])
+                ->first();
+
+            if ($municipality) {
+                for ($i = 1; $i <= $lagunaMunicipality['districts']; $i++) {
+                    $districtName = $lagunaMunicipality['districts'] === 1 ? 'Lone District' : "District {$i}";
+                    $districtExists = DB::table('districts')
+                        ->where('name', $districtName)
+                        ->where('municipality_id', $municipality->id)
+                        ->exists();
+
+                    if (!$districtExists) {
+                        $districtId = District::create([
+                            'name' => $districtName,
+                            'municipality_id' => $municipality->id,
+                            'province_id' => $municipality->province_id,
+                        ])->id;
+
+                        DB::table('district_municipalities')->insert([
+                            'district_id' => $districtId,
+                            'municipality_id' => $municipality->id,
+                        ]);
+                    }
+                }
+            }
+        }
+
+
+
+        // ------
+
+        $sjdmMunicipality = DB::table('municipalities')
+        ->where('name', 'City of San Jose Del Monte')
+        ->first();
+
+        if ($sjdmMunicipality) {
+                $districtName = "Lone District";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $sjdmMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $sjdmMunicipality->id,
+                        'province_id' => $sjdmMunicipality->province_id,
+                    ])->id;
+
+                    DB::table('district_municipalities')->insert([
+                        'district_id' => $districtId,
+                        'municipality_id' => $sjdmMunicipality->id,
+                    ]);
+
+                }
+        }
+
+        
         
         $antipoloMunicipality = DB::table('municipalities')
                 ->where('name', 'City of Antipolo')
@@ -140,6 +209,57 @@ class DistrictSeeder extends Seeder
         }
 
 
+        $iloiloMunicipality = DB::table('municipalities')
+                ->where('name', 'City of Iloilo')
+                ->first();
+
+        if ($iloiloMunicipality) {
+                $districtName = "Lone District";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $iloiloMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $iloiloMunicipality->id,
+                        'province_id' => $iloiloMunicipality->province_id,
+                    ])->id;
+
+                    DB::table('district_municipalities')->insert([
+                        'district_id' => $districtId,
+                        'municipality_id' => $iloiloMunicipality->id,
+                    ]);
+            
+                }
+        }
+
+        $bacolodMunicipality = DB::table('municipalities')
+                ->where('name', 'City of Bacolod')
+                ->first();
+
+        if ($bacolodMunicipality) {
+                $districtName = "Lone District";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $bacolodMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $bacolodMunicipality->id,
+                        'province_id' => $bacolodMunicipality->province_id,
+                    ])->id;
+
+                    DB::table('district_municipalities')->insert([
+                        'district_id' => $districtId,
+                        'municipality_id' => $bacolodMunicipality->id,
+                    ]);
+            
+                }
+        }
 
         $cebuMunicipality = DB::table('municipalities')
                 ->where('name', 'City of Cebu')
@@ -291,6 +411,109 @@ class DistrictSeeder extends Seeder
                     'name' => $districtName,
                     'province_id' => $zamboangaDelSurId,
                 ])->id;
+            }
+        }
+
+        $isabelaMunicipality = DB::table('municipalities')
+                ->where('name', 'City of Isabela')
+                ->first();
+
+        if ($isabelaMunicipality) {
+                $districtName = "Lone District";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $isabelaMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $isabelaMunicipality->id,
+                        'province_id' => $isabelaMunicipality->province_id,
+                    ])->id;
+
+                    DB::table('district_municipalities')->insert([
+                        'district_id' => $districtId,
+                        'municipality_id' => $isabelaMunicipality->id,
+                    ]);
+
+                }
+        }
+
+
+        $iliganMunicipality = DB::table('municipalities')
+                ->where('name', 'City of Iligan')
+                ->first();
+
+        if ($iliganMunicipality) {
+                $districtName = "Lone District";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $iliganMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $iliganMunicipality->id,
+                        'province_id' => $iliganMunicipality->province_id,
+                    ])->id;
+
+                    DB::table('district_municipalities')->insert([
+                        'district_id' => $districtId,
+                        'municipality_id' => $iliganMunicipality->id,
+                    ]);
+
+                }
+        }
+
+        $misamisOrientalProvince = DB::table('provinces')
+            ->where('name', 'Misamis Oriental')
+            ->value('id');
+
+        for ($i = 1; $i <= 2; $i++) {
+            $districtName = "District {$i}";
+            $districtExists = DB::table('districts')
+                ->where('name', $districtName)
+                ->whereNull('municipality_id')
+                ->where('province_id', $misamisOrientalProvince)
+                ->exists();
+
+            if (!$districtExists) {
+                $districtId = District::create([
+                    'name' => $districtName,
+                    'province_id' => $misamisOrientalProvince,
+                ])->id;
+            }
+        }
+
+
+        $cdoMunicipality = DB::table('municipalities')
+                ->where('name', 'City of Cagayan De Oro')
+                ->first();
+
+        if ($cdoMunicipality) {
+            for ($i = 1; $i <= 2; $i++) {
+                $districtName = "District {$i}";
+                $districtExists = DB::table('districts')
+                    ->where('name', $districtName)
+                    ->where('municipality_id', $cdoMunicipality->id)
+                    ->exists();
+
+                if (!$districtExists) {
+                    $districtId = District::create([
+                        'name' => $districtName,
+                        'municipality_id' => $cdoMunicipality->id,
+                        'province_id' => $cdoMunicipality->province_id,
+                    ])->id;
+
+                    if ($i < 3) {
+                        DB::table('district_municipalities')->insert([
+                            'district_id' => $districtId,
+                            'municipality_id' => $cdoMunicipality->id,
+                        ]);
+                    }
+                }
             }
         }
 

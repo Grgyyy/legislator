@@ -200,6 +200,60 @@ class MunicipalitySeeder extends Seeder
             }
         }
 
+        $bulacanProvince = DB::table('provinces')
+            ->where('name', 'Bulacan')
+            ->first();
+
+        if ($bulacanProvince) {
+            $bulacanMunicipalities = [
+                ['code' => '0301420000', 'name' => 'City of San Jose Del Monte', 'class' => '1st'],
+            ];
+
+            foreach ($bulacanMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $bulacanProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $bulacanProvince->id,
+                    ]);
+                }
+            }
+        }    
+        
+        $lagunaProvince = DB::table('provinces')
+            ->where('name', 'Laguna')
+            ->first();
+
+        if ($lagunaProvince) {
+            $lagunaMunicipalities = [
+                ['code' => '0403403000', 'name' => 'City of Biñan', 'class' => '1st'],
+                ['code' => '0403405000', 'name' => 'City of Calamba', 'class' => '1st'],
+                ['code' => '0403428000', 'name' => 'City of Santa Rosa', 'class' => '1st'],
+            ];
+
+            foreach ($lagunaMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $lagunaProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $lagunaProvince->id,
+                    ]);
+                }
+            }
+        }
+
         $rizalProvince = DB::table('provinces')
             ->where('name', 'Rizal')
             ->first();
@@ -225,6 +279,59 @@ class MunicipalitySeeder extends Seeder
                 }
             }
         }        
+
+        $iloiloProvince = DB::table('provinces')
+            ->where('name', 'Iloilo')
+            ->first();
+
+        if ($iloiloProvince) {
+            $iloiloMunicipalities = [
+                ['code' => '0631000000', 'name' => 'City of Iloilo', 'class' => '1st'],
+            ];
+
+            foreach ($iloiloMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $iloiloProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $iloiloProvince->id,
+                    ]);
+                }
+            }
+        }        
+
+        $negrosOccidentalProvince = DB::table('provinces')
+        ->where('name', 'Negros Occidental')
+        ->first();
+
+        if ($negrosOccidentalProvince) {
+            $negrosOccidentalMunicipalities = [
+                ['code' => '1830200000', 'name' => 'City of Bacolod', 'class' => '1st'],
+            ];
+
+            foreach ($negrosOccidentalMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $negrosOccidentalProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $negrosOccidentalProvince->id,
+                    ]);
+                }
+            }
+        } 
+
 
 
         $cebuProvince = DB::table('provinces')
@@ -260,7 +367,7 @@ class MunicipalitySeeder extends Seeder
             ->where('name', 'Zamboanga del Sur')
             ->first();
 
-        if ($cebuProvince) {
+        if ($zamboangaProvince) {
             $zamboangaMunicipalities = [
                 ['code' => '0931700000', 'name' => 'City of Zamboanga', 'class' => '1st'],
             ];
@@ -283,5 +390,84 @@ class MunicipalitySeeder extends Seeder
         }   
 
 
+        $zamboangaSibugayProvince = DB::table('provinces')
+            ->where('name', 'Zamboanga Sibugay')
+            ->first();
+
+        if ($zamboangaSibugayProvince) {
+            $zamboangaSibugayMunicipalities = [
+                ['code' => '0990101000', 'name' => 'City of Isabela', 'class' => '1st'],
+            ];
+
+            foreach ($zamboangaSibugayMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $zamboangaSibugayProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $zamboangaSibugayProvince->id,
+                    ]);
+                }
+            }
+        }   
+
+        $lanaoProvince = DB::table('provinces')
+            ->where('name', 'Lanao del Norte')
+            ->first();
+
+        if ($lanaoProvince) {
+            $lanaoMunicipalities = [
+                ['code' => '1030900000', 'name' => 'City of Iligan', 'class' => '1st'],
+            ];
+
+            foreach ($lanaoMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $lanaoProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $lanaoProvince->id,
+                    ]);
+                }
+            }
+        }   
+
+        $misamisOrientalProvince = DB::table('provinces')
+            ->where('name', 'Misamis Oriental')
+            ->first();
+
+        if ($misamisOrientalProvince) {
+            $misamisOrientalMunicipalities = [
+                ['code' => '1030500000', 'name' => 'City of Cagayan De Oro', 'class' => '1st'],
+            ];
+
+            foreach ($misamisOrientalMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $misamisOrientalProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $misamisOrientalProvince->id,
+                    ]);
+                }
+            }
+        }   
+
+        
     }
 }
