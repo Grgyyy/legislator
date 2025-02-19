@@ -891,6 +891,13 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable()
             ])
+            ->recordClasses(fn($record) => $record->is_new && !$record->hasBeenSeenByUser(Auth::id())  
+                ? 'bg-gray-100 dark:bg-gray-800 font-bold'  
+                : '')
+
+            // ->recordClasses(fn($record) => $record->is_new && !in_array(Auth::id(), json_decode($record->seen_by_users, true) ?? []) 
+            //     ? 'bg-gray-100 dark:bg-gray-800 font-bold' 
+            //     : '')
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]),
             )
