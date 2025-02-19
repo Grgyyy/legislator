@@ -575,7 +575,7 @@ class DistrictSeeder extends Seeder
         }
 
 
-        $butuanMunicipality = DB::table('municipalities')
+    $butuanMunicipality = DB::table('municipalities')
         ->where('name', 'City of Butuan')
         ->first();
 
@@ -600,6 +600,51 @@ class DistrictSeeder extends Seeder
 
         }
     }
+
+    $baguioMunicipality = DB::table('municipalities')
+        ->where('name', 'City of Baguio')
+        ->first();
+
+    if ($baguioMunicipality) {
+        $districtName = "Lone District";
+        $districtExists = DB::table('districts')
+            ->where('name', $districtName)
+            ->where('municipality_id', $baguioMunicipality->id)
+            ->exists();
+
+        if (!$districtExists) {
+            $districtId = District::create([
+                'name' => $districtName,
+                'municipality_id' => $baguioMunicipality->id,
+                'province_id' => $baguioMunicipality->province_id,
+            ])->id;
+
+            DB::table('district_municipalities')->insert([
+                'district_id' => $districtId,
+                'municipality_id' => $baguioMunicipality->id,
+            ]);
+
+        }
+    }
+
+    $benguetId = DB::table('provinces')
+            ->where('name', 'Benguet')
+            ->value('id');
+
+    $districtName = "Lone District";
+    $districtExists = DB::table('districts')
+        ->where('name', $districtName)
+        ->whereNull('municipality_id')
+        ->where('province_id', $benguetId)
+        ->exists();
+
+    if (!$districtExists) {
+        $districtId = District::create([
+            'name' => $districtName,
+            'province_id' => $benguetId,
+        ])->id;
+    }
+        
 
     }
 }

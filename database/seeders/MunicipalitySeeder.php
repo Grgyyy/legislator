@@ -523,8 +523,8 @@ class MunicipalitySeeder extends Seeder
 
 
         $agusanDelNorteProvince = DB::table('provinces')
-        ->where('name', 'Agusan del Norte')
-        ->first();
+            ->where('name', 'Agusan del Norte')
+            ->first();
 
         if ($agusanDelNorteProvince) {
             $agusanDelNorteMunicipalities = [
@@ -543,6 +543,33 @@ class MunicipalitySeeder extends Seeder
                         'name' => $municipality['name'],
                         'class' => $municipality['class'],
                         'province_id' => $agusanDelNorteProvince->id,
+                    ]);
+                }
+            }
+        } 
+
+
+        $benguetProvince = DB::table('provinces')
+            ->where('name', 'Benguet')
+            ->first();
+
+        if ($benguetProvince) {
+            $benguetMunicipalities = [
+                ['code' => '1430300000', 'name' => 'City of Baguio', 'class' => '1st'],
+            ];
+
+            foreach ($benguetMunicipalities as $municipality) {
+                $municipalityExists = DB::table('municipalities')
+                    ->where('name', $municipality['name'])
+                    ->where('province_id', $benguetProvince->id)
+                    ->exists();
+
+                if (!$municipalityExists) {
+                    DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
+                        'name' => $municipality['name'],
+                        'class' => $municipality['class'],
+                        'province_id' => $benguetProvince->id,
                     ]);
                 }
             }
