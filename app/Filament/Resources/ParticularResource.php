@@ -333,7 +333,7 @@ class ParticularResource extends Resource
                     $provinceName = optional($district->province)->name ?? '-';
                     $regionName = optional(optional($district->province)->region)->name ?? '-';
 
-                    if (($regionName === 'NCR')) {
+                    if (($district->underMunicipality)) {
                         return [
                             $district->id => $district->name
                                 . " - " . $municipalityName
