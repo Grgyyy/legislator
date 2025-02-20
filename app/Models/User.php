@@ -1,15 +1,15 @@
 <?php
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Models\Contracts\HasAvatar;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Models\Contracts\HasAvatar;
-use Filament\Panel;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
 
@@ -39,6 +39,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     public function comments()
     {
         return $this->hasMany(TargetComment::class);
+    }
+
+    public function seenTargets()
+    {
+        return $this->belongsToMany(Target::class, 'target_seen_by');
     }
 
     /**

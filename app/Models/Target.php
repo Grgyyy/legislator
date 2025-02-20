@@ -42,7 +42,109 @@ class Target extends Model
         'total_amount',
         'appropriation_type',
         'target_status_id',
+
+        'is_new',
+        'seen_by_users'
     ];
+    
+    public function seenByUsers()
+    {
+        return $this->belongsToMany(User::class, 'target_seen_by')
+            ->withTimestamps();
+    }
+
+    public function hasBeenSeenByUser($userId)
+    {
+        return $this->seenByUsers()->where('user_id', $userId)->exists();
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($target) {
+            $target->update(['is_new' => true]);
+
+            $target->seenByUsers()->attach(auth()->id());
+        });
+
+        static::retrieved(function ($target) {
+            $userId = auth()->id();
+
+            if (!$userId || !$target->id) {
+                return;
+            }
+        
+            $sessionKey = "viewed_target_{$target->id}_user_{$userId}";
+        
+            if ($target->seenByUsers()->where('user_id', $userId)->exists()) {
+                return;
+            }
+        
+            if (!session()->has($sessionKey)) {
+                session()->put($sessionKey, true);
+            } else {
+                $target->seenByUsers()->attach($userId);
+                session()->forget($sessionKey);
+        
+                $totalUsers = User::count();
+                if ($target->seenByUsers()->count() >= $totalUsers) {
+                    $target->update(['is_new' => false]);
+                }
+            }
+        });
+
+        static::updated(function ($target) {
+            $userId = auth()->id();
+
+            $target->seenByUsers()->detach();
+            
+            if ($userId) {
+                $target->seenByUsers()->attach($userId);
+            }
+        });
+    }
+
+    // WAG TANGGALIN
+    // public static function boot()
+    // {
+    //     parent::boot();
+
+    //     static::created(function ($target) {
+    //         $creatorId = auth()->id();
+    //         $target->update([
+    //             'is_new' => true, 
+    //             'seen_by_users' => json_encode([$creatorId])
+    //         ]);
+    //     });
+
+    //     static::retrieved(function ($target) {
+    //         $userId = auth()->id();
+    //         $sessionKey = "viewed_fundsource_{$target->id}_user_{$userId}";
+
+    //         $seenBy = json_decode($target->seen_by_users, true) ?? [];
+
+    //         if (in_array($userId, $seenBy)) {
+    //             return;
+    //         }
+
+    //         if ($target->is_new) {
+    //             if (!session()->has($sessionKey)) {
+    //                 session()->put($sessionKey, 1);
+    //             } else {
+    //                 $seenBy[] = $userId;
+    //                 $target->update(['seen_by_users' => json_encode($seenBy)]);
+
+    //                 session()->forget($sessionKey);
+    //             }
+
+    //             $totalUsers = User::count();
+    //             if (count($seenBy) >= $totalUsers) {
+    //                 $target->update(['is_new' => false]);
+    //             }
+    //         }
+    //     });
+    // }
 
     public function allocation()
     {

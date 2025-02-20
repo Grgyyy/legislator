@@ -891,6 +891,13 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable()
             ])
+            ->recordClasses(fn($record) => $record->is_new && !$record->hasBeenSeenByUser(Auth::id())  
+                ? 'bg-gray-100 dark:bg-gray-800 font-bold'  
+                : '')
+
+            // ->recordClasses(fn($record) => $record->is_new && !in_array(Auth::id(), json_decode($record->seen_by_users, true) ?? []) 
+            //     ? 'bg-gray-100 dark:bg-gray-800 font-bold' 
+            //     : '')
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]),
             )
@@ -941,13 +948,14 @@ class TargetResource extends Resource
                                 $content = e($comment->content);
                                 $timeAgo = $comment->created_at->diffForHumans();
                                 $createdAt = $comment->created_at->format('j M, g:i A');
+                                $createdAtTooltip = $comment->created_at->format('M j y, g:i A');
 
                                 return "
                                     <div class='p-2'>
                                         <div class='bg-gray-100 dark:bg-gray-800 p-4 rounded-lg text-gray-900 dark:text-gray-100'>
                                             <div class='flex justify-between items-center text-gray-900 dark:text-gray-100 mb-2'>
                                                 <span class='font-bold' style='margin-right: 10px;'>{$username}</span>
-                                                <small class='text-gray-500 dark:text-gray-400' title='{$createdAt}'>
+                                                <small class='text-gray-500 dark:text-gray-400' title='{$createdAtTooltip}'>
                                                     {$createdAt}
                                                 </small>
                                             </div>
