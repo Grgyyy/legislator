@@ -29,7 +29,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'avatar_url',
     ];
 
-    protected $with = ['region', 'province', 'municipality'];
+    protected $with = ['region', 'province', 'municipality', 'district'];
 
     public function comments()
     {
@@ -69,6 +69,12 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     {
         return $this->belongsToMany(Municipality::class, 'user_regions')->withTimestamps();
     }
+
+    public function userRegions()
+    {
+        return $this->hasMany(UserRegion::class, 'user_id');
+    }
+
 
 
     public function canAccessPanel(Panel $panel): bool
@@ -137,11 +143,13 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         $regionIds = request()->input('region_id', []);
         $provinceIds = request()->input('province_id', []);
         $municipalityIds = request()->input('municipality_id', []);
+        $districtIds = request()->input('district_id', []);
 
         // Ensure only one row per user in user_regions
         $this->region()->sync($regionIds);
         $this->province()->sync($provinceIds);
         $this->municipality()->sync($municipalityIds);
+        $this->district()->sync($districtIds);
     }
 
 

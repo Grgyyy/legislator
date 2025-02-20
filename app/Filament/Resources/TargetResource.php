@@ -891,12 +891,12 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable()
             ])
-            ->recordClasses(fn($record) => $record->is_new && !$record->hasBeenSeenByUser(Auth::id())  
-                ? 'bg-gray-100 dark:bg-gray-800 font-bold'  
+            ->recordClasses(fn($record) => $record->is_new && !$record->hasBeenSeenByUser(Auth::id())
+                ? 'bg-gray-100 dark:bg-gray-800 font-bold'
                 : '')
 
-            // ->recordClasses(fn($record) => $record->is_new && !in_array(Auth::id(), json_decode($record->seen_by_users, true) ?? []) 
-            //     ? 'bg-gray-100 dark:bg-gray-800 font-bold' 
+            // ->recordClasses(fn($record) => $record->is_new && !in_array(Auth::id(), json_decode($record->seen_by_users, true) ?? [])
+            //     ? 'bg-gray-100 dark:bg-gray-800 font-bold'
             //     : '')
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]),
@@ -925,24 +925,24 @@ class TargetResource extends Resource
                             $query->where('user_id', auth()->id());
                         })->count() : null)
                         ->color(fn($record) => $record->comments()
-                        ->whereDoesntHave('readByUsers', function ($query) {
-                            $query->where('user_id', auth()->id());
-                        })
-                        ->exists() ? 'primary' : 'gray')
+                            ->whereDoesntHave('readByUsers', function ($query) {
+                                $query->where('user_id', auth()->id());
+                            })
+                            ->exists() ? 'primary' : 'gray')
                         ->modalHeading('Comments')
                         ->modalSubmitActionLabel('Comment')
                         ->modalWidth('2xl')
                         ->modalContent(function (Target $record): HtmlString {
                             $userId = auth()->id();
-                            
+
                             $record->comments()->each(function ($comment) use ($userId) {
                                 if ($comment->readByUsers()->where('user_id', $userId)->doesntExist()) {
                                     $comment->readByUsers()->create(['user_id' => $userId]);
                                 }
                             });
-                    
+
                             $comments = $record->comments()->latest()->get();
-                    
+
                             $commentsHtml = collect($comments)->map(function ($comment) {
                                 $username = e($comment->user->name);
                                 $content = e($comment->content);
@@ -964,19 +964,19 @@ class TargetResource extends Resource
                                     </div>
                                 ";
                             })->implode('');
-                    
+
                             return new HtmlString("
                                 <style>
                                     .custom-scrollbar::-webkit-scrollbar {
                                         width: 8px;
                                     }
-                    
+
                                     .custom-scrollbar::-webkit-scrollbar-thumb {
                                         background: #777;
                                         border-radius: 4px;
                                     }
                                 </style>
-                    
+
                                 <div class='max-h-96 overflow-y-auto pb-2 custom-scrollbar flex flex-col-reverse'>
                                     " . ($commentsHtml ?: "<p class='text-gray-500 dark:text-gray-400 text-center p-4 mt-4'>No comments yet.</p>") . "
                                 </div>
@@ -995,7 +995,7 @@ class TargetResource extends Resource
                                 'user_id' => auth()->id(),
                                 'content' => $data['content'],
                             ]);
-                    
+
                             $comment->readByUsers()->create(['user_id' => auth()->id()]);
                         }),
 
@@ -1153,7 +1153,7 @@ class TargetResource extends Resource
                 //     $query->where('user_id', auth()->id());
                 // })->count() > 0 ? $record->comments()->whereDoesntHave('readByUsers', function ($query) {
                 //     $query->where('user_id', auth()->id());
-                // })->count() : null)           
+                // })->count() : null)
             ])
             ->bulkActions([
                 BulkActionGroup::make([
@@ -1765,94 +1765,6 @@ class TargetResource extends Resource
         return 0;
     }
 
-    // public static function getEloquentQuery(): Builder
-    // {
-    //     $query = parent::getEloquentQuery();
-    //     $routeParameter = request()->route('record');
-    //     $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
-
-    //     if ($pendingStatus) {
-    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
-    //             ->where('target_status_id', '=', $pendingStatus->id)
-    //             ->whereHas('qualification_title', function ($subQuery) {
-    //                 $subQuery->where('soc', 1);
-    //             })
-    //             ->whereHas('allocation', function ($subQuery) {
-    //                 $subQuery->whereNull('attributor_id')
-    //                     ->where('soft_or_commitment', 'Soft');
-    //             });
-
-    //         if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
-    //             $query->where('region_id', (int) $routeParameter);
-    //         }
-    //     }
-
-    //     return $query;
-    // }
-
-    // public static function getEloquentQuery(): Builder
-    // {
-    //     $query = parent::getEloquentQuery();
-    //     $user = auth()->user();
-    //     $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
-
-    //     if ($pendingStatus) {
-    //         // Query for target statuses, qualification titles, and allocations
-    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
-    //             ->where('target_status_id', $pendingStatus->id)
-    //             ->whereHas('qualification_title', function ($subQuery) {
-    //                 $subQuery->where('soc', 1);
-    //             })
-    //             ->whereHas('allocation', function ($subQuery) {
-    //                 $subQuery->whereNull('attributor_id')
-    //                     ->where('soft_or_commitment', 'Soft');
-    //             });
-
-    //         if ($user) {
-    //             // Dynamically check user associations
-    //             $userRegionIds = $user->region()->pluck('regions.id')->toArray();
-    //             $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
-    //             $userMuniDistrictIds = $user->municipality()->pluck('municipalities.id')->toArray();
-
-    //             // If the user is associated with a district or province, treat as PO/DO, else RO if associated with a region
-    //             $isPO_DO = !empty($userMuniDistrictIds) || !empty($userProvinceIds);
-    //             $isRO = !empty($userRegionIds);
-
-    //             // Apply location-based filtering if user is PO/DO or RO
-    //             if ($isPO_DO) {
-    //                 // PO/DO logic - associated with district or province
-    //                 $query->where(function ($q) use ($userProvinceIds, $userMuniDistrictIds) {
-    //                     if (!empty($userProvinceIds)) {
-    //                         $q->orWhereHas('district', function ($subQuery) use ($userProvinceIds) {
-    //                             $subQuery->whereIn('province_id', $userProvinceIds);
-    //                         });
-    //                     }
-
-    //                     if (!empty($userDistrictIds)) {
-    //                         $q->orWhereHas('district', function ($subQuery) use ($userDistrictIds) {
-    //                             $subQuery->whereIn('district_municipalities.district_id', $userDistrictIds);
-    //                         });
-    //                     }
-    //                 });
-    //             }
-
-    //             if ($isRO) {
-    //                 // RO logic - associated with region
-    //                 $query->where(function ($q) use ($userRegionIds) {
-    //                     if (!empty($userRegionIds)) {
-    //                         $q->orWhereHas('district', function ($subQuery) use ($userRegionIds) {
-    //                             $subQuery->whereHas('province', function ($provinceQuery) use ($userRegionIds) {
-    //                                 $provinceQuery->whereIn('region_id', $userRegionIds);
-    //                             });
-    //                         });
-    //                     }
-    //                 });
-    //             }
-    //         }
-    //     }
-
-    //     return $query;
-    // }
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
@@ -1880,26 +1792,36 @@ class TargetResource extends Resource
                 $isRO = !empty($userRegionIds);
 
                 if ($isPO_DO) {
-                    $query->where(function ($q) use ($userProvinceIds, $userMuniDistrictIds) {
-                        if (!empty($userProvinceIds)) {
-                            $q->orWhereHas('district', function ($subQuery) use ($userProvinceIds) {
-                                $subQuery->whereIn('province_id', $userProvinceIds);
-                            });
+                    $query->where(function ($q) use ($user) {
+                        $userRegions = $user->userRegions ?? [];
+
+                        if (!empty($userRegions) && is_iterable($userRegions)) {
+                            foreach ($userRegions as $userRegion) {
+                                $q->orWhere(function ($subQuery) use ($userRegion) {
+                                    if (!empty($userRegion->province_id)) {
+                                        $subQuery->orWhereHas('district', function ($districtQuery) use ($userRegion) {
+                                            $districtQuery->where('province_id', $userRegion->province_id);
+                                        });
+                                    }
+
+                                    if (!empty($userRegion->district_id)) {
+                                        $subQuery->orWhereHas('district', function ($districtQuery) use ($userRegion) {
+                                            $districtQuery->where('id', $userRegion->district_id);
+                                        });
+                                    }
+
+                                    if (!empty($userRegion->municipality_id)) {
+                                        $subQuery->orWhereHas('municipality', function ($municipalityQuery) use ($userRegion) {
+                                            $municipalityQuery->where('id', $userRegion->municipality_id);
+                                        });
+                                    }
+                                });
+                            }
                         }
 
-                        if (!empty($userMuniDistrictIds) && !empty($userProvinceIds)) {
-                            $q->orWhere(function ($subQuery) use ($userMuniDistrictIds, $userProvinceIds) {
-                                // Ensure both municipality and province match
-                                $subQuery->whereHas('municipality', function ($municipalityQuery) use ($userMuniDistrictIds, $userProvinceIds) {
-                                    $municipalityQuery->whereIn('municipalities.id', $userMuniDistrictIds)
-                                        ->whereHas('province', function ($provinceQuery) use ($userProvinceIds) {
-                                            $provinceQuery->whereIn('provinces.id', $userProvinceIds);
-                                        });
-                                });
-                            });
-                        }
                     });
                 }
+
 
                 if ($isRO) {
                     $query->where(function ($q) use ($userRegionIds) {
