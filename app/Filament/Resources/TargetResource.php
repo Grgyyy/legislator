@@ -1648,11 +1648,12 @@ class TargetResource extends Resource
             $provinceName = $tvi->district->province->name ?? '';
             $regionName = $tvi->district->province->region->name ?? '';
             $municipalityName = $tvi->district->underMunicipality->name ?? '';
+            $muni = $tvi->municipality->name;
 
-            if ($regionName === 'NCR') {
+            if ($tvi->district->underMunicipality) {
                 return "{$districtName}, {$municipalityName}, {$provinceName}, {$regionName}";
             } else {
-                return "{$municipalityName}, {$districtName}, {$provinceName}, {$regionName}";
+                return "{$muni}, {$districtName}, {$provinceName}, {$regionName}";
             }
         }
 
@@ -1789,6 +1790,69 @@ class TargetResource extends Resource
     //     return $query;
     // }
 
+    // public static function getEloquentQuery(): Builder
+    // {
+    //     $query = parent::getEloquentQuery();
+    //     $user = auth()->user();
+    //     $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
+
+    //     if ($pendingStatus) {
+    //         // Query for target statuses, qualification titles, and allocations
+    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
+    //             ->where('target_status_id', $pendingStatus->id)
+    //             ->whereHas('qualification_title', function ($subQuery) {
+    //                 $subQuery->where('soc', 1);
+    //             })
+    //             ->whereHas('allocation', function ($subQuery) {
+    //                 $subQuery->whereNull('attributor_id')
+    //                     ->where('soft_or_commitment', 'Soft');
+    //             });
+
+    //         if ($user) {
+    //             // Dynamically check user associations
+    //             $userRegionIds = $user->region()->pluck('regions.id')->toArray();
+    //             $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
+    //             $userMuniDistrictIds = $user->municipality()->pluck('municipalities.id')->toArray();
+
+    //             // If the user is associated with a district or province, treat as PO/DO, else RO if associated with a region
+    //             $isPO_DO = !empty($userMuniDistrictIds) || !empty($userProvinceIds);
+    //             $isRO = !empty($userRegionIds);
+
+    //             // Apply location-based filtering if user is PO/DO or RO
+    //             if ($isPO_DO) {
+    //                 // PO/DO logic - associated with district or province
+    //                 $query->where(function ($q) use ($userProvinceIds, $userMuniDistrictIds) {
+    //                     if (!empty($userProvinceIds)) {
+    //                         $q->orWhereHas('district', function ($subQuery) use ($userProvinceIds) {
+    //                             $subQuery->whereIn('province_id', $userProvinceIds);
+    //                         });
+    //                     }
+
+    //                     if (!empty($userDistrictIds)) {
+    //                         $q->orWhereHas('district', function ($subQuery) use ($userDistrictIds) {
+    //                             $subQuery->whereIn('district_municipalities.district_id', $userDistrictIds);
+    //                         });
+    //                     }
+    //                 });
+    //             }
+
+    //             if ($isRO) {
+    //                 // RO logic - associated with region
+    //                 $query->where(function ($q) use ($userRegionIds) {
+    //                     if (!empty($userRegionIds)) {
+    //                         $q->orWhereHas('district', function ($subQuery) use ($userRegionIds) {
+    //                             $subQuery->whereHas('province', function ($provinceQuery) use ($userRegionIds) {
+    //                                 $provinceQuery->whereIn('region_id', $userRegionIds);
+    //                             });
+    //                         });
+    //                     }
+    //                 });
+    //             }
+    //         }
+    //     }
+
+    //     return $query;
+    // }
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
@@ -1796,7 +1860,6 @@ class TargetResource extends Resource
         $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
         if ($pendingStatus) {
-            // Query for target statuses, qualification titles, and allocations
             $query->withoutGlobalScopes([SoftDeletingScope::class])
                 ->where('target_status_id', $pendingStatus->id)
                 ->whereHas('qualification_title', function ($subQuery) {
@@ -1808,38 +1871,46 @@ class TargetResource extends Resource
                 });
 
             if ($user) {
-                // Dynamically check user associations
+                // Get user region, province, and municipality IDs
                 $userRegionIds = $user->region()->pluck('regions.id')->toArray();
                 $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
-                $userDistrictIds = $user->districtMunicipalities()->pluck('district_municipalities.district_id')->toArray();
+                $userMuniDistrictIds = $user->municipality()->pluck('municipalities.id')->toArray();
 
-                // If the user is associated with a district or province, treat as PO/DO, else RO if associated with a region
-                $isPO_DO = !empty($userDistrictIds) || !empty($userProvinceIds);
+                $isPO_DO = !empty($userMuniDistrictIds) || !empty($userProvinceIds);
                 $isRO = !empty($userRegionIds);
 
-                // Apply location-based filtering if user is PO/DO or RO
                 if ($isPO_DO) {
-                    // PO/DO logic - associated with district or province
-                    $query->where(function ($q) use ($userProvinceIds, $userDistrictIds) {
+                    $query->where(function ($q) use ($userProvinceIds, $userMuniDistrictIds) {
                         if (!empty($userProvinceIds)) {
                             $q->orWhereHas('district', function ($subQuery) use ($userProvinceIds) {
                                 $subQuery->whereIn('province_id', $userProvinceIds);
                             });
                         }
 
-                        if (!empty($userDistrictIds)) {
-                            $q->orWhereHas('district', function ($subQuery) use ($userDistrictIds) {
-                                $subQuery->whereIn('district_municipalities.district_id', $userDistrictIds);
+                        if (!empty($userMuniDistrictIds) && !empty($userProvinceIds)) {
+                            $q->orWhere(function ($subQuery) use ($userMuniDistrictIds, $userProvinceIds) {
+                                // Ensure both municipality and province match
+                                $subQuery->whereHas('municipality', function ($municipalityQuery) use ($userMuniDistrictIds, $userProvinceIds) {
+                                    $municipalityQuery->whereIn('municipalities.id', $userMuniDistrictIds)
+                                        ->whereHas('province', function ($provinceQuery) use ($userProvinceIds) {
+                                            $provinceQuery->whereIn('provinces.id', $userProvinceIds);
+                                        });
+                                });
                             });
                         }
                     });
                 }
 
                 if ($isRO) {
-                    // RO logic - associated with region
                     $query->where(function ($q) use ($userRegionIds) {
                         if (!empty($userRegionIds)) {
                             $q->orWhereHas('district', function ($subQuery) use ($userRegionIds) {
+                                $subQuery->whereHas('province', function ($provinceQuery) use ($userRegionIds) {
+                                    $provinceQuery->whereIn('region_id', $userRegionIds);
+                                });
+                            });
+
+                            $q->orWhereHas('municipality', function ($subQuery) use ($userRegionIds) {
                                 $subQuery->whereHas('province', function ($provinceQuery) use ($userRegionIds) {
                                     $provinceQuery->whereIn('region_id', $userRegionIds);
                                 });
@@ -1852,6 +1923,10 @@ class TargetResource extends Resource
 
         return $query;
     }
+
+
+
+
 
 
 

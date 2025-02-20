@@ -27,9 +27,9 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'email',
         'password',
         'avatar_url',
-        'region_id',
-        'province_id',
     ];
+
+    protected $with = ['region', 'province', 'municipality'];
 
     public function comments()
     {
@@ -61,20 +61,15 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return $this->belongsToMany(Province::class, 'user_regions')->withTimestamps();
     }
 
-    public function districtMunicipalities()
-    {
-        return $this->belongsToMany(DistrictMunicipality::class, 'user_regions')->withTimestamps();
-    }
-
     public function district()
     {
-        return $this->belongsToMany(District::class, 'district_municipalities', 'municipality_id', 'district_id')->withTimestamps();
+        return $this->belongsToMany(District::class, 'user_regions')->withTimestamps();
+    }
+    public function municipality()
+    {
+        return $this->belongsToMany(Municipality::class, 'user_regions')->withTimestamps();
     }
 
-    public function municipalities()
-    {
-        return $this->belongsToMany(Municipality::class, 'district_municipalities', 'district_id', 'municipality_id')->withTimestamps();
-    }
 
     public function canAccessPanel(Panel $panel): bool
     {
@@ -124,4 +119,30 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         }
         return false;
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($user) {
+            $user->syncRelations();
+        });
+
+        static::updated(function ($user) {
+            $user->syncRelations();
+        });
+    }
+    public function syncRelations()
+    {
+        $regionIds = request()->input('region_id', []);
+        $provinceIds = request()->input('province_id', []);
+        $municipalityIds = request()->input('municipality_id', []);
+
+        // Ensure only one row per user in user_regions
+        $this->region()->sync($regionIds);
+        $this->province()->sync($provinceIds);
+        $this->municipality()->sync($municipalityIds);
+    }
+
+
 }

@@ -9,18 +9,37 @@ class UserRegion extends Model
 {
     use HasFactory;
 
+    protected $fillable = [
+        'user_id',
+        'region_id',
+        'province_id',
+        'district_id',
+        'municipality_id',
+    ];
+
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function region()
     {
-        return $this->belongsToMany(Region::class, 'user_regions')->withTimestamps();
+        return $this->belongsTo(Region::class);
     }
-    public function user()
+
+    public function province()
     {
-        return $this->belongsToMany(User::class, 'user_regions')->withTimestamps();
+        return $this->belongsTo(Province::class);
     }
-    public function districtMunicipality()
+    public function district()
     {
-        return $this->belongsToMany(DistrictMunicipality::class, 'user_regions')->withTimestamps();
+        return $this->belongsTo(District::class);
+    }
+
+    public function municipality()
+    {
+        return $this->belongsTo(Municipality::class);
     }
 
 }

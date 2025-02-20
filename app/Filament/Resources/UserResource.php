@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\District;
+use App\Models\Municipality;
 use App\Models\Province;
 use App\Models\Region;
 use App\Models\User;
@@ -38,6 +39,7 @@ class UserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
+
     public static function form(Form $form): Form
     {
         return $form
@@ -45,7 +47,6 @@ class UserResource extends Resource
                 TextInput::make("name")
                     ->placeholder('Enter user full name')
                     ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Name'),
 
@@ -53,7 +54,6 @@ class UserResource extends Resource
                     ->placeholder('Enter user email')
                     ->email()
                     ->required()
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->validationAttribute('Email'),
 
@@ -62,84 +62,105 @@ class UserResource extends Resource
                     ->password()
                     ->revealable()
                     ->required(fn(string $context): bool => $context === 'create')
-                    ->markAsRequired(false)
                     ->autocomplete(false)
                     ->dehydrateStateUsing(fn($state) => Hash::make($state))
                     ->dehydrated(fn($state) => filled($state))
                     ->regex('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$/')
                     ->minLength(8)
-                    ->validationAttribute('Password')
-                    ->validationMessages([
-                        'regex' => 'The password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&).',
-                        'minLength' => 'Password must be at least 8 characters long.',
-                    ]),
+                    ->validationAttribute('Password'),
 
                 Select::make('roles')
                     ->multiple()
                     ->relationship('roles', 'name')
                     ->preload(),
 
-                // Select::make('municipality')
-                //     ->label('District')
-                //     ->relationship('municipality', 'name')
-                //     ->markAsRequired(false)
-                //     ->searchable()
-                //     ->preload()
-                //     ->multiple(fn($get) => request()->get('district_id') === null)
-                //     ->default(fn() => request()->get('district_id'))
-                //     ->native(false)
-                //     ->options(
-                //         fn() => District::whereHas('municipality') // Fetching districts that have municipalities
-                //             ->with('municipality') // Eager load municipalities for each district
-                //             ->get()
-                //             ->flatMap(function ($district) {
-                //                 return $district->municipality->mapWithKeys(function ($municipality) {
-                //                     return [$municipality->id => $municipality->name];
-                //                 });
-                //             })
-                //             ->toArray() ?: ['no_district' => 'No District available']
-                //     )
-                //     ->disableOptionWhen(fn($value) => $value === 'no_district')
-                //     ->validationAttribute('district'),
-
-
-
-                Select::make('province')
-                    ->label('Province')
-                    ->relationship('province', 'name')
-                    ->markAsRequired(false)
-                    ->searchable()
-                    ->preload()
-                    ->multiple(fn($get) => request()->get('province_id') === null)
-                    ->default(fn($get) => request()->get('province_id'))
-                    ->native(false)
-                    ->options(function () {
-                        return Province::all()
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_province' => 'No Province available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_province')
-                    ->validationAttribute('province'),
-
-                Select::make('region')
+                Select::make('region_id')
                     ->label('Region')
                     ->relationship('region', 'name')
-                    ->markAsRequired(false)
                     ->searchable()
                     ->preload()
-                    ->multiple(fn($get) => request()->get('region_id') === null)
-                    ->default(fn($get) => request()->get('region_id'))
                     ->native(false)
-                    ->options(function () {
-                        return Region::all()
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_region' => 'No Region available'];
-                    })
-                    ->disableOptionWhen(fn($value) => $value === 'no_region')
-                    ->validationAttribute('region'),
+                    ->reactive()
+                    ->afterStateUpdated(fn($state, callable $set) => [
+                        $set('province_id', null),
+                        $set('municipality_id', null),
+                        $set('district_id', null),
+                    ])
+                    ->options(Region::all()->pluck('name', 'id')->toArray()),
 
+                Select::make('province_id')
+                    ->label('Province')
+                    ->relationship('province', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->reactive()
+                    ->disabled(fn($get) => !$get('region_id'))
+                    ->options(
+                        fn($get) =>
+                        !empty($get('region_id'))
+                        ? Province::where('region_id', $get('region_id'))->pluck('name', 'id')->toArray()
+                        : []
+                    )
+                    ->afterStateUpdated(fn($state, callable $set) => [
+                        $set('municipality_id', null),
+                        $set('district_id', null),
+                    ]),
+
+                Select::make('municipality_id')
+                    ->label('Municipality')
+                    ->relationship('municipality', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->reactive()
+                    ->disabled(fn($get) => !$get('province_id'))
+                    ->options(
+                        fn($get) => !empty($get('province_id'))
+                        ? Municipality::where('province_id', $get('province_id'))
+                            ->when($get('district_id'), function ($query, $districtId) {
+                                $query->whereHas('district', function ($q) use ($districtId) {
+                                    $q->where('district_id', $districtId);
+                                });
+                            })
+                            ->pluck('name', 'id')->toArray()
+                        : []
+                    )
+                    // ->afterStateUpdated(fn($state, callable $set) => $set('district_id', null))
+                    ->saveRelationshipsUsing(fn($state, $record) => $record->municipality()->sync($state)),
+
+                Select::make('district_id')
+                    ->label('District')
+                    ->relationship('district', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->reactive()
+                    ->disabled(fn($get) => !$get('province_id'))
+                    ->options(
+                        fn($get) => !empty($get('province_id'))
+                        ? District::whereHas('municipality', function ($query) use ($get) {
+                            $query->where('province_id', $get('province_id'));
+                        })
+                            ->when($get('municipality_id'), function ($query, $municipalityId) {
+                                $query->whereHas('municipality', function ($q) use ($municipalityId) {
+                                    $q->where('municipality_id', $municipalityId);
+                                });
+                            })
+                            ->pluck('name', 'id')->toArray()
+                        : []
+                    )
+                    // ->afterStateUpdated(fn($state, callable $set) => $set('municipality_id', null))
+                    ->saveRelationshipsUsing(fn($state, $record) => $record->district()->sync($state)),
             ]);
     }
+
+
+
+
+
+
+
 
     public static function table(Table $table): Table
     {
@@ -159,6 +180,26 @@ class UserResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
+                TextColumn::make('region.name')
+                    ->label('Region')
+                    ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($record) {
+                        $region = $record->region->sortBy('name')->pluck('name')->toArray();
+
+                        $regionHtml = array_map(function ($name, $index) use ($region) {
+                            $comma = ($index < count($region) - 1) ? ', ' : '';
+
+                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+
+                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+
+                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
+                        }, $region, array_keys($region));
+
+                        return implode('', $regionHtml);
+                    })
+                    ->html(),
 
                 TextColumn::make('province.name')
                     ->label('Province')
@@ -181,26 +222,46 @@ class UserResource extends Resource
                     })
                     ->html(),
 
-                TextColumn::make('region.name')
-                    ->label('Region')
+                TextColumn::make('municipality.name')
+                    ->label('Municipality')
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(function ($record) {
-                        $region = $record->region->sortBy('name')->pluck('name')->toArray();
+                        $municipalities = $record->municipality->sortBy('name')->pluck('name')->toArray();
 
-                        $regionHtml = array_map(function ($name, $index) use ($region) {
-                            $comma = ($index < count($region) - 1) ? ', ' : '';
-
+                        $municipalityHtml = array_map(function ($name, $index) use ($municipalities) {
+                            $comma = ($index < count($municipalities) - 1) ? ', ' : '';
                             $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
-
                             $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
 
                             return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
-                        }, $region, array_keys($region));
+                        }, $municipalities, array_keys($municipalities));
 
-                        return implode('', $regionHtml);
+                        return implode('', $municipalityHtml);
                     })
                     ->html(),
+
+                TextColumn::make('district.name')
+                    ->label('District')
+                    ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($record) {
+                        $districts = $record->district->sortBy('name')->pluck('name')->toArray();
+
+                        $districtHtml = array_map(function ($name, $index) use ($districts) {
+                            $comma = ($index < count($districts) - 1) ? ', ' : '';
+                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+
+                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
+                        }, $districts, array_keys($districts));
+
+                        return implode('', $districtHtml);
+                    })
+                    ->html(),
+
+
+
 
 
             ])
@@ -255,7 +316,10 @@ class UserResource extends Resource
                 ])
                     ->label('Select Action'),
             ]);
+
     }
+
+
 
     public static function getEloquentQuery(): Builder
     {

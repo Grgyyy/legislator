@@ -12,7 +12,8 @@ return new class extends Migration {
             $table->foreignId('user_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('region_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('province_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->foreignId('district_municipality_id')->nullable()->constrained('district_municipalities')->cascadeOnDelete();
+            $table->foreignId('district_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('municipality_id')->nullable()->constrained()->cascadeOnDelete();
             $table->timestamps();
         });
     }

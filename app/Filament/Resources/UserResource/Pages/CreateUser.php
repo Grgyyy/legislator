@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\UserResource\Pages;
 
-use App\Models\User;
 use App\Filament\Resources\UserResource;
+use App\Models\User;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
