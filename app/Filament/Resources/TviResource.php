@@ -219,7 +219,7 @@ class TviResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->getStateUsing(fn($record) => $record->schoolId ?? '-'),
+                    ->getStateUsing(fn($record) => $record->school_id ?? '-'),
 
                 TextColumn::make("name")
                     ->label("Institution")
