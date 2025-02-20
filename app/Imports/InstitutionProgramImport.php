@@ -25,8 +25,8 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
             return DB::transaction(function () use ($row) {
                 try {
                     $institutionName = Helper::capitalizeWords($row['institution']);
-                    $institution = $this->getInstitution($institutionName);
-                    $trainingPrograms = $this->getTrainingPrograms($row['training_program']); // Returns multiple records
+                    $institution = $this->getInstitution($institutionName, $row['full_address']);
+                    $trainingPrograms = $this->getTrainingPrograms($row['training_program']);
 
                     if (!$institution) {
                         throw new \Exception("Institution '{$institutionName}' was not found.");
@@ -86,12 +86,14 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function getInstitution(string $institutionName)
+    protected function getInstitution(string $institutionName, string $fullAddress)
     {
-        $institution = Tvi::where('name', $institutionName)->first();
+        $institution = Tvi::where('name', $institutionName)
+            ->where('address', $fullAddress)
+            ->first();
 
         if (!$institution) {
-            throw new \Exception("Institution with name '{$institutionName}' not found.");
+            throw new \Exception("Institution with name '{$institutionName}' and address of '{$fullAddress}' not found.");
         }
 
         return $institution;
