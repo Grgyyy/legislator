@@ -651,6 +651,9 @@ class NonCompliantTargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
             ])
+            ->recordClasses(fn($record) => $record->is_new && !$record->hasBeenSeenByUser(Auth::id())  
+                ? 'bg-gray-100 dark:bg-gray-800 font-bold'  
+                : '')
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]),
             )
@@ -668,7 +671,7 @@ class NonCompliantTargetResource extends Resource
                         ->icon('heroicon-o-magnifying-glass'),
                     Action::make('viewComment')
                         ->label('View Comments')
-                        ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
+                        // ->url(fn($record) => route('filament.admin.resources.targets.showComments', ['record' => $record->id]))
                         ->icon('heroicon-o-chat-bubble-left-ellipsis'),
                 ])
             ])

@@ -65,7 +65,7 @@ class Target extends Model
         static::created(function ($target) {
             $target->update(['is_new' => true]);
 
-            $target->seenByUsers()->create(['user_id' => auth()->id()]);
+            $target->seenByUsers()->attach(auth()->id());
         });
 
         static::retrieved(function ($target) {
@@ -91,6 +91,16 @@ class Target extends Model
                 if ($target->seenByUsers()->count() >= $totalUsers) {
                     $target->update(['is_new' => false]);
                 }
+            }
+        });
+
+        static::updated(function ($target) {
+            $userId = auth()->id();
+
+            $target->seenByUsers()->detach();
+            
+            if ($userId) {
+                $target->seenByUsers()->attach($userId);
             }
         });
     }
