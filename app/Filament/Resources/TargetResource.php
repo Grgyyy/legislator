@@ -867,20 +867,17 @@ class TargetResource extends Resource
                     ->toggleable()
                     ->getStateUsing(fn($record) => self::getLocationNames($record)),
 
+                TextColumn::make('qualification_title_soc_code')
+                    ->label('SOC Code')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('qualification_title_name')
                     ->label('Qualification Title')
                     ->sortable()
-                    ->searchable(query: function ($query, $search) {
-                        return $query->where('qualification_title_name', 'like', "%{$search}%")
-                                     ->orWhere('qualification_title_soc_code', 'like', "%{$search}%");
-                    })
-                    ->toggleable()
-                    ->formatStateUsing(function ($state, $record) {
-                        $qualificationCode = $record->qualification_title_soc_code ?? '';
-                        $qualificationName = $record->qualification_title_name ?? '';
-
-                        return "{$qualificationCode} - {$qualificationName}";
-                    }),
+                    ->searchable()
+                    ->toggleable(),
 
                 TextColumn::make('allocation.scholarship_program.name')
                     ->label('Scholarship Program')
@@ -1394,6 +1391,9 @@ class TargetResource extends Resource
                                     Column::make('allocation.year')
                                         ->heading('Appropriation Year'),
 
+                                    Column::make('tvi.school_id')
+                                        ->heading('School ID'),
+
                                     Column::make('tvi.name')
                                         ->heading('Institution'),
 
@@ -1415,14 +1415,11 @@ class TargetResource extends Resource
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
 
-                                    Column::make('qualification_title_name')
-                                        ->heading('Qualification Title')
-                                        ->formatStateUsing(function ($state, $record) {
-                                            $qualificationCode = $record->qualification_title_soc_code ?? '';
-                                            $qualificationName = $record->qualification_title_name ?? '';
+                                    Column::make('qualification_title_soc_code')
+                                        ->heading('SOC Code'),
 
-                                            return "{$qualificationCode} - {$qualificationName}";
-                                        }),
+                                    Column::make('qualification_title_name')
+                                        ->heading('Qualification Title'),
 
                                     Column::make('allocation.scholarship_program.name')
                                         ->heading('Scholarship Program'),
@@ -1680,8 +1677,7 @@ class TargetResource extends Resource
             $districtName = $tvi->district->name ?? '';
             $provinceName = $tvi->district->province->name ?? '';
             $regionName = $tvi->district->province->region->name ?? '';
-            $municipalityName = $tvi->district->underMunicipality->name ?? '';
-            $muni = $tvi->municipality->name;
+            $municipalityName = $tvi->municipality->name ?? '';
 
             if ($regionName === 'NCR') {
                 return "{$districtName}, {$municipalityName}, {$provinceName}";
