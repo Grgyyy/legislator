@@ -30,4 +30,9 @@ class Municipality extends Model
     {
         return $this->belongsToMany(User::class, 'user_regions')->withTimestamps();
     }
+
+    public function userRegions()
+    {
+        return $this->hasMany(UserRegion::class, 'user_id');
+    }
 }

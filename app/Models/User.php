@@ -126,31 +126,4 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return false;
     }
 
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::created(function ($user) {
-            $user->syncRelations();
-        });
-
-        static::updated(function ($user) {
-            $user->syncRelations();
-        });
-    }
-    public function syncRelations()
-    {
-        $regionIds = request()->input('region_id', []);
-        $provinceIds = request()->input('province_id', []);
-        $municipalityIds = request()->input('municipality_id', []);
-        $districtIds = request()->input('district_id', []);
-
-        // Ensure only one row per user in user_regions
-        $this->region()->sync($regionIds);
-        $this->province()->sync($provinceIds);
-        $this->municipality()->sync($municipalityIds);
-        $this->district()->sync($districtIds);
-    }
-
-
 }

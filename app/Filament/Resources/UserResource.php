@@ -13,6 +13,7 @@ use Closure;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
@@ -81,12 +82,14 @@ class UserResource extends Resource
                     ->preload()
                     ->native(false)
                     ->reactive()
-                    ->afterStateUpdated(fn($state, callable $set) => [
-                        $set('province_id', null),
-                        $set('municipality_id', null),
-                        $set('district_id', null),
-                    ])
-                    ->options(Region::all()->pluck('name', 'id')->toArray()),
+                    ->live()
+                    ->multiple()
+                    ->options(Region::all()->pluck('name', 'id')->toArray())
+                    ->afterStateUpdated(function (Set $set) {
+                        $set('province_id', null);
+                        $set('municipality_id', null);
+                        $set('district_id', null);
+                    }),
 
                 Select::make('province_id')
                     ->label('Province')
@@ -95,17 +98,32 @@ class UserResource extends Resource
                     ->preload()
                     ->native(false)
                     ->reactive()
-                    ->disabled(fn($get) => !$get('region_id'))
+                    ->live()
+                    ->multiple()
                     ->options(
                         fn($get) =>
                         !empty($get('region_id'))
-                        ? Province::where('region_id', $get('region_id'))->pluck('name', 'id')->toArray()
+                        ? Province::whereIn('region_id', (array) $get('region_id'))->pluck('name', 'id')->toArray()
                         : []
                     )
-                    ->afterStateUpdated(fn($state, callable $set) => [
-                        $set('municipality_id', null),
-                        $set('district_id', null),
-                    ]),
+                    ->afterStateUpdated(function (Set $set) {
+                        $set('municipality_id', null);
+                        $set('district_id', null);
+                    }),
+                // ->rule(function ($get) {
+                //     return function ($attribute, $value, $fail) use ($get) {
+                //         $regionIds = (array) $get('region_id');
+
+                //         if (!empty($value) && !empty($regionIds)) {
+                //             foreach ($value as $provinceId) {
+                //                 $province = Province::find($provinceId);
+                //                 if ($province && !in_array($province->region_id, $regionIds)) {
+                //                     $fail("The selected province must belong to the selected region.");
+                //                 }
+                //             }
+                //         }
+                //     };
+                // }),
 
                 Select::make('municipality_id')
                     ->label('Municipality')
@@ -114,20 +132,23 @@ class UserResource extends Resource
                     ->preload()
                     ->native(false)
                     ->reactive()
-                    ->disabled(fn($get) => !$get('province_id'))
+                    ->live()
+                    ->multiple()
                     ->options(
-                        fn($get) => !empty($get('province_id'))
-                        ? Municipality::where('province_id', $get('province_id'))
-                            ->when($get('district_id'), function ($query, $districtId) {
-                                $query->whereHas('district', function ($q) use ($districtId) {
-                                    $q->where('district_id', $districtId);
+                        fn($get) =>
+                        !empty($get('province_id'))
+                        ? Municipality::whereIn('municipalities.province_id', (array) $get('province_id'))
+                            ->when(!empty($get('district_id')), function ($query) use ($get) {
+                                $query->whereHas('district', function ($q) use ($get) {
+                                    $q->whereIn('districts.id', (array) $get('district_id'));
                                 });
                             })
-                            ->pluck('name', 'id')->toArray()
+                            ->where('municipalities.name', '!=', 'Not Applicable')
+                            ->distinct()
+                            ->pluck('municipalities.name', 'municipalities.id')
+                            ->toArray()
                         : []
-                    )
-                    // ->afterStateUpdated(fn($state, callable $set) => $set('district_id', null))
-                    ->saveRelationshipsUsing(fn($state, $record) => $record->municipality()->sync($state)),
+                    ),
 
                 Select::make('district_id')
                     ->label('District')
@@ -136,22 +157,27 @@ class UserResource extends Resource
                     ->preload()
                     ->native(false)
                     ->reactive()
-                    ->disabled(fn($get) => !$get('province_id'))
+                    ->live()
+                    ->multiple()
                     ->options(
-                        fn($get) => !empty($get('province_id'))
-                        ? District::whereHas('municipality', function ($query) use ($get) {
-                            $query->where('province_id', $get('province_id'));
-                        })
-                            ->when($get('municipality_id'), function ($query, $municipalityId) {
-                                $query->whereHas('municipality', function ($q) use ($municipalityId) {
-                                    $q->where('municipality_id', $municipalityId);
+                        fn($get) =>
+                        !empty($get('province_id'))
+                        ? District::whereIn('districts.province_id', (array) $get('province_id'))
+                            ->when(!empty($get('municipality_id')), function ($query) use ($get) {
+                                $query->whereHas('municipality', function ($q) use ($get) {
+                                    $q->whereIn('municipalities.id', (array) $get('municipality_id'));
                                 });
                             })
-                            ->pluck('name', 'id')->toArray()
+                            ->where('districts.name', '!=', 'Not Applicable')
+                            ->distinct()
+                            ->pluck('districts.name', 'districts.id')
+                            ->toArray()
                         : []
-                    )
-                    // ->afterStateUpdated(fn($state, callable $set) => $set('municipality_id', null))
-                    ->saveRelationshipsUsing(fn($state, $record) => $record->district()->sync($state)),
+                    ),
+
+
+
+
             ]);
     }
 
