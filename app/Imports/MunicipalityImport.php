@@ -98,6 +98,7 @@ class MunicipalityImport implements ToModel, WithHeadingRow
     protected function getDistrictId(string $district, int $provinceId)
     {
         $districtRecord = District::where("name", $district)
+            ->whereNull("municipality_id")
             ->where("province_id", $provinceId)
             ->first();
 

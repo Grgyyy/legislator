@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class TviClassSeeder extends Seeder
 {
@@ -22,6 +22,7 @@ class TviClassSeeder extends Seeder
             ['name' => 'HEI'],
             ['name' => 'TVI'],
             ['name' => 'NGO'],
+            ['name' => 'Farm School'],
         ];
 
         foreach ($classes as $class) {
