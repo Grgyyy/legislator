@@ -120,14 +120,29 @@ class InstitutionProgramResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('tvi.name')
-                    ->label('Institution')
-                    ->searchable(),
                 TextColumn::make('trainingProgram.soc_code')
                     ->label('SOC Code')
                     ->searchable(),
                 TextColumn::make('trainingProgram.title')
                     ->label('Qualification Title')
+                    ->searchable(),
+                TextColumn::make('tvi.name')
+                    ->label('Institution')
+                    ->searchable(),
+                TextColumn::make('tvi.district.name')
+                    ->label('District')
+                    ->searchable(),
+                TextColumn::make('tvi.municipality.name')
+                    ->label('Municipality')
+                    ->searchable(),
+                TextColumn::make('tvi.district.province.name')
+                    ->label('Province')
+                    ->searchable(),
+                TextColumn::make('tvi.district.province.region.name')
+                    ->label('Region')
+                    ->searchable(),
+                TextColumn::make('tvi.address')
+                    ->label('Region')
                     ->searchable(),
                 SelectColumn::make('status_id')
                     ->label('Status')
