@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use App\Models\Province;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Routing\UrlGenerator;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\Facades\Validator;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+    public function boot(UrlGenerator $url): void
     {
         Validator::extend('unique_province', function ($attribute, $value, $parameters, $validator) {
             $regionId = $validator->getData()['region_id'] ?? null;
@@ -36,5 +39,11 @@ class AppServiceProvider extends ServiceProvider
 
             return true;
         }, 'A province with this name and region already exists.');
+
+        if (env('APP_ENV') !== 'local')
+        {
+            $url->forceHttps(true);
+        }
+        Vite::prefetch(concurrency: 3);
     }
 }
