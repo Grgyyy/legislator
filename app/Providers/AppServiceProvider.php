@@ -42,8 +42,8 @@ class AppServiceProvider extends ServiceProvider
 
         if (env('APP_ENV') !== 'local')
         {
-            $url->forceHttps(true);
+            // $url->forceHttps(true);
+            $url->forceScheme('https');
         }
-        Vite::prefetch(concurrency: 3);
     }
 }
