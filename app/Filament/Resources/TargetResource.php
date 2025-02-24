@@ -75,7 +75,7 @@ class TargetResource extends Resource
                         //     ->required()
                         //     ->markAsRequired(false)
                         //     ->numeric(),
-
+    
                         Select::make('legislator_id')
                             ->label('Legislator')
                             ->required()
@@ -210,7 +210,7 @@ class TargetResource extends Resource
                             ->label('ABDD Sector')
                             ->required()
                             ->markAsRequired(false)
-                        ->searchable()
+                            ->searchable()
                             ->preload()
                             ->native(false)
                             ->options(function () {
@@ -285,7 +285,7 @@ class TargetResource extends Resource
                                 //     ->label('Absorptive Capacity ID')
                                 //     ->placeholder('Enter an AbsCap ID')
                                 //     ->numeric(),
-
+    
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -695,17 +695,17 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-
+    
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-
+    
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-
+    
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-
+    
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
