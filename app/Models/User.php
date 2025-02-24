@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -76,53 +77,22 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     }
 
 
-
     public function canAccessPanel(Panel $panel): bool
     {
-        $allowedRoles = [
-            'Super Admin',
-            'Admin',
-            'Director',
-            'SMD Head',
-            'SMD Focal',
-            'Planning Office',
-            'RO',
-            'PO/DO',
-            'TESDO',
-        ];
+        $allowedRoles = DB::table('roles')->pluck('name')->toArray();
 
         if ($this->hasAnyRole($allowedRoles)) {
             return true;
         }
 
-        $regionRoles = [
-            'Region I',
-            'Region II',
-            'Region III',
-            'Region IV-A',
-            'Region IV-B',
-            'Region V',
-            'Region VI',
-            'Region VII',
-            'Region VIII',
-            'Region IX',
-            'Region X',
-            'Region XI',
-            'Region XII',
-            'NCR',
-            'CAR',
-            'CARAGA',
-            'Negros Island Region',
-            'BARMM'
-        ];
+        $regionRoles = Region::table('regions')->pluck('name')->toArray();
 
         foreach ($regionRoles as $regionRole) {
-            if ($this->hasRole($regionRole)) {
-                if ($this->region && $this->region->name === $regionRole) {
-                    return true;
-                }
+            if ($this->hasRole($regionRole) && $this->region->contains('name', $regionRole)) {
+                return true;
             }
         }
+
         return false;
     }
 

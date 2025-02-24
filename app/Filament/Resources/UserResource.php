@@ -41,6 +41,194 @@ class UserResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
 
+    // public static function form(Form $form): Form
+    // {
+    //     return $form
+    //         ->schema([
+    //             TextInput::make("name")
+    //                 ->placeholder('Enter user full name')
+    //                 ->required()
+    //                 ->autocomplete(false)
+    //                 ->validationAttribute('Name'),
+
+    //             TextInput::make("email")
+    //                 ->placeholder('Enter user email')
+    //                 ->email()
+    //                 ->required()
+    //                 ->autocomplete(false)
+    //                 ->validationAttribute('Email'),
+
+    //             TextInput::make("password")
+    //                 ->placeholder('Enter password')
+    //                 ->password()
+    //                 ->revealable()
+    //                 ->required(fn(string $context): bool => $context === 'create')
+    //                 ->autocomplete(false)
+    //                 ->dehydrateStateUsing(fn($state) => Hash::make($state))
+    //                 ->dehydrated(fn($state) => filled($state))
+    //                 ->regex('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$/')
+    //                 ->minLength(8)
+    //                 ->validationAttribute('Password'),
+
+    //             Select::make('roles')
+    //                 ->multiple()
+    //                 ->relationship('roles', 'name')
+    //                 ->preload(),
+
+    //             Select::make('region_id')
+    //                 ->label('Region')
+    //                 ->relationship('region', 'name')
+    //                 ->searchable()
+    //                 ->preload()
+    //                 ->native(false)
+    //                 ->reactive()
+    //                 ->live()
+    //                 ->multiple()
+    //                 ->options(Region::all()->pluck('name', 'id')->toArray())
+    //                 ->afterStateUpdated(function (Set $set) {
+    //                     $set('province_id', null);
+    //                     $set('municipality_id', null);
+    //                     $set('district_id', null);
+    //                 }),
+
+    //             Select::make('province_id')
+    //                 ->label('Province')
+    //                 ->relationship('province', 'name')
+    //                 ->searchable()
+    //                 ->preload()
+    //                 ->native(false)
+    //                 ->reactive()
+    //                 ->live()
+    //                 ->multiple()
+    //                 ->options(
+    //                     fn($get) =>
+    //                     !empty($get('region_id'))
+    //                     ? Province::whereIn('region_id', (array) $get('region_id'))->pluck('name', 'id')->toArray()
+    //                     : []
+    //                 )
+    //                 ->afterStateUpdated(function (Set $set) {
+    //                     $set('municipality_id', null);
+    //                     $set('district_id', null);
+    //                 }),
+    //             // ->rule(function ($get) {
+    //             //     return function ($attribute, $value, $fail) use ($get) {
+    //             //         $regionIds = (array) $get('region_id');
+
+    //             //         if (!empty($value) && !empty($regionIds)) {
+    //             //             foreach ($value as $provinceId) {
+    //             //                 $province = Province::find($provinceId);
+    //             //                 if ($province && !in_array($province->region_id, $regionIds)) {
+    //             //                     $fail("The selected province must belong to the selected region.");
+    //             //                 }
+    //             //             }
+    //             //         }
+    //             //     };
+    //             // }),
+
+    //             Select::make('municipality_id')
+    //                 ->label('Municipality')
+    //                 ->relationship('municipality', 'name')
+    //                 ->searchable()
+    //                 ->preload()
+    //                 ->native(false)
+    //                 ->reactive()
+    //                 ->live()
+    //                 ->multiple()
+    //                 ->options(
+    //                     fn($get) =>
+    //                     !empty($get('province_id'))
+    //                     ? Municipality::whereIn('municipalities.province_id', (array) $get('province_id'))
+    //                         ->when(!empty($get('district_id')), function ($query) use ($get) {
+    //                             $query->whereHas('district', function ($q) use ($get) {
+    //                                 $q->whereIn('districts.id', (array) $get('district_id'));
+    //                             });
+    //                         })
+    //                         ->where('municipalities.name', '!=', 'Not Applicable')
+    //                         ->distinct()
+    //                         ->pluck('municipalities.name', 'municipalities.id')
+    //                         ->toArray()
+    //                     : []
+    //                 ),
+
+    //             Select::make('district_id')
+    //                 ->label('District')
+    //                 ->relationship('district', 'name')
+    //                 ->searchable()
+    //                 ->preload()
+    //                 ->native(false)
+    //                 ->reactive()
+    //                 ->live()
+    //                 ->multiple()
+    //                 ->options(
+    //                     fn($get) => !empty($get('province_id'))
+    //                     ? District::whereIn('districts.province_id', (array) $get('province_id'))
+    //                         ->when(!empty($get('municipality_id')), function ($query) use ($get) {
+    //                             $query->whereHas('municipality', function ($q) use ($get) {
+    //                                 $q->whereIn('municipalities.id', (array) $get('municipality_id'));
+    //                             });
+    //                         })
+    //                         ->where('districts.name', '!=', 'Not Applicable')
+    //                         ->distinct()
+    //                         ->get()
+    //                         ->mapWithKeys(function (District $district) {
+    //                             $municipalityName = optional($district->underMunicipality)->name ?? '-';
+    //                             $provinceName = optional($district->province)->name ?? '-';
+    //                             $regionName = optional(optional($district->province)->region)->name ?? '-';
+
+    //                             return [
+    //                                 $district->id => $district->name
+    //                                     . ($district->underMunicipality
+    //                                         ? " - {$municipalityName}, {$provinceName}, {$regionName}"
+    //                                         : " - {$provinceName}, {$regionName}")
+    //                             ];
+    //                         })
+    //                         ->toArray()
+    //                     : []
+    //                 ),
+
+
+    //             //                 Select::make('district_id')
+    //             // ->label('District')
+    //             // ->searchable()
+    //             // ->preload()
+    //             // ->native(false)
+    //             // ->reactive()
+    //             // ->live()
+    //             // ->multiple()
+    //             // ->options(
+    //             //     fn($get) => !empty($get('province_id'))
+    //             //         ? District::whereIn('districts.province_id', (array) $get('province_id'))
+    //             //             ->when(!empty($get('municipality_id')), function ($query) use ($get) {
+    //             //                 $query->whereHas('municipality', function ($q) use ($get) {
+    //             //                     $q->whereIn('municipalities.id', (array) $get('municipality_id'));
+    //             //                 });
+    //             //             })
+    //             //             ->where('districts.name', '!=', 'Not Applicable')
+    //             //             ->distinct()
+    //             //             ->get()
+    //             //             ->mapWithKeys(function (District $district) {
+    //             //                 $municipalityName = optional($district->underMunicipality)->name ?? '-';
+    //             //                 $provinceName = optional($district->province)->name ?? '-';
+    //             //                 $regionName = optional(optional($district->province)->region)->name ?? '-';
+
+    //             //                 return [
+    //             //                     $district->id => $district->name
+    //             //                         . ($district->underMunicipality
+    //             //                             ? " - {$municipalityName}, {$provinceName}, {$regionName}"
+    //             //                             : " - {$provinceName}, {$regionName}")
+    //             //                 ];
+    //             //             })
+    //             //             ->toArray()
+    //             //         : []
+    //             // );
+
+
+
+
+    //         ]);
+    // }
+
+
     public static function form(Form $form): Form
     {
         return $form
@@ -75,6 +263,147 @@ class UserResource extends Resource
                     ->relationship('roles', 'name')
                     ->preload(),
 
+                // Select::make('region_id')
+                //     ->label('Region')
+                //     ->relationship('region', 'name')
+                //     ->searchable()
+                //     ->preload()
+                //     ->native(false)
+                //     ->reactive()
+                //     ->live()
+                //     ->multiple()
+                //     ->options(Region::all()->pluck('name', 'id')->toArray())
+                //     ->afterStateUpdated(fn(Set $set) => $set('province_id', $set('municipality_id', $set('district_id', null)))),
+
+                // Select::make('province_id')
+                //     ->label('Province')
+                //     ->relationship('province', 'name')
+                //     ->searchable()
+                //     ->preload()
+                //     ->native(false)
+                //     ->reactive()
+                //     ->live()
+                //     ->multiple()
+                //     ->options(
+                //         fn($get) =>
+                //         !empty($get('region_id'))
+                //         ? Province::whereIn('region_id', (array) $get('region_id'))->pluck('name', 'id')->toArray()
+                //         : []
+                //     )
+                //     ->rule(function ($get) {
+                //         return function ($attribute, $value, $fail) use ($get) {
+                //             $regionIds = (array) $get('region_id');
+
+                //             if (count($regionIds) > 1) {
+                //                 $selectedProvinceIds = (array) $value;
+                //                 $provinces = Province::whereIn('id', $selectedProvinceIds)->get();
+                //                 $selectedRegionIds = $provinces->pluck('region_id')->unique()->toArray();
+
+                //                 if (array_diff($regionIds, $selectedRegionIds)) {
+                //                     $fail("You need to input at least one province for each selected region.");
+                //                 }
+                //             }
+                //         };
+                //     })
+                //     ->afterStateUpdated(function (Set $set) {
+                //         $set('municipality_id', null);
+                //         $set('district_id', null);
+                //     }),
+
+                // Select::make('district_id')
+                //     ->label('District')
+                //     ->relationship('district', 'name')
+                //     ->searchable()
+                //     ->preload()
+                //     ->native(false)
+                //     ->reactive()
+                //     ->live()
+                //     ->multiple()
+                //     ->options(
+                //         fn($get) => !empty($get('province_id'))
+                //         ? District::whereIn('province_id', (array) $get('province_id'))
+                //             ->orWhereHas('municipality', function ($query) use ($get) {
+                //                 $query->whereIn('province_id', (array) $get('province_id'));
+                //             })
+                //             ->where('districts.name', '!=', 'Not Applicable')
+                //             ->distinct()
+                //             ->get()
+                //             ->mapWithKeys(function (District $district) {
+                //                 $municipalityName = optional($district->underMunicipality)->name ?? '-';
+                //                 $provinceName = optional($district->province)->name ?? '-';
+                //                 $regionName = optional(optional($district->province)->region)->name ?? '-';
+
+                //                 if (($district->underMunicipality)) {
+                //                     return [
+                //                         $district->id => $district->name
+                //                             . " - " . $municipalityName
+                //                             . ", " . $provinceName
+                //                             . ", " . $regionName
+                //                     ];
+                //                 } else {
+                //                     return [
+                //                         $district->id => $district->name
+                //                             . " - " . $provinceName
+                //                             . ", " . $regionName
+                //                     ];
+                //                 }
+                //             })
+                //             ->toArray()
+                //         : []
+                //     )
+                //     ->rule(function ($get) {
+                //         return function ($attribute, $value, $fail) use ($get) {
+                //             $provinceIds = (array) $get('province_id');
+
+                //             if (count($provinceIds) > 1) {
+                //                 $selectedDistrictIds = (array) $value;
+                //                 $district = District::whereIn('id', $selectedDistrictIds)->get();
+                //                 $selectedProvinceIds = $district->pluck('province_id')->unique()->toArray();
+
+                //                 if (array_diff($provinceIds, $selectedProvinceIds)) {
+                //                     $fail("You need to input at least one district for each selected province.");
+                //                 }
+                //             }
+                //         };
+                //     }),
+
+                // Select::make('municipality_id')
+                //     ->label('Municipality')
+                //     ->relationship('municipality', 'name')
+                //     ->searchable()
+                //     ->preload()
+                //     ->native(false)
+                //     ->reactive()
+                //     ->live()
+                //     ->multiple()
+                //     ->options(
+                //         fn($get) => !empty($get('province_id'))
+                //         ? Municipality::whereIn('province_id', (array) $get('province_id'))
+                //             ->orWhereHas('district', function ($query) use ($get) {
+                //                 $query->whereIn('province_id', (array) $get('province_id'));
+                //             })
+                //             ->pluck('name', 'id')
+                //             ->toArray()
+                //         : []
+                //     )
+                //     ->rule(function ($get) {
+                //         return function ($attribute, $value, $fail) use ($get) {
+                //             $provinceIds = (array) $get('province_id');
+
+                //             if (count($provinceIds) > 1) {
+                //                 $selectedMunicipalityIds = (array) $value;
+                //                 $municipality = Municipality::whereIn('id', $selectedMunicipalityIds)->get();
+                //                 $selectedProvinceIds = $municipality->pluck('province_id')->unique()->toArray();
+
+                //                 if (array_diff($provinceIds, $selectedProvinceIds)) {
+                //                     $fail("You need to input at least one municipality for each selected province.");
+                //                 }
+                //             }
+                //         };
+                //     }),
+
+
+
                 Select::make('region_id')
                     ->label('Region')
                     ->relationship('region', 'name')
@@ -85,10 +414,32 @@ class UserResource extends Resource
                     ->live()
                     ->multiple()
                     ->options(Region::all()->pluck('name', 'id')->toArray())
-                    ->afterStateUpdated(function (Set $set) {
-                        $set('province_id', null);
-                        $set('municipality_id', null);
-                        $set('district_id', null);
+                    ->afterStateUpdated(function (Set $set, $get, $state) {
+                        $selectedRegions = (array) $state;
+                        $selectedProvinces = (array) $state;
+
+                        $currentProvinces = (array) $get('province_id');
+                        $currentDistricts = (array) $get('district_id');
+                        $currentMunicipalities = (array) $get('municipality_id');
+
+                        $filteredProvinces = Province::whereIn('id', $currentProvinces)
+                            ->whereIn('region_id', $selectedRegions)
+                            ->pluck('id')
+                            ->toArray();
+
+                        $filteredMunicipalities = Municipality::whereIn('id', $currentMunicipalities)
+                            ->whereIn('province_id', $selectedProvinces)
+                            ->pluck('id')
+                            ->toArray();
+
+                        $filteredDistricts = District::whereIn('id', $currentDistricts)
+                            ->whereIn('province_id', $selectedProvinces)
+                            ->pluck('id')
+                            ->toArray();
+
+                        $set('province_id', $filteredProvinces);
+                        $set('municipality_id', $filteredMunicipalities);
+                        $set('district_id', $filteredDistricts);
                     }),
 
                 Select::make('province_id')
@@ -106,49 +457,24 @@ class UserResource extends Resource
                         ? Province::whereIn('region_id', (array) $get('region_id'))->pluck('name', 'id')->toArray()
                         : []
                     )
-                    ->afterStateUpdated(function (Set $set) {
-                        $set('municipality_id', null);
-                        $set('district_id', null);
+                    ->afterStateUpdated(function (Set $set, $get, $state) {
+                        $selectedProvinces = (array) $state;
+                        $currentMunicipalities = (array) $get('municipality_id');
+                        $currentDistricts = (array) $get('district_id');
+
+                        $filteredMunicipalities = Municipality::whereIn('id', $currentMunicipalities)
+                            ->whereIn('province_id', $selectedProvinces)
+                            ->pluck('id')
+                            ->toArray();
+
+                        $filteredDistricts = District::whereIn('id', $currentDistricts)
+                            ->whereIn('province_id', $selectedProvinces)
+                            ->pluck('id')
+                            ->toArray();
+
+                        $set('municipality_id', $filteredMunicipalities);
+                        $set('district_id', $filteredDistricts);
                     }),
-                // ->rule(function ($get) {
-                //     return function ($attribute, $value, $fail) use ($get) {
-                //         $regionIds = (array) $get('region_id');
-
-                //         if (!empty($value) && !empty($regionIds)) {
-                //             foreach ($value as $provinceId) {
-                //                 $province = Province::find($provinceId);
-                //                 if ($province && !in_array($province->region_id, $regionIds)) {
-                //                     $fail("The selected province must belong to the selected region.");
-                //                 }
-                //             }
-                //         }
-                //     };
-                // }),
-
-                Select::make('municipality_id')
-                    ->label('Municipality')
-                    ->relationship('municipality', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->native(false)
-                    ->reactive()
-                    ->live()
-                    ->multiple()
-                    ->options(
-                        fn($get) =>
-                        !empty($get('province_id'))
-                        ? Municipality::whereIn('municipalities.province_id', (array) $get('province_id'))
-                            ->when(!empty($get('district_id')), function ($query) use ($get) {
-                                $query->whereHas('district', function ($q) use ($get) {
-                                    $q->whereIn('districts.id', (array) $get('district_id'));
-                                });
-                            })
-                            ->where('municipalities.name', '!=', 'Not Applicable')
-                            ->distinct()
-                            ->pluck('municipalities.name', 'municipalities.id')
-                            ->toArray()
-                        : []
-                    ),
 
                 Select::make('district_id')
                     ->label('District')
@@ -160,32 +486,68 @@ class UserResource extends Resource
                     ->live()
                     ->multiple()
                     ->options(
-                        fn($get) =>
-                        !empty($get('province_id'))
-                        ? District::whereIn('districts.province_id', (array) $get('province_id'))
-                            ->when(!empty($get('municipality_id')), function ($query) use ($get) {
-                                $query->whereHas('municipality', function ($q) use ($get) {
-                                    $q->whereIn('municipalities.id', (array) $get('municipality_id'));
-                                });
+                        fn($get) => !empty($get('province_id'))
+                        ? District::whereIn('province_id', (array) $get('province_id'))
+                            ->orWhereHas('municipality', function ($query) use ($get) {
+                                $query->whereIn('province_id', (array) $get('province_id'));
                             })
                             ->where('districts.name', '!=', 'Not Applicable')
                             ->distinct()
-                            ->pluck('districts.name', 'districts.id')
+                            ->get()
+                            ->mapWithKeys(function (District $district) {
+                                $municipalityName = optional($district->underMunicipality)->name ?? '-';
+                                $provinceName = optional($district->province)->name ?? '-';
+                                $regionName = optional(optional($district->province)->region)->name ?? '-';
+
+                                if ($district->underMunicipality) {
+                                    return [
+                                        $district->id => "{$district->name} - {$municipalityName}, {$provinceName}, {$regionName}"
+                                    ];
+                                } else {
+                                    return [
+                                        $district->id => "{$district->name} - {$provinceName}, {$regionName}"
+                                    ];
+                                }
+                            })
                             ->toArray()
                         : []
                     ),
 
+                Select::make('municipality_id')
+                    ->label('Municipality')
+                    ->relationship('municipality', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->native(false)
+                    ->reactive()
+                    ->live()
+                    ->multiple()
+                    ->options(
+                        fn($get) => !empty($get('province_id'))
+                        ? Municipality::whereIn('province_id', (array) $get('province_id'))
+                            ->orWhereHas('district', function ($query) use ($get) {
+                                $query->whereIn('province_id', (array) $get('province_id'));
+                            })
+                            ->pluck('name', 'id')
+                            ->toArray()
+                        : []
+                    )
+                    ->afterStateUpdated(function (Set $set, $get, $state) {
+                        $selectedMunicipalities = (array) $state;
+                        $currentDistricts = (array) $get('district_id');
+
+                        $filteredDistricts = District::whereIn('id', $currentDistricts)
+                            ->whereIn('province_id', Municipality::whereIn('id', $selectedMunicipalities)->pluck('province_id'))
+                            ->pluck('id')
+                            ->toArray();
+
+                        $set('district_id', $filteredDistricts);
+                    }),
 
 
 
             ]);
     }
-
-
-
-
-
-
 
 
     public static function table(Table $table): Table
@@ -248,6 +610,34 @@ class UserResource extends Resource
                     })
                     ->html(),
 
+                TextColumn::make('district.name')
+                    ->label('District')
+                    ->searchable()
+                    ->toggleable()
+                    ->formatStateUsing(function ($record) {
+                        $districts = $record->district->sortBy('name')->map(function ($district) {
+                            $municipalityName = optional($district->underMunicipality)->name ?? '-';
+                            $provinceName = optional($district->province)->name ?? '-';
+                            $regionName = optional(optional($district->province)->region)->name ?? '-';
+
+                            return $district->name .
+                                ($district->underMunicipality
+                                    ? " - {$municipalityName}, {$provinceName}, {$regionName}"
+                                    : " - {$provinceName}, {$regionName}");
+                        })->toArray();
+
+                        $districtHtml = array_map(function ($name, $index) use ($districts) {
+                            $comma = ($index < count($districts) - 1) ? ', ' : '';
+                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
+                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
+
+                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
+                        }, $districts, array_keys($districts));
+
+                        return implode('', $districtHtml);
+                    })
+                    ->html(),
+
                 TextColumn::make('municipality.name')
                     ->label('Municipality')
                     ->searchable()
@@ -266,26 +656,6 @@ class UserResource extends Resource
                         return implode('', $municipalityHtml);
                     })
                     ->html(),
-
-                TextColumn::make('district.name')
-                    ->label('District')
-                    ->searchable()
-                    ->toggleable()
-                    ->formatStateUsing(function ($record) {
-                        $districts = $record->district->sortBy('name')->pluck('name')->toArray();
-
-                        $districtHtml = array_map(function ($name, $index) use ($districts) {
-                            $comma = ($index < count($districts) - 1) ? ', ' : '';
-                            $lineBreak = (($index + 1) % 3 == 0) ? '<br>' : '';
-                            $paddingTop = ($index % 3 == 0 && $index > 0) ? 'padding-top: 15px;' : '';
-
-                            return "<div style='{$paddingTop} display: inline;'>{$name}{$comma}{$lineBreak}</div>";
-                        }, $districts, array_keys($districts));
-
-                        return implode('', $districtHtml);
-                    })
-                    ->html(),
-
 
 
 
@@ -344,8 +714,6 @@ class UserResource extends Resource
             ]);
 
     }
-
-
 
     public static function getEloquentQuery(): Builder
     {

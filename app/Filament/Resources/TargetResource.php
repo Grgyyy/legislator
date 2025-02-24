@@ -75,7 +75,7 @@ class TargetResource extends Resource
                         //     ->required()
                         //     ->markAsRequired(false)
                         //     ->numeric(),
-    
+
                         Select::make('legislator_id')
                             ->label('Legislator')
                             ->required()
@@ -210,7 +210,7 @@ class TargetResource extends Resource
                             ->label('ABDD Sector')
                             ->required()
                             ->markAsRequired(false)
-                            ->searchable()
+                        ->searchable()
                             ->preload()
                             ->native(false)
                             ->options(function () {
@@ -285,7 +285,7 @@ class TargetResource extends Resource
                                 //     ->label('Absorptive Capacity ID')
                                 //     ->placeholder('Enter an AbsCap ID')
                                 //     ->numeric(),
-    
+
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -695,17 +695,17 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-    
+
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-    
+
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-    
+
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-    
+
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
@@ -1765,130 +1765,6 @@ class TargetResource extends Resource
         return 0;
     }
 
-    // public static function getEloquentQuery(): Builder
-    // {
-    //     $query = parent::getEloquentQuery();
-    //     $user = auth()->user();
-    //     $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
-
-    //     if ($pendingStatus) {
-    //         $query->withoutGlobalScopes([SoftDeletingScope::class])
-    //             ->where('target_status_id', $pendingStatus->id)
-    //             ->whereHas('qualification_title', function ($subQuery) {
-    //                 $subQuery->where('soc', 1);
-    //             })
-    //             ->whereHas('allocation', function ($subQuery) {
-    //                 $subQuery->whereNull('attributor_id')
-    //                     ->where('soft_or_commitment', 'Soft');
-    //             });
-
-    //         if ($user) {
-    //             // Get user-associated region, province, district, and municipality IDs
-    //             $userRegionIds = $user->region()->pluck('regions.id')->toArray();
-    //             $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
-    //             $userDistrictIds = $user->district()->pluck('districts.id')->toArray();
-    //             $userMunicipalityIds = $user->municipality()->pluck('municipalities.id')->toArray();
-
-    //             $isPO_DO = !empty($userProvinceIds) || !empty($userMunicipalityIds) || !empty($userDistrictIds);
-    //             $isRO = !empty($userRegionIds);
-
-    //             if ($isPO_DO) {
-    //                 $query->where(function ($q) use ($user) {
-    //                     foreach ($user->userRegions as $userRegion) {
-    //                         $q->orWhere(function ($subQuery) use ($userRegion) {
-    //                             if ($userRegion->province_id) {
-    //                                 $subQuery->where('id', $userRegion->province_id);
-    //                                 // dd($userRegion->province_id);
-    //                             }
-
-    //                             if ($userRegion->district_id) {
-    //                                 $subQuery->orWhereHas('district', function ($districtQuery) use ($userRegion) {
-    //                                     $districtQuery->where('id', $userRegion->district_id);
-    //                                 });
-    //                             }
-
-    //                             if ($userRegion->municipality_id) {
-    //                                 $subQuery->orWhereHas('municipality', function ($municipalityQuery) use ($userRegion) {
-    //                                     $municipalityQuery->where('id', $userRegion->municipality_id);
-    //                                 });
-    //                             }
-    //                         });
-    //                     }
-    //                 });
-    //             }
-
-    //             // if ($isPO_DO) {
-    //             //     $query->where(function ($q) use ($user) {
-    //             //         foreach ($user->userRegions as $userRegion) {
-    //             //             $q->orWhere(function ($subQuery) use ($userRegion) {
-    //             //                 // Apply filters only if the user region has associated data
-    //             //                 if ($userRegion->province_id) {
-    //             //                     $subQuery->where('id', $userRegion->province_id);
-
-    //             //                     $subQuery->orWhereHas('district', function ($districtQuery) use ($userRegion) {
-    //             //                         $districtQuery->where('province_id', $userRegion->province_id);
-    //             //                     });
-
-    //             //                     $subQuery->orWhereHas('municipality', function ($municipalityQuery) use ($userRegion) {
-    //             //                         $municipalityQuery->where('province_id', $userRegion->province_id);
-    //             //                     });
-    //             //                 }
-
-    //             //                 // Check if the user has a district assigned to their region
-    //             //                 if ($userRegion->district_id && $userRegion->province_id && $userRegion->region_id) {
-    //             //                     // Apply filtering based on the district_id
-    //             //                     $subQuery->orWhereHas('district', function ($districtQuery) use ($userRegion) {
-    //             //                         // The 'orWhereHas' method checks if there is a related 'district' record
-    //             //                         // that matches the given condition. This ensures that the query only retrieves
-    //             //                         // records that are linked to a district with the specified ID.
-
-    //             //                         $districtQuery->where('id', $userRegion->district_id);
-    //             //                         // This line applies a condition to filter records where
-    //             //                         // the district's 'id' matches the 'district_id' assigned to the user's region.
-    //             //                         // Only records belonging to this specific district will be included in the results.
-    //             //                     });
-    //             //                 }
-
-
-    //             //                 if ($userRegion->municipality_id) {
-    //             //                     $subQuery->orWhereHas('municipality', function ($municipalityQuery) use ($userRegion) {
-    //             //                         $municipalityQuery->where('id', $userRegion->municipality_id);
-    //             //                     });
-    //             //                 }
-
-
-    //             //             });
-    //             //         }
-    //             //     });
-    //             // }
-
-
-
-
-
-    //             if ($isRO) {
-    //                 $query->where(function ($q) use ($userRegionIds) {
-    //                     $q->orWhereHas('district', function ($subQuery) use ($userRegionIds) {
-    //                         $subQuery->whereHas('province', function ($provinceQuery) use ($userRegionIds) {
-    //                             $provinceQuery->whereIn('region_id', $userRegionIds);
-    //                         });
-    //                     });
-
-    //                     $q->orWhereHas('municipality', function ($subQuery) use ($userRegionIds) {
-    //                         $subQuery->whereHas('province', function ($provinceQuery) use ($userRegionIds) {
-    //                             $provinceQuery->whereIn('region_id', $userRegionIds);
-    //                         });
-    //                     });
-    //                 });
-    //             }
-
-    //         }
-
-    //     }
-
-    //     return $query;
-    // }
-
 
     public static function getEloquentQuery(): Builder
     {
@@ -1917,14 +1793,20 @@ class TargetResource extends Resource
                 $isRO = !empty($userRegionIds);
 
                 if ($isPO_DO) {
-                    $query->where(function ($q) use ($userProvinceIds, $userDistrictIds, $userMunicipalityIds, $userRegionIds) {
-                        if (!empty($userMunicipalityIds)) {
+                    $query->where(function ($q) use ($userProvinceIds, $userDistrictIds, $userMunicipalityIds) {
+                        if (!empty($userDistrictIds) && !empty($userMunicipalityIds)) {
+                            $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
+                                $districtQuery->whereIn('districts.id', $userDistrictIds);
+                            })->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
+                                $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
+                            });
+                        } elseif (!empty($userMunicipalityIds)) {
                             $q->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
                                 $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
                             });
                         } elseif (!empty($userDistrictIds)) {
-                            $q->whereHas('district', function ($municipalityQuery) use ($userDistrictIds) {
-                                $municipalityQuery->whereIn('districts.id', $userDistrictIds);
+                            $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
+                                $districtQuery->whereIn('districts.id', $userDistrictIds);
                             });
                         } elseif (!empty($userProvinceIds)) {
                             $q->whereHas('district.province', function ($districtQuery) use ($userProvinceIds) {
@@ -1937,14 +1819,6 @@ class TargetResource extends Resource
                         }
                     });
                 }
-
-
-                // }
-                // elseif (!empty($userDistrictIds)) {
-                //     $q->whereHas('district', function ($municipalityQuery) use ($userDistrictIds) {
-                //         $municipalityQuery->whereIn('districts.id', $userDistrictIds);
-                //     });
-                // }
 
                 if ($isRO) {
                     $query->where(function ($q) use ($userRegionIds) {
