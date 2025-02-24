@@ -122,13 +122,13 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         // if (count($appropriationYearOptions) === 1) {
                                         //     $set('attribution_appropriation_type', key($appropriationYearOptions));
                                         // }
-
+                    
                                         // $currentYear = now()->year;
-
+                    
                                         if (count($AttributorParticularOptions) === 1) {
                                             $set('attribution_sender_particular', key($AttributorParticularOptions));
                                         } else {
@@ -213,7 +213,7 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -300,7 +300,7 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -388,7 +388,7 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -478,7 +478,7 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -523,7 +523,7 @@ class AttributionProjectProposalResource extends Resource
                                         $appropriationType = self::getAppropriationTypeOptions($state);
 
                                         // $set('attribution_appropriation_type', $appropriationType);
-
+                    
                                         if (count($appropriationType) === 1) {
                                             $set('attribution_appropriation_type', key($appropriationType));
                                         }
@@ -726,13 +726,13 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 // if (count($appropriationYearOptions) === 1) {
                                                 //     $set('attribution_appropriation_type', key($appropriationYearOptions));
                                                 // }
-
+                            
                                                 // $currentYear = now()->year;
-
+                            
                                                 if (count($AttributorParticularOptions) === 1) {
                                                     $set('attribution_sender_particular', key($AttributorParticularOptions));
                                                 } else {
@@ -817,7 +817,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -904,7 +904,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -992,7 +992,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1082,7 +1082,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1127,7 +1127,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
 
                                                 // $set('attribution_appropriation_type', $appropriationType);
-
+                            
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1515,7 +1515,7 @@ class AttributionProjectProposalResource extends Resource
                         ->label('View History')
                         ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
                         ->icon('heroicon-o-magnifying-glass'),
-                        
+
                     Action::make('viewComment')
                         ->label('View Comments')
                         ->icon('heroicon-o-chat-bubble-left-ellipsis')
@@ -1525,24 +1525,24 @@ class AttributionProjectProposalResource extends Resource
                             $query->where('user_id', auth()->id());
                         })->count() : null)
                         ->color(fn($record) => $record->comments()
-                        ->whereDoesntHave('readByUsers', function ($query) {
-                            $query->where('user_id', auth()->id());
-                        })
-                        ->exists() ? 'primary' : 'gray')
+                            ->whereDoesntHave('readByUsers', function ($query) {
+                                $query->where('user_id', auth()->id());
+                            })
+                            ->exists() ? 'primary' : 'gray')
                         ->modalHeading('Comments')
                         ->modalSubmitActionLabel('Comment')
                         ->modalWidth('2xl')
                         ->modalContent(function (Target $record): HtmlString {
                             $userId = auth()->id();
-                            
+
                             $record->comments()->each(function ($comment) use ($userId) {
                                 if ($comment->readByUsers()->where('user_id', $userId)->doesntExist()) {
                                     $comment->readByUsers()->create(['user_id' => $userId]);
                                 }
                             });
-                    
+
                             $comments = $record->comments()->latest()->get();
-                    
+
                             $commentsHtml = collect($comments)->map(function ($comment) {
                                 $username = e($comment->user->name);
                                 $content = e($comment->content);
@@ -1564,19 +1564,19 @@ class AttributionProjectProposalResource extends Resource
                                     </div>
                                 ";
                             })->implode('');
-                    
+
                             return new HtmlString("
                                 <style>
                                     .custom-scrollbar::-webkit-scrollbar {
                                         width: 8px;
                                     }
-                    
+
                                     .custom-scrollbar::-webkit-scrollbar-thumb {
                                         background: #777;
                                         border-radius: 4px;
                                     }
                                 </style>
-                    
+
                                 <div class='max-h-96 overflow-y-auto pb-2 custom-scrollbar flex flex-col-reverse'>
                                     " . ($commentsHtml ?: "<p class='text-gray-500 dark:text-gray-400 text-center p-4 mt-4'>No comments yet.</p>") . "
                                 </div>
@@ -1595,7 +1595,7 @@ class AttributionProjectProposalResource extends Resource
                                 'user_id' => auth()->id(),
                                 'content' => $data['content'],
                             ]);
-                    
+
                             $comment->readByUsers()->create(['user_id' => auth()->id()]);
                         }),
 
@@ -2214,7 +2214,7 @@ class AttributionProjectProposalResource extends Resource
                                 ->withFilename(date('m-d-Y') . ' - attribution_project_proposal_pending_target')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 
