@@ -100,10 +100,9 @@ class MunicipalityResource extends Resource
                 Select::make('district_id')
                     ->label('District')
                     ->relationship('district', 'name')
-                    ->required()
-                    ->markAsRequired(false)
                     ->searchable()
                     ->preload()
+                    ->multiple()
                     ->default(fn($get) => request()->get('district_id'))
                     ->native(false)
                     ->options(function (callable $get) {

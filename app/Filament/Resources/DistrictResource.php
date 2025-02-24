@@ -45,6 +45,16 @@ class DistrictResource extends Resource
     {
         return $form
             ->schema([
+                Select::make('huc')
+                    ->label('HUC District')
+                    ->markAsRequired()
+                    ->options(fn() => [
+                        true => 'True',
+                        false => 'False'
+                    ])
+                   ->reactive()
+                   ->live(),
+                
                 TextInput::make('name')
                     ->label('District')
                     ->placeholder('Enter district name')
@@ -76,17 +86,7 @@ class DistrictResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_province')
                     ->afterStateUpdated(function ($state, callable $set) {
-                        if ($state) {
-                            $province = Province::with('region')->find($state);
-
-                            $set('is_municipality_hidden', !$province || $province->region->name !== 'NCR');
-
-                            if ($province && $province->region->name === 'NCR') {
-                                $set('municipality_id', null);
-                            }
-                        } else {
-                            $set('is_municipality_hidden', true);
-                        }
+                            $set('municipality_id', null);
                     })
                     ->reactive()
                     ->live()
@@ -95,24 +95,26 @@ class DistrictResource extends Resource
                 Select::make('municipality_id')
                     ->label('Municipality')
                     ->required(function ($get) {
-                        $provinceId = $get('province_id');
-                        $province = Province::with('region')->find($provinceId);
+                        $huc = $get('huc');
 
-                        return $province && $province->region->name === 'NCR';
-                    })
-                    ->markAsRequired(false)
-                    ->hidden(function ($get) {
-                        $provinceId = $get('province_id');
-
-                        if (!$provinceId) {
+                        if ($huc) {
                             return true;
                         }
 
-                        $province = Province::with('region')->find($provinceId);
+                        return false;
+                    })
+                    ->markAsRequired(false)
+                    ->hidden(function ($get) {
+                        $huc = $get('huc');
 
-                        return !$province || $province->region->name !== 'NCR';
+                        if ($huc) {
+                            return false;
+                        }
+
+                        return true;
                     })
                     ->native(false)
+                    ->searchable()
                     ->options(function ($get) {
                         $provinceId = $get('province_id');
 
@@ -122,7 +124,7 @@ class DistrictResource extends Resource
 
                         $province = Province::with('region')->find($provinceId);
 
-                        if ($province && $province->region->name === 'NCR') {
+                        if ($province) {
                             return Municipality::where('province_id', $provinceId)
                                 ->pluck('name', 'id')
                                 ->toArray() ?: ['no_municipality' => 'No municipalities available'];
