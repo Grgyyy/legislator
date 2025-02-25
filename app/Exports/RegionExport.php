@@ -56,9 +56,9 @@ class RegionExport implements FromQuery, WithMapping, WithStyles, WithHeadings, 
         $drawing->setDescription('TESDA Logo');
         $drawing->setPath(public_path('images/TESDA_logo.png'));
         $drawing->setHeight(90);
-        $drawing->setCoordinates('C1');
+        $drawing->setCoordinates('A1');
         $drawing->setOffsetX(20);
-        $drawing->setOffsetY(5);
+        $drawing->setOffsetY(1);
 
         return $drawing;
     }
