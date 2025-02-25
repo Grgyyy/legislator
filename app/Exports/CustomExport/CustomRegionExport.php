@@ -32,8 +32,8 @@ class CustomRegionExport extends ExcelExport implements WithDrawings
         $drawing->setPath(public_path('images/TESDA_logo.png'));
         $drawing->setHeight(90);
         $drawing->setCoordinates('A1');
-        $drawing->setOffsetX(20);
-        $drawing->setOffsetY(1);
+        $drawing->setOffsetX(0);
+        $drawing->setOffsetY(0);
 
         return $drawing;
     }
