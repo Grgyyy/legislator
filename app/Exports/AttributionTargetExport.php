@@ -128,7 +128,7 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['ATTRIBUTION TARGET'],
+            ['ATTRIBUTION TARGETS'],
             [''],
         ];
 
@@ -247,9 +247,9 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
         $drawing->setDescription('TESDA Logo');
         $drawing->setPath(public_path('images/TESDA_logo.png'));
         $drawing->setHeight(90);
-        $drawing->setCoordinates('Z1');
-        $drawing->setOffsetX(20);
-        $drawing->setOffsetY(5);
+        $drawing->setCoordinates('W1');
+        $drawing->setOffsetX(0);
+        $drawing->setOffsetY(0);
 
         return $drawing;
     }

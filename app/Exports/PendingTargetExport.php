@@ -228,7 +228,7 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         $drawing->setHeight(90);
         $drawing->setCoordinates('U1');
         $drawing->setOffsetX(250);
-        $drawing->setOffsetY(1);
+        $drawing->setOffsetY(0);
 
         return $drawing;
     }
