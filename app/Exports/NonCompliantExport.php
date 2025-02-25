@@ -20,9 +20,6 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMapping, WithDrawings
 {
-    /**
-     * Column definitions for export with their headings.
-     */
     private $columns = [
         // 'abscap_id' => 'Absorptive Capacity',
         'fund_source' => 'Fund Source',
@@ -285,10 +282,6 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         return $allocation->legislator->name ?? '-';
     }
 
-
-    /**
-     * Retrieve the particular from the record.
-     */
     private function getParticular($record)
     {
 
@@ -324,18 +317,12 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         return $record->allocation->particular->subParticular->fundSource->name ?? '-';
     }
 
-    /**
-     * Format currency values with PHP locale settings.
-     */
     private function formatCurrency($amount)
     {
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
         return $formatter->formatCurrency($amount, 'PHP');
     }
 
-    /**
-     * Calculate the cost per slot based on the given property.
-     */
     private function calculateCostPerSlot($record, $costProperty)
     {
         return $record->number_of_slots > 0 ? $record->{$costProperty} / $record->number_of_slots : 0;
@@ -348,9 +335,9 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         $drawing->setDescription('TESDA Logo');
         $drawing->setPath(public_path('images/TESDA_logo.png'));
         $drawing->setHeight(90);
-        $drawing->setCoordinates('Z1');
-        $drawing->setOffsetX(20);
-        $drawing->setOffsetY(5);
+        $drawing->setCoordinates('V1');
+        $drawing->setOffsetX(150);
+        $drawing->setOffsetY(0);
 
         return $drawing;
     }
