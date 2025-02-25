@@ -226,8 +226,8 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         $drawing->setDescription('TESDA Logo');
         $drawing->setPath(public_path('images/TESDA_logo.png'));
         $drawing->setHeight(90);
-        $drawing->setCoordinates('Y1');
-        $drawing->setOffsetX(20);
+        $drawing->setCoordinates('U1');
+        $drawing->setOffsetX(250);
         $drawing->setOffsetY(1);
 
         return $drawing;
