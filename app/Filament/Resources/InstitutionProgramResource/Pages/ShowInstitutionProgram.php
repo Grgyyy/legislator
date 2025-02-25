@@ -11,7 +11,7 @@ class ShowInstitutionProgram extends ListRecords
 {
     protected static string $resource = InstitutionProgramResource::class;
 
-    protected static ?string $title = "Institution's Training Programs";
+    protected static ?string $title = "Institution Qualification Titles";
 
     protected function getFormActions(): array
     {
@@ -28,22 +28,6 @@ class ShowInstitutionProgram extends ListRecords
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
-    }
-
-    public function getHeading(): string
-    {
-        $tvi = $this->getTvi();
-        return $tvi ? $tvi->name . "'s Qualification Titles" : 'Edit Training Program Association with Institution';
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        $tvi = $this->getTvi();
-
-        return [
-            route('filament.admin.resources.tvis.index') => $tvi ? $tvi->name : "Institution",
-            'Qualification Titles',
-        ];
     }
 
     protected function getHeaderActions(): array

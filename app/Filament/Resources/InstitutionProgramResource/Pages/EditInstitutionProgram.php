@@ -3,23 +3,17 @@
 namespace App\Filament\Resources\InstitutionProgramResource\Pages;
 
 use App\Filament\Resources\InstitutionProgramResource;
+use App\Models\InstitutionProgram;
 use App\Services\NotificationHandler;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Validation\ValidationException;
-use App\Models\InstitutionProgram;
 
 class EditInstitutionProgram extends EditRecord
 {
     protected static string $resource = InstitutionProgramResource::class;
 
-    protected static ?string $title = 'Edit Training Program Association with Institution';
-
-    public function getHeading(): string
-    {
-        $record = $this->getRecord();
-        return $record ? $record->tvi->name . "'s Qualification Title Association" : 'Edit Training Program Association with Institution';
-    }
+    protected static ?string $title = 'Edit Institution Qualification Titles';
 
     protected function getFormActions(): array
     {
@@ -37,12 +31,9 @@ class EditInstitutionProgram extends EditRecord
 
     public function getBreadcrumbs(): array
     {
-
-        $record = $this->getRecord();
-
         return [
-            route('filament.admin.resources.institution-programs.index') => $record ? $record->tvi->name . "'s Qualification Title Association" : "Institution's Training Program",
-            'Edit'
+            '/institution-programs' => "Institution Qualification Titles",
+            'Edit',
         ];
     }
 
