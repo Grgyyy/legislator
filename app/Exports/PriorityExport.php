@@ -55,7 +55,7 @@ class PriorityExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         $drawing->setHeight(90);
         $drawing->setCoordinates('A1');
         $drawing->setOffsetX(0);
-        $drawing->setOffsetY(1);
+        $drawing->setOffsetY(0);
 
         return $drawing;
     }
