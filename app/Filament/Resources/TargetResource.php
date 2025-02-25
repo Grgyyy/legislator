@@ -212,6 +212,7 @@ class TargetResource extends Resource
                             ->native(false)
                             ->options(function () {
                                 return Abdd::whereNull('deleted_at')
+                                    ->whereNot('name', 'Not Applicable')
                                     ->orderBy('name')
                                     ->pluck('name', 'id')
                                     ->toArray() ?: ['no_abdd' => 'No ABDD sectors available'];
@@ -928,20 +929,17 @@ class TargetResource extends Resource
                 TextColumn::make('number_of_slots')
                     ->label('Slots')
                     ->sortable()
-                    ->searchable()
                     ->toggleable(),
 
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
                     ->sortable()
-                    ->searchable()
                     ->toggleable()
                     ->prefix('₱')
                     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
                 TextColumn::make('targetStatus.desc')
                     ->label('Status')
-                    ->searchable()
                     ->toggleable()
             ])
             ->recordClasses(fn($record) => $record->is_new && !$record->hasBeenSeenByUser(Auth::id())
@@ -963,7 +961,7 @@ class TargetResource extends Resource
                     Action::make('viewHistory')
                         ->label('View History')
                         ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id]))
-                        ->icon('heroicon-o-magnifying-glass'),
+                        ->icon('heroicon-o-clock'),
 
                     Action::make('viewComment')
                         ->label('View Comments')
@@ -1261,7 +1259,7 @@ class TargetResource extends Resource
 
                                 $record->delete();
                             });
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected target have been deleted successfully.');
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected targets have been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete target ')),
 
@@ -1333,7 +1331,7 @@ class TargetResource extends Resource
                                 $record->save();
                             });
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Selected target have been restored successfully.');
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected targets have been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore target ')),
 
@@ -1642,7 +1640,7 @@ class TargetResource extends Resource
                     }
                 } else {
                     if ($particular->district->underMunicipality) {
-                        return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name];
+                        return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->underMunicipality->name . ', ' . $particular->district->province->name];
                     } else {
                         return [$particular->id => $particular->subParticular->name . " - " . $particular->district->name . ', ' . $particular->district->province->name];
                     }
