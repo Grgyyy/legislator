@@ -69,9 +69,11 @@ class AllocationResource extends Resource
                     ->preload()
                     ->native(false)
                     ->options(function () {
-                        return Legislator::all()->mapWithKeys(function ($record) {
-                            return [$record->id => $record->name];
-                        })->toArray() ?: ['no_legislator' => 'No legislators available'];
+                        return Legislator::whereHas('particular.subParticular', function ($query) {
+                            $query->whereIn('name', ['House Speaker', 'RO Regular', 'CO Regular']);
+                        })
+                        ->pluck('name', 'id')
+                        ->toArray() ?: ['no_legislator' => 'No legislators available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                     ->afterStateUpdated(function (callable $set, $state) {
