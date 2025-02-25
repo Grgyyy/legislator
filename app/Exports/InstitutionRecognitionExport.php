@@ -81,7 +81,7 @@ class InstitutionRecognitionExport implements FromQuery, WithHeadings, WithStyle
         $drawing->setPath(public_path('images/TESDA_logo.png'));
         $drawing->setHeight(90);
         $drawing->setCoordinates('A1');
-        $drawing->setOffsetX(0);
+        $drawing->setOffsetX(50);
         $drawing->setOffsetY(0);
 
         return $drawing;
