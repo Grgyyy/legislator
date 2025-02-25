@@ -161,11 +161,12 @@ class TargetResource extends Resource
                                 return TVI::whereNot('name', 'Not Applicable')
                                     ->has('trainingPrograms')
                                     ->orderBy('name')
-                                    ->pluck('name', 'id')
-                                    ->mapWithKeys(function ($name, $id) {
-                                        $tvi = Tvi::find($id);
+                                    ->get()
+                                    ->mapWithKeys(function ($tvi) {
+                                        $schoolId = $tvi->school_id;
+                                        $formattedName = $schoolId ? "{$schoolId} - {$tvi->name}" : $tvi->name;
 
-                                        return [$id => "{$tvi->school_id} - {$tvi->name}"];
+                                        return [$tvi->id => $formattedName];
                                     })
                                     ->toArray() ?: ['no_tvi' => 'No institutions available'];
                             })
@@ -244,10 +245,11 @@ class TargetResource extends Resource
 
                                 if ($deliveryModeId) {
                                     return DeliveryMode::find($deliveryModeId)?->learningMode
+                                        ->sortBy('name')
                                         ->pluck('name', 'id')
                                         ->toArray() ?: ['no_learning_modes' => 'No learning modes available'];
                                 }
-                            
+
                                 return ['no_learning_modes' => 'No learning modes available. Select a delivery mode first.'];
                             })
                             ->disableOptionWhen(fn($value) => $value === 'no_learning_modes')
@@ -375,7 +377,7 @@ class TargetResource extends Resource
                                                     $subParticularName = $particular->subParticular ? $particular->subParticular->name : 'No Sub Particular';
                                                     $fundSourceName = $particular->subParticular && $particular->subParticular->fundSource ? $particular->subParticular->fundSource->name : 'No Fund Source';
                                                     $districtName = $particular->district ? $particular->district->name : 'No District';
-                                                    $municipalityName = $particular->district && $particular->district->underMunicipality ? $particular->district->underMunicipality->name : 'No Municipality';
+                                                    $municipalityName = $particular->district && $particular->district->underMunicipality ? $particular->district->underMunicipality->name : '';
                                                     $provinceName = $particular->district && $particular->district && $particular->district->province ? $particular->district->province->name : 'No Province';
                                                     $regionName = $particular->district && $particular->district && $particular->district->province && $particular->district->province->region ? $particular->district->province->region->name : 'No Region';
                                                     $partylistName = $particular->partylist ? $particular->partylist->name : 'No Partylist';
@@ -384,21 +386,21 @@ class TargetResource extends Resource
                                                         if ($subParticularName === 'Senator') {
                                                             return [$particular->id => "{$subParticularName}"];
                                                         } elseif ($subParticularName === 'District') {
-                                                            if ($regionName === 'NCR') {
-                                                                return [$particular->id => "{$subParticularName} - {$districtName}, {$municipalityName}"];
-                                                            } else {
+                                                            if ($municipalityName === '') {
                                                                 return [$particular->id => "{$subParticularName} - {$districtName}, {$provinceName}"];
+                                                            } else {
+                                                                return [$particular->id => "{$subParticularName} - {$districtName}, {$municipalityName}, {$provinceName}"];
                                                             }
                                                         } elseif ($subParticularName === 'Party-list') {
-                                                            return [$particular->id => "{$partylistName}"];
+                                                            return [$particular->id => "{$subParticularName} - {$partylistName}"];
                                                         } elseif ($subParticularName === 'House Speaker' || $subParticularName === 'House Speaker (LAKAS)') {
                                                             return [$particular->id => "{$subParticularName}"];
                                                         }
                                                     } elseif ($fundSourceName === 'RO Regular') {
-                                                        $regionName = $particular->district?->province?->region ?? 'No Region';
+                                                        $regionName = $particular->district?->province?->region ?? '';
                                                         return [$particular->id => "{$subParticularName} - {$regionName->name}"];
                                                     } elseif ($fundSourceName === 'CO Regular') {
-                                                        $regionName = $particular->district?->province?->region ?? 'No Region';
+                                                        $regionName = $particular->district?->province?->region ?? '';
                                                         return [$particular->id => "{$subParticularName} - {$regionName->name}"];
                                                     }
 
@@ -563,10 +565,12 @@ class TargetResource extends Resource
                                         return TVI::whereNot('name', 'Not Applicable')
                                             ->has('trainingPrograms')
                                             ->orderBy('name')
-                                            ->pluck('name', 'id')
-                                            ->mapWithKeys(function ($name, $id) {
-                                                $tvi = Tvi::find($id);
-                                                return [$id => "{$tvi->school_id} - {$tvi->name}"];
+                                            ->get()
+                                            ->mapWithKeys(function ($tvi) {
+                                                $schoolId = $tvi->school_id;
+                                                $formattedName = $schoolId ? "{$schoolId} - {$tvi->name}" : $tvi->name;
+
+                                                return [$tvi->id => $formattedName];
                                             })
                                             ->toArray() ?: ['no_tvi' => 'No institutions available'];
                                     })
@@ -652,13 +656,14 @@ class TargetResource extends Resource
                                     ->native(false)
                                     ->options(function ($get) {
                                         $deliveryModeId = $get('delivery_mode_id');
-        
+
                                         if ($deliveryModeId) {
                                             return DeliveryMode::find($deliveryModeId)?->learningMode
+                                                ->sortBy('name')
                                                 ->pluck('name', 'id')
                                                 ->toArray() ?: ['no_learning_modes' => 'No learning modes available'];
                                         }
-                                    
+
                                         return ['no_learning_modes' => 'No learning modes available. Select a delivery mode first.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_learning_modes')
@@ -760,28 +765,28 @@ class TargetResource extends Resource
                         return $query->whereHas('allocation.particular.subParticular', function ($query) use ($search) {
                             $query->where('name', 'like', "%{$search}%");
                         })
-                        ->orWhereHas('allocation.particular.district', function ($query) use ($search) {
-                            $query->where('name', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('allocation.particular.district.province', function ($query) use ($search) {
-                            $query->where('name', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('allocation.particular.district.underMunicipality', function ($query) use ($search) {
-                            $query->where('name', 'like', "%{$search}%");
-                        })
-                        ->orWhereHas('allocation.particular.partylist', function ($query) use ($search) {
-                            $query->where('name', 'like', "%{$search}%");
-                        });
+                            ->orWhereHas('allocation.particular.district', function ($query) use ($search) {
+                                $query->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('allocation.particular.district.province', function ($query) use ($search) {
+                                $query->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('allocation.particular.district.underMunicipality', function ($query) use ($search) {
+                                $query->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('allocation.particular.partylist', function ($query) use ($search) {
+                                $query->where('name', 'like', "%{$search}%");
+                            });
                     })
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $particular = $record->allocation->particular;
                         $district = $particular->district;
-                        $municipality = $district ? $district->underMunicipality : null;
+                        $municipality = $district ? $district->underMunicipality : '';
 
                         $districtName = $district ? $district->name : '';
                         $provinceName = $district ? $district->province->name : '';
-                        $municipalityName = $municipality ? $municipality->name : null;
+                        $municipalityName = $municipality ? $municipality->name : '';
 
                         if ($districtName === 'Not Applicable') {
                             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
@@ -790,7 +795,7 @@ class TargetResource extends Resource
                                 return $particular->subParticular->name ?? '-';
                             }
                         } else {
-                            if ($municipalityName === null) {
+                            if ($municipalityName === '') {
                                 return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
                             } else {
                                 return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
@@ -824,7 +829,11 @@ class TargetResource extends Resource
                         $schoolId = $record->tvi->school_id ?? '';
                         $institutionName = $record->tvi->name ?? '';
 
-                        return "{$schoolId} - {$institutionName}";
+                        if ($schoolId) {
+                            return "{$schoolId} - {$institutionName}";
+                        }
+
+                        return $institutionName;
                     }),
 
                 TextColumn::make('tvi.tviClass.name')
@@ -1364,11 +1373,11 @@ class TargetResource extends Resource
                                         ->getStateUsing(function ($record) {
                                             $particular = $record->allocation->particular;
                                             $district = $particular->district;
-                                            $municipality = $district ? $district->underMunicipality : null;
+                                            $municipality = $district ? $district->underMunicipality : '';
 
                                             $districtName = $district ? $district->name : '';
                                             $provinceName = $district ? $district->province->name : '';
-                                            $municipalityName = $municipality ? $municipality->name : null;
+                                            $municipalityName = $municipality ? $municipality->name : '';
 
                                             if ($districtName === 'Not Applicable') {
                                                 if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
@@ -1377,7 +1386,7 @@ class TargetResource extends Resource
                                                     return $particular->subParticular->name ?? '-';
                                                 }
                                             } else {
-                                                if ($municipalityName === null) {
+                                                if ($municipalityName === '') {
                                                     return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
                                                 } else {
                                                     return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
@@ -1616,7 +1625,7 @@ class TargetResource extends Resource
                     ->label('Select Action'),
             ]);
     }
-
+  
     protected static function getParticularOptions($legislatorId)
     {
         return Particular::whereHas('allocation', function ($query) use ($legislatorId) {
@@ -1628,8 +1637,6 @@ class TargetResource extends Resource
                 if ($particular->district->name === 'Not Applicable') {
                     if ($particular->subParticular->name === 'Partylist') {
                         return [$particular->id => $particular->subParticular->name . " - " . $particular->partylist->name];
-                    } else if ($particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
-                        return [$particular->id => $particular->subParticular->name];
                     } else {
                         return [$particular->id => $particular->subParticular->name];
                     }
@@ -1676,13 +1683,12 @@ class TargetResource extends Resource
         if ($tvi) {
             $districtName = $tvi->district->name ?? '';
             $provinceName = $tvi->district->province->name ?? '';
-            $regionName = $tvi->district->province->region->name ?? '';
             $municipalityName = $tvi->municipality->name ?? '';
 
-            if ($regionName === 'NCR') {
+            if ($municipalityName) {
                 return "{$districtName}, {$municipalityName}, {$provinceName}";
             } else {
-                return "{$municipalityName}, {$districtName}, {$provinceName}";
+                return "{$districtName}, {$provinceName}";
             }
         }
 
@@ -1745,7 +1751,7 @@ class TargetResource extends Resource
             return [$qualification->id => "{$qualification->trainingProgram->soc_code} - {$qualification->trainingProgram->title} ({$qualification->scholarshipProgram->name})"];
         })->toArray();
 
-        return !empty($qualificationTitles) ? $qualificationTitles : ['' => 'No qualification titles available'];
+        return !empty($qualificationTitles) ? $qualificationTitles : ['no_qualification_title' => 'No qualification titles available'];
     }
 
     private function getSkillPriority(int $trainingProgramId, $districtId, int $provinceId, int $appropriationYear)
