@@ -1780,7 +1780,7 @@ class ProjectProposalTargetResource extends Resource
                 ->where('particular_id', $particularId);
         })
             ->pluck('name', 'id')
-            ->toArray() ?: ['no_scholarship_program' => 'No scholarship program available'];
+            ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
     }
 
     protected static function calculateCostPerSlot($record, $costProperty)

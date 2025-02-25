@@ -176,8 +176,9 @@ class AttributionTargetResource extends Resource
                                                 ->pluck('legislator.name', 'legislator.id')
                                                 ->toArray();
 
-                                            return $allocations ?? ['no_legislator' => 'No legislators available.'];
+                                            return $allocations ?? ['no_legislator' => 'No legislators available'];
                                         }
+
                                         return ['no_legislator' => 'No legislators available. Complete sender fields first.'];
                                     })
                                     ->disabled()
@@ -696,6 +697,7 @@ class AttributionTargetResource extends Resource
 
                                                     return $allocations ?? ['no_legislator' => 'No legislators available'];
                                                 }
+                                                
                                                 return ['no_legislator' => 'No legislators available. Complete sender fields first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_legislator')
@@ -850,7 +852,7 @@ class AttributionTargetResource extends Resource
 
                                                 return $legislatorId
                                                     ? self::getAllocationYear($attributorId, $legislatorId, $attributorParticularId, $particularId, $scholarshipProgramId)
-                                                    : ['no_allocation' => 'No appropriation year available. Select a particular first.'];
+                                                    : ['no_allocation' => 'No appropriation years available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_allocation')
                                             ->afterStateUpdated(function ($state, callable $set) {
@@ -1089,7 +1091,6 @@ class AttributionTargetResource extends Resource
                     }),
 
                 TextColumn::make('allocation.legislator.name')
-                    ->label('Legislator')
                     ->sortable()
                     ->searchable()
                     ->toggleable(),

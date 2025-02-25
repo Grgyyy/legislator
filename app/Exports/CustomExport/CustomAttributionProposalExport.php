@@ -32,6 +32,7 @@ class CustomAttributionProposalExport extends ExcelExport implements WithDrawing
                 'Appropriation Type',
                 'Appropriation Year',
 
+                'School ID',
                 'Institution',
                 'Institution Type',
                 'Institution Class',
@@ -41,7 +42,7 @@ class CustomAttributionProposalExport extends ExcelExport implements WithDrawing
                 'Province',
                 'Region',
 
-                'Qualification Code',
+                'SOC Code',
                 'Qualification Title',
                 'Scholarship Program',
 
