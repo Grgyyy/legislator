@@ -258,9 +258,9 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
         $drawing->setDescription('TESDA Logo');
         $drawing->setPath(public_path('images/TESDA_logo.png'));
         $drawing->setHeight(90);
-        $drawing->setCoordinates('Z1');
-        $drawing->setOffsetX(20);
-        $drawing->setOffsetY(5);
+        $drawing->setCoordinates('W1');
+        $drawing->setOffsetX(90);
+        $drawing->setOffsetY(0);
 
         return $drawing;
     }
