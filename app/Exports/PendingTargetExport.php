@@ -233,7 +233,6 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         return $drawing;
     }
 
-
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);
