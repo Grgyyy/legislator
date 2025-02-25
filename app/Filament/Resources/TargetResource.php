@@ -375,13 +375,13 @@ class TargetResource extends Resource
 
                                             if ($particulars->isNotEmpty()) {
                                                 $options = $particulars->mapWithKeys(function ($particular) {
-                                                    $subParticularName = $particular->subParticular ? $particular->subParticular->name : 'No Sub Particular';
-                                                    $fundSourceName = $particular->subParticular && $particular->subParticular->fundSource ? $particular->subParticular->fundSource->name : 'No Fund Source';
-                                                    $districtName = $particular->district ? $particular->district->name : 'No District';
+                                                    $subParticularName = $particular->subParticular ? $particular->subParticular->name : '';
+                                                    $fundSourceName = $particular->subParticular && $particular->subParticular->fundSource ? $particular->subParticular->fundSource->name : '';
+                                                    $districtName = $particular->district ? $particular->district->name : '';
                                                     $municipalityName = $particular->district && $particular->district->underMunicipality ? $particular->district->underMunicipality->name : '';
-                                                    $provinceName = $particular->district && $particular->district && $particular->district->province ? $particular->district->province->name : 'No Province';
-                                                    $regionName = $particular->district && $particular->district && $particular->district->province && $particular->district->province->region ? $particular->district->province->region->name : 'No Region';
-                                                    $partylistName = $particular->partylist ? $particular->partylist->name : 'No Partylist';
+                                                    $provinceName = $particular->district && $particular->district && $particular->district->province ? $particular->district->province->name : '';
+                                                    $regionName = $particular->district && $particular->district && $particular->district->province && $particular->district->province->region ? $particular->district->province->region->name : '';
+                                                    $partylistName = $particular->partylist ? $particular->partylist->name : '';
 
                                                     if ($fundSourceName === 'CO Legislator Funds') {
                                                         if ($subParticularName === 'Senator') {
@@ -1350,7 +1350,7 @@ class TargetResource extends Resource
                                     // Column::make('abscap_id')
                                     //     ->heading('Absorptive Capacity'),
 
-                                    Column::make('fund_source')
+                                    Column::make('allocation.particular.subParticular.fundSource.name')
                                         ->heading('Fund Source')
                                         ->getStateUsing(function ($record) {
                                             $particular = $record->allocation->particular;
