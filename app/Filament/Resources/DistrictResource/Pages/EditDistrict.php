@@ -34,6 +34,15 @@ class EditDistrict extends EditRecord
         ];
     }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $record = $this->record;
+
+        $data['huc'] = $record->underMunicipality ? true : false;
+
+        return $data;
+    }
+
     protected function handleRecordUpdate($record, array $data): District
     {
         if (empty($data['municipality_id']) && isset($data['province_id'])) {
