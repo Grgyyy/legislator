@@ -1784,7 +1784,10 @@ class AttributionProjectProposalResource extends Resource
                                         ->heading('Appropriation Year'),
 
                                     Column::make('tvi.school_id')
-                                        ->heading('School ID'),
+                                        ->heading('School ID')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->tvi->school_id ? $record->tvi->school_id : '-';
+                                        }),
 
                                     Column::make('tvi.name')
                                         ->heading('Institution'),

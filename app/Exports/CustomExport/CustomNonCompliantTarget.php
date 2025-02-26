@@ -31,6 +31,7 @@ class CustomNonCompliantTarget extends ExcelExport implements WithDrawings
                 'Appropriation Type',
                 'Appropriation Year',
 
+                'School ID',
                 'Institution',
                 'Institution Type',
                 'Institution Class',
@@ -40,7 +41,7 @@ class CustomNonCompliantTarget extends ExcelExport implements WithDrawings
                 'Province',
                 'Region',
 
-                'Qualification Code',
+                'SOC Code',
                 'Qualification Title',
                 'Scholarship Program',
 

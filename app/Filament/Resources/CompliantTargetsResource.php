@@ -19,8 +19,6 @@ use App\Models\TargetStatus;
 use App\Models\Tvi;
 use App\Policies\TargetPolicy;
 use App\Services\NotificationHandler;
-use Filament\Actions\Action;
-use Filament\Actions\DeleteAction;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -28,10 +26,14 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
+use Filament\Tables\Actions\ForceDeleteAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
+use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
@@ -448,7 +450,7 @@ class CompliantTargetsResource extends Resource
                     ->sortable()
                     ->toggleable(),
 
-                TextColumn::make('attributionAllocation.legislator.name')
+                TextColumn::make('allocation.attributor.name')
                     ->label('Attributor')
                     ->sortable()
                     ->searchable()
@@ -482,7 +484,6 @@ class CompliantTargetsResource extends Resource
                             return $particular->subParticular->name;
                         }
                     }),
-
 
                 TextColumn::make('allocation.legislator.name')
                     ->sortable()
@@ -772,9 +773,28 @@ class CompliantTargetsResource extends Resource
 
                             $comment->readByUsers()->create(['user_id' => auth()->id()]);
                         }),
-                        
+                    
                     DeleteAction::make()
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete compliant target ')),
+                        ->action(function ($record) {
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete compliant target')),
+                
+                    RestoreAction::make()
+                        ->action(function ($record) {
+                            $record->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
+                        }),
+
+                    ForceDeleteAction::make()
+                        ->action(function ($record) {
+                            $record->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Target has been permanently deleted.');
+                        }),
                 ]),
             ])
             ->bulkActions([
@@ -877,8 +897,11 @@ class CompliantTargetsResource extends Resource
                                     Column::make('allocation.year')
                                         ->heading('Appropriation Year'),
 
-                                        Column::make('tvi.school_id')
-                                        ->heading('School ID'),
+                                    Column::make('tvi.school_id')
+                                        ->heading('School ID')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->tvi->school_id ? $record->tvi->school_id : '-';
+                                        }),
 
                                     Column::make('tvi.name')
                                         ->heading('Institution'),
