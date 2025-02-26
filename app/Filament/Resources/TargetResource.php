@@ -1626,7 +1626,7 @@ class TargetResource extends Resource
                     ->label('Select Action'),
             ]);
     }
-  
+
     protected static function getParticularOptions($legislatorId)
     {
         return Particular::whereHas('allocation', function ($query) use ($legislatorId) {
@@ -1801,11 +1801,11 @@ class TargetResource extends Resource
         return 0;
     }
 
-
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
         $user = auth()->user();
+        $routeParameter = request()->route('record');
         $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
         if ($pendingStatus) {
@@ -1818,6 +1818,10 @@ class TargetResource extends Resource
                     $subQuery->whereNull('attributor_id')
                         ->where('soft_or_commitment', 'Soft');
                 });
+
+            if (!request()->is('*/edit') && $routeParameter && filter_var($routeParameter, FILTER_VALIDATE_INT)) {
+                $query->where('region_id', (int) $routeParameter);
+            }
 
             if ($user) {
                 $userRegionIds = $user->region()->pluck('regions.id')->toArray();
@@ -1872,8 +1876,6 @@ class TargetResource extends Resource
 
         return $query;
     }
-
-
 
     public static function canViewAny(): bool
     {

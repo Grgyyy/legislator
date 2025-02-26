@@ -2160,8 +2160,6 @@ class AttributionTargetResource extends Resource
                 $query->where('region_id', (int) $routeParameter);
             }
 
-
-
             if ($user) {
                 $userRegionIds = $user->region()->pluck('regions.id')->toArray();
                 $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
