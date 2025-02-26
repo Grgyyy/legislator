@@ -39,7 +39,7 @@ class EditUser extends EditRecord
 
         try {
             $record->update($data);
-            
+
             NotificationHandler::sendSuccessNotification('Saved', 'User has been updated successfully.');
 
             return $record;
@@ -60,10 +60,10 @@ class EditUser extends EditRecord
             ->first();
 
         if ($user) {
-            $message = $user->deleted_at 
-                ? 'This email has been deleted. Restoration is required before it can be reused.' 
+            $message = $user->deleted_at
+                ? 'This email has been deleted. Restoration is required before it can be reused.'
                 : 'This email is already associated with an account.';
-            
+
             NotificationHandler::handleValidationException('Email Already In Use', $message);
         }
     }

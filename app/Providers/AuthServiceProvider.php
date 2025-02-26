@@ -2,88 +2,81 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Gate;
-use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
-
-// Models
-use App\Models\User;
-use App\Models\Role;
-use App\Models\Permission;
-use App\Models\Region;
-use App\Models\Province;
-use App\Models\District;
-use App\Models\Municipality;
-use App\Models\FundSource;
-use App\Models\Partylist;
-use App\Models\SubParticular;
-use App\Models\Particular;
-use App\Models\Legislator;
-use App\Models\Tvi;
-use App\Models\TviType;
-use App\Models\TviClass;
-use App\Models\InstitutionClass;
-use App\Models\Recognition;
-use App\Models\InstitutionRecognition;
-use App\Models\Tvet;
-use App\Models\Priority;
 use App\Models\Abdd;
-use App\Models\ProvinceAbdd;
-use App\Models\ScholarshipProgram;
-use App\Models\TrainingProgram;
-use App\Models\QualificationTitle;
 use App\Models\Allocation;
-use App\Models\LearningMode;
+
 use App\Models\DeliveryMode;
+use App\Models\District;
+use App\Models\FundSource;
+use App\Models\InstitutionClass;
+use App\Models\InstitutionProgram;
+use App\Models\InstitutionRecognition;
+use App\Models\LearningMode;
+use App\Models\Legislator;
+use App\Models\Municipality;
+use App\Models\Particular;
+use App\Models\Partylist;
+use App\Models\Permission;
+use App\Models\Priority;
+use App\Models\Province;
+use App\Models\ProvinceAbdd;
+use App\Models\QualificationTitle;
+use App\Models\Recognition;
+use App\Models\Region;
+use App\Models\Role;
+use App\Models\ScholarshipProgram;
+use App\Models\SkillPriority;
+use App\Models\SubParticular;
 use App\Models\Target;
 use App\Models\TargetRemark;
-use App\Models\SkillPriority;
-use App\Models\InstitutionProgram;
 use App\Models\Toolkit;
+use App\Models\TrainingProgram;
+use App\Models\Tvet;
+use App\Models\Tvi;
+use App\Models\TviClass;
+use App\Models\TviType;
+use App\Models\User;
+use App\Policies\AbddPolicy;
+use App\Policies\AllocationPolicy;
 
-// Policies
-use App\Policies\UserPolicy;
-use App\Policies\RolePolicy;
-use App\Policies\PermissionPolicy;
-use App\Policies\RegionPolicy;
-use App\Policies\ProvincePolicy;
+use App\Policies\DeliveryModePolicy;
 use App\Policies\DistrictPolicy;
-use App\Policies\MunicipalityPolicy;
 use App\Policies\FundSourcePolicy;
-use App\Policies\PartyListPolicy;
-use App\Policies\ParticularTypePolicy;
-use App\Policies\ParticularPolicy;
-use App\Policies\LegislatorPolicy;
-use App\Policies\InstitutionPolicy;
-use App\Policies\InstitutionTypePolicy;
 use App\Policies\InstitutionClassAPolicy;
 use App\Policies\InstitutionClassBPolicy;
-use App\Policies\RecognitionTitlePolicy;
+use App\Policies\InstitutionPolicy;
+use App\Policies\InstitutionProgramPolicy;
 use App\Policies\InstitutionRecognitionPolicy;
-use App\Policies\TvetSectorPolicy;
-use App\Policies\TopTenPolicy;
-use App\Policies\AbddPolicy;
-use App\Policies\ProvinceAbddPolicy;
-use App\Policies\ScholarshipProgramPolicy;
-use App\Policies\QualificationTitlePolicy;
-use App\Policies\ScheduleOfCostPolicy;
-use App\Policies\ProjectProposalPolicy;
-use App\Policies\AllocationPolicy;
+use App\Policies\InstitutionTypePolicy;
 use App\Policies\LearningModePolicy;
-use App\Policies\DeliveryModePolicy;
+use App\Policies\LegislativeTargetPolicy;
+use App\Policies\LegislatorPolicy;
+use App\Policies\MunicipalityPolicy;
+use App\Policies\ParticularPolicy;
+use App\Policies\ParticularTypePolicy;
+use App\Policies\PartyListPolicy;
+use App\Policies\PermissionPolicy;
+use App\Policies\ProjectProposalPolicy;
+use App\Policies\ProvinceAbddPolicy;
+use App\Policies\ProvincePolicy;
+use App\Policies\QualificationTitlePolicy;
+use App\Policies\RecognitionTitlePolicy;
+use App\Policies\RegionPolicy;
+use App\Policies\RolePolicy;
+use App\Policies\ScheduleOfCostPolicy;
+use App\Policies\ScholarshipProgramPolicy;
+use App\Policies\SkillPriorityPolicy;
 use App\Policies\TargetPolicy;
 use App\Policies\TargetRemarkPolicy;
-use App\Policies\SkillPriorityPolicy;
-use App\Policies\InstitutionProgramPolicy;
 use App\Policies\ToolkitPolicy;
-use App\Policies\LegislativeTargetPolicy;
+use App\Policies\TopTenPolicy;
+use App\Policies\TvetSectorPolicy;
+use App\Policies\UserPolicy;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
-    /**
-     * The model to policy mappings for the application.
-     *
-     * @var array<class-string, class-string>
-     */
     protected $policies = [
         User::class => UserPolicy::class,
         Role::class => RolePolicy::class,
@@ -125,7 +118,6 @@ class AuthServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
-        // Define custom gates for LegislativeTargetPolicy
         Gate::define('view-legislative-targets-report', [LegislativeTargetPolicy::class, 'viewTargetReport']);
         Gate::define('view-any-legislative-targets-report', [LegislativeTargetPolicy::class, 'viewAnyTargetReport']);
         Gate::define('export-legislative-targets-report', [LegislativeTargetPolicy::class, 'exportTargetReport']);

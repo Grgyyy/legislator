@@ -1272,7 +1272,7 @@ class CompliantTargetsResource extends Resource
                                 ->withFilename(date('m-d-Y') . ' - compliant_target_export')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ])
             ->recordUrl(
                 fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id])
@@ -1298,6 +1298,7 @@ class CompliantTargetsResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
+        $user = auth()->user();
         $routeParameter = request()->route('record');
         $compliantStatus = TargetStatus::where('desc', 'Compliant')->first();
 
@@ -1307,6 +1308,56 @@ class CompliantTargetsResource extends Resource
 
             if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
                 $query->where('region_id', (int) $routeParameter);
+            }
+        }
+
+        if ($user) {
+            $userRegionIds = $user->region()->pluck('regions.id')->toArray();
+            $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
+            $userDistrictIds = $user->district()->pluck('districts.id')->toArray();
+            $userMunicipalityIds = $user->municipality()->pluck('municipalities.id')->toArray();
+
+            $isPO_DO = !empty($userProvinceIds) || !empty($userMunicipalityIds) || !empty($userDistrictIds);
+            $isRO = !empty($userRegionIds);
+
+            if ($isPO_DO) {
+                $query->where(function ($q) use ($userProvinceIds, $userDistrictIds, $userMunicipalityIds) {
+                    if (!empty($userDistrictIds) && !empty($userMunicipalityIds)) {
+                        $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
+                            $districtQuery->whereIn('districts.id', $userDistrictIds);
+                        })->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
+                            $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
+                        });
+                    } elseif (!empty($userMunicipalityIds)) {
+                        $q->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
+                            $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
+                        });
+                    } elseif (!empty($userDistrictIds)) {
+                        $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
+                            $districtQuery->whereIn('districts.id', $userDistrictIds);
+                        });
+                    } elseif (!empty($userProvinceIds)) {
+                        $q->whereHas('district.province', function ($districtQuery) use ($userProvinceIds) {
+                            $districtQuery->whereIn('province_id', $userProvinceIds);
+                        });
+
+                        $q->orWhereHas('municipality.province', function ($municipalityQuery) use ($userProvinceIds) {
+                            $municipalityQuery->whereIn('province_id', $userProvinceIds);
+                        });
+                    }
+                });
+            }
+
+            if ($isRO) {
+                $query->where(function ($q) use ($userRegionIds) {
+                    $q->orWhereHas('district.province', function ($provinceQuery) use ($userRegionIds) {
+                        $provinceQuery->whereIn('region_id', $userRegionIds);
+                    });
+
+                    $q->orWhereHas('municipality.province', function ($provinceQuery) use ($userRegionIds) {
+                        $provinceQuery->whereIn('region_id', $userRegionIds);
+                    });
+                });
             }
         }
 

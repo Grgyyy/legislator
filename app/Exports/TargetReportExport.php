@@ -387,6 +387,7 @@ class TargetReportExport implements FromCollection, WithStyles
                 ],
             ],
         ];
+
         $sheet->getStyle('A4:B12')->applyFromArray($rangeBorderStyle);
 
         $mergedRangeBorderStyle = [

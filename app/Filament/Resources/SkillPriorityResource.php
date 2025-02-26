@@ -164,7 +164,7 @@ class SkillPriorityResource extends Resource
                     ->validationMessages([
                         'min' => 'The allocation year must be at least ' . date('Y') . '.',
                     ]),
-                
+
                 Select::make('status_id')
                     ->relationship('status', 'desc')
                     ->required()
@@ -217,7 +217,7 @@ class SkillPriorityResource extends Resource
                     }),
 
                 TextColumn::make('total_slots')
-                        ->label('Total Target Beneficiaries'),
+                    ->label('Total Target Beneficiaries'),
 
                 TextColumn::make('available_slots')
                     ->label('Available Target Beneficiaries'),
@@ -327,19 +327,23 @@ class SkillPriorityResource extends Resource
                                 ->withColumns([
                                     Column::make('provinces.name')
                                         ->heading('Province'),
+                                    Column::make('district.name')
+                                        ->heading('District'),
                                     Column::make('trainingPrograms.title')
                                         ->heading('Training Program'),
-                                    Column::make('available_slots')
-                                        ->heading('Available Slots'),
+                                    Column::make('qualification_title')
+                                        ->heading('LOT Name'),
                                     Column::make('total_slots')
                                         ->heading('Total Slots'),
+                                    Column::make('available_slots')
+                                        ->heading('Available Slots'),
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
                                 ->withFilename(date('Y-m-d') . '-skill_priority_export.xlsx'),
                         ])
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

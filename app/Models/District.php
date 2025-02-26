@@ -41,4 +41,13 @@ class District extends Model
     {
         return $this->hasMany(Tvi::class);
     }
+    public function user()
+    {
+        return $this->belongsToMany(User::class, 'user_regions')->withTimestamps();
+    }
+
+    public function userRegions()
+    {
+        return $this->hasMany(UserRegion::class, 'user_id');
+    }
 }

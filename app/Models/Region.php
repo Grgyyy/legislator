@@ -13,6 +13,7 @@ class Region extends Model
     protected $fillable = [
         'name',
         'code',
+        'user_id'
     ];
 
     public function provinces()
@@ -20,8 +21,8 @@ class Region extends Model
         return $this->hasMany(Province::class);
     }
 
-    public function users()
+    public function user()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class, 'user_regions')->withTimestamps();
     }
 }

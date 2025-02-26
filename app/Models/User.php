@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Filament\Models\Contracts\FilamentUser;
@@ -8,33 +9,28 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-
 
 class User extends Authenticatable implements FilamentUser, HasAvatar
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
 
-
     public function getFilamentAvatarUrl(): ?string
     {
         return $this->avatar_url ? Storage::url($this->avatar_url) : null;
     }
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
         'name',
         'email',
         'password',
         'avatar_url',
-        'region_id',
-        'province_id',
     ];
+
+    protected $with = ['region', 'province', 'municipality', 'district'];
 
     public function comments()
     {
@@ -46,86 +42,58 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         return $this->belongsToMany(Target::class, 'target_seen_by');
     }
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
 
-    // Correct relationship methods
     public function region()
     {
-        return $this->belongsTo(Region::class);
+        return $this->belongsToMany(Region::class, 'user_regions')->withTimestamps();
     }
 
     public function province()
     {
-        return $this->belongsTo(Province::class);
+        return $this->belongsToMany(Province::class, 'user_regions')->withTimestamps();
     }
+
+    public function district()
+    {
+        return $this->belongsToMany(District::class, 'user_regions')->withTimestamps();
+    }
+    public function municipality()
+    {
+        return $this->belongsToMany(Municipality::class, 'user_regions')->withTimestamps();
+    }
+
+    public function userRegions()
+    {
+        return $this->hasMany(UserRegion::class, 'user_id');
+    }
+
 
     public function canAccessPanel(Panel $panel): bool
     {
-        $allowedRoles = [
-            'Super Admin',
-            'Admin',
-            'Director',
-            'SMD Head',
-            'SMD Focal',
-            'Planning Office',
-            'RO',
-            'PO/DO',
-            'TESDO',
-        ];
+        $allowedRoles = DB::table('roles')->pluck('name')->toArray();
 
         if ($this->hasAnyRole($allowedRoles)) {
             return true;
         }
 
-        $regionRoles = [
-            'Region I',
-            'Region II',
-            'Region III',
-            'Region IV-A',
-            'Region IV-B',
-            'Region V',
-            'Region VI',
-            'Region VII',
-            'Region VIII',
-            'Region IX',
-            'Region X',
-            'Region XI',
-            'Region XII',
-            'NCR',
-            'CAR',
-            'CARAGA',
-            'Negros Island Region',
-            'BARMM'
-        ];
-
+        $regionRoles = Region::table('regions')->pluck('name')->toArray();
 
         foreach ($regionRoles as $regionRole) {
-            if ($this->hasRole($regionRole)) {
-                if ($this->region && $this->region->name === $regionRole) {
-                    return true;
-                }
+            if ($this->hasRole($regionRole) && $this->region->contains('name', $regionRole)) {
+                return true;
             }
         }
+
         return false;
     }
-
 
 }

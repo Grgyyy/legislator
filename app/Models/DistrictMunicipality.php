@@ -11,11 +11,16 @@ class DistrictMunicipality extends Model
 
     public function district()
     {
-        return $this->belongsToMany(District::class, 'district_municipalities');
+        return $this->belongsTo(District::class);
     }
 
     public function municipality()
     {
-        return $this->belongsToMany(Municipality::class, 'district_municipalities');
+        return $this->belongsTo(Municipality::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'user_regions')->withTimestamps();
     }
 }
