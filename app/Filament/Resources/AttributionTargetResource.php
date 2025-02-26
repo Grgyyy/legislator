@@ -852,7 +852,7 @@ class AttributionTargetResource extends Resource
 
                                                 return $legislatorId
                                                     ? self::getAllocationYear($attributorId, $legislatorId, $attributorParticularId, $particularId, $scholarshipProgramId)
-                                                    : ['no_allocation' => 'No appropriation years available. Select a scholarship program first.'];
+                                                    : ['no_allocation' => 'No appropriation year available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_allocation')
                                             ->afterStateUpdated(function ($state, callable $set) {

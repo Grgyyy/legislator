@@ -8,7 +8,6 @@ use App\Models\Abdd;
 use App\Models\Allocation;
 use App\Models\DeliveryMode;
 use App\Models\Legislator;
-use App\Models\Particular;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
@@ -595,7 +594,7 @@ class ProjectProposalTargetResource extends Resource
 
                                         return $year
                                             ? self::getAppropriationTypeOptions($year)
-                                            : ['no_allocation' => 'No appropriation type available. Select an appropriation year first.'];
+                                            : ['no_allocation' => 'No appropriation types available. Select an appropriation year first.'];
                                     })
                                     ->disableOptionWhen(fn($value) => $value === 'no_allocation')
                                     ->reactive()
@@ -1679,7 +1678,7 @@ class ProjectProposalTargetResource extends Resource
             ->where('year', '>=', $yearNow - 1)
             ->whereNull('attributor_id')
             ->pluck('year', 'year')
-            ->toArray() ?: ['no_allocation' => 'No allocation available'];
+            ->toArray() ?: ['no_allocation' => 'No appropriation year available'];
     }
 
     protected static function getAppropriationTypeOptions($year)

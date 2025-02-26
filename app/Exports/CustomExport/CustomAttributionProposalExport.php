@@ -53,7 +53,7 @@ class CustomAttributionProposalExport extends ExcelExport implements WithDrawing
                 'Delivery Mode',
                 'Learning Mode',
 
-                'Number of slots',
+                'Slots',
                 'Training Cost',
                 'Cost of Toolkit',
                 'Training Support Fund',

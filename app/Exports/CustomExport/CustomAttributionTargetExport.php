@@ -52,7 +52,7 @@ class CustomAttributionTargetExport extends ExcelExport implements WithDrawings
                 'Delivery Mode',
                 'Learning Mode',
 
-                'Number of slots',
+                'Slots',
                 'Training Cost',
                 'Cost of Toolkit',
                 'Training Support Fund',

@@ -143,7 +143,7 @@ class TargetResource extends Resource
 
                                 return $year
                                     ? self::getAppropriationTypeOptions($year)
-                                    : ['no_allocation' => 'No appropriation type available. Select an appropriation year first.'];
+                                    : ['no_allocation' => 'No appropriation types available. Select an appropriation year first.'];
                             })
                             ->disabled()
                             ->dehydrated()

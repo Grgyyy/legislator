@@ -27,6 +27,7 @@ class CustomCompliantTarget extends ExcelExport
                 'Appropriation Type',
                 'Appropriation Year',
 
+                'School ID',
                 'Institution',
                 'Institution Type',
                 'Institution Class',
@@ -36,7 +37,7 @@ class CustomCompliantTarget extends ExcelExport
                 'Province',
                 'Region',
 
-                'Qualification Code',
+                'SOC Code',
                 'Qualification Title',
                 'Scholarship Program',
 
@@ -47,7 +48,7 @@ class CustomCompliantTarget extends ExcelExport
                 'Delivery Mode',
                 'Learning Mode',
 
-                'Number of slots',
+                'Slots',
                 'Training Cost',
                 'Cost of Toolkit',
                 'Training Support Fund',

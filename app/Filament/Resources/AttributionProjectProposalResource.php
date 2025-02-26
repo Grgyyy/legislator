@@ -142,10 +142,10 @@ class AttributionProjectProposalResource extends Resource
                                                     ->where('attributor_particular_id', $particularId);
                                             })
                                                 ->pluck('name', 'id')
-                                                ->toArray() ?: ['no_scholarship_program' => 'No scholarship program available'];
+                                                ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
                                         }
 
-                                        return ['no_scholarship_program' => 'No scholarship programs available. Select an Attributor and Particular first.'];
+                                        return ['no_scholarship_program' => 'No scholarship programs available. Select a particular first.'];
                                     })
                                     ->disabled()
                                     ->dehydrated()
@@ -243,7 +243,7 @@ class AttributionProjectProposalResource extends Resource
 
                                         return $legislatorId
                                             ? self::getAllocationYear($attributorId, $legislatorId, $attributorParticularId, $particularId, $scholarshipProgramId)
-                                            : ['no_allocation' => 'No appropriation years available. Select a scholarship program first.'];
+                                            : ['no_allocation' => 'No appropriation year available. Select a scholarship program first.'];
                                     })
                                     ->disabled()
                                     ->dehydrated()
@@ -869,7 +869,7 @@ class AttributionProjectProposalResource extends Resource
 
                                                 return $legislatorId
                                                     ? self::getAllocationYear($attributorId, $legislatorId, $attributorParticularId, $particularId, $scholarshipProgramId)
-                                                    : ['no_allocation' => 'No appropriation years available. Select a scholarship program first.'];
+                                                    : ['no_allocation' => 'No appropriation year available. Select a scholarship program first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_allocation')
                                             ->afterStateUpdated(function ($state, callable $set) {
@@ -1128,7 +1128,7 @@ class AttributionProjectProposalResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('allocation.legislator.particular.subParticular')
+                TextColumn::make('allocation.particular.subParticular.name')
                     ->label('Particular')
                     ->sortable()
                     ->searchable(query: function ($query, $search) {
@@ -1327,7 +1327,7 @@ class AttributionProjectProposalResource extends Resource
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
 
-                   Action::make('viewHistory')
+                    Action::make('viewHistory')
                         ->label('View History')
                         ->icon('heroicon-o-clock')
                         ->url(fn($record) => route('filament.admin.resources.targets.showHistory', ['record' => $record->id])),
