@@ -20,6 +20,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
@@ -81,7 +82,8 @@ class AdminPanelProvider extends PanelProvider
                     ->setNavigationGroup('USER MANAGEMENT')
                     ->setIcon('heroicon-o-user')
                     ->setSort(1)
-                    ->shouldShowDeleteAccountForm(true)
+                    // ->shouldShowDeleteAccountForm(true)
+                    ->shouldShowDeleteAccountForm(Auth::user()?->hasRole('Super Admin') ?? false)
                     ->shouldShowBrowserSessionsForm(true)
                     ->shouldShowAvatarForm(
                         value: true,

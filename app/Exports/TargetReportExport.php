@@ -7,15 +7,17 @@ use App\Models\Target;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 
-class TargetReportExport implements FromCollection, WithStyles
+class TargetReportExport implements FromCollection, WithStyles, WithDrawings
 {
     protected $allocationId;
 
@@ -132,52 +134,6 @@ class TargetReportExport implements FromCollection, WithStyles
         }
         return $formattedName;
     }
-    // protected function getParticularName($id): string
-    // {
-    //     $allocation = Allocation::find($id);
-
-    //     if (!$allocation || !$allocation->particular) {
-    //         return 'Unknown Particular Name';
-    //     }
-
-    //     $district = $allocation->district;
-    //     $municipality = $district ? $district->underMunicipality : null;
-    //     $districtName = $district ? $district->name : 'Unknown District';
-    //     $municipalityName = $municipality ? $municipality->name : '';
-    //     $provinceName = $district ? $district->province->name : 'Unknown Province';
-    //     $regionName = $district ? $district->province->region->name : 'Unknown Region';
-
-    //     $subParticular = $allocation->subParticular->name ?? 'Unknown SubParticular';
-
-    //     $formattedName = '';
-
-    //     if ($subParticular === 'Party-list') {
-    //         $partylistName = $allocation->partylist->name ?? 'Unknown Party-list';
-    //         $formattedName = "{$subParticular} - {$partylistName}";
-    //     } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-    //         $formattedName = "{$subParticular}";
-    //     } elseif ($subParticular === 'District') {
-    //         if ($municipalityName) {
-    //             $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
-    //         } else {
-    //             $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
-    //         }
-    //     } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
-    //         $formattedName = "{$subParticular} - {$regionName}";
-    //     } else {
-    //         $formattedName = "{$subParticular} - {$regionName}";
-    //     }
-
-    //     return $formattedName;
-    // }
-
-    // private function targetData($id)
-    // {
-    //     $allocation = Allocation::with(['target', 'attributor', 'particular'])->find($id);
-
-    //     return $allocation ? $allocation : collect();
-    // }
-
 
     private function targetData($id)
     {
@@ -300,6 +256,20 @@ class TargetReportExport implements FromCollection, WithStyles
         return $formatter->formatCurrency($amount, 'PHP');
     }
 
+    public function drawings()
+    {
+        $drawing = new Drawing();
+        $drawing->setName('TESDA Logo');
+        $drawing->setDescription('TESDA Logo');
+        $drawing->setPath(public_path('images/TESDA_logo.png'));
+        $drawing->setHeight(80);
+        $drawing->setCoordinates('D1');
+        $drawing->setOffsetX(-30);
+        $drawing->setOffsetY(0);
+
+        return $drawing;
+    }
+
 
     public function styles(Worksheet $sheet)
     {
@@ -394,7 +364,7 @@ class TargetReportExport implements FromCollection, WithStyles
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
-                    'color' => ['argb' => '000000'],
+                    'color' => ['argb' => '7a8078'],
                 ],
             ],
         ];
@@ -422,7 +392,7 @@ class TargetReportExport implements FromCollection, WithStyles
     private function applyHeaderStyle(array $rows)
     {
         $style = [
-            'font' => ['bold' => true, 'size' => 12],
+            'font' => ['bold' => true, 'size' => 14],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,

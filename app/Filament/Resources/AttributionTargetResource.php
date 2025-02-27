@@ -110,18 +110,18 @@ class AttributionTargetResource extends Resource
                                                 $particular = $allocation->attributorParticular;
                                                 $subParticular = $particular->subParticular->name ?? '';
                                                 $formattedName = '';
-                                
+
                                                 if ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
                                                     $regionName = $particular->district->province->region->name ?? '';
                                                     $formattedName = "{$subParticular} - {$regionName}";
                                                 } else {
                                                     $formattedName = $subParticular;
                                                 }
-                                
+
                                                 return [$particular->id => $formattedName];
                                             })->toArray() ?: ['no_particular' => 'No particulars available'];
                                         }
-                                        
+
                                         return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                     })
                                     ->disabled()
@@ -513,18 +513,18 @@ class AttributionTargetResource extends Resource
                                                         $particular = $allocation->attributorParticular;
                                                         $subParticular = $particular->subParticular->name ?? '';
                                                         $formattedName = '';
-                                        
+
                                                         if ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
                                                             $regionName = $particular->district->province->region->name ?? '';
                                                             $formattedName = "{$subParticular} - {$regionName}";
                                                         } else {
                                                             $formattedName = $subParticular;
                                                         }
-                                        
+
                                                         return [$particular->id => $formattedName];
                                                     })->toArray() ?: ['no_particular' => 'No particulars available'];
                                                 }
-        
+
                                                 return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_particular')
@@ -697,7 +697,7 @@ class AttributionTargetResource extends Resource
 
                                                     return $allocations ?? ['no_legislator' => 'No legislators available'];
                                                 }
-                                                
+
                                                 return ['no_legislator' => 'No legislators available. Complete sender fields first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_legislator')
@@ -1684,18 +1684,21 @@ class AttributionTargetResource extends Resource
                                     Column::make('allocation.attributorParticular.subParticular.fundSource.name')
                                         ->heading('Fund Source')
                                         ->getStateUsing(function ($record) {
-                                            $particular = $record->allocation->particular;
-                                            $subParticular = $particular->subParticular;
-                                            $fundSource = $subParticular ? $subParticular->fundSource : null;
+                                            $attributor = $record->allocation->attributor;
+                                            $particular = $attributor ? $record->allocation->attributorParticular : $record->allocation->particular;
+                                            $fundSource = $particular->subParticular ? $particular->subParticular->fundSource->name : '-';
 
-                                            return $fundSource ? $fundSource->name : '-';
+                                            return $fundSource;
                                         }),
 
                                     Column::make('allocation.soft_or_commitment')
                                         ->heading('Source of Fund'),
 
                                     Column::make('allocation.attributor.name')
-                                        ->heading('Attributor'),
+                                        ->heading('Attributor')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->allocation->attributor ? $record->allocation->attributor->name : '-';
+                                        }),
 
                                     Column::make('allocation.attributorParticular.subParticular.name')
                                         ->heading('Attributor Particular')
@@ -1749,7 +1752,7 @@ class AttributionTargetResource extends Resource
                                         ->getStateUsing(function ($record) {
                                             return $record->tvi->school_id ? $record->tvi->school_id : '-';
                                         }),
-                                        
+
                                     Column::make('tvi.name')
                                         ->heading('Institution'),
 
@@ -1770,7 +1773,7 @@ class AttributionTargetResource extends Resource
 
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
-                                        
+
                                     Column::make('qualification_title_soc_code')
                                         ->heading('SOC Code'),
 

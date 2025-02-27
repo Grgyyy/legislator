@@ -29,7 +29,7 @@ class Legislator extends Model
     {
         return $this->hasMany(Allocation::class, 'attributor_id');
     }
-    
+
     public function particular()
     {
         return $this->belongsToMany(Particular::class, 'legislator_particular')

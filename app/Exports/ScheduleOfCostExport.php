@@ -43,7 +43,9 @@ class ScheduleOfCostExport implements FromQuery, WithMapping, WithStyles, WithHe
     {
         return QualificationTitle::query()
             ->join('training_programs', 'qualification_titles.training_program_id', '=', 'training_programs.id')
-            ->orderBy('training_programs.title');
+            ->orderBy('training_programs.title')
+            ->whereNot('qualification_titles.soc', 0);
+
     }
 
     public function map($record): array
@@ -75,7 +77,7 @@ class ScheduleOfCostExport implements FromQuery, WithMapping, WithStyles, WithHe
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['SCHEDULE OF COST'],
+            ['SCHEDULE OF COSTS'],
             [''],
         ];
 
@@ -90,18 +92,26 @@ class ScheduleOfCostExport implements FromQuery, WithMapping, WithStyles, WithHe
 
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('D1');
-        $drawing->setOffsetX(50);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('E1');
+        $tesda_logo->setOffsetX(130);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('I1');
+        $tuv_logo->setOffsetX(50);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
-
 
     public function styles(Worksheet $sheet)
     {

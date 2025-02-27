@@ -442,19 +442,24 @@ class TviResource extends Resource
                             CustomInstitutionExport::make()
                                 ->withColumns([
                                     Column::make('school_id')
-                                        ->heading('School ID'),
+                                        ->heading('School ID')
+                                        ->getStateUsing(fn($record) => $record->school_id ?? '-'),
 
                                     Column::make('name')
                                         ->heading('Institution'),
 
-                                    Column::make('tviType.name')
-                                        ->heading('Institution Type'),
 
                                     Column::make('tviClass.name')
                                         ->heading('Institution Class (A)'),
 
                                     Column::make('InstitutionClass.name')
                                         ->heading('Institution Class (B)'),
+
+                                    Column::make('tviType.name')
+                                        ->heading('Institution Type'),
+
+                                    Column::make('tviType.name')
+                                        ->heading('Institution Type'),
 
                                     Column::make('district.name')
                                         ->heading('District'),
@@ -472,7 +477,7 @@ class TviResource extends Resource
                         ]),
 
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

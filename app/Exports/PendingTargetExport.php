@@ -199,16 +199,36 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         return "{$qualificationCode} - {$qualificationName}";
     }
 
-
-
     private function getFundSource($record)
     {
         return $record->allocation->particular->subParticular->fundSource->name ?? '-';
     }
     private function getParticular($record)
     {
-        $particulars = $record->allocation->legislator->particular;
-        return $particulars->isNotEmpty() ? ($particulars->first()->subParticular->name ?? '-') : '-';
+        $legislator = $record->allocation->legislator;
+        $particulars = $legislator->particular;
+
+        $particular = $particulars->first();
+        $district = $particular->district;
+        $municipality = $district ? $district->underMunicipality : null;
+
+        $districtName = $district ? $district->name : '';
+        $provinceName = $district ? $district->province->name : '';
+        $municipalityName = $municipality ? $municipality->name : '';
+
+        if ($districtName === 'Not Applicable') {
+            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+            } else {
+                return $particular->subParticular->name ?? '-';
+            }
+        } else {
+            if ($municipality === '') {
+                return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
+            } else {
+                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
+            }
+        }
     }
     private function formatCurrency($amount)
     {
@@ -221,16 +241,25 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
     }
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('U1');
-        $drawing->setOffsetX(250);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('U1');
+        $tesda_logo->setOffsetX(130);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('X1');
+        $tuv_logo->setOffsetX(20);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
 
     public function styles(Worksheet $sheet)

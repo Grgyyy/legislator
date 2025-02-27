@@ -51,16 +51,25 @@ class RegionExport implements FromQuery, WithMapping, WithStyles, WithHeadings, 
 
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('A1');
-        $drawing->setOffsetX(20);
-        $drawing->setOffsetY(1);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('A1');
+        $tesda_logo->setOffsetX(0);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('C1');
+        $tuv_logo->setOffsetX(0);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
 
 
@@ -69,11 +78,13 @@ class RegionExport implements FromQuery, WithMapping, WithStyles, WithHeadings, 
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
+        // Merge header rows
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");
         $sheet->mergeCells("A3:{$lastColumn}3");
         $sheet->mergeCells("A4:{$lastColumn}4");
 
+        // Header styling
         $headerStyle = [
             'font' => ['bold' => true, 'size' => 14],
             'alignment' => [
@@ -107,16 +118,20 @@ class RegionExport implements FromQuery, WithMapping, WithStyles, WithHeadings, 
             ],
         ];
 
-
         $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
         $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($subHeaderStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
+        // Set auto-size for columns (excluding merged headers)
         foreach (range(1, $columnCount) as $colIndex) {
             $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
             $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
         }
 
+        // Manually set width for merged header cells (adjust width as needed)
+        $sheet->getColumnDimension('A')->setWidth(50);
+
+        // Dynamic border styling
         $dynamicBorderStyle = [
             'borders' => [
                 'allBorders' => [
@@ -143,4 +158,5 @@ class RegionExport implements FromQuery, WithMapping, WithStyles, WithHeadings, 
             $row++;
         }
     }
+
 }

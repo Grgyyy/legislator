@@ -131,7 +131,7 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['ATTRIBUTION PROJECT PROPOSAL PENDING TARGETS'],
+            ['PENDING ATTRIBUTION PROJECT PROPOSAL TARGETS'],
             [''],
         ];
 
@@ -143,7 +143,7 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
         return [
             $this->getFundSource($record),
             $record->allocation->soft_or_commitment ?? '-',
-            $record->allocation->attributor->name ?? '-',
+            $this->getAttributor($record),
             $this->getAttributorParticular($record),
             $record->allocation->legislator->name ?? '-',
             $this->getParticular($record),
@@ -197,7 +197,12 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
             $record->targetStatus->desc ?? '-',
         ];
     }
+    private function getAttributor($record)
+    {
+        $attributor = $record->allocation->attributor;
 
+        return $attributor ? $attributor->name : '-';
+    }
     private function getQualificationTitle($record)
     {
         $qualificationCode = $record->qualification_title_soc_code ?? '-';
@@ -209,12 +214,48 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
 
     private function getFundSource($record)
     {
-        return $record->allocation->particular->subParticular->fundSource->name ?? '-';
+        $legislator = $record->allocation->legislator;
+
+        if (!$legislator) {
+            return 'No legislators available';
+        }
+
+        $particulars = $legislator->particular;
+
+        if ($particulars->isEmpty()) {
+            return 'No particulars available';
+        }
+
+        $particular = $record->allocation->particular;
+        $subParticular = $particular->subParticular;
+        $fundSource = $subParticular ? $subParticular->fundSource : null;
+
+        return $fundSource ? $fundSource->name : 'No fund sources available';
     }
     private function getParticular($record)
     {
-        $particulars = $record->allocation->legislator->particular;
-        return $particulars->isNotEmpty() ? ($particulars->first()->subParticular->name ?? '-') : '-';
+        $particular = $record->allocation->particular;
+
+        if (!$particular) {
+            return '-';
+        }
+
+        $district = $particular->district;
+        $districtName = $district ? $district->name : 'Unknown District';
+
+        if ($districtName === 'Not Applicable') {
+            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+            } else {
+                return $particular->subParticular->name ?? 'Unknown Particular Type';
+            }
+        } else {
+            if ($particular->district->underMunicipality) {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+            } else {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+            }
+        }
     }
 
     private function getAttributorParticular($record)
@@ -251,18 +292,28 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
     {
         return $record->number_of_slots > 0 ? $record->{$costProperty} / $record->number_of_slots : 0;
     }
+
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('W1');
-        $drawing->setOffsetX(90);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('W1');
+        $tesda_logo->setOffsetX(120);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('Z1');
+        $tuv_logo->setOffsetX(20);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
 
 

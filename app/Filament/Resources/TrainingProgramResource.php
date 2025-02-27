@@ -417,34 +417,32 @@ class TrainingProgramResource extends Resource
                             CustomQualificationTitleExport::make()
                                 ->withColumns([
                                     Column::make('code')
-                                        ->heading('Qualification Code'),
+                                        ->heading('Qualification Code')
+                                        ->getStateUsing(fn($record) => empty($record->nc_level) ? '-' : $record->code),
                                     Column::make('soc_code')
-                                        ->heading('Schedule of Cost Code'),
+                                        ->heading('SOC Code'),
                                     Column::make('full_coc_ele')
                                         ->heading('Qualification Type'),
                                     Column::make('nc_level')
                                         ->heading('NC Level')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->nc_level ?: '-';
-                                        }),
+                                        ->getStateUsing(fn($record) => empty($record->nc_level) ? '-' : $record->nc_level),
                                     Column::make('title')
                                         ->heading('Qualification Title'),
-                                    Column::make('formatted_scholarship_programs')
+                                    Column::make('scholarshipPrograms.name')
                                         ->heading('Scholarship Programs')
-                                        ->getStateUsing(
-                                            fn($record) => $record->scholarshipPrograms
-                                                ->pluck('name')
-                                                ->implode(', ')
-                                        ),
+                                        ->getStateUsing(function ($record) {
+                                            return $record->scholarshipPrograms->pluck('name')->implode(', ');
+                                        }),
                                     Column::make('tvet.name')
                                         ->heading('TVET Sector'),
                                     Column::make('priority.name')
                                         ->heading('Priority Sector'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - qualification_title_export')
-                        ]),
+                        ])
+
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

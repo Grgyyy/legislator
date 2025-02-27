@@ -19,9 +19,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping, WithDrawings
 {
-    /**
-     * Column definitions for export with their headings.
-     */
+
     private $columns = [
         // 'abscap_id' => 'Absorptive Capacity',
         'fund_source' => 'Fund Source',
@@ -115,6 +113,9 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
             ->when(request()->user()->role === 'RO', function (Builder $query) {
                 $query->where('region_id', request()->user()->region_id);
             })
+            ->whereHas('qualification_title', function ($subQuery) {
+                $subQuery->where('soc', 1);
+            })
             ->where('target_status_id', 1)
             ->whereHas('allocation', function ($query) {
                 $query->whereNotNull('attributor_id');
@@ -128,7 +129,7 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['ATTRIBUTION TARGETS'],
+            ['PENDING ATTRIBUTION TARGETS'],
             [''],
         ];
 
@@ -205,12 +206,32 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
     }
     private function getAttributor($record)
     {
-        return $record->allocation->attributor->name ?? '-';
+        return $record->allocation->attributor ? $record->allocation->attributor->name : '-';
     }
     private function getAttributionParticular($record)
     {
-        $particular = $record?->allocation?->attributorParticular;
-        return $particular?->subParticular?->name ?? '-';
+        $particular = $record->allocation->attributorParticular;
+
+        if (!$particular) {
+            return '-';
+        }
+
+        $district = $particular->district;
+        $districtName = $district ? $district->name : '';
+
+        if ($districtName === 'Not Applicable') {
+            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+            } else {
+                return $particular->subParticular->name ?? '-';
+            }
+        } else {
+            if ($particular->district->underMunicipality) {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+            } else {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+            }
+        }
     }
 
     private function getLegislator($allocation)
@@ -220,13 +241,36 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
 
     private function getParticular($record)
     {
-        $particular = $record->allocation?->particular;
-        return $particular?->subParticular?->name ?? '-';
+        $particular = $record->allocation->particular;
+
+        if (!$particular) {
+            return '-';
+        }
+
+        $district = $particular->district;
+        $districtName = $district ? $district->name : '';
+
+        if ($districtName === 'Not Applicable') {
+            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+            } else {
+                return $particular->subParticular->name ?? '-';
+            }
+        } else {
+            if ($particular->district->underMunicipality) {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+            } else {
+                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+            }
+        }
     }
     private function getFundSource($record)
     {
-        $particular = $record->allocation?->attributorParticular ?? $record->allocation?->particular;
-        return $particular?->subParticular?->fundSource?->name ?? '-';
+        $attributor = $record->allocation->attributor;
+        $particular = $attributor ? $record->allocation->attributorParticular : $record->allocation->particular;
+        $fundSource = $particular->subParticular ? $particular->subParticular->fundSource->name : '-';
+
+        return $fundSource;
     }
 
     private function formatCurrency($amount)
@@ -242,16 +286,25 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
 
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('W1');
-        $drawing->setOffsetX(0);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('V1');
+        $tesda_logo->setOffsetX(170);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('Y1');
+        $tuv_logo->setOffsetX(0);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
 
 
