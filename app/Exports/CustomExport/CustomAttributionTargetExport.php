@@ -31,6 +31,7 @@ class CustomAttributionTargetExport extends ExcelExport implements WithDrawings
                 'Appropriation Type',
                 'Appropriation Year',
 
+                'School ID',
                 'Institution',
                 'Institution Type',
                 'Institution Class',
@@ -40,7 +41,7 @@ class CustomAttributionTargetExport extends ExcelExport implements WithDrawings
                 'Province',
                 'Region',
 
-                'Qualification Code',
+                'SOC Code',
                 'Qualification Title',
                 'Scholarship Program',
 
@@ -51,7 +52,7 @@ class CustomAttributionTargetExport extends ExcelExport implements WithDrawings
                 'Delivery Mode',
                 'Learning Mode',
 
-                'Number of slots',
+                'Slots',
                 'Training Cost',
                 'Cost of Toolkit',
                 'Training Support Fund',

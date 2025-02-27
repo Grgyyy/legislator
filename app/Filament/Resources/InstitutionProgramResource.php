@@ -52,7 +52,7 @@ class InstitutionProgramResource extends Resource
 
     protected static ?string $navigationParentItem = "Institutions";
 
-    protected static ?string $navigationLabel = "Institution's Training Programs";
+    protected static ?string $navigationLabel = "Institution Qualification Titles";
 
     protected static ?int $navigationSort = 4;
 

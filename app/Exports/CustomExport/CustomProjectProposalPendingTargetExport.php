@@ -24,6 +24,7 @@ class CustomProjectProposalPendingTargetExport extends ExcelExport
                 'Appropriation Type',
                 'Appropriation Year',
 
+                'School ID',
                 'Institution',
                 'Institution Type',
                 'Institution Class',
@@ -33,7 +34,7 @@ class CustomProjectProposalPendingTargetExport extends ExcelExport
                 'Province',
                 'Region',
 
-                'Qualification Code',
+                'SOC Code',
                 'Qualification Title',
                 'Scholarship Program',
 
@@ -44,7 +45,7 @@ class CustomProjectProposalPendingTargetExport extends ExcelExport
                 'Delivery Mode',
                 'Learning Mode',
 
-                'Number of slots',
+                'Slots',
                 'Training Cost',
                 'Cost of Toolkit',
                 'Training Support Fund',

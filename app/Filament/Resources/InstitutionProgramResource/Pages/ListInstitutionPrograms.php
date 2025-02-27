@@ -20,7 +20,7 @@ class ListInstitutionPrograms extends ListRecords
 {
     protected static string $resource = InstitutionProgramResource::class;
 
-    protected static ?string $title = "Institution's Qualification Titles";
+    protected static ?string $title = "Institution Qualification Titles";
 
     protected function getCreatedNotificationTitle(): ?string
     {
@@ -30,7 +30,7 @@ class ListInstitutionPrograms extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            '/institution-programs' => "Institution's Qualification Titles",
+            '/institution-programs' => "Institution Qualification Titles",
             'List',
         ];
     }

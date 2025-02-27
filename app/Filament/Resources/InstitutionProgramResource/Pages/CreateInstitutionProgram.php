@@ -15,7 +15,7 @@ class CreateInstitutionProgram extends CreateRecord
 {
     protected static string $resource = InstitutionProgramResource::class;
 
-    protected static ?string $title = 'Associate Qualification Title with Institution';
+    protected static ?string $title = 'Create Institution Qualification Titles';
 
     protected function getRedirectUrl(): string
     {
@@ -38,12 +38,11 @@ class CreateInstitutionProgram extends CreateRecord
                 ->label('Exit'),
         ];
     }
-    
     public function getBreadcrumbs(): array
     {
         return [
-            '/institution-programs' => "Institution's Qualification Titles",
-            'Add',
+            '/institution-programs' => "Institution Qualification Titles",
+            'Create',
         ];
     }
 
