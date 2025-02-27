@@ -23,6 +23,7 @@ use App\Models\SubParticular;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
+use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Auth;
@@ -465,17 +466,27 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                 ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
                     $query->where('province_id', $provinceId)
+                        ->whereNull('district_id')
                         ->where('year', $appropriationYear);
                 })
                 ->first();
         }
-
-        if (!$skillPrograms) {
-            NotificationHandler::handleValidationException('Something went wrong', 'No available skill priority.');
-            return;
-        }
-
+        
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+        if (!$skillsPriority) {
+            $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
+            $province = Province::where('id', $provinceId)->first();
+            $district = District::where('id', $districtId)->first();
+        
+            if (!$trainingProgram || !$province || !$district) {
+                NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
+                return;
+            }
+        
+            $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
 
         return $skillsPriority;
     }

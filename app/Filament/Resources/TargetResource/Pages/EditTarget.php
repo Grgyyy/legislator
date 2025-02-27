@@ -83,7 +83,7 @@ class EditTarget extends EditRecord
 
             $skillPriority = $this->getSkillPriority(
                 $qualificationTitle->trainingProgram->id,
-                $institution->district ?? null,
+                $institution->district,
                 $institution->district->province_id,
                 $data['allocation_year']
             );
@@ -215,6 +215,7 @@ class EditTarget extends EditRecord
             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                 ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
                     $query->where('province_id', $provinceId)
+                        ->whereNull('district_id')
                         ->where('year', $appropriationYear);
                 })
                 ->first();

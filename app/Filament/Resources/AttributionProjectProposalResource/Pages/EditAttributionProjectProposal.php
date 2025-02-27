@@ -292,12 +292,27 @@ class EditAttributionProjectProposal extends EditRecord
             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                 ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
                     $query->where('province_id', $provinceId)
+                        ->whereNull('district_id')
                         ->where('year', $appropriationYear);
                 })
                 ->first();
         }
         
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+        if (!$skillsPriority) {
+            $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
+            $province = Province::where('id', $provinceId)->first();
+            $district = District::where('id', $districtId)->first();
+        
+            if (!$trainingProgram || !$province || !$district) {
+                NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
+                return;
+            }
+        
+            $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
 
         return $skillsPriority;
     }
