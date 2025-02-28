@@ -110,18 +110,18 @@ class AttributionProjectProposalResource extends Resource
                                                 $particular = $allocation->attributorParticular;
                                                 $subParticular = $particular->subParticular->name ?? '';
                                                 $formattedName = '';
-                                
+
                                                 if ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
                                                     $regionName = $particular->district->province->region->name ?? '';
                                                     $formattedName = "{$subParticular} - {$regionName}";
                                                 } else {
                                                     $formattedName = $subParticular;
                                                 }
-                                
+
                                                 return [$particular->id => $formattedName];
                                             })->toArray() ?: ['no_particular' => 'No particulars available'];
                                         }
-                                        
+
                                         return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                     })
                                     ->disabled()
@@ -217,7 +217,7 @@ class AttributionProjectProposalResource extends Resource
                                                     } else {
                                                         $name = $particular->name;
                                                     }
-    
+
                                                     return [$particular->id => $name];
                                                 })->toArray();
 
@@ -470,7 +470,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                                 $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
-                            
+
                                                 if (count($AttributorParticularOptions) === 1) {
                                                     $set('attribution_sender_particular', key($AttributorParticularOptions));
                                                 } else {
@@ -530,18 +530,18 @@ class AttributionProjectProposalResource extends Resource
                                                         $particular = $allocation->attributorParticular;
                                                         $subParticular = $particular->subParticular->name ?? '';
                                                         $formattedName = '';
-                                        
+
                                                         if ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
                                                             $regionName = $particular->district->province->region->name ?? '';
                                                             $formattedName = "{$subParticular} - {$regionName}";
                                                         } else {
                                                             $formattedName = $subParticular;
                                                         }
-                                        
+
                                                         return [$particular->id => $formattedName];
                                                     })->toArray() ?: ['no_particular' => 'No particulars available'];
                                                 }
-                                                
+
                                                 return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_particular')
@@ -568,7 +568,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $scholarshipProgramOptions = $allocations->pluck('scholarship_program.name', 'scholarship_program.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -652,7 +652,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -714,7 +714,7 @@ class AttributionProjectProposalResource extends Resource
 
                                                     return $allocations ?? ['no_legislator' => 'No legislators available'];
                                                 }
-                                                
+
                                                 return ['no_legislator' => 'No legislators available. Complete sender fields first.'];
                                             })
                                             ->disableOptionWhen(fn($value) => $value === 'no_legislator')
@@ -740,7 +740,7 @@ class AttributionProjectProposalResource extends Resource
                                                 $particularOptions = $allocations->pluck('particular.name', 'particular.id')->toArray();
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -833,7 +833,7 @@ class AttributionProjectProposalResource extends Resource
 
                                                 $appropriationYearOptions = $allocations->pluck('year', 'year')->toArray();
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -879,7 +879,7 @@ class AttributionProjectProposalResource extends Resource
                                                 }
 
                                                 $appropriationType = self::getAppropriationTypeOptions($state);
-                            
+
                                                 if (count($appropriationType) === 1) {
                                                     $set('attribution_appropriation_type', key($appropriationType));
                                                 }
@@ -1325,7 +1325,8 @@ class AttributionProjectProposalResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed())
+                         ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
                     Action::make('viewHistory')
                         ->label('View History')
@@ -1809,7 +1810,7 @@ class AttributionProjectProposalResource extends Resource
 
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
-                                        
+
                                     Column::make('qualification_title_soc_code')
                                         ->heading('SOC Code'),
 
@@ -2138,7 +2139,7 @@ class AttributionProjectProposalResource extends Resource
 
         return 0;
     }
-    
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();

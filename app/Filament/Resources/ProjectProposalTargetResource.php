@@ -125,7 +125,7 @@ class ProjectProposalTargetResource extends Resource
                                                 $regionName = $particular->district?->province?->region ?? '';
                                                 return [$particular->id => "{$subParticularName} - {$regionName->name}"];
                                             }
-                                            
+
                                             return [];
                                         })->toArray();
 
@@ -851,7 +851,7 @@ class ProjectProposalTargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                    TextColumn::make('tvi.name')
+                TextColumn::make('tvi.name')
                     ->label('Institution')
                     ->sortable()
                     ->searchable(query: function ($query, $search) {
@@ -991,7 +991,8 @@ class ProjectProposalTargetResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed())
+                        ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
                     Action::make('viewHistory')
                         ->label('View History')
@@ -1461,7 +1462,7 @@ class ProjectProposalTargetResource extends Resource
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
 
-                                        Column::make('qualification_title_soc_code')
+                                    Column::make('qualification_title_soc_code')
                                         ->heading('SOC Code'),
 
                                     Column::make('qualification_title_name')
@@ -1715,7 +1716,7 @@ class ProjectProposalTargetResource extends Resource
 
         return 'Location information not available';
     }
-    
+
     protected static function getQualificationTitles($scholarshipProgramId, $tviId, $year)
     {
         $tvi = Tvi::with(['district.province'])->find($tviId);
@@ -1735,7 +1736,7 @@ class ProjectProposalTargetResource extends Resource
         }
 
         $schoPro = ScholarshipProgram::where('id', $scholarshipProgramId)->first();
-      
+
         $scholarshipPrograms = ScholarshipProgram::where('code', $schoPro->code)
             ->pluck('id')
             ->toArray();
