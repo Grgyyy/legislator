@@ -152,7 +152,7 @@ class InstitutionProgramResource extends Resource
                     ])
                     ->disablePlaceholderSelection()
                     ->extraAttributes(['style' => 'width: 125px;'])
-            
+
                 // ->formatStateUsing(function ($state) {
                 //     if (!$state) {
                 //         return $state;
@@ -182,8 +182,9 @@ class InstitutionProgramResource extends Resource
                                     Select::make('region_id')
                                         ->label('Region')
                                         ->placeholder('All')
-                                        ->options(Region::whereNot('name', 'Not Applicable')
-                                            ->pluck('name', 'id')
+                                        ->options(
+                                            Region::whereNot('name', 'Not Applicable')
+                                                ->pluck('name', 'id')
                                         )
                                         ->afterStateUpdated(function (callable $set, $state) {
                                             $set('province_id', null);
@@ -209,9 +210,9 @@ class InstitutionProgramResource extends Resource
                                 ->searchable()
                                 ->options(function ($get) {
                                     $provinceId = $get('province_id');
-                            
+
                                     $districtIds = District::where('province_id', $provinceId)->pluck('id');
-                            
+
                                     return Tvi::whereIn('district_id', $districtIds)
                                         ->whereNot('name', 'Not Applicable')
                                         ->get()
@@ -219,31 +220,31 @@ class InstitutionProgramResource extends Resource
                                 })
                                 ->reactive(),
 
-                                Select::make('training_program_id')
+                            Select::make('training_program_id')
                                 ->label('Qualification Title')
                                 ->placeholder('All')
                                 ->searchable()
                                 ->options(function ($get) {
                                     $provinceId = $get('province_id');
                                     $tviId = $get('tvi_id');
-                            
+
                                     if (!$provinceId) {
                                         return [];
                                     }
-                            
+
                                     $districtIds = District::where('province_id', $provinceId)
                                         ->pluck('id');
-                            
+
                                     $tviIds = Tvi::whereIn('district_id', $districtIds)
                                         ->pluck('id');
-                            
+
                                     if ($tviId) {
                                         $tviIds = [$tviId];
                                     }
-                            
+
                                     return TrainingProgram::whereHas('tvis', function ($query) use ($tviIds) {
-                                            $query->whereIn('tvi_id', $tviIds);
-                                        })
+                                        $query->whereIn('tvi_id', $tviIds);
+                                    })
                                         ->get()
                                         ->mapWithKeys(function ($program) {
                                             return [$program->id => "{$program->soc_code} - {$program->title}"];
@@ -395,10 +396,10 @@ class InstitutionProgramResource extends Resource
                                             return $title;
                                         }),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - institution_qualification_title_export')
+                                ->withFilename(date('m-d-Y') . ' - Institution Qualification Title Export')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

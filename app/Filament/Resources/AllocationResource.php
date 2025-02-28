@@ -72,8 +72,8 @@ class AllocationResource extends Resource
                         return Legislator::whereHas('particular.subParticular', function ($query) {
                             $query->whereIn('name', ['House Speaker', 'RO Regular', 'CO Regular']);
                         })
-                        ->pluck('name', 'id')
-                        ->toArray() ?: ['no_legislator' => 'No legislators available'];
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_legislator' => 'No legislators available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                     ->afterStateUpdated(function (callable $set, $state) {
@@ -682,10 +682,10 @@ class AllocationResource extends Resource
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - allocation_export')
+                                ->withFilename(date('m-d-Y') . ' - Allocation Export')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

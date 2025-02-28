@@ -125,7 +125,7 @@ class AbddResource extends Resource
                                     Column::make('name')
                                         ->heading('ABDD Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - abdd_sector_export')
+                                ->withFilename(date('m-d-Y') . ' - ABDD Sector Export')
                         ]),
                 ]),
             ]);

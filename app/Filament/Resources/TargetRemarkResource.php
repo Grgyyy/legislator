@@ -72,7 +72,7 @@ class TargetRemarkResource extends Resource
                                         ->heading('Remarks')
 
                                 ])
-                                ->withFilename(now()->format('m-d-Y') . ' - target_remarks_export'),
+                                ->withFilename(now()->format('m-d-Y') . ' - Target Remarks Export'),
                         ]),
 
                 ]),

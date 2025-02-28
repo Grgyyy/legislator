@@ -78,7 +78,7 @@ class ListPriorities extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new PriorityExport, now()->format('m-d-Y') . ' - ' . 'ten_priority_sector_export.xlsx');
+                        return Excel::download(new PriorityExport, now()->format('m-d-Y') . ' - ' . 'Top Ten Priority Sector Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

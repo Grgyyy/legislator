@@ -65,7 +65,7 @@ class ListMunicipalities extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new MunicipalityExport, now()->format('m-d-Y') . ' - ' . 'municipality_export.xlsx');
+                        return Excel::download(new MunicipalityExport, now()->format('m-d-Y') . ' - ' . 'Municipality Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

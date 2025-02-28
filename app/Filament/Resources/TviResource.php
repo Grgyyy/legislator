@@ -473,7 +473,7 @@ class TviResource extends Resource
                                     Column::make('address')
                                         ->heading('Address'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - institution_export')
+                                ->withFilename(date('m-d-Y') . ' - Institution Export')
                         ]),
 
                 ])

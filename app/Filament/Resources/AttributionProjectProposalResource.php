@@ -2008,7 +2008,7 @@ class AttributionProjectProposalResource extends Resource
                                         ->heading('Status'),
 
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Attribution Project Proposal Targets')
+                                ->withFilename(date('m-d-Y') . ' - Pending Attribution Project Proposal Targets')
                         ]),
                 ])
                     ->label('Select Action'),

@@ -125,7 +125,7 @@ class TvetResource extends Resource
                                     Column::make('name')
                                         ->heading('TVET Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - tvet_sector_export')
+                                ->withFilename(date('m-d-Y') . ' - TVET Sector Export')
                         ]),
                 ]),
             ]);

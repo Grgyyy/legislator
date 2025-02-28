@@ -133,7 +133,7 @@ class TargetReport extends ListRecords
                 ->url(route('export.targets', ['allocationId' => $this->allocationId]))
                 ->action(function () {
                     try {
-                        return Excel::download(new TargetReportExport($this->allocationId), 'target_report_export.xlsx');
+                        return Excel::download(new TargetReportExport($this->allocationId), 'Target Report Export.xlsx');
                     } catch (\Throwable $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', $e->getMessage());
                     }

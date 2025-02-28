@@ -351,11 +351,11 @@ class ToolkitResource extends Resource
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - toolkits_export')
+                                ->withFilename(date('m-d-Y') . ' - Toolkit Export')
                         ])
 
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

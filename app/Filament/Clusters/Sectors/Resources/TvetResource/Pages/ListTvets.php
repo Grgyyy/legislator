@@ -77,7 +77,7 @@ class ListTvets extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new TvetExport, now()->format('m-d-Y') . ' - ' . 'tvet_sector_export.xlsx');
+                        return Excel::download(new TvetExport, now()->format('m-d-Y') . ' - ' . 'TVET Sector Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

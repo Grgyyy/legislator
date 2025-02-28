@@ -128,10 +128,10 @@ class RegionResource extends Resource
                                         ->heading('Region')
                                         ->getStateUsing(fn($record) => $record->name ?: '-'),
                                 ])
-                                ->withFilename(now()->format('m-d-Y') . ' - region_export'),
+                                ->withFilename(now()->format('m-d-Y') . ' - Region Export'),
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

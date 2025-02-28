@@ -438,7 +438,7 @@ class TrainingProgramResource extends Resource
                                     Column::make('priority.name')
                                         ->heading('Priority Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - qualification_title_export')
+                                ->withFilename(date('m-d-Y') . ' - Qualification Title Export')
                         ])
 
                 ])

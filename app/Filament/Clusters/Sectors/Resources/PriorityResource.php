@@ -125,7 +125,7 @@ class PriorityResource extends Resource
                                     Column::make('name')
                                         ->heading('Top Ten Priority Sectors'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - top_ten_priority_sector_export')
+                                ->withFilename(date('m-d-Y') . ' - Top Ten Priority Sector Export')
                         ]),
                 ]),
             ]);

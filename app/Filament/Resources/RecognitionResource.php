@@ -119,7 +119,7 @@ class RecognitionResource extends Resource
                                     Column::make('name')
                                         ->heading('Recognition Title'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - recognition_export')
+                                ->withFilename(date('m-d-Y') . ' - Recognition Title Export')
                         ]),
                 ])
                 ->label('Select Action'),

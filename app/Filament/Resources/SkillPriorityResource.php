@@ -359,7 +359,7 @@ class SkillPriorityResource extends Resource
                                         ->heading('Year')
                                         ->formatStateUsing(fn($record) => $record->year ?? '-'),
                                 ])
-                                ->withFilename(date('Y-m-d') . '-skill_priority_export.xlsx'),
+                                ->withFilename(date('Y-m-d') . ' - Skills Priority Export.xlsx'),
                         ])
 
                 ])

@@ -107,18 +107,18 @@ class CompliantTargetsResource extends Resource
                                             $particular = $allocation->attributorParticular;
                                             $subParticular = $particular->subParticular->name ?? '';
                                             $formattedName = '';
-                            
+
                                             if ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
                                                 $regionName = $particular->district->province->region->name ?? '';
                                                 $formattedName = "{$subParticular} - {$regionName}";
                                             } else {
                                                 $formattedName = $subParticular;
                                             }
-                            
+
                                             return [$particular->id => $formattedName];
                                         })->toArray() ?: ['no_particular' => 'No particulars available'];
                                     }
-                                    
+
                                     return ['no_particular' => 'No particulars available. Select an attributor first.'];
                                 })
                                 ->disabled()
@@ -139,8 +139,8 @@ class CompliantTargetsResource extends Resource
                                             $query->where('attributor_id', $legislatorId)
                                                 ->when($particularId, fn($q) => $q->where('attributor_particular_id', $particularId));
                                         })
-                                        ->pluck('name', 'id')
-                                        ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
+                                            ->pluck('name', 'id')
+                                            ->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available'];
                                     }
 
                                     return ScholarshipProgram::pluck('name', 'id')->toArray() ?: ['no_scholarship_program' => 'No scholarship programs available. Select an Attributor and Particular first.'];
@@ -175,7 +175,7 @@ class CompliantTargetsResource extends Resource
                                             ->pluck('legislator.name', 'legislator.id')
                                             ->toArray();
 
-                                            return $allocations ?? ['no_legislator' => 'No legislators available'];
+                                        return $allocations ?? ['no_legislator' => 'No legislators available'];
                                     } else {
                                         $scholarshipProgramId = $get('attribution_scholarship_program');
 
@@ -207,27 +207,27 @@ class CompliantTargetsResource extends Resource
                                             ->with('subParticular')
                                             ->get();
 
-                                            $particularOptions = $particulars->mapWithKeys(function ($particular) {
-                                                if ($particular->subParticular) {
-                                                    if ($particular->subParticular->name === 'Party-list') {
-                                                        $name = $particular->subParticular->name . '-' . $particular->partylist->name;
-                                                    } elseif ($particular->subParticular->name === 'District') {
-                                                        if ($particular->district->underMunicipality) {
-                                                            $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->underMunicipality->name . ', ' . $particular->district->province->name;
-                                                        } else {
-                                                            $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->province->name;
-                                                        }
-                                                    } elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                                                        $name = $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
+                                        $particularOptions = $particulars->mapWithKeys(function ($particular) {
+                                            if ($particular->subParticular) {
+                                                if ($particular->subParticular->name === 'Party-list') {
+                                                    $name = $particular->subParticular->name . '-' . $particular->partylist->name;
+                                                } elseif ($particular->subParticular->name === 'District') {
+                                                    if ($particular->district->underMunicipality) {
+                                                        $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->underMunicipality->name . ', ' . $particular->district->province->name;
                                                     } else {
-                                                        $name = $particular->subParticular->name;
+                                                        $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->province->name;
                                                     }
+                                                } elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
+                                                    $name = $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
                                                 } else {
-                                                    $name = $particular->name;
+                                                    $name = $particular->subParticular->name;
                                                 }
+                                            } else {
+                                                $name = $particular->name;
+                                            }
 
-                                                return [$particular->id => $name];
-                                            })->toArray();
+                                            return [$particular->id => $name];
+                                        })->toArray();
 
                                         return $particularOptions ?: ['no_particular' => 'No particulars available'];
                                     }
@@ -314,7 +314,7 @@ class CompliantTargetsResource extends Resource
                                 ->disabled()
                                 ->dehydrated()
                                 ->validationAttribute('qualification title'),
-                            
+
                             Select::make('abdd_id')
                                 ->label('ABDD Sector')
                                 ->required()
@@ -473,7 +473,7 @@ class CompliantTargetsResource extends Resource
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $particular = $record->allocation->attributorParticular;
-                        
+
                         if (!$particular) {
                             return '-';
                         }
@@ -547,7 +547,7 @@ class CompliantTargetsResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                    TextColumn::make('tvi.name')
+                TextColumn::make('tvi.name')
                     ->label('Institution')
                     ->sortable()
                     ->searchable(query: function ($query, $search) {
@@ -745,13 +745,13 @@ class CompliantTargetsResource extends Resource
                                     .custom-scrollbar::-webkit-scrollbar {
                                         width: 8px;
                                     }
-                    
+
                                     .custom-scrollbar::-webkit-scrollbar-thumb {
                                         background: #777;
                                         border-radius: 4px;
                                     }
                                 </style>
-                    
+
                                 <div class='max-h-96 overflow-y-auto pb-2 custom-scrollbar flex flex-col-reverse'>
                                     " . ($commentsHtml ?: "<p class='text-gray-500 dark:text-gray-400 text-center p-4 mt-4'>No comments yet.</p>") . "
                                 </div>
@@ -773,7 +773,7 @@ class CompliantTargetsResource extends Resource
 
                             $comment->readByUsers()->create(['user_id' => auth()->id()]);
                         }),
-                    
+
                     DeleteAction::make()
                         ->action(function ($record) {
                             $record->delete();
@@ -781,7 +781,7 @@ class CompliantTargetsResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete compliant target')),
-                
+
                     RestoreAction::make()
                         ->action(function ($record) {
                             $record->restore();
@@ -814,7 +814,7 @@ class CompliantTargetsResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected targets have been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore compliant target ')),
-                        
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
@@ -861,7 +861,7 @@ class CompliantTargetsResource extends Resource
                                                 return $particular->subParticular->name;
                                             }
                                         }),
-                                        
+
                                     Column::make('allocation.legislator.name')
                                         ->heading('Legislator'),
 
@@ -923,7 +923,7 @@ class CompliantTargetsResource extends Resource
 
                                     Column::make('tvi.district.province.region.name')
                                         ->heading('Region'),
-                                        
+
                                     Column::make('qualification_title_soc_code')
                                         ->heading('SOC Code'),
 
@@ -1121,7 +1121,7 @@ class CompliantTargetsResource extends Resource
                                         ->heading('Status'),
 
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Compliant Targets')
+                                ->withFilename(date('m-d-Y') . ' - Compliant Targets Export')
                         ]),
                 ])
                     ->label('Select Action'),
@@ -1296,7 +1296,7 @@ class CompliantTargetsResource extends Resource
 
         return 0;
     }
-    
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
@@ -1365,7 +1365,7 @@ class CompliantTargetsResource extends Resource
 
         return $query;
     }
-    
+
     public static function canViewAny(): bool
     {
         /** @var \App\Models\User|null $user */

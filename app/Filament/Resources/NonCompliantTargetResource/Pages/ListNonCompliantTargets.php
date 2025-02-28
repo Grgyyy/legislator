@@ -28,7 +28,7 @@ class ListNonCompliantTargets extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new NonCompliantExport, now()->format('m-d-Y') . ' - ' . 'non_compliant_target_export.xlsx');
+                        return Excel::download(new NonCompliantExport, now()->format('m-d-Y') . ' - ' . 'Non-compliant Targets Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

@@ -202,10 +202,10 @@ class InstitutionRecognitionResource extends Resource
                                         ->heading('Expiration Date')
                                         ->formatStateUsing(fn($state) => Carbon::parse($state)->format('F j, Y')),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - institution_recognition_export')
+                                ->withFilename(date('m-d-Y') . ' - Institution Recognition Export')
                         ])
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

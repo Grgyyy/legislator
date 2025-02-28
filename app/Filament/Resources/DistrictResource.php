@@ -249,7 +249,7 @@ class DistrictResource extends Resource
                                     Column::make('province.region.name')
                                         ->heading('Region')
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - district_export')
+                                ->withFilename(date('m-d-Y') . ' - District Export')
                         ])
                 ])
                     ->label('Select Action'),

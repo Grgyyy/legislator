@@ -29,6 +29,6 @@ Route::get('/export-targets/{allocationId}', function ($allocationId) {
         return redirect()->route('some.error.page')->with('error', 'Invalid Allocation ID');
     }
 
-    return Excel::download(new TargetReportExport($allocationId), 'target_report_export.xlsx');
+    return Excel::download(new TargetReportExport($allocationId), 'Target Report Export.xlsx');
 })->name('export.targets');
 

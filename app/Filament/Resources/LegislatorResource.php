@@ -221,7 +221,7 @@ class LegislatorResource extends Resource
                                     Column::make('status.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - legislator_export'),
+                                ->withFilename(date('m-d-Y') . ' - Legislator Export'),
                         ])
                 ])
                     ->label('Select Action'),

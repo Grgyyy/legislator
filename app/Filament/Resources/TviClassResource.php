@@ -130,10 +130,10 @@ class TviClassResource extends Resource
                                     Column::make('tviType.name')
                                         ->heading('Institution Type'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - institution_class_a_export')
+                                ->withFilename(date('m-d-Y') . ' - Institution Class A Export')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

@@ -39,7 +39,7 @@ class ListTargetRemarks extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new TargetRemarksExport, now()->format('m-d-Y') . ' - ' . 'target_remarks_export.xlsx');
+                        return Excel::download(new TargetRemarksExport, now()->format('m-d-Y') . ' - ' . 'Target Remarks Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {
