@@ -28,6 +28,7 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         'appropriation_type' => 'Appropriation Type',
         'allocation.year' => 'Appropriation Year',
 
+        'tvi.school_id' => 'School ID',
         'institution_name' => 'Institution',
         'institution_type' => 'Institution Type',
         'institution_class' => 'Institution Class',
@@ -37,7 +38,7 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         'municipality.province.name' => 'Province',
         'region_name' => 'Region',
 
-        'qualification_title_code' => 'Qualification Code',
+        'qualification_title_code' => 'SOC Code',
         'qualification_title_name' => 'Qualification Title',
         'allocation.scholarship_program.name' => 'Scholarship Program',
 
@@ -74,9 +75,55 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         'total_amount' => 'Total PCC',
         'targetStatus.desc' => 'Status',
     ];
+    // public function query()
+    // {
+    //     return Target::query()
+    //         ->with(['qualification_title'])
+    //         ->select([
+    //             'allocation_id',
+    //             'district_id',
+    //             'municipality_id',
+    //             'tvi_id',
+    //             'tvi_name',
+    //             'abdd_id',
+    //             'qualification_title_id',
+    //             'qualification_title_code',
+    //             'qualification_title_soc_code',
+    //             'qualification_title_name',
+    //             'delivery_mode_id',
+    //             'learning_mode_id',
+    //             'number_of_slots',
+    //             'total_training_cost_pcc',
+    //             'total_cost_of_toolkit_pcc',
+    //             'total_training_support_fund',
+    //             'total_assessment_fee',
+    //             'total_entrepreneurship_fee',
+    //             'total_new_normal_assisstance',
+    //             'total_accident_insurance',
+    //             'total_book_allowance',
+    //             'total_uniform_allowance',
+    //             'total_misc_fee',
+    //             'total_amount',
+    //             'appropriation_type',
+    //             'target_status_id',
+    //         ])
+    //         ->addSelect([
+    //             'total_amount_per_slot' => DB::raw('CASE WHEN number_of_slots = 0 THEN NULL ELSE total_amount / number_of_slots END')
+    //         ])
+    //         ->when(request()->user()->role === 'RO', function (Builder $query) {
+    //             $query->where('region_id', request()->user()->region_id);
+    //         })
+    //         ->where('target_status_id', 1)
+    //         ->whereDoesntHave('allocation', function ($query) {
+    //             $query->whereNotNull('attributor_id');
+    //         });
+
+    // }
+
     public function query()
     {
-        return Target::query()
+        $user = request()->user();
+        $query = Target::query()
             ->with(['qualification_title'])
             ->select([
                 'allocation_id',
@@ -109,14 +156,62 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             ->addSelect([
                 'total_amount_per_slot' => DB::raw('CASE WHEN number_of_slots = 0 THEN NULL ELSE total_amount / number_of_slots END')
             ])
-            ->when(request()->user()->role === 'RO', function (Builder $query) {
-                $query->where('region_id', request()->user()->region_id);
-            })
             ->where('target_status_id', 1)
             ->whereDoesntHave('allocation', function ($query) {
                 $query->whereNotNull('attributor_id');
             });
 
+        if ($user) {
+            $userRegionIds = $user->region()->pluck('regions.id')->toArray();
+            $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
+            $userDistrictIds = $user->district()->pluck('districts.id')->toArray();
+            $userMunicipalityIds = $user->municipality()->pluck('municipalities.id')->toArray();
+
+            $isPO_DO = !empty($userProvinceIds) || !empty($userMunicipalityIds) || !empty($userDistrictIds);
+            $isRO = !empty($userRegionIds);
+
+            if ($isPO_DO) {
+                $query->where(function ($q) use ($userProvinceIds, $userDistrictIds, $userMunicipalityIds) {
+                    if (!empty($userDistrictIds) && !empty($userMunicipalityIds)) {
+                        $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
+                            $districtQuery->whereIn('districts.id', $userDistrictIds);
+                        })->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
+                            $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
+                        });
+                    } elseif (!empty($userMunicipalityIds)) {
+                        $q->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
+                            $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
+                        });
+                    } elseif (!empty($userDistrictIds)) {
+                        $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
+                            $districtQuery->whereIn('districts.id', $userDistrictIds);
+                        });
+                    } elseif (!empty($userProvinceIds)) {
+                        $q->whereHas('district.province', function ($districtQuery) use ($userProvinceIds) {
+                            $districtQuery->whereIn('province_id', $userProvinceIds);
+                        });
+
+                        $q->orWhereHas('municipality.province', function ($municipalityQuery) use ($userProvinceIds) {
+                            $municipalityQuery->whereIn('province_id', $userProvinceIds);
+                        });
+                    }
+                });
+            }
+
+            if ($isRO) {
+                $query->where(function ($q) use ($userRegionIds) {
+                    $q->orWhereHas('district.province', function ($provinceQuery) use ($userRegionIds) {
+                        $provinceQuery->whereIn('region_id', $userRegionIds);
+                    });
+
+                    $q->orWhereHas('municipality.province', function ($provinceQuery) use ($userRegionIds) {
+                        $provinceQuery->whereIn('region_id', $userRegionIds);
+                    });
+                });
+            }
+        }
+
+        return $query;
     }
 
     public function headings(): array
@@ -141,6 +236,7 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             $record->appropriation_type,
             $record->allocation->year,
 
+            $record->tvi->school_id ?? '-',
             $record->tvi->name ?? '-',
             $record->tvi->tviType->name ?? '-',
             $record->tvi->tviClass->name ?? '-',
@@ -150,8 +246,8 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
 
-            $record->qualification_title_code ?? '-',
-            $this->getQualificationTitle($record),
+            $record->qualification_title_soc_code ?? '-',
+            $record->qualification_title_name ?? '-',
 
 
             $record->allocation->scholarship_program->name ?? '-',
@@ -190,27 +286,15 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             $record->targetStatus->desc ?? '-',
         ];
     }
-
-    private function getQualificationTitle($record)
-    {
-        $qualificationCode = $record->qualification_title_soc_code ?? '-';
-        $qualificationName = $record->qualification_title_name ?? '-';
-
-        return "{$qualificationCode} - {$qualificationName}";
-    }
-
     private function getFundSource($record)
     {
         return $record->allocation->particular->subParticular->fundSource->name ?? '-';
     }
     private function getParticular($record)
     {
-        $legislator = $record->allocation->legislator;
-        $particulars = $legislator->particular;
-
-        $particular = $particulars->first();
+        $particular = $record->allocation->particular;
         $district = $particular->district;
-        $municipality = $district ? $district->underMunicipality : null;
+        $municipality = $district ? $district->underMunicipality : '';
 
         $districtName = $district ? $district->name : '';
         $provinceName = $district ? $district->province->name : '';
@@ -223,13 +307,14 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
                 return $particular->subParticular->name ?? '-';
             }
         } else {
-            if ($municipality === '') {
+            if ($municipalityName === '') {
                 return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
             } else {
                 return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
             }
         }
     }
+
     private function formatCurrency($amount)
     {
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
@@ -246,8 +331,8 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         $tesda_logo->setDescription('TESDA Logo');
         $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
         $tesda_logo->setHeight(80);
-        $tesda_logo->setCoordinates('U1');
-        $tesda_logo->setOffsetX(130);
+        $tesda_logo->setCoordinates('V1');
+        $tesda_logo->setOffsetX(120);
         $tesda_logo->setOffsetY(0);
 
         $tuv_logo = new Drawing();
@@ -255,7 +340,7 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         $tuv_logo->setDescription('TUV Logo');
         $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
         $tuv_logo->setHeight(65);
-        $tuv_logo->setCoordinates('X1');
+        $tuv_logo->setCoordinates('Y1');
         $tuv_logo->setOffsetX(20);
         $tuv_logo->setOffsetY(8);
 

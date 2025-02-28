@@ -87,8 +87,8 @@ class CustomPendingTargetExport extends ExcelExport implements WithDrawings
         $tesda_logo->setDescription('TESDA Logo');
         $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
         $tesda_logo->setHeight(80);
-        $tesda_logo->setCoordinates('U1');
-        $tesda_logo->setOffsetX(130);
+        $tesda_logo->setCoordinates('V1');
+        $tesda_logo->setOffsetX(120);
         $tesda_logo->setOffsetY(0);
 
         $tuv_logo = new Drawing();
@@ -96,13 +96,12 @@ class CustomPendingTargetExport extends ExcelExport implements WithDrawings
         $tuv_logo->setDescription('TUV Logo');
         $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
         $tuv_logo->setHeight(65);
-        $tuv_logo->setCoordinates('X1');
+        $tuv_logo->setCoordinates('Y1');
         $tuv_logo->setOffsetX(20);
         $tuv_logo->setOffsetY(8);
 
         return [$tesda_logo, $tuv_logo];
     }
-
 
     public function registerEvents(): array
     {

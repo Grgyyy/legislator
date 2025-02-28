@@ -29,7 +29,7 @@ class ListAttributionProjectProposals extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus')
-                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+                ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
             Action::make('TargetImport')
                 ->label('Import')
@@ -58,7 +58,7 @@ class ListAttributionProjectProposals extends ListRecords
                         }
                     }
                 })
-                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+                ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
             Action::make('AttributionProjectProposalExport')
                 ->label('Export')

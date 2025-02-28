@@ -46,7 +46,7 @@ class Target extends Model
         'is_new',
         'seen_by_users'
     ];
-    
+
     public function seenByUsers()
     {
         return $this->belongsToMany(User::class, 'target_seen_by')
@@ -74,19 +74,19 @@ class Target extends Model
             if (!$userId || !$target->id) {
                 return;
             }
-        
+
             $sessionKey = "viewed_target_{$target->id}_user_{$userId}";
-        
+
             if ($target->seenByUsers()->where('user_id', $userId)->exists()) {
                 return;
             }
-        
+
             if (!session()->has($sessionKey)) {
                 session()->put($sessionKey, true);
             } else {
                 $target->seenByUsers()->attach($userId);
                 session()->forget($sessionKey);
-        
+
                 $totalUsers = User::count();
                 if ($target->seenByUsers()->count() >= $totalUsers) {
                     $target->update(['is_new' => false]);
@@ -98,7 +98,7 @@ class Target extends Model
             $userId = auth()->id();
 
             $target->seenByUsers()->detach();
-            
+
             if ($userId) {
                 $target->seenByUsers()->attach($userId);
             }

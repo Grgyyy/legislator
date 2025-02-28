@@ -77,13 +77,66 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
 
     public function query(): Builder
     {
-        return Target::query()
+        $user = request()->user();
+        $query = Target::query()
             ->select($this->getSelectColumns())
             ->addSelect(['total_amount_per_slot' => $this->calculatePerSlot('total_amount')])
             ->when(request()->user()->role === 'RO', function (Builder $query) {
                 $query->where('region_id', request()->user()->region_id);
             })
             ->where('target_status_id', 2);
+
+        if ($user) {
+            $userRegionIds = $user->region()->pluck('regions.id')->toArray();
+            $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
+            $userDistrictIds = $user->district()->pluck('districts.id')->toArray();
+            $userMunicipalityIds = $user->municipality()->pluck('municipalities.id')->toArray();
+
+            $isPO_DO = !empty($userProvinceIds) || !empty($userMunicipalityIds) || !empty($userDistrictIds);
+            $isRO = !empty($userRegionIds);
+
+            if ($isPO_DO) {
+                $query->where(function ($q) use ($userProvinceIds, $userDistrictIds, $userMunicipalityIds) {
+                    if (!empty($userDistrictIds) && !empty($userMunicipalityIds)) {
+                        $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
+                            $districtQuery->whereIn('districts.id', $userDistrictIds);
+                        })->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
+                            $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
+                        });
+                    } elseif (!empty($userMunicipalityIds)) {
+                        $q->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
+                            $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
+                        });
+                    } elseif (!empty($userDistrictIds)) {
+                        $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
+                            $districtQuery->whereIn('districts.id', $userDistrictIds);
+                        });
+                    } elseif (!empty($userProvinceIds)) {
+                        $q->whereHas('district.province', function ($districtQuery) use ($userProvinceIds) {
+                            $districtQuery->whereIn('province_id', $userProvinceIds);
+                        });
+
+                        $q->orWhereHas('municipality.province', function ($municipalityQuery) use ($userProvinceIds) {
+                            $municipalityQuery->whereIn('province_id', $userProvinceIds);
+                        });
+                    }
+                });
+            }
+
+            if ($isRO) {
+                $query->where(function ($q) use ($userRegionIds) {
+                    $q->orWhereHas('district.province', function ($provinceQuery) use ($userRegionIds) {
+                        $provinceQuery->whereIn('region_id', $userRegionIds);
+                    });
+
+                    $q->orWhereHas('municipality.province', function ($provinceQuery) use ($userRegionIds) {
+                        $provinceQuery->whereIn('region_id', $userRegionIds);
+                    });
+                });
+            }
+        }
+
+        return $query;
     }
 
     public function headings(): array
@@ -158,13 +211,10 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
         ]);
     }
 
-    // Helper method to fetch fund source
     private function getFundSource($record): string
     {
         return $record->allocation->particular->subParticular->fundSource->name ?? 'No fund source available';
     }
-
-    // Helper method to fetch particular details
     private function getQualificationTitle($record)
     {
         $qualificationCode = $record->qualification_title_soc_code ?? '';
@@ -207,33 +257,23 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
     {
         return $allocation->legislator->name ?? '-';
     }
-
-
-    /**
-     * Retrieve the particular from the record.
-     */
     private function getParticular($record)
     {
         $particulars = $record->allocation->legislator->particular;
         return $particulars->isNotEmpty() ? ($particulars->first()->subParticular->name ?? '-') : '-';
     }
 
-    // Helper method to format currency values
     private function formatCurrency($amount): string
     {
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
         return $formatter->formatCurrency($amount, 'PHP');
     }
-
-    // Helper method to calculate cost per slot
     private function calculateCostPerSlot($record, string $costProperty): float
     {
         $totalCost = $record->{$costProperty};
         $slots = $record->number_of_slots;
         return $slots > 0 ? $totalCost / $slots : 0;
     }
-
-    // Helper method to map costs per slot
     private function mapCostPerSlot($record): array
     {
         $costProperties = [
@@ -252,8 +292,6 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
 
         return array_map(fn($property) => $this->formatCurrency($this->calculateCostPerSlot($record, $property)), $costProperties);
     }
-
-    // Helper method to define select columns for the query
     private function getSelectColumns(): array
     {
         return [
@@ -283,8 +321,6 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
             'target_status_id',
         ];
     }
-
-    // Helper method to calculate slot-based values
     private function calculatePerSlot(string $field)
     {
         return DB::raw("CASE WHEN number_of_slots = 0 THEN NULL ELSE {$field} / number_of_slots END");

@@ -33,7 +33,7 @@ class ListAttributionTargets extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New')
-                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+                ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
 
             Action::make('AttributionTargetImport')
@@ -63,7 +63,7 @@ class ListAttributionTargets extends ListRecords
                         }
                     }
                 })
-                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+                ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
             Action::make('AdminAttributionTargetImport')
                 ->label('Admin Import')

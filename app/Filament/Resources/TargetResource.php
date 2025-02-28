@@ -927,7 +927,7 @@ class TargetResource extends Resource
                     ->getStateUsing(fn($record) => $record->learningMode->name ?? '-'),
 
                 TextColumn::make('number_of_slots')
-                    ->label('Slots')
+                    ->label('No. of Slots')
                     ->sortable()
                     ->toggleable(),
 
@@ -1451,7 +1451,7 @@ class TargetResource extends Resource
                                         ->getStateUsing(fn($record) => $record->learningMode->name ?? '-'),
 
                                     Column::make('number_of_slots')
-                                        ->heading('Slots'),
+                                        ->heading('No. of Slots'),
 
                                     Column::make('training_cost_per_slot')
                                         ->heading('Training Cost')
