@@ -71,31 +71,22 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
             $record->legislator->name ?? '-',
             $this->getParticularName($record),
             $record->scholarship_program->name ?? '-',
-            $this->formatCurrency($record->allocation),
-            $this->formatCurrency($record->admin_cost),
-            $this->formatCurrency($record->allocation - $record->admin_cost),
-            $this->formatCurrency($this->getExpenses($record)),
-            $this->formatCurrency($record->balance),
-            $record->year,
+            $record->allocation ?? '-',
+            $record->admin_cost ?? '-',
+            $record->allocation - $record->admin_cost ?? '-',
+            $this->getExpenses($record),
+            $record->balance ?? '-',
+            $record->year ?? '-',
         ];
-    }
-
-
-    protected function formatCurrency($value): string
-    {
-        $amount = is_numeric($value) ? (float) $value : 0;
-
-        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-
-        return $formatter->formatCurrency($amount, 'PHP');
     }
 
     public function getExpenses($record)
     {
-        $fundsExpended = $record->target->sum('total_amount');
+        $fundsExpended = optional($record->target)->sum('total_amount');
 
-        return (float) $fundsExpended;
+        return $fundsExpended !== null ? (float) $fundsExpended : '-';
     }
+
     protected function getParticularName($record): string
     {
         $particular = $record->particular;
@@ -173,6 +164,14 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
     {
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
+
+        $currencyColumns = ['G', 'H', 'I', 'J', 'K'];
+
+        foreach ($currencyColumns as $col) {
+            $sheet->getStyle("{$col}6:{$col}1000")
+                ->getNumberFormat()
+                ->setFormatCode('"₱ "#,##0.00');
+        }
 
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");

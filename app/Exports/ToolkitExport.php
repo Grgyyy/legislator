@@ -2,10 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\QualificationTitle;
 use App\Models\Toolkit;
-use App\Models\TrainingProgram;
-use function Filament\Support\format_money;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithDrawings;
@@ -22,11 +19,10 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings, WithDrawings
 {
     private array $columns = [
-        'qualificationTitles.trainingProgram.title' => 'Qualification Titles',
-        'lot_name' => 'Lot Name',
-        'price_per_toolkit' => 'Price per Toolkit',
+        'qualificationTitles.trainingProgram.title' => 'SOC Title',
         'available_number_of_toolkits' => 'Available Number of Toolkits Per Lot',
         'number_of_toolkits' => 'No. of Toolkits',
+        'price_per_toolkit' => 'Price per Toolkit',
         'total_abc_per_lot' => 'Total ABC per Lot',
         'number_of_items_per_toolkit' => 'No. of Items per Toolkit',
         'year' => 'Year',
@@ -42,12 +38,12 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
     {
         return [
             $this->getQualificationTitle($record),
-            $record->lot_name ?? '-',
-            $this->formatCurrency($record->price_per_toolkit) ?? '-',
-            $this->formatCurrency($record->available_number_of_toolkits) ?? '-',
-            $this->formatCurrency($record->number_of_toolkits) ?? '-',
-            $this->formatCurrency($record->total_abc_per_lot) ?? '-',
-            $this->formatCurrency($record->number_of_items_per_toolkit) ?? '-',
+            // $record->lot_name ?? '-',
+            $record->available_number_of_toolkits ?? '-',
+            $record->number_of_toolkits ?? '-',
+            $record->price_per_toolkit ?? '-',
+            $record->total_abc_per_lot ?? '-',
+            $record->number_of_items_per_toolkit ?? '-',
             $record->year ?? '-',
         ];
     }
@@ -63,13 +59,6 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
 
         return array_merge($customHeadings, [array_values($this->columns)]);
     }
-
-    private function formatCurrency($amount)
-    {
-        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-        return $formatter->formatCurrency($amount, 'PHP');
-    }
-
     private function getQualificationTitle($record)
     {
         $qualificationTitles = $record->qualificationTitles->map(
@@ -109,6 +98,14 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
     {
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
+
+        $currencyColumns = ['B', 'C', 'D', 'E', 'F'];
+
+        foreach ($currencyColumns as $col) {
+            $sheet->getStyle("{$col}6:{$col}1000")
+                ->getNumberFormat()
+                ->setFormatCode('"₱ "#,##0.00');
+        }
 
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");

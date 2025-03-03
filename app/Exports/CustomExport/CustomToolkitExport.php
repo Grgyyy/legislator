@@ -22,7 +22,7 @@ class CustomToolkitExport extends ExcelExport implements WithDrawings
             ['Central Office (CO)'],
             ['TOOLKITS'],
             [''],
-            ['Qualification Titles', 'Lot Name', 'Price per Toolkit', 'Available Number of Toolkits Per Lot', 'No. of Toolkits', 'Total ABC per Lot', 'No. of Items per Toolkit', 'Year'],
+            ['SOC Title', 'Available Number of Toolkits Per Lot', 'No. of Toolkits', 'Price per Toolkit', 'Total ABC per Lot', 'No. of Items per Toolkit', 'Year'],
         ];
     }
 

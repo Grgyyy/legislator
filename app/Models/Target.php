@@ -113,7 +113,7 @@ class Target extends Model
     //     static::created(function ($target) {
     //         $creatorId = auth()->id();
     //         $target->update([
-    //             'is_new' => true, 
+    //             'is_new' => true,
     //             'seen_by_users' => json_encode([$creatorId])
     //         ]);
     //     });

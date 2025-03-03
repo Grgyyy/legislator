@@ -55,22 +55,23 @@ class ScheduleOfCostExport implements FromQuery, WithMapping, WithStyles, WithHe
             $record->trainingProgram->soc_code ?? '-',
             $record->trainingProgram->title ?? '-',
             $record->scholarshipProgram->name ?? '-',
-            $this->formatCurrency($record->training_cost_pcc) ?? '-',
-            $this->formatCurrency($record->training_support_fund) ?? '-',
-            $this->formatCurrency($record->assessment_fee) ?? '-',
-            $this->formatCurrency($record->entrepreneurship_fee) ?? '-',
-            $this->formatCurrency($record->new_normal_assistance) ?? '-',
-            $this->formatCurrency($record->accident_insurance) ?? '-',
-            $this->formatCurrency($record->book_allowance) ?? '-',
-            $this->formatCurrency($record->uniform_allowance) ?? '-',
-            $this->formatCurrency($record->misc_fee) ?? '-',
-            $this->formatCurrency(optional($record->toolkits->first())->price_per_toolkit) ?? '-',
-            $this->formatCurrency($record->pcc) ?? '-',
+            $record->training_cost_pcc ?? 0, // Keep numeric
+            $record->training_support_fund ?? 0,
+            $record->assessment_fee ?? 0,
+            $record->entrepreneurship_fee ?? 0,
+            $record->new_normal_assistance ?? 0,
+            $record->accident_insurance ?? 0,
+            $record->book_allowance ?? 0,
+            $record->uniform_allowance ?? 0,
+            $record->misc_fee ?? 0,
+            optional($record->toolkits->first())->price_per_toolkit ?? 0,
+            $record->pcc ?? 0,
             $record->days_duration ? $record->days_duration . ' days' : '-',
             $record->hours_duration ? $record->hours_duration . ' hrs' : '-',
             $record->status->desc ?? '-',
         ];
     }
+
 
     public function headings(): array
     {
@@ -82,12 +83,6 @@ class ScheduleOfCostExport implements FromQuery, WithMapping, WithStyles, WithHe
         ];
 
         return array_merge($customHeadings, [array_values($this->columns)]);
-    }
-
-    private function formatCurrency($amount)
-    {
-        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-        return $formatter->formatCurrency($amount, 'PHP');
     }
 
     public function drawings()
@@ -117,6 +112,15 @@ class ScheduleOfCostExport implements FromQuery, WithMapping, WithStyles, WithHe
     {
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
+
+
+        $currencyColumns = ['E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
+
+        foreach ($currencyColumns as $col) {
+            $sheet->getStyle("{$col}6:{$col}1000")
+                ->getNumberFormat()
+                ->setFormatCode('"₱ "#,##0.00');
+        }
 
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");

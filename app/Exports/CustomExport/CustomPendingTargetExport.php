@@ -51,7 +51,7 @@ class CustomPendingTargetExport extends ExcelExport implements WithDrawings
                 'Delivery Mode',
                 'Learning Mode',
 
-                'Slots',
+                'No. of Slots',
                 'Training Cost',
                 'Cost of Toolkit',
                 'Training Support Fund',

@@ -28,6 +28,7 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
         'appropriation_type' => 'Appropriation Type',
         'allocation.year' => 'Appropriation Year',
 
+        'tvi.school_id' => 'School ID',
         'institution_name' => 'Institution',
         'institution_type' => 'Institution Type',
         'institution_class' => 'Institution Class',
@@ -37,16 +38,16 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
         'municipality.province.name' => 'Province',
         'region_name' => 'Region',
 
-        'qualification_code' => 'Qualification Code',
-        'qualification_name' => 'Qualification Title',
-        'scholarship_program' => 'Scholarship Program',
+        'qualification_title_code' => 'SOC Code',
+        'qualification_title_name' => 'Qualification Title',
+        'allocation.scholarship_program.name' => 'Scholarship Program',
 
-        'abdd_sector' => 'ABDD Sector',
-        'tvet_sector' => 'TVET Sector',
-        'priority_sector' => 'Priority Sector',
+        'abdd.name' => 'ABDD Sector',
+        'qualification_title.trainingProgram.tvet.name' => 'TVET Sector',
+        'qualification_title.trainingProgram.priority.name' => 'Priority Sector',
 
-        'delivery_mode' => 'Delivery Mode',
-        'learning_mode' => 'Learning Mode',
+        'deliveryMode.name' => 'Delivery Mode',
+        'learningMode.name' => 'Learning Mode',
 
         'number_of_slots' => 'No. of Slots',
         'training_cost_per_slot' => 'Training Cost',
@@ -79,11 +80,50 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
     {
         $user = request()->user();
         $query = Target::query()
-            ->select($this->getSelectColumns())
-            ->addSelect(['total_amount_per_slot' => $this->calculatePerSlot('total_amount')])
+            ->select([
+                'abscap_id',
+                'allocation_id',
+                'district_id',
+                'municipality_id',
+                'tvi_id',
+                'tvi_name',
+                'abdd_id',
+                'qualification_title_id',
+                'qualification_title_code',
+                'qualification_title_soc_code',
+                'qualification_title_name',
+                'delivery_mode_id',
+                'learning_mode_id',
+                'number_of_slots',
+                'total_training_cost_pcc',
+                'total_cost_of_toolkit_pcc',
+                'total_training_support_fund',
+                'total_assessment_fee',
+                'total_entrepreneurship_fee',
+                'total_new_normal_assisstance',
+                'total_accident_insurance',
+                'total_book_allowance',
+                'total_uniform_allowance',
+                'total_misc_fee',
+                'total_amount',
+                'appropriation_type',
+                'target_status_id',
+            ])
+            ->addSelect([
+                'total_amount_per_slot' => DB::raw('CASE WHEN number_of_slots = 0 THEN NULL ELSE total_amount / number_of_slots END')
+            ])
             ->when(request()->user()->role === 'RO', function (Builder $query) {
                 $query->where('region_id', request()->user()->region_id);
             })
+            ->with([
+                'attributionAllocation.legislator.particular.subParticular',
+                'allocation.legislator.particular.subParticular',
+                'municipality.province.region',
+                'tvi.tviType',
+                'qualification_title.trainingProgram.tvet',
+                'qualification_title.trainingProgram.priority',
+                'allocation.scholarship_program',
+            ])
             ->where('target_status_id', 2);
 
         if ($user) {
@@ -162,6 +202,7 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
             $record->appropriation_type,
             $record->allocation->year,
 
+            $record->tvi->school_id ?? '-',
             $record->tvi->name ?? '-',
             $record->tvi->tviType->name ?? '-',
             $record->tvi->tviClass->name ?? '-',
@@ -171,8 +212,10 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
 
-            $record->qualification_title_code ?? '-',
-            $this->getQualificationTitle($record),
+            $record->qualification_title_soc_code ?? '-',
+            $record->qualification_title_name ?? '-',
+
+
             $record->allocation->scholarship_program->name ?? '-',
 
             $record->abdd->name ?? '-',
@@ -183,29 +226,29 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
             $record->learningMode->name ?? '-',
 
             $record->number_of_slots,
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_support_fund')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_assessment_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_entrepreneurship_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_new_normal_assisstance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_accident_insurance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_book_allowance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_uniform_allowance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_misc_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_amount')),
+            $this->calculateCostPerSlot($record, 'total_training_cost_pcc'),
+            $this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'),
+            $this->calculateCostPerSlot($record, 'total_training_support_fund'),
+            $this->calculateCostPerSlot($record, 'total_assessment_fee'),
+            $this->calculateCostPerSlot($record, 'total_entrepreneurship_fee'),
+            $this->calculateCostPerSlot($record, 'total_new_normal_assisstance'),
+            $this->calculateCostPerSlot($record, 'total_accident_insurance'),
+            $this->calculateCostPerSlot($record, 'total_book_allowance'),
+            $this->calculateCostPerSlot($record, 'total_uniform_allowance'),
+            $this->calculateCostPerSlot($record, 'total_misc_fee'),
+            $this->calculateCostPerSlot($record, 'total_amount'),
 
-            $this->formatCurrency($record->total_training_cost_pcc),
-            $this->formatCurrency($record->total_cost_of_toolkit_pcc),
-            $this->formatCurrency($record->total_training_support_fund),
-            $this->formatCurrency($record->total_assessment_fee),
-            $this->formatCurrency($record->total_entrepreneurship_fee),
-            $this->formatCurrency($record->total_new_normal_assisstance),
-            $this->formatCurrency($record->total_accident_insurance),
-            $this->formatCurrency($record->total_book_allowance),
-            $this->formatCurrency($record->total_uniform_allowance),
-            $this->formatCurrency($record->total_misc_fee),
-            $this->formatCurrency($record->total_amount),
+            $record->total_training_cost_pcc ?? 0,
+            $record->total_cost_of_toolkit_pcc ?? 0,
+            $record->total_training_support_fund ?? 0,
+            $record->total_assessment_fee ?? 0,
+            $record->total_entrepreneurship_fee ?? 0,
+            $record->total_new_normal_assisstance ?? 0,
+            $record->total_accident_insurance ?? 0,
+            $record->total_book_allowance ?? 0,
+            $record->total_uniform_allowance ?? 0,
+            $record->total_misc_fee ?? 0,
+            $record->total_amount ?? 0,
 
             $record->targetStatus->desc ?? '-',
         ]);
@@ -262,64 +305,10 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
         $particulars = $record->allocation->legislator->particular;
         return $particulars->isNotEmpty() ? ($particulars->first()->subParticular->name ?? '-') : '-';
     }
-
-    private function formatCurrency($amount): string
+    private function calculateCostPerSlot($record, $costColumn)
     {
-        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-        return $formatter->formatCurrency($amount, 'PHP');
-    }
-    private function calculateCostPerSlot($record, string $costProperty): float
-    {
-        $totalCost = $record->{$costProperty};
-        $slots = $record->number_of_slots;
-        return $slots > 0 ? $totalCost / $slots : 0;
-    }
-    private function mapCostPerSlot($record): array
-    {
-        $costProperties = [
-            'total_training_cost_pcc',
-            'total_cost_of_toolkit_pcc',
-            'total_training_support_fund',
-            'total_assessment_fee',
-            'total_entrepreneurship_fee',
-            'total_new_normal_assisstance',
-            'total_accident_insurance',
-            'total_book_allowance',
-            'total_uniform_allowance',
-            'total_misc_fee',
-            'total_amount',
-        ];
-
-        return array_map(fn($property) => $this->formatCurrency($this->calculateCostPerSlot($record, $property)), $costProperties);
-    }
-    private function getSelectColumns(): array
-    {
-        return [
-            'abscap_id',
-            'allocation_id',
-            'district_id',
-            'municipality_id',
-            'tvi_id',
-            'tvi_name',
-            'abdd_id',
-            'qualification_title_id',
-            'qualification_title_code',
-            'qualification_title_name',
-            'number_of_slots',
-            'total_training_cost_pcc',
-            'total_cost_of_toolkit_pcc',
-            'total_training_support_fund',
-            'total_assessment_fee',
-            'total_entrepreneurship_fee',
-            'total_new_normal_assisstance',
-            'total_accident_insurance',
-            'total_book_allowance',
-            'total_uniform_allowance',
-            'total_misc_fee',
-            'total_amount',
-            'appropriation_type',
-            'target_status_id',
-        ];
+        $cost = $record->$costColumn ?? 0;
+        return ($record->number_of_slots > 0) ? number_format($cost / $record->number_of_slots, 2, '.', '') : '0.00';
     }
     private function calculatePerSlot(string $field)
     {
@@ -353,6 +342,16 @@ class CompliantTargetExport implements FromQuery, WithHeadings, WithStyles, With
     {
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
+
+        $startColumnIndex = Coordinate::columnIndexFromString('Z');
+        $endColumnIndex = Coordinate::columnIndexFromString('AU');
+
+        for ($colIndex = $startColumnIndex; $colIndex <= $endColumnIndex; $colIndex++) {
+            $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getStyle("{$colLetter}6:{$colLetter}1000")
+                ->getNumberFormat()
+                ->setFormatCode('"₱ "#,##0.00');
+        }
 
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");

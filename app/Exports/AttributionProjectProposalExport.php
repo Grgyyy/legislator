@@ -31,6 +31,7 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
         'appropriation_type' => 'Appropriation Type',
         'allocation.year' => 'Appropriation Year',
 
+        'tvi.school_id' => 'School ID',
         'institution_name' => 'Institution',
         'institution_type' => 'Institution Type',
         'institution_class' => 'Institution Class',
@@ -40,16 +41,16 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
         'municipality.province.name' => 'Province',
         'region_name' => 'Region',
 
-        'qualification_code' => 'Qualification Code',
-        'qualification_name' => 'Qualification Title',
-        'scholarship_program' => 'Scholarship Program',
+        'qualification_title_code' => 'SOC Code',
+        'qualification_title_name' => 'Qualification Title',
+        'allocation.scholarship_program.name' => 'Scholarship Program',
 
-        'abdd_sector' => 'ABDD Sector',
-        'tvet_sector' => 'TVET Sector',
-        'priority_sector' => 'Priority Sector',
+        'abdd.name' => 'ABDD Sector',
+        'qualification_title.trainingProgram.tvet.name' => 'TVET Sector',
+        'qualification_title.trainingProgram.priority.name' => 'Priority Sector',
 
-        'delivery_mode' => 'Delivery Mode',
-        'learning_mode' => 'Learning Mode',
+        'deliveryMode.name' => 'Delivery Mode',
+        'learningMode.name' => 'Learning Mode',
 
         'number_of_slots' => 'No. of Slots',
         'training_cost_per_slot' => 'Training Cost',
@@ -75,7 +76,7 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
         'total_uniform_allowance' => 'Total Uniform Allowance',
         'total_misc_fee' => 'Total Miscellaneous Fee',
         'total_amount' => 'Total PCC',
-        'status' => 'Status',
+        'targetStatus.desc' => 'Status',
     ];
 
     public function query()
@@ -203,6 +204,7 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
             $record->appropriation_type,
             $record->allocation->year,
 
+            $record->tvi->school_id ?? '-',
             $record->tvi->name ?? '-',
             $record->tvi->tviType->name ?? '-',
             $record->tvi->tviClass->name ?? '-',
@@ -212,8 +214,10 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
 
-            $record->qualification_title_code ?? '-',
-            $this->getQualificationTitle($record),
+            $record->qualification_title_soc_code ?? '-',
+            $record->qualification_title_name ?? '-',
+
+
             $record->allocation->scholarship_program->name ?? '-',
 
             $record->abdd->name ?? '-',
@@ -224,29 +228,29 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
             $record->learningMode->name ?? '-',
 
             $record->number_of_slots,
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_support_fund')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_assessment_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_entrepreneurship_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_new_normal_assisstance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_accident_insurance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_book_allowance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_uniform_allowance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_misc_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_amount')),
+            $this->calculateCostPerSlot($record, 'total_training_cost_pcc'),
+            $this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'),
+            $this->calculateCostPerSlot($record, 'total_training_support_fund'),
+            $this->calculateCostPerSlot($record, 'total_assessment_fee'),
+            $this->calculateCostPerSlot($record, 'total_entrepreneurship_fee'),
+            $this->calculateCostPerSlot($record, 'total_new_normal_assisstance'),
+            $this->calculateCostPerSlot($record, 'total_accident_insurance'),
+            $this->calculateCostPerSlot($record, 'total_book_allowance'),
+            $this->calculateCostPerSlot($record, 'total_uniform_allowance'),
+            $this->calculateCostPerSlot($record, 'total_misc_fee'),
+            $this->calculateCostPerSlot($record, 'total_amount'),
 
-            $this->formatCurrency($record->total_training_cost_pcc),
-            $this->formatCurrency($record->total_cost_of_toolkit_pcc),
-            $this->formatCurrency($record->total_training_support_fund),
-            $this->formatCurrency($record->total_assessment_fee),
-            $this->formatCurrency($record->total_entrepreneurship_fee),
-            $this->formatCurrency($record->total_new_normal_assisstance),
-            $this->formatCurrency($record->total_accident_insurance),
-            $this->formatCurrency($record->total_book_allowance),
-            $this->formatCurrency($record->total_uniform_allowance),
-            $this->formatCurrency($record->total_misc_fee),
-            $this->formatCurrency($record->total_amount),
+            $record->total_training_cost_pcc ?? 0,
+            $record->total_cost_of_toolkit_pcc ?? 0,
+            $record->total_training_support_fund ?? 0,
+            $record->total_assessment_fee ?? 0,
+            $record->total_entrepreneurship_fee ?? 0,
+            $record->total_new_normal_assisstance ?? 0,
+            $record->total_accident_insurance ?? 0,
+            $record->total_book_allowance ?? 0,
+            $record->total_uniform_allowance ?? 0,
+            $record->total_misc_fee ?? 0,
+            $record->total_amount ?? 0,
             $record->targetStatus->desc ?? '-',
         ];
     }
@@ -336,14 +340,10 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
             }
         }
     }
-    private function formatCurrency($amount)
+    private function calculateCostPerSlot($record, $costColumn)
     {
-        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-        return $formatter->formatCurrency($amount, 'PHP');
-    }
-    private function calculateCostPerSlot($record, $costProperty)
-    {
-        return $record->number_of_slots > 0 ? $record->{$costProperty} / $record->number_of_slots : 0;
+        $cost = $record->$costColumn ?? 0;
+        return ($record->number_of_slots > 0) ? number_format($cost / $record->number_of_slots, 2, '.', '') : '0.00';
     }
 
     public function drawings()
@@ -374,6 +374,16 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
     {
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
+
+        $startColumnIndex = Coordinate::columnIndexFromString('Z');
+        $endColumnIndex = Coordinate::columnIndexFromString('AU');
+
+        for ($colIndex = $startColumnIndex; $colIndex <= $endColumnIndex; $colIndex++) {
+            $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getStyle("{$colLetter}6:{$colLetter}1000")
+                ->getNumberFormat()
+                ->setFormatCode('"₱ "#,##0.00');
+        }
 
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");

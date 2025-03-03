@@ -48,7 +48,7 @@ class CustomProjectProposalPendingTargetExport extends ExcelExport
                 'Delivery Mode',
                 'Learning Mode',
 
-                'Slots',
+                'No. of Slots',
                 'Training Cost',
                 'Cost of Toolkit',
                 'Training Support Fund',

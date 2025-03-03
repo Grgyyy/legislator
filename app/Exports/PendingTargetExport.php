@@ -75,50 +75,6 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
         'total_amount' => 'Total PCC',
         'targetStatus.desc' => 'Status',
     ];
-    // public function query()
-    // {
-    //     return Target::query()
-    //         ->with(['qualification_title'])
-    //         ->select([
-    //             'allocation_id',
-    //             'district_id',
-    //             'municipality_id',
-    //             'tvi_id',
-    //             'tvi_name',
-    //             'abdd_id',
-    //             'qualification_title_id',
-    //             'qualification_title_code',
-    //             'qualification_title_soc_code',
-    //             'qualification_title_name',
-    //             'delivery_mode_id',
-    //             'learning_mode_id',
-    //             'number_of_slots',
-    //             'total_training_cost_pcc',
-    //             'total_cost_of_toolkit_pcc',
-    //             'total_training_support_fund',
-    //             'total_assessment_fee',
-    //             'total_entrepreneurship_fee',
-    //             'total_new_normal_assisstance',
-    //             'total_accident_insurance',
-    //             'total_book_allowance',
-    //             'total_uniform_allowance',
-    //             'total_misc_fee',
-    //             'total_amount',
-    //             'appropriation_type',
-    //             'target_status_id',
-    //         ])
-    //         ->addSelect([
-    //             'total_amount_per_slot' => DB::raw('CASE WHEN number_of_slots = 0 THEN NULL ELSE total_amount / number_of_slots END')
-    //         ])
-    //         ->when(request()->user()->role === 'RO', function (Builder $query) {
-    //             $query->where('region_id', request()->user()->region_id);
-    //         })
-    //         ->where('target_status_id', 1)
-    //         ->whereDoesntHave('allocation', function ($query) {
-    //             $query->whereNotNull('attributor_id');
-    //         });
-
-    // }
 
     public function query()
     {
@@ -260,29 +216,29 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             $record->learningMode->name ?? '-',
 
             $record->number_of_slots,
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_support_fund')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_assessment_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_entrepreneurship_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_new_normal_assisstance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_accident_insurance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_book_allowance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_uniform_allowance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_misc_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_amount')),
+            $this->calculateCostPerSlot($record, 'total_training_cost_pcc'),
+            $this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'),
+            $this->calculateCostPerSlot($record, 'total_training_support_fund'),
+            $this->calculateCostPerSlot($record, 'total_assessment_fee'),
+            $this->calculateCostPerSlot($record, 'total_entrepreneurship_fee'),
+            $this->calculateCostPerSlot($record, 'total_new_normal_assisstance'),
+            $this->calculateCostPerSlot($record, 'total_accident_insurance'),
+            $this->calculateCostPerSlot($record, 'total_book_allowance'),
+            $this->calculateCostPerSlot($record, 'total_uniform_allowance'),
+            $this->calculateCostPerSlot($record, 'total_misc_fee'),
+            $this->calculateCostPerSlot($record, 'total_amount'),
 
-            $this->formatCurrency($record->total_training_cost_pcc),
-            $this->formatCurrency($record->total_cost_of_toolkit_pcc),
-            $this->formatCurrency($record->total_training_support_fund),
-            $this->formatCurrency($record->total_assessment_fee),
-            $this->formatCurrency($record->total_entrepreneurship_fee),
-            $this->formatCurrency($record->total_new_normal_assisstance),
-            $this->formatCurrency($record->total_accident_insurance),
-            $this->formatCurrency($record->total_book_allowance),
-            $this->formatCurrency($record->total_uniform_allowance),
-            $this->formatCurrency($record->total_misc_fee),
-            $this->formatCurrency($record->total_amount),
+            $record->total_training_cost_pcc ?? 0,
+            $record->total_cost_of_toolkit_pcc ?? 0,
+            $record->total_training_support_fund ?? 0,
+            $record->total_assessment_fee ?? 0,
+            $record->total_entrepreneurship_fee ?? 0,
+            $record->total_new_normal_assisstance ?? 0,
+            $record->total_accident_insurance ?? 0,
+            $record->total_book_allowance ?? 0,
+            $record->total_uniform_allowance ?? 0,
+            $record->total_misc_fee ?? 0,
+            $record->total_amount ?? 0,
             $record->targetStatus->desc ?? '-',
         ];
     }
@@ -314,16 +270,13 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
             }
         }
     }
+    private function calculateCostPerSlot($record, $costColumn)
+    {
+        $cost = $record->$costColumn ?? 0;
+        return ($record->number_of_slots > 0) ? number_format($cost / $record->number_of_slots, 2, '.', '') : '0.00';
+    }
 
-    private function formatCurrency($amount)
-    {
-        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-        return $formatter->formatCurrency($amount, 'PHP');
-    }
-    private function calculateCostPerSlot($record, $costProperty)
-    {
-        return $record->number_of_slots > 0 ? $record->{$costProperty} / $record->number_of_slots : 0;
-    }
+
     public function drawings()
     {
         $tesda_logo = new Drawing();
@@ -351,6 +304,16 @@ class PendingTargetExport implements FromQuery, WithHeadings, WithStyles, WithMa
     {
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
+
+        $startColumnIndex = Coordinate::columnIndexFromString('X');
+        $endColumnIndex = Coordinate::columnIndexFromString('AS');
+
+        for ($colIndex = $startColumnIndex; $colIndex <= $endColumnIndex; $colIndex++) {
+            $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getStyle("{$colLetter}6:{$colLetter}1000")
+                ->getNumberFormat()
+                ->setFormatCode('"₱ "#,##0.00');
+        }
 
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");

@@ -34,6 +34,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -536,31 +537,31 @@ class QualificationTitleResource extends Resource
                                         ->heading('Scholarship Program'),
                                     Column::make('training_cost_pcc')
                                         ->heading('Training Cost PCC')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('training_support_fund')
                                         ->heading('Training Support Fund')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('assessment_fee')
                                         ->heading('Assessment Fee')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('entrepreneurship_fee')
                                         ->heading('Entrepreneurship Fee')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('new_normal_assistance')
                                         ->heading('New Normal Assistance')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('accident_insurance')
                                         ->heading('Accidental Insurance')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('book_allowance')
                                         ->heading('Book Allowance')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('uniform_allowance')
                                         ->heading('Uniform Allowance')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('misc_fee')
                                         ->heading('Miscellaneous Fee')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('toolkit.price_per_toolkit')
                                         ->heading('Cost of Toolkits PCC')
                                         ->getStateUsing(function ($record) {
@@ -570,7 +571,7 @@ class QualificationTitleResource extends Resource
                                         }),
                                     Column::make('pcc')
                                         ->heading('Total PCC (w/o Toolkits)')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('days_duration')
                                         ->heading('Training Days'),
                                     Column::make('hours_duration')
