@@ -177,22 +177,26 @@ class TviImport implements ToModel, WithHeadingRow
 
         $province = Province::find($provinceId);
 
-        $query = District::where('name', $districtName)
-            ->where('province_id', $provinceId);
-
-        if ($region->name === "NCR" && $province->name !== 'Not Applicable') {
-            if (empty($municipalityId)) {
-                throw new \Exception("Municipality is required for districts in NCR.");
-            }
-            $query->where('municipality_id', $municipalityId);
+        if (!$province) {
+            throw new \Exception("Province with ID {$provinceId} does not exist.");
         }
 
-        $districtRecord = $query->first();
+        $districtRecord = District::where('name', $districtName)
+            ->where('province_id', $provinceId)
+            ->where('municipality_id', $municipalityId)
+            ->first();
 
         if (!$districtRecord) {
-            throw new \Exception("The district '{$districtName}' does not exist in the '{$province->name}' and '{$region->name}'");
+            $districtRecord = District::where('name', $districtName)
+                ->where('province_id', $provinceId)
+                ->first();
+        }
+
+        if (!$districtRecord) {
+            throw new \Exception("The district '{$districtName}' does not exist in the province '{$province->name}' and region '{$region->name}'.");
         }
 
         return $districtRecord->id;
     }
+
 }

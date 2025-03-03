@@ -37,26 +37,40 @@ class CreateDistrict extends CreateRecord
 
     protected function handleRecordCreation(array $data): District
     {
-        $this->validateUniqueDistrict($data);
-
-        $data['name'] = Helper::capitalizeWords($data['name']);
-
-        $district = DB::transaction(fn() => District::create([
-            'name' => $data['name'],
-            'code' => $data['code'],
-            'municipality_id' => $data['municipality_id'] ?? null,
-            'province_id' => $data['province_id'],
-        ]));
-
-        if (!empty($data['municipality_id'])) {
-            $municipality = Municipality::find($data['municipality_id']);
-            $district->municipality()->attach($municipality->id);
+        try {
+            $this->validateUniqueDistrict($data);
+    
+            $data['name'] = Helper::capitalizeWords($data['name']);
+    
+            return DB::transaction(function () use ($data) {
+                if ($data['huc']) {
+                    $district = District::create([
+                        'name' => $data['name'],
+                        'code' => $data['code'],
+                        'municipality_id' => $data['municipality_id'],
+                        'province_id' => $data['province_id']
+                    ]);
+    
+                    if ($municipality = Municipality::find($data['municipality_id'])) {
+                        $district->municipality()->attach($municipality->id);
+                    }
+                } else {
+                    $district = District::create([
+                        'name' => $data['name'],
+                        'code' => $data['code'],
+                        'municipality_id' => null,
+                        'province_id' => $data['province_id']
+                    ]);
+                }
+    
+                NotificationHandler::sendSuccessNotification('Created', 'District has been created successfully.');
+    
+                return $district;
+            });
+        } catch (\Exception $e) {   
+            NotificationHandler::handleValidationException('Error', 'Failed to create district. Please try again.');
         }
-
-        NotificationHandler::sendSuccessNotification('Created', 'District has been created successfully.');
-
-        return $district;
-    }
+    }    
 
     protected function validateUniqueDistrict($data)
     {

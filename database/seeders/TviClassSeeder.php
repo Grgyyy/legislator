@@ -23,6 +23,7 @@ class TviClassSeeder extends Seeder
             ['name' => 'TVI'],
             ['name' => 'NGO'],
             ['name' => 'Farm School'],
+            ['name' => 'Enterprise'],
         ];
 
         foreach ($classes as $class) {

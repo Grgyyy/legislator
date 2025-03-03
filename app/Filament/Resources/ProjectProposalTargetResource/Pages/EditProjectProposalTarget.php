@@ -222,6 +222,7 @@ class EditProjectProposalTarget extends EditRecord
             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                 ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
                     $query->where('province_id', $provinceId)
+                        ->whereNull('district_id')
                         ->where('year', $appropriationYear);
                 })
                 ->first();
@@ -242,7 +243,6 @@ class EditProjectProposalTarget extends EditRecord
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-
 
         return $skillsPriority;
     }

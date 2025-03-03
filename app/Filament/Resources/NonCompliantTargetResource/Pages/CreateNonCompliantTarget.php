@@ -66,28 +66,23 @@ class CreateNonCompliantTarget extends CreateRecord
     {
         try {
             return DB::transaction(function () use ($data) {
-
                 $targetRecord = Target::find($data['target_id']);
                 if (!$targetRecord) {
-                    $message = "Target not found.";
-                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                    throw new \Exception("Target not found.");
                 }
 
                 $nonCompliantRecord = TargetStatus::where('desc', self::COMPLIANT_STATUS_DESC)->first();
                 if (!$nonCompliantRecord) {
-                    $message = "Compliant status not found.";
-                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                    throw new \Exception("Compliant status not found.");
                 }
 
                 if ($targetRecord->targetStatus->desc === 'Non-Compliant') {
-                    $message = "Target already marked as Non-Compliant.";
-                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                    throw new \Exception("Target already marked as Non-Compliant.");
                 }
 
                 $this->adjustResources($targetRecord, $data);
 
-                $targetRecord->target_status_id = $nonCompliantRecord->id;
-                $targetRecord->save();
+                $targetRecord->update(['target_status_id' => $nonCompliantRecord->id]);
 
                 $this->logTargetHistory($targetRecord, $data);
 
@@ -108,8 +103,10 @@ class CreateNonCompliantTarget extends CreateRecord
         } catch (\Exception $e) {
             $message = "Failed to update target: " . $e->getMessage();
             NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new \Exception("Failed to update target: " . $e->getMessage());
         }
     }
+
 
     private function sendSuccessNotification(string $message): void
     {
@@ -204,6 +201,7 @@ class CreateNonCompliantTarget extends CreateRecord
             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                 ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
                     $query->where('province_id', $provinceId)
+                        ->whereNull('district_id')
                         ->where('year', $appropriationYear);
                 })
                 ->first();

@@ -189,6 +189,7 @@ class CreateProjectProposalTarget extends CreateRecord
             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                 ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
                     $query->where('province_id', $provinceId)
+                        ->whereNull('district_id')
                         ->where('year', $appropriationYear);
                 })
                 ->first();

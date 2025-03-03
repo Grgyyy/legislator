@@ -77,7 +77,7 @@ class CreateTarget extends CreateRecord
 
                 $skillPriority = $this->getSkillPriority(
                     $qualificationTitle->trainingProgram->id,
-                    $institution->district ?? null,
+                    $institution->district_id,
                     $institution->district->province_id,
                     $targetData['allocation_year']
                 );
@@ -180,6 +180,7 @@ class CreateTarget extends CreateRecord
             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                 ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
                     $query->where('province_id', $provinceId)
+                        ->whereNull('district_id')
                         ->where('year', $appropriationYear);
                 })
                 ->first();

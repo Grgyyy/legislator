@@ -66,17 +66,23 @@ class EditSkillPriority extends EditRecord
                 return null;
             }
 
-            $existingRecord = SkillPriority::where('province_id', $data['province_id'])
+            $exists = SkillPriority::where('province_id', $data['province_id'])
                 ->where('qualification_title', $data['qualification_title'])
                 ->where('year', $data['year'])
                 ->where('status_id', $status->id)
-                ->where('id', '!=', $record->id)
-                ->first();
-
+                ->where('id', '!=', $record->id);
+            
+            if ($data['district_id'] !== null) {
+                $exists->where('district_id', $data['district_id']);
+            }
+            
+            $existingRecord = $exists->first();
+            
             if ($existingRecord) {
                 NotificationHandler::sendErrorNotification('Record Exists', 'A record for this Province, Training Program, and Year already exists.');
-                return $record;
+                return response()->json(['error' => 'Record already exists'], 422);
             }
+        
 
             $difference = $data['total_slots'] - $record['total_slots'];
             $new_available_slots = $record['available_slots'] + $difference;
