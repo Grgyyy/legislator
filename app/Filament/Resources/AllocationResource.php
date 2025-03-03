@@ -72,8 +72,8 @@ class AllocationResource extends Resource
                         return Legislator::whereHas('particular.subParticular', function ($query) {
                             $query->whereIn('name', ['House Speaker', 'RO Regular', 'CO Regular']);
                         })
-                        ->pluck('name', 'id')
-                        ->toArray() ?: ['no_legislator' => 'No legislators available'];
+                            ->pluck('name', 'id')
+                            ->toArray() ?: ['no_legislator' => 'No legislators available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                     ->afterStateUpdated(function (callable $set, $state) {
@@ -654,10 +654,10 @@ class AllocationResource extends Resource
                                         ->heading('Scholarship Program'),
                                     Column::make('allocation')
                                         ->heading('Allocation')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('admin_cost')
                                         ->heading('Admin Cost')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('admin_cost_difference')
                                         ->heading('Allocation - Admin Cost')
                                         ->getStateUsing(function ($record) {
@@ -666,26 +666,29 @@ class AllocationResource extends Resource
 
                                             $difference = $allocation - $adminCost;
 
-                                            return number_format($difference, 2);
-                                        }),
+                                            return $difference;
+                                        })
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('expended_funds')
                                         ->heading('Funds Expended')
                                         ->getStateUsing(function ($record) {
                                             $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
                                             $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
 
-                                            return number_format($fundsExpended, 2);
-                                        }),
+                                            return $fundsExpended;
+                                        })
+                                        ->format('"₱ "#,##0.00'),
+
                                     Column::make('balance')
                                         ->heading('Balance')
-                                        ->formatStateUsing(fn($state) => '₱ ' . number_format($state, 2, '.', ',')),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - allocation_export')
+                                ->withFilename(date('m-d-Y') . ' - Allocation Export')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

@@ -74,7 +74,7 @@ class ListTviTypes extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new InsitutionTypeExport, now()->format('m-d-Y') . ' - ' . 'institution_type_export.xlsx');
+                        return Excel::download(new InsitutionTypeExport, now()->format('m-d-Y') . ' - ' . 'Institution Type Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

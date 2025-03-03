@@ -38,7 +38,7 @@ class EditTrainingProgram extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/qualification-titles'=> 'Qualification Titles',
+            '/qualification-titles' => 'Qualification Titles',
             'Edit'
         ];
     }
@@ -50,7 +50,7 @@ class EditTrainingProgram extends EditRecord
         $data['title'] = Helper::capitalizeWords($data['title']);
 
         try {
-            if($data['full_coc_ele'] === 'COC' || $data['full_coc_ele'] === 'ELEV') {
+            if ($data['full_coc_ele'] === 'COC' || $data['full_coc_ele'] === 'ELEV') {
                 $data['nc_level'] = null;
             }
 
@@ -95,7 +95,7 @@ class EditTrainingProgram extends EditRecord
                 ? 'A qualification title with the provided details has been deleted and must be restored before reuse.'
                 : 'A qualification title with the provided details already exists.';
 
-                NotificationHandler::handleValidationException('Something went wrong', $message);
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
 }

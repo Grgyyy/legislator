@@ -74,7 +74,7 @@ class ListTviClasses extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new InsitutionClassAExport, now()->format('m-d-Y') . ' - ' . 'institution_class_a_export.xlsx');
+                        return Excel::download(new InsitutionClassAExport, now()->format('m-d-Y') . ' - ' . 'Institution Class A Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

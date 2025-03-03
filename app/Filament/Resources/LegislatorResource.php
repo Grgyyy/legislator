@@ -197,39 +197,34 @@ class LegislatorResource extends Resource
                                     Column::make('particular_name')
                                         ->heading('Particular')
                                         ->getStateUsing(function ($record) {
-                                            if (!$record->particular) {
-                                                return 'No particulars available';
-                                            }
-
                                             return $record->particular->map(function ($particular) {
-                                                $district = $particular->district;
-                                                $municipality = $district ? $district->municipality()->first() : null;
-                                                $subParticular = $particular->subParticular ? $particular->subParticular->name : null;
-                                                $formattedName = '';
+                                                $districtName = $particular->district?->name ?? '-';
+                                                $provinceName = $particular->district?->province?->name ?? '-';
+                                                $regionName = $particular->district?->province?->region?->name ?? '-';
+                                                $municipalityName = $particular->district?->underMunicipality?->name ?? null;
 
-                                                if (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                                                    $formattedName = "{$subParticular}";
-                                                } elseif ($subParticular === 'Party-list') {
-                                                    $formattedName = "{$subParticular} - {$particular->partylist->name}";
+                                                if ($particular->subParticular?->name === 'Party-list') {
+                                                    return $particular->subParticular->name . ' - ' . ($particular->partylist?->name ?? '-');
+                                                } elseif (in_array($particular->subParticular?->name, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                                                    return $particular->subParticular->name;
+                                                } elseif ($particular->subParticular?->name === 'District') {
+                                                    return $municipalityName
+                                                        ? "{$districtName}, {$municipalityName}, {$provinceName}"
+                                                        : "{$districtName}, {$provinceName}, {$regionName}";
+                                                } elseif (in_array($particular->subParticular?->name, ['RO Regular', 'CO Regular'])) {
+                                                    return $particular->subParticular->name . ' - ' . $regionName;
                                                 } else {
-                                                    $districtName = $district ? $district->name : '';
-                                                    $municipalityName = $municipality ? $municipality->name : '';
-                                                    $province = $municipality ? $municipality->province : null;
-                                                    $provinceName = $province ? $province->name : '';
-
-                                                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                                    return $particular->subParticular?->name . ' - ' . $regionName;
                                                 }
-
-                                                return trim($formattedName, ', ');
                                             })->implode(', ');
                                         }),
                                     Column::make('status.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - legislator_export'),
+                                ->withFilename(date('m-d-Y') . ' - Legislator Export'),
                         ])
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

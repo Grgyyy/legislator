@@ -23,6 +23,7 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         'name' => 'Institution',
         'institution_class_id' => 'Institution Class (A)',
         'tvi_class_id' => 'Institution Class (B)',
+        'tvi_type_id' => 'Institution Type',
         'district_id' => 'District',
         'municipality_id' => 'Municipality',
         'district.province' => 'Province',
@@ -52,10 +53,11 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         return [
             $record->school_id,
             $record->name,
-            optional($record->InstitutionClass)->name ?? '-',
             optional($record->tviClass)->name ?? '-',
-            optional($record->municipality)->name ?? '-',
+            optional($record->InstitutionClass)->name ?? '-',
+            optional($record->tviType)->name ?? '-',
             optional($record->district)->name ?? '-',
+            optional($record->municipality)->name ?? '-',
             optional($record->district->province)->name ?? '-',
             $record->address ?? '-',
         ];
@@ -64,7 +66,6 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
 
     private function formatCurrency($amount)
     {
-        // Use the NumberFormatter class to format the currency in the Filipino Peso (PHP)
         $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
         return $formatter->formatCurrency($amount, 'PHP');
     }
@@ -83,19 +84,26 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
 
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('C1');
-        $drawing->setOffsetX(50);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('C1');
+        $tesda_logo->setOffsetX(180);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('G1');
+        $tuv_logo->setOffsetX(120);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
-
-
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);

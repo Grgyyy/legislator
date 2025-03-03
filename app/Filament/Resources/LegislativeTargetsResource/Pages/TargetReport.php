@@ -2,25 +2,25 @@
 
 namespace App\Filament\Resources\LegislativeTargetsResource\Pages;
 
-use Filament\Tables;
-use App\Models\Target;
-use App\Models\Allocation;
-use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
-use Illuminate\Support\Facades\DB;
 use App\Exports\TargetReportExport;
-use App\Services\NotificationHandler;
-use Filament\Tables\Columns\TextColumn;
-use PhpOffice\PhpSpreadsheet\Exception;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Pages\Concerns\ExposesTableToWidgets;
-use Maatwebsite\Excel\Facades\Excel;
-use Maatwebsite\Excel\Validators\ValidationException;
 use App\Filament\Resources\AllocationResource\Widgets\StatsOverview;
 use App\Filament\Resources\LegislativeTargetsResource;
 use App\Filament\Resources\LegislativeTargetsResource\Widgets\LegislativeTargetStatsOverview;
 use App\Filament\Resources\LegislativeTargetsResource\Widgets\LegislativeTargetStatsOverview_;
 use App\Filament\Resources\LegislativeTargetsResource\Widgets\StatsOverview as WidgetsStatsOverview;
+use App\Models\Allocation;
+use App\Models\Target;
+use App\Services\NotificationHandler;
+use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
+use Filament\Pages\Concerns\ExposesTableToWidgets;
+use Filament\Resources\Pages\ListRecords;
+use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException;
+use PhpOffice\PhpSpreadsheet\Exception;
 
 class TargetReport extends ListRecords
 {
@@ -133,7 +133,7 @@ class TargetReport extends ListRecords
                 ->url(route('export.targets', ['allocationId' => $this->allocationId]))
                 ->action(function () {
                     try {
-                        return Excel::download(new TargetReportExport($this->allocationId), 'pending_target_export.xlsx');
+                        return Excel::download(new TargetReportExport($this->allocationId), 'Target Report Export.xlsx');
                     } catch (\Throwable $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', $e->getMessage());
                     }
@@ -222,7 +222,7 @@ class TargetReport extends ListRecords
                         $oostOfToolkit = $record->total_cost_of_toolkit_pcc;
                         return '₱ ' . number_format($oostOfToolkit, 2);
                     }),
-        
+
                 TextColumn::make('total_amount')
                     ->label('Total Amount')
                     ->getStateUsing(function ($record) {

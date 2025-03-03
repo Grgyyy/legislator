@@ -33,7 +33,7 @@ class ListAttributionTargets extends ListRecords
             CreateAction::make()
                 ->icon('heroicon-m-plus')
                 ->label('New')
-                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+                ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
 
             Action::make('AttributionTargetImport')
@@ -63,7 +63,7 @@ class ListAttributionTargets extends ListRecords
                         }
                     }
                 })
-                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+                ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
             Action::make('AdminAttributionTargetImport')
                 ->label('Admin Import')
@@ -90,7 +90,7 @@ class ListAttributionTargets extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new AttributionTargetExport, now()->format('m-d-Y') . ' - ' . 'attribution_target_export.xlsx');
+                        return Excel::download(new AttributionTargetExport, now()->format('m-d-Y') . ' - ' . 'Pending Attribution Targets Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

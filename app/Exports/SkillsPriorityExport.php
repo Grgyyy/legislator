@@ -21,10 +21,11 @@ class SkillsPriorityExport implements FromQuery, WithMapping, WithStyles, WithHe
     private array $columns = [
         'province_id' => 'Province',
         'district_id' => 'District',
+        'district.underMunicipality.name' => 'Municipality',
         'qualification_title' => 'LOT Name',
-        'training_program_title' => 'Qualification Titles',
-        'available_slots' => 'Available Slots',
-        'total_slots' => 'Total Slots',
+        'training_program_title' => 'SOC Title',
+        'total_slots' => 'Total Target Beneficiaries',
+        'available_slots' => 'Available Target Beneficiaries',
         'year' => 'Year',
     ];
 
@@ -50,11 +51,12 @@ class SkillsPriorityExport implements FromQuery, WithMapping, WithStyles, WithHe
     {
         return [
             $record->provinces->name ?? '-',
-            $this->getDistrict($record),
+            $record->district->name ?? '-',
+            $record->district->underMunicipality->name ?? '-',
             $record->qualification_title ?? '-',
             $this->getTrainingProgram($record),
-            $record->available_slots ?? 0,
             $record->total_slots ?? 0,
+            $record->available_slots ?? 0,
             $record->year ?? '-',
         ];
     }
@@ -91,16 +93,25 @@ class SkillsPriorityExport implements FromQuery, WithMapping, WithStyles, WithHe
 
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('C1');
-        $drawing->setOffsetX(250);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('D1');
+        $tesda_logo->setOffsetX(400);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('F1');
+        $tuv_logo->setOffsetX(-220);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
 
 

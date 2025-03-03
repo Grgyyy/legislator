@@ -21,23 +21,33 @@ class CustomLegislatorExport extends ExcelExport implements WithDrawings
             ['Central Office (CO)'],
             ['LEGISLATORS'],
             [''],
-            ['Sector', 'Particular', 'Status'],
+            ['Legislator', 'Particular', 'Status'],
         ];
     }
 
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('A1');
-        $drawing->setOffsetX(100);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('B1');
+        $tesda_logo->setOffsetX(1320);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('B1');
+        $tuv_logo->setOffsetX(1930);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
+
 
     public function registerEvents(): array
     {

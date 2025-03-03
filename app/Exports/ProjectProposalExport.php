@@ -21,9 +21,6 @@ class ProjectProposalExport implements FromQuery, WithMapping, WithStyles, WithH
     private array $columns = [
         'soc_code' => 'SOC Code',
         'title' => 'Qualification Title',
-        'scholarshipPrograms.code' => 'Scholarship Program',
-        'tvet_id' => 'TVET Sector',
-        'priority_id' => 'Priority Sector',
     ];
 
     public function query(): Builder
@@ -39,9 +36,6 @@ class ProjectProposalExport implements FromQuery, WithMapping, WithStyles, WithH
         return [
             $record->soc_code ?? '-',
             $record->title ?? '-',
-            $record->scholarshipPrograms->pluck('code')->implode(', '),
-            $record->tvet->name ?? '-',
-            $record->priority->name ?? '-',
         ];
     }
 
@@ -50,7 +44,7 @@ class ProjectProposalExport implements FromQuery, WithMapping, WithStyles, WithH
         $customHeadings = [
             ['Technical Education And Skills Development Authority (TESDA)'],
             ['Central Office (CO)'],
-            ['PROJECT PROPOSAL'],
+            ['PROJECT PROPOSAL PROGRAMS'],
             [''],
         ];
 
@@ -59,16 +53,25 @@ class ProjectProposalExport implements FromQuery, WithMapping, WithStyles, WithH
 
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('B1');
-        $drawing->setOffsetX(400);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('B1');
+        $tesda_logo->setOffsetX(250);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('C1');
+        $tuv_logo->setOffsetX(-400);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
 
 

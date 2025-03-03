@@ -324,8 +324,8 @@ class ToolkitResource extends Resource
                                             return empty($qualificationTitles) ? '-' : implode(', ', $qualificationTitles);
                                         }),
 
-                                    Column::make('lot_name')
-                                        ->heading('Lot Name'),
+                                    // Column::make('lot_name')
+                                    //     ->heading('Lot Name'),
 
                                     Column::make('available_number_of_toolkits')
                                         ->heading('Available No. of Toolkits per Lot')
@@ -337,7 +337,7 @@ class ToolkitResource extends Resource
 
                                     Column::make('price_per_toolkit')
                                         ->heading('Price per Toolkit')
-                                        ->formatStateUsing(fn($state) => $state !== null ? '₱ ' . number_format($state, 2, '.', ',') : '-'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_abc_per_lot')
                                         ->heading('Total ABC')
@@ -351,11 +351,11 @@ class ToolkitResource extends Resource
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - toolkits_export')
+                                ->withFilename(date('m-d-Y') . ' - Toolkit Export')
                         ])
 
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

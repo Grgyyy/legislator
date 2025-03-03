@@ -69,7 +69,7 @@ class TargetResource extends Resource
                         //     ->required()
                         //     ->markAsRequired(false)
                         //     ->numeric(),
-    
+
                         Select::make('legislator_id')
                             ->label('Legislator')
                             ->required()
@@ -281,7 +281,7 @@ class TargetResource extends Resource
                                 //     ->label('Absorptive Capacity ID')
                                 //     ->placeholder('Enter an AbsCap ID')
                                 //     ->numeric(),
-    
+
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -703,17 +703,17 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-    
+
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-    
+
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-    
+
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-    
+
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
@@ -927,7 +927,7 @@ class TargetResource extends Resource
                     ->getStateUsing(fn($record) => $record->learningMode->name ?? '-'),
 
                 TextColumn::make('number_of_slots')
-                    ->label('Slots')
+                    ->label('No. of Slots')
                     ->sortable()
                     ->toggleable(),
 
@@ -956,7 +956,8 @@ class TargetResource extends Resource
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
-                        ->hidden(fn($record) => $record->trashed()),
+                        ->hidden(fn($record) => $record->trashed())
+                        ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
                     Action::make('viewHistory')
                         ->label('View History')
@@ -1451,176 +1452,110 @@ class TargetResource extends Resource
                                         ->getStateUsing(fn($record) => $record->learningMode->name ?? '-'),
 
                                     Column::make('number_of_slots')
-                                        ->heading('Slots'),
+                                        ->heading('No. of Slots'),
 
                                     Column::make('training_cost_per_slot')
                                         ->heading('Training Cost')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('cost_of_toolkit_per_slot')
                                         ->heading('Cost of Toolkit')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('training_support_fund_per_slot')
                                         ->heading('Training Support Fund')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_support_fund'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('assessment_fee_per_slot')
                                         ->heading('Assessment Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_assessment_fee'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('entrepreneurship_fee_per_slot')
                                         ->heading('Entrepreneurship Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_entrepreneurship_fee'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('new_normal_assistance_per_slot')
                                         ->heading('New Normal Assistance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_new_normal_assistance'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('accident_insurance_per_slot')
                                         ->heading('Accident Insurance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_accident_insurance'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('book_allowance_per_slot')
                                         ->heading('Book Allowance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_book_allowance'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('uniform_allowance_per_slot')
                                         ->heading('Uniform Allowance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_uniform_allowance'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('misc_fee_per_slot')
                                         ->heading('Miscellaneous Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_misc_fee'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_amount_per_slot')
                                         ->heading('PCC')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_amount'))
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_training_cost_pcc')
                                         ->heading('Total Training Cost')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_cost_of_toolkit_pcc')
                                         ->heading('Total Cost of Toolkit')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_training_support_fund')
                                         ->heading('Total Training Support Fund')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_assessment_fee')
                                         ->heading('Total Assessment Fee')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_entrepreneurship_fee')
                                         ->heading('Total Entrepreneurship Fee')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_new_normal_assisstance')
                                         ->heading('Total New Normal Assistance')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_accident_insurance')
                                         ->heading('Total Accident Insurance')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_book_allowance')
                                         ->heading('Total Book Allowance')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
                                     Column::make('total_uniform_allowance')
                                         ->heading('Total Uniform Allowance')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_misc_fee')
                                         ->heading('Total Miscellaneous Fee')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_amount')
                                         ->heading('Total PCC')
-                                        ->formatStateUsing(function ($state) {
-                                            $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-                                            return $formatter->formatCurrency($state, 'PHP');
-                                        }),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Pending Targets')
+                                ->withFilename(date('m-d-Y') . ' - Pending Targets Export')
                         ]),
                 ])
                     ->label('Select Action'),

@@ -65,7 +65,7 @@ class ListLearningModes extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new LearningModeExport, now()->format('m-d-Y') . ' - ' . 'learning_mode_export.xlsx');
+                        return Excel::download(new LearningModeExport, now()->format('m-d-Y') . ' - ' . 'Learning Mode Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

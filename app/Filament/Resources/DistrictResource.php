@@ -163,9 +163,7 @@ class DistrictResource extends Resource
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
-                        return $record->underMunicipality
-                            ? $record->underMunicipality->name
-                            : '-';
+                        return $record->underMunicipality ? $record->underMunicipality->name : '-';
                     }),
 
                 TextColumn::make('province.name')
@@ -241,19 +239,17 @@ class DistrictResource extends Resource
                                         }),
                                     Column::make('name')
                                         ->heading('District'),
-                                    Column::make('municipality.name')
+                                    Column::make('underMunicipality.name')
                                         ->heading('Municipality')
                                         ->getStateUsing(function ($record) {
-                                            return $record->municipality->isNotEmpty()
-                                                ? $record->municipality->pluck('name')->join(', ')
-                                                : '-';
+                                            return $record->underMunicipality ? $record->underMunicipality->name : '-';
                                         }),
                                     Column::make('province.name')
                                         ->heading('Province'),
                                     Column::make('province.region.name')
                                         ->heading('Region')
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - district_export')
+                                ->withFilename(date('m-d-Y') . ' - District Export')
                         ])
                 ])
                     ->label('Select Action'),

@@ -120,10 +120,10 @@ class LearningModeResource extends Resource
                                             return $record->deliveryMode->pluck('acronym')->join(', ');
                                         }),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - learning_mode_export')
+                                ->withFilename(date('m-d-Y') . ' - Learning Mode Export')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

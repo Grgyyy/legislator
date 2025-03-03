@@ -29,7 +29,7 @@ class ListAttributionProjectProposals extends ListRecords
             CreateAction::make()
                 ->label('New')
                 ->icon('heroicon-m-plus')
-                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+                ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
             Action::make('TargetImport')
                 ->label('Import')
@@ -58,14 +58,14 @@ class ListAttributionProjectProposals extends ListRecords
                         }
                     }
                 })
-                ->visible(fn() => !Auth::user()->hasRole('SMD Focal')),
+                ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
             Action::make('AttributionProjectProposalExport')
                 ->label('Export')
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new AttributionProjectProposalExport, now()->format('m-d-Y') . ' - ' . 'attribution_project_proposal_pending_target_export.xlsx');
+                        return Excel::download(new AttributionProjectProposalExport, now()->format('m-d-Y') . ' - ' . 'Pending Attribution Project Proposal Targets.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

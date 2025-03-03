@@ -65,7 +65,7 @@ class ListFundSources extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new FundSourceExport, now()->format('m-d-Y') . ' - ' . 'fund_source_export.xlsx');
+                        return Excel::download(new FundSourceExport, now()->format('m-d-Y') . ' - ' . 'Fund Source Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

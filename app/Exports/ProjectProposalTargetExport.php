@@ -30,6 +30,7 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
         'appropriation_type' => 'Appropriation Type',
         'allocation.year' => 'Appropriation Year',
 
+        'tvi.school_id' => 'School ID',
         'institution_name' => 'Institution',
         'institution_type' => 'Institution Type',
         'institution_class' => 'Institution Class',
@@ -79,7 +80,8 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
 
     public function query()
     {
-        return Target::query()
+        $user = request()->user();
+        $query = Target::query()
             ->select([
                 'allocation_id',
                 'district_id',
@@ -123,6 +125,58 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
                 // ->where('soft_or_commitment', 'Commitment');
             });
 
+        if ($user) {
+            $userRegionIds = $user->region()->pluck('regions.id')->toArray();
+            $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
+            $userDistrictIds = $user->district()->pluck('districts.id')->toArray();
+            $userMunicipalityIds = $user->municipality()->pluck('municipalities.id')->toArray();
+
+            $isPO_DO = !empty($userProvinceIds) || !empty($userMunicipalityIds) || !empty($userDistrictIds);
+            $isRO = !empty($userRegionIds);
+
+            if ($isPO_DO) {
+                $query->where(function ($q) use ($userProvinceIds, $userDistrictIds, $userMunicipalityIds) {
+                    if (!empty($userDistrictIds) && !empty($userMunicipalityIds)) {
+                        $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
+                            $districtQuery->whereIn('districts.id', $userDistrictIds);
+                        })->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
+                            $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
+                        });
+                    } elseif (!empty($userMunicipalityIds)) {
+                        $q->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
+                            $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
+                        });
+                    } elseif (!empty($userDistrictIds)) {
+                        $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
+                            $districtQuery->whereIn('districts.id', $userDistrictIds);
+                        });
+                    } elseif (!empty($userProvinceIds)) {
+                        $q->whereHas('district.province', function ($districtQuery) use ($userProvinceIds) {
+                            $districtQuery->whereIn('province_id', $userProvinceIds);
+                        });
+
+                        $q->orWhereHas('municipality.province', function ($municipalityQuery) use ($userProvinceIds) {
+                            $municipalityQuery->whereIn('province_id', $userProvinceIds);
+                        });
+                    }
+                });
+            }
+
+            if ($isRO) {
+                $query->where(function ($q) use ($userRegionIds) {
+                    $q->orWhereHas('district.province', function ($provinceQuery) use ($userRegionIds) {
+                        $provinceQuery->whereIn('region_id', $userRegionIds);
+                    });
+
+                    $q->orWhereHas('municipality.province', function ($provinceQuery) use ($userRegionIds) {
+                        $provinceQuery->whereIn('region_id', $userRegionIds);
+                    });
+                });
+            }
+        }
+
+        return $query;
+
     }
 
     public function headings(): array
@@ -147,6 +201,7 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
             $record->appropriation_type,
             $record->allocation->year,
 
+            $record->tvi->school_id ?? '-',
             $record->tvi->name ?? '-',
             $record->tvi->tviType->name ?? '-',
             $record->tvi->tviClass->name ?? '-',
@@ -156,8 +211,10 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
             $record->municipality->province->name ?? '-',
             $record->municipality->province->region->name ?? '-',
 
-            $record->qualification_title_code ?? '-',
-            $this->getQualificationTitle($record),
+            $record->qualification_title_soc_code ?? '-',
+            $record->qualification_title_name ?? '-',
+
+
             $record->allocation->scholarship_program->name ?? '-',
 
             $record->abdd->name ?? '-',
@@ -166,29 +223,31 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
 
             $record->deliveryMode->name ?? '-',
             $record->learningMode->name ?? '-',
+
             $record->number_of_slots,
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_cost_pcc')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_training_support_fund')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_assessment_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_entrepreneurship_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_new_normal_assisstance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_accident_insurance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_book_allowance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_uniform_allowance')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_misc_fee')),
-            $this->formatCurrency($this->calculateCostPerSlot($record, 'total_amount')),
-            $this->formatCurrency($record->total_training_cost_pcc),
-            $this->formatCurrency($record->total_cost_of_toolkit_pcc),
-            $this->formatCurrency($record->total_training_support_fund),
-            $this->formatCurrency($record->total_assessment_fee),
-            $this->formatCurrency($record->total_entrepreneurship_fee),
-            $this->formatCurrency($record->total_new_normal_assisstance),
-            $this->formatCurrency($record->total_accident_insurance),
-            $this->formatCurrency($record->total_book_allowance),
-            $this->formatCurrency($record->total_uniform_allowance),
-            $this->formatCurrency($record->total_misc_fee),
-            $this->formatCurrency($record->total_amount),
+            $this->calculateCostPerSlot($record, 'total_training_cost_pcc'),
+            $this->calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'),
+            $this->calculateCostPerSlot($record, 'total_training_support_fund'),
+            $this->calculateCostPerSlot($record, 'total_assessment_fee'),
+            $this->calculateCostPerSlot($record, 'total_entrepreneurship_fee'),
+            $this->calculateCostPerSlot($record, 'total_new_normal_assisstance'),
+            $this->calculateCostPerSlot($record, 'total_accident_insurance'),
+            $this->calculateCostPerSlot($record, 'total_book_allowance'),
+            $this->calculateCostPerSlot($record, 'total_uniform_allowance'),
+            $this->calculateCostPerSlot($record, 'total_misc_fee'),
+            $this->calculateCostPerSlot($record, 'total_amount'),
+
+            $record->total_training_cost_pcc ?? 0,
+            $record->total_cost_of_toolkit_pcc ?? 0,
+            $record->total_training_support_fund ?? 0,
+            $record->total_assessment_fee ?? 0,
+            $record->total_entrepreneurship_fee ?? 0,
+            $record->total_new_normal_assisstance ?? 0,
+            $record->total_accident_insurance ?? 0,
+            $record->total_book_allowance ?? 0,
+            $record->total_uniform_allowance ?? 0,
+            $record->total_misc_fee ?? 0,
+            $record->total_amount ?? 0,
             $record->targetStatus->desc ?? '-',
         ];
     }
@@ -221,18 +280,26 @@ class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles
     }
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('Y1');
-        $drawing->setOffsetX(20);
-        $drawing->setOffsetY(5);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('A1');
+        $tesda_logo->setOffsetX(5);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('A1');
+        $tuv_logo->setOffsetX(590);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
-
 
     public function styles(Worksheet $sheet)
     {

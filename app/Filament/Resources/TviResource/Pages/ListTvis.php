@@ -75,7 +75,7 @@ class ListTvis extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new InsitutionExport, now()->format('m-d-Y') . ' - ' . 'institution_export.xlsx');
+                        return Excel::download(new InsitutionExport, now()->format('m-d-Y') . ' - ' . 'Institution Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

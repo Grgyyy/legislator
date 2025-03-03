@@ -326,22 +326,42 @@ class SkillPriorityResource extends Resource
                             CustomSkillsPriorityExport::make()
                                 ->withColumns([
                                     Column::make('provinces.name')
-                                        ->heading('Province'),
+                                        ->heading('Province')
+                                        ->formatStateUsing(fn($record) => $record->provinces->name ?? '-'),
+
                                     Column::make('district.name')
-                                        ->heading('District'),
-                                    Column::make('trainingPrograms.title')
-                                        ->heading('Training Program'),
+                                        ->heading('District')
+                                        ->formatStateUsing(fn($record) => $record->district->name ?? '-'),
+
+                                    Column::make('district.underMunicipality.name')
+                                        ->heading('Municipality')
+                                        ->formatStateUsing(fn($record) => $record->district->underMunicipality->name ?? '-'),
+
                                     Column::make('qualification_title')
-                                        ->heading('LOT Name'),
+                                        ->heading('LOT Name')
+                                        ->formatStateUsing(fn($record) => $record->qualification_title ?? '-'),
+
+                                    Column::make('trainingPrograms.title')
+                                        ->heading('SOC Title')
+                                        ->getStateUsing(function ($record) {
+                                            return $record->trainingProgram->implode('title', ', ');
+                                        }),
+
                                     Column::make('total_slots')
-                                        ->heading('Total Slots'),
+                                        ->heading('Total Target Beneficiaries')
+                                        ->formatStateUsing(fn($record) => $record->total_slots ?? 0),
+
                                     Column::make('available_slots')
-                                        ->heading('Available Slots'),
+                                        ->heading('Available Target Beneficiaries')
+                                        ->formatStateUsing(fn($record) => $record->available_slots ?? 0),
+
                                     Column::make('year')
-                                        ->heading('Year'),
+                                        ->heading('Year')
+                                        ->formatStateUsing(fn($record) => $record->year ?? '-'),
                                 ])
-                                ->withFilename(date('Y-m-d') . '-skill_priority_export.xlsx'),
+                                ->withFilename(date('Y-m-d') . ' - Skills Priority Export.xlsx'),
                         ])
+
                 ])
                     ->label('Select Action'),
             ]);

@@ -174,10 +174,10 @@ class ProvinceResource extends Resource
                                     Column::make('region.name')
                                         ->heading('Region'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - province_export')
+                                ->withFilename(date('m-d-Y') . ' - Province Export')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

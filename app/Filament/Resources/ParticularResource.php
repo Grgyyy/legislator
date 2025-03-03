@@ -241,10 +241,10 @@ class ParticularResource extends Resource
                                         return $record->district->province->region ? $record->district->province->region->name : '-';
                                     }),
                             ])
-                            ->withFilename(date('m-d-Y') . ' - particular_export')
+                            ->withFilename(date('m-d-Y') . ' - Particular Export')
                     ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

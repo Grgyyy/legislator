@@ -2,10 +2,7 @@
 
 namespace App\Exports;
 
-use App\Models\QualificationTitle;
 use App\Models\Toolkit;
-use App\Models\TrainingProgram;
-use function Filament\Support\format_money;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithDrawings;
@@ -22,11 +19,10 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings, WithDrawings
 {
     private array $columns = [
-        'qualificationTitles.trainingProgram.title' => 'Qualification Titles',
-        'lot_name' => 'Lot Name',
-        'price_per_toolkit' => 'Price per Toolkit',
+        'qualificationTitles.trainingProgram.title' => 'SOC Title',
         'available_number_of_toolkits' => 'Available Number of Toolkits Per Lot',
         'number_of_toolkits' => 'No. of Toolkits',
+        'price_per_toolkit' => 'Price per Toolkit',
         'total_abc_per_lot' => 'Total ABC per Lot',
         'number_of_items_per_toolkit' => 'No. of Items per Toolkit',
         'year' => 'Year',
@@ -42,12 +38,12 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
     {
         return [
             $this->getQualificationTitle($record),
-            $record->lot_name ?? '-',
-            $this->formatCurrency($record->price_per_toolkit) ?? '-',
-            $this->formatCurrency($record->available_number_of_toolkits) ?? '-',
-            $this->formatCurrency($record->number_of_toolkits) ?? '-',
-            $this->formatCurrency($record->total_abc_per_lot) ?? '-',
-            $this->formatCurrency($record->number_of_items_per_toolkit) ?? '-',
+            // $record->lot_name ?? '-',
+            $record->available_number_of_toolkits ?? '-',
+            $record->number_of_toolkits ?? '-',
+            $record->price_per_toolkit ?? '-',
+            $record->total_abc_per_lot ?? '-',
+            $record->number_of_items_per_toolkit ?? '-',
             $record->year ?? '-',
         ];
     }
@@ -63,13 +59,6 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
 
         return array_merge($customHeadings, [array_values($this->columns)]);
     }
-
-    private function formatCurrency($amount)
-    {
-        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-        return $formatter->formatCurrency($amount, 'PHP');
-    }
-
     private function getQualificationTitle($record)
     {
         $qualificationTitles = $record->qualificationTitles->map(
@@ -81,25 +70,42 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
 
         return empty($qualificationTitles) ? '-' : implode(', ', $qualificationTitles);
     }
+
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('B1');
-        $drawing->setOffsetX(80);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('B1');
+        $tesda_logo->setOffsetX(180);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('C1');
+        $tuv_logo->setOffsetX(-20);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
-
 
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
+
+        $currencyColumns = ['B', 'C', 'D', 'E', 'F'];
+
+        foreach ($currencyColumns as $col) {
+            $sheet->getStyle("{$col}6:{$col}1000")
+                ->getNumberFormat()
+                ->setFormatCode('"₱ "#,##0.00');
+        }
 
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");

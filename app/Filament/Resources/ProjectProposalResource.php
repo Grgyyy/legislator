@@ -334,22 +334,11 @@ class ProjectProposalResource extends Resource
                                         ->heading('Schedule of Cost Code'),
                                     Column::make('title')
                                         ->heading('Qualification Title'),
-                                    Column::make('formatted_scholarship_programs')
-                                        ->heading('Scholarship Programs')
-                                        ->getStateUsing(
-                                            fn($record) => $record->scholarshipPrograms
-                                                ->pluck('name')
-                                                ->implode(', ')
-                                        ),
-                                    Column::make('tvet.name')
-                                        ->heading('TVET Sector'),
-                                    Column::make('priority.name')
-                                        ->heading('Priority Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - project_proposal_program_export')
+                                ->withFilename(date('m-d-Y') . ' - Project Proposal Program Export')
                         ]),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 

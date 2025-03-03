@@ -68,7 +68,7 @@ class ListProvinces extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new ProvinceExport, now()->format('m-d-Y') . ' - ' . 'province_export.xlsx');
+                        return Excel::download(new ProvinceExport, now()->format('m-d-Y') . ' - ' . 'Province Export.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

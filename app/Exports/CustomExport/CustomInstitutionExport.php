@@ -22,24 +22,32 @@ class CustomInstitutionExport extends ExcelExport implements WithDrawings
             ['Central Office (CO)'],
             ['INSTITUTIONS'],
             [''],
-            ['School ID', 'Institution', 'Institution Class (A)', 'Institution Class (B)', 'District', 'Municipality', 'Province', 'Address'],
+            ['School ID', 'Institution', 'Institution Class (A)', 'Institution Class (B)', 'Institution Type', 'District', 'Municipality', 'Province', 'Address'],
         ];
     }
 
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(90);
-        $drawing->setCoordinates('C1');
-        $drawing->setOffsetX(0);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(80);
+        $tesda_logo->setCoordinates('C1');
+        $tesda_logo->setOffsetX(180);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(65);
+        $tuv_logo->setCoordinates('G1');
+        $tuv_logo->setOffsetX(120);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
-
     public function registerEvents(): array
     {
         return [
