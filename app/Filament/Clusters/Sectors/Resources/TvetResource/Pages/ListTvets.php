@@ -74,10 +74,10 @@ class ListTvets extends ListRecords
 
             Action::make('TvetExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new TvetExport, now()->format('m-d-Y') . ' - ' . 'TVET Sector Export.xlsx');
+                        return Excel::download(new TvetExport, now()->format('m-d-Y') . ' - ' . 'TVET Sectors.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {
