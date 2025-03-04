@@ -34,12 +34,9 @@ class DistrictImport implements ToModel, WithHeadingRow
                 $isNCR = Region::find($region_id)->name === 'NCR';
                 $municipality_id = null;
 
-                if ($isNCR) {
-                    $municipality_id = $this->getMunicipalityId($province_id, $municipalityName);
-                }
-
                 $districtIsExist = District::where('name', $districtName)
                     ->where('code', $row['code'])
+                    ->where('municipality_id', $municipality_id)
                     ->where('province_id', $province_id)
                     ->exists();
 
