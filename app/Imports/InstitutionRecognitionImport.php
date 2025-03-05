@@ -72,12 +72,8 @@ class InstitutionRecognitionImport implements ToModel, WithHeadingRow
         $accreditationDate = $this->convertExcelDate(trim($row['Accreditation Date']));
         $expirationDate = $this->convertExcelDate(trim($row['Expiration Date']));
 
-        if (Carbon::parse($accreditationDate)->lt(Carbon::today())) {
-            throw new \Exception("The accreditation date must be today or a future date.");
-        }
-
-        if (Carbon::parse($expirationDate)->lte(Carbon::parse($accreditationDate))) {
-            throw new \Exception("The expiration date must be greater than the accreditation date.");
+        if (Carbon::parse($expirationDate)->lte(Carbon::parse($accreditationDate)) && Carbon::parse($expirationDate)->lte(Carbon::now())) {
+            throw new \Exception("The expiration date must be greater than both the accreditation date and today.");
         }
     }
 
