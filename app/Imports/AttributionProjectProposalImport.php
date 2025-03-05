@@ -46,7 +46,6 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             $this->validateYear($row['appropriation_year']);
 
             DB::transaction(function () use ($row) {
-                $programName = Helper::capitalizeWords($row['project_proposal_program_name']);
 
                 $attributor = $this->getAttributorId($row['attributor']);
                 $attribution_region = $this->getRegion($row['attributor_region']);
@@ -504,6 +503,10 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                         ->where('year', $appropriationYear);
                 })
                 ->first();
+        }
+        
+        if (!$skillPrograms) {
+            NotificationHandler::handleValidationException('Something went wrong', 'Skill Priority does not exists.');
         }
         
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
