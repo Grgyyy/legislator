@@ -22,7 +22,7 @@ class TviTypeImport implements ToModel, WithHeadingRow
         return DB::transaction(function () use ($row) {
             try {
 
-                $tviTypeName = Helper::capitalizeWords($row['tvi_type']);
+                $tviTypeName = Helper::capitalizeWords($row['institution_type']);
 
                 $typeIsExist = TviType::where('name', $tviTypeName)->exists();
 
@@ -40,7 +40,7 @@ class TviTypeImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        if (empty($row['tvi_type'])) {
+        if (empty($row['institution_type'])) {
             throw new \Exception("The TVI Type is required and cannot be null or empty. No changes were saved.");
         }
     }
