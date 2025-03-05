@@ -3,10 +3,12 @@
 namespace App\Exports;
 
 use App\Models\Allocation;
+use App\Models\QualificationTitle;
 use App\Models\Target;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
@@ -17,7 +19,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 
-class TargetReportExport implements FromCollection, WithStyles, WithDrawings
+class TargetReportExport implements FromCollection, WithStyles, WithDrawings, WithColumnWidths
 {
     protected $allocationId;
 
@@ -49,12 +51,12 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings
             ['Year' => 'FY ' . $allocationYear . ' (' . $scholarshipProgram . ')'],
             ['Name of Representative' => 'Name of Representative:', $legisName],
             ['', $particular],
-            ['Allocation' => 'Total Allocation:', $this->formatCurrency($allocation)],
-            ['Admin Cost' => 'Admin Cost:', $this->formatCurrency($adminCost)],
-            ['Sum of Total Training Cost' => 'Total Training Cost:', $this->formatCurrency($sumTotalTrainingCost)],
-            ['Sum of Total Cost of Toolkit' => 'Total Cost of Toolkit:', $this->formatCurrency($sumTotalCostOfToolkit)],
-            ['Sum of Total' => 'Total:', $this->formatCurrency($SumTotal)],
-            ['Balance' => 'Balance:', $this->formatCurrency($balance)],
+            ['Allocation' => 'Total Allocation:', $allocation],
+            ['Admin Cost' => 'Admin Cost:', $adminCost],
+            ['Sum of Total Training Cost' => 'Total Training Cost:', $sumTotalTrainingCost],
+            ['Sum of Total Cost of Toolkit' => 'Total Cost of Toolkit:', $sumTotalCostOfToolkit],
+            ['Sum of Total' => 'Total:', $SumTotal],
+            ['Balance' => 'Balance:', $balance],
             [''],
             ['Region', 'Province', 'Municipality', 'Name of Institution', 'Qualification Title', 'Number of Slots', 'Training Cost PCC', 'Cost of Toolkit PCC', 'Total Training Cost', 'Total Cost of Toolkit', 'Total Amount', 'Status'],
             [''],
@@ -69,18 +71,18 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings
                 'Qualification Title' => $target->qualification_title->trainingProgram->title,
                 'Number of Slots' => $target->number_of_slots,
                 'Training Cost PCC' => $target->number_of_slots > 0
-                    ? $this->formatCurrency(
-                        ($target->total_training_cost_pcc + $target->total_assessment_fee + $target->total_training_support_fund + $target->total_entrepreneurship_fee) / $target->number_of_slots
-                    )
-                    : $this->formatCurrency(0),
+                    ?
+                    ($target->total_training_cost_pcc + $target->total_assessment_fee + $target->total_training_support_fund + $target->total_entrepreneurship_fee) / $target->number_of_slots
+
+                    : 0,
                 'Cost of Toolkits PCC' => $target->number_of_slots > 0
-                    ? $this->formatCurrency($target->total_cost_of_toolkit_pcc / $target->number_of_slots)
-                    : $this->formatCurrency(0),
-                'Total Training Cost' => $this->formatCurrency(
+                    ? $target->total_cost_of_toolkit_pcc / $target->number_of_slots
+                    : 0,
+                'Total Training Cost' =>
                     ($target->total_training_cost_pcc + $target->total_assessment_fee + $target->total_training_support_fund + $target->total_entrepreneurship_fee) ?? 0
-                ),
-                'Total Cost of Toolkits' => $this->formatCurrency($target->total_cost_of_toolkit_pcc ?? 0),
-                'Total Amount' => $this->formatCurrency($target->total_amount),
+                ,
+                'Total Cost of Toolkits' => $target->total_cost_of_toolkit_pcc ?? 0,
+                'Total Amount' => $target->total_amount,
 
                 'Status' => $target->targetStatus->desc,
             ];
@@ -165,10 +167,10 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings
 
     private function getScholarshipProgram($id)
     {
-        $allocation = Allocation::find($id);
+        $qualification_title = QualificationTitle::find($id);
 
-        return $allocation && $allocation->scholarship_program
-            ? $allocation->scholarship_program->desc . ' (' . $allocation->scholarship_program->name . ')'
+        return $qualification_title && $qualification_title->scholarshipProgram->name
+            ? $qualification_title->scholarshipProgram->desc . ' (' . $qualification_title->scholarshipProgram->name . ')'
             : 'N/A';
     }
 
@@ -250,26 +252,45 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings
         return $sum ?? 0;
     }
 
-    private function formatCurrency($amount)
-    {
-        $formatter = new \NumberFormatter('en_PH', \NumberFormatter::CURRENCY);
-        return $formatter->formatCurrency($amount, 'PHP');
-    }
-
     public function drawings()
     {
-        $drawing = new Drawing();
-        $drawing->setName('TESDA Logo');
-        $drawing->setDescription('TESDA Logo');
-        $drawing->setPath(public_path('images/TESDA_logo.png'));
-        $drawing->setHeight(80);
-        $drawing->setCoordinates('D1');
-        $drawing->setOffsetX(-30);
-        $drawing->setOffsetY(0);
+        $tesda_logo = new Drawing();
+        $tesda_logo->setName('TESDA Logo');
+        $tesda_logo->setDescription('TESDA Logo');
+        $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
+        $tesda_logo->setHeight(70);
+        $tesda_logo->setCoordinates('E1');
+        $tesda_logo->setOffsetX(-50);
+        $tesda_logo->setOffsetY(0);
 
-        return $drawing;
+        $tuv_logo = new Drawing();
+        $tuv_logo->setName('TUV Logo');
+        $tuv_logo->setDescription('TUV Logo');
+        $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
+        $tuv_logo->setHeight(55);
+        $tuv_logo->setCoordinates('G1');
+        $tuv_logo->setOffsetX(0);
+        $tuv_logo->setOffsetY(8);
+
+        return [$tesda_logo, $tuv_logo];
     }
-
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 50,
+            'B' => 50,
+            'C' => 30,
+            'D' => 50,
+            'E' => 50,
+            'F' => 30,
+            'G' => 30,
+            'H' => 30,
+            'I' => 30,
+            'J' => 30,
+            'K' => 30,
+            'L' => 30,
+        ];
+    }
 
     public function styles(Worksheet $sheet)
     {
@@ -291,15 +312,41 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings
         $columnCount = count($headerRow);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
+        $startColumnIndex = Coordinate::columnIndexFromString('G');
+        $endColumnIndex = Coordinate::columnIndexFromString('K');
+
+        for ($colIndex = $startColumnIndex; $colIndex <= $endColumnIndex; $colIndex++) {
+            $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getStyle("{$colLetter}6:{$colLetter}1000")
+                ->getNumberFormat()
+                ->setFormatCode('"₱ "#,##0.00');
+        }
+
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");
         $sheet->mergeCells("A3:{$lastColumn}3");
 
+        $sheet->mergeCells("A4:B4");
+
+        $sheet->getStyle("B7:B12")
+            ->getNumberFormat()
+            ->setFormatCode('"₱ "#,##0.00');
+
+
+        $alignmentStyle = [
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+            ],
+        ];
         $styles = $this->applyHeaderStyle([1, 2, 3]);
 
         foreach (range(1, $columnCount) as $colIndex) {
             $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+            $sheet->getColumnDimension($columnLetter)
+                ->setAutoSize(false);
+            $sheet->getStyle($columnLetter)->getAlignment()->setWrapText(true);
+            $sheet->getStyle($columnLetter)->applyFromArray($alignmentStyle);
         }
 
         $underlineStyle = [

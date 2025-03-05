@@ -142,7 +142,7 @@ class InstitutionProgramResource extends Resource
                     ->label('Region')
                     ->searchable(),
                 TextColumn::make('tvi.address')
-                    ->label('Region')
+                    ->label('Address')
                     ->searchable(),
                 SelectColumn::make('status_id')
                     ->label('Status')
@@ -359,42 +359,36 @@ class InstitutionProgramResource extends Resource
                         ->exports([
                             CustomInstitutionQualificationTitleExport::make()
                                 ->withColumns([
-                                    Column::make('tvi_id')
-                                        ->heading('Institution')
-                                        ->getStateUsing(function ($record) {
-                                            $tvi = $record->tvi;
-
-                                            if (!$tvi) {
-                                                return 'No Institution Information';
-                                            }
-
-                                            return preg_replace_callback(
-                                                '/(\d)([a-zA-Z])/',
-                                                fn($matches) => $matches[1] . strtoupper($matches[2]),
-                                                ucwords($tvi->name)
-                                            );
-                                        }),
                                     Column::make('trainingProgram.soc_code')
                                         ->heading('SOC Code'),
-                                    Column::make('training_program_id')
-                                        ->heading('Qualification Title')
-                                        ->getStateUsing(function ($record) {
-                                            $trainingProgram = $record->trainingProgram;
 
-                                            if (!$trainingProgram) {
-                                                return 'No Training Program Information';
-                                            }
+                                    Column::make('trainingProgram.title')
+                                        ->heading('Qualification Title'),
 
-                                            $title = ucwords($trainingProgram->title);
+                                    Column::make('tvi.name')
+                                        ->heading('Institution'),
 
-                                            if (preg_match('/\bNC\s+[I]{1,3}\b/i', $title)) {
-                                                $title = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                                                    return 'NC ' . strtoupper($matches[1]);
-                                                }, $title);
-                                            }
+                                    Column::make('tvi.district.name')
+                                        ->heading('District'),
 
-                                            return $title;
-                                        }),
+                                    Column::make('tvi.municipality.name')
+                                        ->heading('Municipality'),
+
+                                    Column::make('tvi.district.province.name')
+                                        ->heading('Province'),
+
+                                    Column::make('tvi.district.province.region.name')
+                                        ->heading('Region'),
+
+                                    Column::make('tvi.address')
+                                        ->heading('Address'),
+
+                                    Column::make('status.desc')
+                                        ->heading('Status')
+                                        ->getStateUsing(fn($record) => $record->status?->desc ?? '-'),
+
+
+
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Institution Qualification Title Export')
                         ]),

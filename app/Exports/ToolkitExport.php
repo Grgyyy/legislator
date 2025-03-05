@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Models\Toolkit;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -16,7 +17,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings, WithDrawings
+class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings, WithDrawings, WithColumnWidths
 {
     private array $columns = [
         'qualificationTitles.trainingProgram.title' => 'SOC Title',
@@ -38,7 +39,6 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
     {
         return [
             $this->getQualificationTitle($record),
-            // $record->lot_name ?? '-',
             $record->available_number_of_toolkits ?? '-',
             $record->number_of_toolkits ?? '-',
             $record->price_per_toolkit ?? '-',
@@ -77,21 +77,34 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
         $tesda_logo->setName('TESDA Logo');
         $tesda_logo->setDescription('TESDA Logo');
         $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
-        $tesda_logo->setHeight(80);
+        $tesda_logo->setHeight(70);
         $tesda_logo->setCoordinates('B1');
-        $tesda_logo->setOffsetX(180);
+        $tesda_logo->setOffsetX(-50);
         $tesda_logo->setOffsetY(0);
 
         $tuv_logo = new Drawing();
         $tuv_logo->setName('TUV Logo');
         $tuv_logo->setDescription('TUV Logo');
         $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
-        $tuv_logo->setHeight(65);
-        $tuv_logo->setCoordinates('C1');
-        $tuv_logo->setOffsetX(-20);
+        $tuv_logo->setHeight(55);
+        $tuv_logo->setCoordinates('D1');
+        $tuv_logo->setOffsetX(130);
         $tuv_logo->setOffsetY(8);
 
         return [$tesda_logo, $tuv_logo];
+    }
+
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 100,
+            'B' => 40,
+            'C' => 30,
+            'D' => 30,
+            'E' => 30,
+            'F' => 30,
+            'G' => 30,
+        ];
     }
 
     public function styles(Worksheet $sheet)
@@ -99,10 +112,12 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
         $columnCount = count($this->columns);
         $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
-        $currencyColumns = ['B', 'C', 'D', 'E', 'F'];
+        $startColumnIndex = Coordinate::columnIndexFromString('D');
+        $endColumnIndex = Coordinate::columnIndexFromString('E');
 
-        foreach ($currencyColumns as $col) {
-            $sheet->getStyle("{$col}6:{$col}1000")
+        for ($colIndex = $startColumnIndex; $colIndex <= $endColumnIndex; $colIndex++) {
+            $colLetter = Coordinate::stringFromColumnIndex($colIndex);
+            $sheet->getStyle("{$colLetter}6:{$colLetter}1000")
                 ->getNumberFormat()
                 ->setFormatCode('"₱ "#,##0.00');
         }
@@ -112,27 +127,19 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
         $sheet->mergeCells("A3:{$lastColumn}3");
         $sheet->mergeCells("A4:{$lastColumn}4");
 
-        $headerStyle = [
-            'font' => ['bold' => true, 'size' => 14],
+        $alignmentStyle = [
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
 
-        $subHeaderStyle = [
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
-        ];
+        $headerStyle = array_merge([
+            'font' => ['bold' => true, 'size' => 16],
+        ], $alignmentStyle);
 
-        $boldStyle = [
+        $boldStyle = array_merge([
             'font' => ['bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -143,16 +150,22 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['argb' => 'D3D3D3'],
             ],
-        ];
+        ], $alignmentStyle);
+
+        $sheet->getRowDimension(5)->setRowHeight(25);
+        $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
 
         $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
-        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($subHeaderStyle);
+        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($alignmentStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
         foreach (range(1, $columnCount) as $colIndex) {
             $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+            $sheet->getColumnDimension($columnLetter)
+                ->setAutoSize(false);
+            $sheet->getStyle($columnLetter)->getAlignment()->setWrapText(true);
+            $sheet->getStyle($columnLetter)->applyFromArray($alignmentStyle);
         }
 
         $dynamicBorderStyle = [
@@ -178,7 +191,9 @@ class ToolkitExport implements FromQuery, WithMapping, WithStyles, WithHeadings,
                 break;
             }
             $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray($dynamicBorderStyle);
+            $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray($alignmentStyle);
             $row++;
         }
+
     }
 }

@@ -458,9 +458,6 @@ class TviResource extends Resource
                                     Column::make('tviType.name')
                                         ->heading('Institution Type'),
 
-                                    Column::make('tviType.name')
-                                        ->heading('Institution Type'),
-
                                     Column::make('district.name')
                                         ->heading('District'),
 

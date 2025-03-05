@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Models\District;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -16,7 +17,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class DistrictExport implements FromQuery, WithMapping, WithStyles, WithHeadings, WithDrawings
+class DistrictExport implements FromQuery, WithMapping, WithStyles, WithHeadings, WithDrawings, WithColumnWidths
 {
     private array $columns = [
         'code' => 'PSG Code',
@@ -71,7 +72,7 @@ class DistrictExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
         $tesda_logo->setHeight(80);
         $tesda_logo->setCoordinates('B1');
-        $tesda_logo->setOffsetX(-30);
+        $tesda_logo->setOffsetX(140);
         $tesda_logo->setOffsetY(0);
 
         $tuv_logo = new Drawing();
@@ -79,11 +80,23 @@ class DistrictExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         $tuv_logo->setDescription('TUV Logo');
         $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
         $tuv_logo->setHeight(65);
-        $tuv_logo->setCoordinates('E1');
-        $tuv_logo->setOffsetX(50);
+        $tuv_logo->setCoordinates('D1');
+        $tuv_logo->setOffsetX(140);
         $tuv_logo->setOffsetY(8);
 
         return [$tesda_logo, $tuv_logo];
+    }
+
+
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 50,
+            'B' => 50,
+            'C' => 50,
+            'D' => 50,
+            'E' => 50,
+        ];
     }
 
 
@@ -97,27 +110,19 @@ class DistrictExport implements FromQuery, WithMapping, WithStyles, WithHeadings
         $sheet->mergeCells("A3:{$lastColumn}3");
         $sheet->mergeCells("A4:{$lastColumn}4");
 
-        $headerStyle = [
-            'font' => ['bold' => true, 'size' => 14],
+        $alignmentStyle = [
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
 
-        $subHeaderStyle = [
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
-        ];
+        $headerStyle = array_merge([
+            'font' => ['bold' => true, 'size' => 16],
+        ], $alignmentStyle);
 
-        $boldStyle = [
+        $boldStyle = array_merge([
             'font' => ['bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -128,16 +133,22 @@ class DistrictExport implements FromQuery, WithMapping, WithStyles, WithHeadings
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['argb' => 'D3D3D3'],
             ],
-        ];
+        ], $alignmentStyle);
+
+        $sheet->getRowDimension(5)->setRowHeight(25);
+        $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
 
         $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
-        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($subHeaderStyle);
+        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($alignmentStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
         foreach (range(1, $columnCount) as $colIndex) {
             $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+            $sheet->getColumnDimension($columnLetter)
+                ->setAutoSize(false);
+            $sheet->getStyle($columnLetter)->getAlignment()->setWrapText(true);
+            $sheet->getStyle($columnLetter)->applyFromArray($alignmentStyle);
         }
 
         $dynamicBorderStyle = [
@@ -163,7 +174,9 @@ class DistrictExport implements FromQuery, WithMapping, WithStyles, WithHeadings
                 break;
             }
             $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray($dynamicBorderStyle);
+            $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray($alignmentStyle);
             $row++;
         }
+
     }
 }

@@ -924,7 +924,7 @@ class ProjectProposalTargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('allocation.scholarship_program.name')
+                TextColumn::make('qualification_title.scholarshipProgram.name')
                     ->label('Scholarship Program')
                     ->sortable()
                     ->searchable()
@@ -1468,7 +1468,7 @@ class ProjectProposalTargetResource extends Resource
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
 
-                                    Column::make('allocation.scholarship_program.name')
+                                    Column::make('qualification_title.scholarshipProgram.name')
                                         ->heading('Scholarship Program'),
 
                                     Column::make('abdd.name')
@@ -1583,10 +1583,6 @@ class ProjectProposalTargetResource extends Resource
 
                                     Column::make('total_misc_fee')
                                         ->heading('Total Miscellaneous Fee')
-                                        ->format('"₱ "#,##0.00'),
-
-                                    Column::make('total_amount')
-                                        ->heading('Total PCC')
                                         ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_amount')

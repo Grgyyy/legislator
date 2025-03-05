@@ -127,8 +127,6 @@ class TviClassResource extends Resource
                                 ->withColumns([
                                     Column::make('name')
                                         ->heading('Institution Class (A)'),
-                                    Column::make('tviType.name')
-                                        ->heading('Institution Type'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Institution Class A Export')
                         ]),

@@ -69,7 +69,7 @@ class TargetResource extends Resource
                         //     ->required()
                         //     ->markAsRequired(false)
                         //     ->numeric(),
-
+    
                         Select::make('legislator_id')
                             ->label('Legislator')
                             ->required()
@@ -281,7 +281,7 @@ class TargetResource extends Resource
                                 //     ->label('Absorptive Capacity ID')
                                 //     ->placeholder('Enter an AbsCap ID')
                                 //     ->numeric(),
-
+    
                                 Select::make('legislator_id')
                                     ->label('Legislator')
                                     ->required()
@@ -703,17 +703,17 @@ class TargetResource extends Resource
                         //     ->reactive()
                         //     ->afterStateUpdated(function ($state, callable $set, $get) {
                         //         $numberOfClones = $state;
-
+    
                         //         $targets = $get('targets') ?? [];
                         //         $currentCount = count($targets);
-
+    
                         //         if ($numberOfClones > count($targets)) {
                         //             $baseForm = $targets[0] ?? [];
-
+    
                         //             for ($i = count($targets); $i < $numberOfClones; $i++) {
                         //                 $targets[] = $baseForm;
                         //             }
-
+    
                         //             $set('targets', $targets);
                         //         }elseif ($numberOfClones < $currentCount) {
                         //             $set('targets', array_slice($targets, 0, $numberOfClones));
@@ -889,7 +889,7 @@ class TargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('allocation.scholarship_program.name')
+                TextColumn::make('qualification_title.scholarshipProgram.name')
                     ->label('Scholarship Program')
                     ->sortable()
                     ->searchable()
@@ -1432,7 +1432,7 @@ class TargetResource extends Resource
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
 
-                                    Column::make('allocation.scholarship_program.name')
+                                    Column::make('qualification_title.scholarshipProgram.name')
                                         ->heading('Scholarship Program'),
 
                                     Column::make('abdd.name')
