@@ -6,6 +6,7 @@ use App\Models\Target;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -17,7 +18,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping, WithDrawings
+class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping, WithDrawings, WithColumnWidths
 {
 
     private $columns = [
@@ -43,7 +44,7 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
 
         'qualification_title_code' => 'SOC Code',
         'qualification_title_name' => 'Qualification Title',
-        'allocation.scholarship_program.name' => 'Scholarship Program',
+        'qualification_title.scholarshipProgram.name' => 'Scholarship Program',
 
         'abdd.name' => 'ABDD Sector',
         'qualification_title.trainingProgram.tvet.name' => 'TVET Sector',
@@ -76,6 +77,8 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
         'total_uniform_allowance' => 'Total Uniform Allowance',
         'total_misc_fee' => 'Total Miscellaneous Fee',
         'total_amount' => 'Total PCC',
+
+        'targetStatus.desc' => 'Status',
     ];
     public function query()
     {
@@ -217,7 +220,7 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
             $record->qualification_title_name ?? '-',
 
 
-            $record->allocation->scholarship_program->name ?? '-',
+            $record->qualification_title->scholarshipProgram->name ?? '-',
 
             $record->abdd->name ?? '-',
             $record->qualification_title->trainingProgram->tvet->name ?? '-',
@@ -335,31 +338,81 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
         $cost = $record->$costColumn ?? 0;
         return ($record->number_of_slots > 0) ? number_format($cost / $record->number_of_slots, 2, '.', '') : '0.00';
     }
-
-
     public function drawings()
     {
         $tesda_logo = new Drawing();
         $tesda_logo->setName('TESDA Logo');
         $tesda_logo->setDescription('TESDA Logo');
         $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
-        $tesda_logo->setHeight(80);
-        $tesda_logo->setCoordinates('V1');
-        $tesda_logo->setOffsetX(170);
+        $tesda_logo->setHeight(70);
+        $tesda_logo->setCoordinates('W1');
+        $tesda_logo->setOffsetX(-80);
         $tesda_logo->setOffsetY(0);
 
         $tuv_logo = new Drawing();
         $tuv_logo->setName('TUV Logo');
         $tuv_logo->setDescription('TUV Logo');
         $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
-        $tuv_logo->setHeight(65);
+        $tuv_logo->setHeight(55);
         $tuv_logo->setCoordinates('Y1');
-        $tuv_logo->setOffsetX(0);
+        $tuv_logo->setOffsetX(20);
         $tuv_logo->setOffsetY(8);
 
         return [$tesda_logo, $tuv_logo];
     }
-
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 20,
+            'B' => 20,
+            'C' => 30,
+            'D' => 40,
+            'E' => 30,
+            'F' => 40,
+            'G' => 20,
+            'H' => 20,
+            'I' => 15,
+            'J' => 50,
+            'K' => 20,
+            'L' => 20,
+            'M' => 20,
+            'N' => 20,
+            'O' => 20,
+            'P' => 20,
+            'Q' => 20,
+            'R' => 40,
+            'S' => 20,
+            'T' => 40,
+            'U' => 40,
+            'V' => 40,
+            'W' => 40,
+            'X' => 40,
+            'Y' => 20,
+            'Z' => 20,
+            'AA' => 20,
+            'AB' => 25,
+            'AC' => 20,
+            'AD' => 25,
+            'AE' => 25,
+            'AF' => 20,
+            'AG' => 20,
+            'AH' => 20,
+            'AI' => 20,
+            'AJ' => 20,
+            'AK' => 30,
+            'AL' => 30,
+            'AM' => 30,
+            'AN' => 30,
+            'AO' => 30,
+            'AP' => 30,
+            'AQ' => 30,
+            'AR' => 30,
+            'AS' => 30,
+            'AT' => 30,
+            'AU' => 30,
+            'AV' => 20,
+        ];
+    }
 
     public function styles(Worksheet $sheet)
     {
@@ -376,33 +429,24 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
                 ->setFormatCode('"₱ "#,##0.00');
         }
 
-
         $sheet->mergeCells("A1:{$lastColumn}1");
         $sheet->mergeCells("A2:{$lastColumn}2");
         $sheet->mergeCells("A3:{$lastColumn}3");
         $sheet->mergeCells("A4:{$lastColumn}4");
 
-        $headerStyle = [
-            'font' => ['bold' => true, 'size' => 14],
+        $alignmentStyle = [
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
 
-        $subHeaderStyle = [
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
-        ];
+        $headerStyle = array_merge([
+            'font' => ['bold' => true, 'size' => 16],
+        ], $alignmentStyle);
 
-        $boldStyle = [
+        $boldStyle = array_merge([
             'font' => ['bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -413,16 +457,22 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['argb' => 'D3D3D3'],
             ],
-        ];
+        ], $alignmentStyle);
+
+        $sheet->getRowDimension(5)->setRowHeight(25);
+        $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
 
         $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
-        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($subHeaderStyle);
+        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($alignmentStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
         foreach (range(1, $columnCount) as $colIndex) {
             $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+            $sheet->getColumnDimension($columnLetter)
+                ->setAutoSize(false);
+            $sheet->getStyle($columnLetter)->getAlignment()->setWrapText(true);
+            $sheet->getStyle($columnLetter)->applyFromArray($alignmentStyle);
         }
 
         $dynamicBorderStyle = [
@@ -448,8 +498,10 @@ class AttributionTargetExport implements FromQuery, WithHeadings, WithStyles, Wi
                 break;
             }
             $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray($dynamicBorderStyle);
+            $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray($alignmentStyle);
             $row++;
         }
+
     }
 
 }

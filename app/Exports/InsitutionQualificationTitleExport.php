@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Models\InstitutionProgram;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -16,20 +17,30 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, WithStyles, WithMapping, WithDrawings
+class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, WithStyles, WithMapping, WithDrawings, WithColumnWidths
 {
     private $columns = [
-        'institution_programs.tvi_id' => 'Institution',
-        'training_programs.soc_code' => 'Schedule of Cost',
-        'training_programs.title' => 'Qualification Title',
+        'trainingProgram.soc_code' => 'SOC Code',
+        'trainingProgram.title' => 'Qualification Title',
+        'tvi.name' => 'Institution',
+        'tvi.district.name' => 'District',
+        'tvi.municipality.name' => 'Municipality',
+        'tvi.district.province.name' => 'Province',
+        'tvi.district.province.region.name' => 'Region',
+        'tvi.address' => 'Address',
+        'status_id' => 'Status',
     ];
-
     public function query(): Builder
     {
         return InstitutionProgram::query()
-            ->join('training_programs', 'institution_programs.training_program_id', '=', 'training_programs.id')
-            ->select(array_keys($this->columns));
+            ->with(['trainingProgram', 'tvi.district.province.region'])
+
+            ->select([
+                'institution_programs.*'
+            ]);
     }
+
+
 
     public function headings(): array
     {
@@ -46,32 +57,56 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
     public function map($record): array
     {
         return [
-            $record->tvi?->name,
-            $record->soc_code,
-            $record->title,
+            $record->trainingProgram?->soc_code ?? '-',
+            $record->trainingProgram?->title ?? '-',
+            $record->tvi?->name ?? '-',
+            $record->tvi?->district?->name ?? '-',
+            $record->tvi?->municipality?->name ?? '-',
+            $record->tvi?->district?->province?->name ?? '-',
+            $record->tvi?->district?->province?->region?->name ?? '-',
+            $record->tvi?->address ?? '-',
+            $record->status->desc ?? '-',
+
         ];
     }
+
+
     public function drawings()
     {
         $tesda_logo = new Drawing();
         $tesda_logo->setName('TESDA Logo');
         $tesda_logo->setDescription('TESDA Logo');
         $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
-        $tesda_logo->setHeight(80);
-        $tesda_logo->setCoordinates('A1');
-        $tesda_logo->setOffsetX(400);
+        $tesda_logo->setHeight(70);
+        $tesda_logo->setCoordinates('D1');
+        $tesda_logo->setOffsetX(-50);
         $tesda_logo->setOffsetY(0);
 
         $tuv_logo = new Drawing();
         $tuv_logo->setName('TUV Logo');
         $tuv_logo->setDescription('TUV Logo');
         $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
-        $tuv_logo->setHeight(65);
-        $tuv_logo->setCoordinates('C1');
-        $tuv_logo->setOffsetX(50);
+        $tuv_logo->setHeight(55);
+        $tuv_logo->setCoordinates('G1');
+        $tuv_logo->setOffsetX(0);
         $tuv_logo->setOffsetY(8);
 
         return [$tesda_logo, $tuv_logo];
+    }
+
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 20,
+            'B' => 50,
+            'C' => 50,
+            'D' => 30,
+            'E' => 30,
+            'F' => 30,
+            'G' => 30,
+            'H' => 70,
+            'I' => 20,
+        ];
     }
 
 
@@ -85,27 +120,19 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
         $sheet->mergeCells("A3:{$lastColumn}3");
         $sheet->mergeCells("A4:{$lastColumn}4");
 
-        $headerStyle = [
-            'font' => ['bold' => true, 'size' => 14],
+        $alignmentStyle = [
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
 
-        $subHeaderStyle = [
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
-        ];
+        $headerStyle = array_merge([
+            'font' => ['bold' => true, 'size' => 16],
+        ], $alignmentStyle);
 
-        $boldStyle = [
+        $boldStyle = array_merge([
             'font' => ['bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -116,16 +143,22 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['argb' => 'D3D3D3'],
             ],
-        ];
+        ], $alignmentStyle);
+
+        $sheet->getRowDimension(5)->setRowHeight(25);
+        $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
 
         $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
-        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($subHeaderStyle);
+        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($alignmentStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
         foreach (range(1, $columnCount) as $colIndex) {
             $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+            $sheet->getColumnDimension($columnLetter)
+                ->setAutoSize(false);
+            $sheet->getStyle($columnLetter)->getAlignment()->setWrapText(true);
+            $sheet->getStyle($columnLetter)->applyFromArray($alignmentStyle);
         }
 
         $dynamicBorderStyle = [
@@ -151,7 +184,9 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
                 break;
             }
             $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray($dynamicBorderStyle);
+            $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray($alignmentStyle);
             $row++;
         }
+
     }
 }

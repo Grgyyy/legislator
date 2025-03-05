@@ -9,6 +9,7 @@ use App\Models\TargetStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -20,7 +21,7 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMapping, WithDrawings
+class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMapping, WithDrawings, WithColumnWidths
 {
     private $columns = [
         // 'abscap_id' => 'Absorptive Capacity',
@@ -45,7 +46,7 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
 
         'qualification_title_code' => 'SOC Code',
         'qualification_title_name' => 'Qualification Title',
-        'allocation.scholarship_program.name' => 'Scholarship Program',
+        'qualification_title.scholarshipProgram.name' => 'Scholarship Program',
 
         'abdd.name' => 'ABDD Sector',
         'qualification_title.trainingProgram.tvet.name' => 'TVET Sector',
@@ -84,116 +85,9 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         'status' => 'Status',
     ];
 
-    // public function query()
-    // {
-    //     $user = request()->user();
-    //     $nonCompliantStatus = TargetStatus::where('desc', 'Non-Compliant')->first();
-    //     $query = Target::query()
-    //         ->select([
-    //             'abscap_id',
-    //             'allocation_id',
-    //             'district_id',
-    //             'municipality_id',
-    //             'tvi_id',
-    //             'tvi_name',
-    //             'abdd_id',
-    //             'qualification_title_id',
-    //             'qualification_title_code',
-    //             'qualification_title_soc_code',
-    //             'qualification_title_name',
-    //             'delivery_mode_id',
-    //             'learning_mode_id',
-    //             'number_of_slots',
-    //             'total_training_cost_pcc',
-    //             'total_cost_of_toolkit_pcc',
-    //             'total_training_support_fund',
-    //             'total_assessment_fee',
-    //             'total_entrepreneurship_fee',
-    //             'total_new_normal_assisstance',
-    //             'total_accident_insurance',
-    //             'total_book_allowance',
-    //             'total_uniform_allowance',
-    //             'total_misc_fee',
-    //             'total_amount',
-    //             'appropriation_type',
-    //             'target_status_id',
-    //         ])
-    //         ->addSelect([
-    //             'total_amount_per_slot' => DB::raw('CASE WHEN number_of_slots = 0 THEN NULL ELSE total_amount / number_of_slots END'),
-    //             'remarks' => DB::raw('(SELECT target_remarks.remarks FROM target_remarks WHERE target_remarks.target_id = targets.id LIMIT 1)')
-    //         ])
-    //         ->when(request()->user()->role === 'RO', function (Builder $query) {
-    //             $query->where('region_id', request()->user()->region_id);
-    //         })
-    //         ->with([
-    //             'attributionAllocation.legislator.particular.subParticular',
-    //             'allocation.legislator.particular.subParticular',
-    //             'municipality.province.region',
-    //             'tvi.tviType',
-    //             'qualification_title.trainingProgram.tvet',
-    //             'qualification_title.trainingProgram.priority',
-    //             'allocation.scholarship_program',
-    //             'nonCompliantRemark'
-    //         ])
-    //         ->where('target_status_id', 3);
-
-    //     if ($user) {
-    //         $userRegionIds = $user->region()->pluck('regions.id')->toArray();
-    //         $userProvinceIds = $user->province()->pluck('provinces.id')->toArray();
-    //         $userDistrictIds = $user->district()->pluck('districts.id')->toArray();
-    //         $userMunicipalityIds = $user->municipality()->pluck('municipalities.id')->toArray();
-
-    //         $isPO_DO = !empty($userProvinceIds) || !empty($userMunicipalityIds) || !empty($userDistrictIds);
-    //         $isRO = !empty($userRegionIds);
-
-    //         if ($isPO_DO) {
-    //             $query->where(function ($q) use ($userProvinceIds, $userDistrictIds, $userMunicipalityIds) {
-    //                 if (!empty($userDistrictIds) && !empty($userMunicipalityIds)) {
-    //                     $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
-    //                         $districtQuery->whereIn('districts.id', $userDistrictIds);
-    //                     })->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
-    //                         $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
-    //                     });
-    //                 } elseif (!empty($userMunicipalityIds)) {
-    //                     $q->whereHas('municipality', function ($municipalityQuery) use ($userMunicipalityIds) {
-    //                         $municipalityQuery->whereIn('municipalities.id', $userMunicipalityIds);
-    //                     });
-    //                 } elseif (!empty($userDistrictIds)) {
-    //                     $q->whereHas('district', function ($districtQuery) use ($userDistrictIds) {
-    //                         $districtQuery->whereIn('districts.id', $userDistrictIds);
-    //                     });
-    //                 } elseif (!empty($userProvinceIds)) {
-    //                     $q->whereHas('district.province', function ($districtQuery) use ($userProvinceIds) {
-    //                         $districtQuery->whereIn('province_id', $userProvinceIds);
-    //                     });
-
-    //                     $q->orWhereHas('municipality.province', function ($municipalityQuery) use ($userProvinceIds) {
-    //                         $municipalityQuery->whereIn('province_id', $userProvinceIds);
-    //                     });
-    //                 }
-    //             });
-    //         }
-
-    //         if ($isRO) {
-    //             $query->where(function ($q) use ($userRegionIds) {
-    //                 $q->orWhereHas('district.province', function ($provinceQuery) use ($userRegionIds) {
-    //                     $provinceQuery->whereIn('region_id', $userRegionIds);
-    //                 });
-
-    //                 $q->orWhereHas('municipality.province', function ($provinceQuery) use ($userRegionIds) {
-    //                     $provinceQuery->whereIn('region_id', $userRegionIds);
-    //                 });
-    //             });
-    //         }
-    //     }
-
-    //     return $query;
-    // }
-
     public function query()
     {
         $user = request()->user();
-        $nonCompliantStatus = TargetStatus::where('desc', 'Non-Compliant')->first();
 
         $query = Target::query()
             ->select([
@@ -312,7 +206,7 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
             $record->qualification_title_name ?? '-',
 
 
-            $record->allocation->scholarship_program->name ?? '-',
+            $record->qualification_title->scholarshipProgram->name ?? '-',
 
             $record->abdd->name ?? '-',
             $record->qualification_title->trainingProgram->tvet->name ?? '-',
@@ -386,13 +280,13 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         }
 
         $district = $particular->district;
-        $districtName = $district ? $district->name : '';
+        $districtName = $district ? $district->name : 'Unknown District';
 
         if ($districtName === 'Not Applicable') {
             if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
             } else {
-                return $particular->subParticular->name ?? '-';
+                return $particular->subParticular->name ?? 'Unknown Particular Type';
             }
         } else {
             if ($particular->district->underMunicipality) {
@@ -453,22 +347,80 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         $tesda_logo->setName('TESDA Logo');
         $tesda_logo->setDescription('TESDA Logo');
         $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
-        $tesda_logo->setHeight(80);
-        $tesda_logo->setCoordinates('A1');
-        $tesda_logo->setOffsetX(5);
+        $tesda_logo->setHeight(70);
+        $tesda_logo->setCoordinates('X1');
+        $tesda_logo->setOffsetX(20);
         $tesda_logo->setOffsetY(0);
 
         $tuv_logo = new Drawing();
         $tuv_logo->setName('TUV Logo');
         $tuv_logo->setDescription('TUV Logo');
         $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
-        $tuv_logo->setHeight(65);
-        $tuv_logo->setCoordinates('A1');
-        $tuv_logo->setOffsetX(590);
+        $tuv_logo->setHeight(55);
+        $tuv_logo->setCoordinates('AB1');
+        $tuv_logo->setOffsetX(0);
         $tuv_logo->setOffsetY(8);
 
         return [$tesda_logo, $tuv_logo];
     }
+
+
+    public function columnWidths(): array
+    {
+        return [
+            'A' => 20,
+            'B' => 20,
+            'C' => 30,
+            'D' => 40,
+            'E' => 30,
+            'F' => 40,
+            'G' => 20,
+            'H' => 20,
+            'I' => 15,
+            'J' => 50,
+            'K' => 20,
+            'L' => 20,
+            'M' => 20,
+            'N' => 20,
+            'O' => 20,
+            'P' => 20,
+            'Q' => 20,
+            'R' => 40,
+            'S' => 20,
+            'T' => 40,
+            'U' => 40,
+            'V' => 40,
+            'W' => 40,
+            'X' => 40,
+            'Y' => 20,
+            'Z' => 20,
+            'AA' => 20,
+            'AB' => 25,
+            'AC' => 20,
+            'AD' => 25,
+            'AE' => 25,
+            'AF' => 20,
+            'AG' => 20,
+            'AH' => 20,
+            'AI' => 20,
+            'AJ' => 20,
+            'AK' => 30,
+            'AL' => 30,
+            'AM' => 30,
+            'AN' => 30,
+            'AO' => 30,
+            'AP' => 30,
+            'AQ' => 30,
+            'AR' => 30,
+            'AS' => 30,
+            'AT' => 30,
+            'AU' => 30,
+            'AV' => 50,
+            'AW' => 50,
+            'AX' => 30,
+        ];
+    }
+
 
     public function styles(Worksheet $sheet)
     {
@@ -490,27 +442,19 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
         $sheet->mergeCells("A3:{$lastColumn}3");
         $sheet->mergeCells("A4:{$lastColumn}4");
 
-        $headerStyle = [
-            'font' => ['bold' => true, 'size' => 14],
+        $alignmentStyle = [
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,
                 'vertical' => Alignment::VERTICAL_CENTER,
             ],
         ];
 
-        $subHeaderStyle = [
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
-        ];
+        $headerStyle = array_merge([
+            'font' => ['bold' => true, 'size' => 16],
+        ], $alignmentStyle);
 
-        $boldStyle = [
+        $boldStyle = array_merge([
             'font' => ['bold' => true],
-            'alignment' => [
-                'horizontal' => Alignment::HORIZONTAL_CENTER,
-                'vertical' => Alignment::VERTICAL_CENTER,
-            ],
             'borders' => [
                 'allBorders' => [
                     'borderStyle' => Border::BORDER_THIN,
@@ -521,16 +465,22 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
                 'fillType' => Fill::FILL_SOLID,
                 'startColor' => ['argb' => 'D3D3D3'],
             ],
-        ];
+        ], $alignmentStyle);
+
+        $sheet->getRowDimension(5)->setRowHeight(25);
+        $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
 
         $sheet->getStyle("A1:A3")->applyFromArray($headerStyle);
-        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($subHeaderStyle);
+        $sheet->getStyle("A4:{$lastColumn}4")->applyFromArray($alignmentStyle);
         $sheet->getStyle("A5:{$lastColumn}5")->applyFromArray($boldStyle);
 
         foreach (range(1, $columnCount) as $colIndex) {
             $columnLetter = Coordinate::stringFromColumnIndex($colIndex);
-            $sheet->getColumnDimension($columnLetter)->setAutoSize(true);
+            $sheet->getColumnDimension($columnLetter)
+                ->setAutoSize(false);
+            $sheet->getStyle($columnLetter)->getAlignment()->setWrapText(true);
+            $sheet->getStyle($columnLetter)->applyFromArray($alignmentStyle);
         }
 
         $dynamicBorderStyle = [
@@ -556,7 +506,11 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
                 break;
             }
             $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray($dynamicBorderStyle);
+            $sheet->getStyle("A{$row}:{$lastColumn}{$row}")->applyFromArray($alignmentStyle);
             $row++;
         }
+
     }
+
+
 }

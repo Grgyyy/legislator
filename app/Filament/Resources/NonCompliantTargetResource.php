@@ -507,10 +507,21 @@ class NonCompliantTargetResource extends Resource
                             return '-';
                         }
 
-                        if ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                            return $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
+                        $district = $particular->district;
+                        $districtName = $district ? $district->name : 'Unknown District';
+
+                        if ($districtName === 'Not Applicable') {
+                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                            } else {
+                                return $particular->subParticular->name ?? 'Unknown Particular Type';
+                            }
                         } else {
-                            return $particular->subParticular->name;
+                            if ($particular->district->underMunicipality) {
+                                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+                            } else {
+                                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                            }
                         }
                     }),
 
@@ -649,7 +660,7 @@ class NonCompliantTargetResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('allocation.scholarship_program.name')
+                TextColumn::make('qualification_title.scholarshipProgram.name')
                     ->label('Scholarship Program')
                     ->sortable()
                     ->searchable()
@@ -927,10 +938,21 @@ class NonCompliantTargetResource extends Resource
                                                 return '-';
                                             }
 
-                                            if ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                                                return $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
+                                            $district = $particular->district;
+                                            $districtName = $district ? $district->name : 'Unknown District';
+
+                                            if ($districtName === 'Not Applicable') {
+                                                if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                                    return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                                                } else {
+                                                    return $particular->subParticular->name ?? 'Unknown Particular Type';
+                                                }
                                             } else {
-                                                return $particular->subParticular->name;
+                                                if ($particular->district->underMunicipality) {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+                                                } else {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                                                }
                                             }
                                         }),
 
@@ -1002,7 +1024,7 @@ class NonCompliantTargetResource extends Resource
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
 
-                                    Column::make('allocation.scholarship_program.name')
+                                    Column::make('qualification_title.scholarshipProgram.name')
                                         ->heading('Scholarship Program'),
 
                                     Column::make('abdd.name')
@@ -1027,101 +1049,101 @@ class NonCompliantTargetResource extends Resource
                                     Column::make('training_cost_per_slot')
                                         ->heading('Training Cost')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_cost_pcc'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('cost_of_toolkit_per_slot')
                                         ->heading('Cost of Toolkit')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_cost_of_toolkit_pcc'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('training_support_fund_per_slot')
                                         ->heading('Training Support Fund')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_training_support_fund'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('assessment_fee_per_slot')
                                         ->heading('Assessment Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_assessment_fee'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('entrepreneurship_fee_per_slot')
                                         ->heading('Entrepreneurship Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_entrepreneurship_fee'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('new_normal_assistance_per_slot')
                                         ->heading('New Normal Assistance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_new_normal_assistance'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('accident_insurance_per_slot')
                                         ->heading('Accident Insurance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_accident_insurance'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('book_allowance_per_slot')
                                         ->heading('Book Allowance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_book_allowance'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('uniform_allowance_per_slot')
                                         ->heading('Uniform Allowance')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_uniform_allowance'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('misc_fee_per_slot')
                                         ->heading('Miscellaneous Fee')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_misc_fee'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_amount_per_slot')
                                         ->heading('PCC')
                                         ->getStateUsing(fn($record) => self::calculateCostPerSlot($record, 'total_amount'))
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_training_cost_pcc')
                                         ->heading('Total Training Cost')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_cost_of_toolkit_pcc')
                                         ->heading('Total Cost of Toolkit')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_training_support_fund')
                                         ->heading('Total Training Support Fund')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_assessment_fee')
                                         ->heading('Total Assessment Fee')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_entrepreneurship_fee')
                                         ->heading('Total Entrepreneurship Fee')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_new_normal_assisstance')
                                         ->heading('Total New Normal Assistance')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_accident_insurance')
                                         ->heading('Total Accident Insurance')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_book_allowance')
                                         ->heading('Total Book Allowance')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_uniform_allowance')
                                         ->heading('Total Uniform Allowance')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_misc_fee')
                                         ->heading('Total Miscellaneous Fee')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('total_amount')
                                         ->heading('Total PCC')
-                                      ->format('"₱ "#,##0.00'),
+                                        ->format('"₱ "#,##0.00'),
 
                                     Column::make('remarks')
                                         ->heading('Remarks')

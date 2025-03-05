@@ -176,7 +176,7 @@ class AttributionProjectProposalResource extends Resource
                                                 ->pluck('legislator.name', 'legislator.id')
                                                 ->toArray();
 
-                                                return $allocations ?? ['no_legislator' => 'No legislators available'];
+                                            return $allocations ?? ['no_legislator' => 'No legislators available'];
                                         }
 
                                         return ['no_legislator' => 'No legislators available. Complete sender fields first.'];
@@ -199,27 +199,27 @@ class AttributionProjectProposalResource extends Resource
                                                 ->with('subParticular')
                                                 ->get();
 
-                                                $particularOptions = $particulars->mapWithKeys(function ($particular) {
-                                                    if ($particular->subParticular) {
-                                                        if ($particular->subParticular->name === 'Party-list') {
-                                                            $name = $particular->subParticular->name . '-' . $particular->partylist->name;
-                                                        } elseif ($particular->subParticular->name === 'District') {
-                                                            if ($particular->district->underMunicipality) {
-                                                                $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->underMunicipality->name . ', ' . $particular->district->province->name;
-                                                            } else {
-                                                                $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->province->name;
-                                                            }
-                                                        } elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                                                            $name = $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
+                                            $particularOptions = $particulars->mapWithKeys(function ($particular) {
+                                                if ($particular->subParticular) {
+                                                    if ($particular->subParticular->name === 'Party-list') {
+                                                        $name = $particular->subParticular->name . '-' . $particular->partylist->name;
+                                                    } elseif ($particular->subParticular->name === 'District') {
+                                                        if ($particular->district->underMunicipality) {
+                                                            $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->underMunicipality->name . ', ' . $particular->district->province->name;
                                                         } else {
-                                                            $name = $particular->subParticular->name;
+                                                            $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->province->name;
                                                         }
+                                                    } elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
+                                                        $name = $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
                                                     } else {
-                                                        $name = $particular->name;
+                                                        $name = $particular->subParticular->name;
                                                     }
+                                                } else {
+                                                    $name = $particular->name;
+                                                }
 
-                                                    return [$particular->id => $name];
-                                                })->toArray();
+                                                return [$particular->id => $name];
+                                            })->toArray();
 
                                             return $particularOptions ?: ['no_particular' => 'No particulars available'];
                                         }
@@ -783,24 +783,24 @@ class AttributionProjectProposalResource extends Resource
                                                         ->with('subParticular')
                                                         ->get();
 
-                                                        $particularOptions = $particulars->mapWithKeys(function ($particular) {
-                                                            if ($particular->subParticular) {
-                                                                if ($particular->subParticular->name === 'Party-list') {
-                                                                    $name = $particular->subParticular->name . '-' . $particular->partylist->name;
-                                                                } elseif ($particular->subParticular->name === 'District') {
-                                                                    if ($particular->district->underMunicipality) {
-                                                                        $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->underMunicipality->name . ', ' . $particular->district->province->name;
-                                                                    } else {
-                                                                        $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->province->name;
-                                                                    }
-                                                                } elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                                                                    $name = $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
+                                                    $particularOptions = $particulars->mapWithKeys(function ($particular) {
+                                                        if ($particular->subParticular) {
+                                                            if ($particular->subParticular->name === 'Party-list') {
+                                                                $name = $particular->subParticular->name . '-' . $particular->partylist->name;
+                                                            } elseif ($particular->subParticular->name === 'District') {
+                                                                if ($particular->district->underMunicipality) {
+                                                                    $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->underMunicipality->name . ', ' . $particular->district->province->name;
                                                                 } else {
-                                                                    $name = $particular->subParticular->name;
+                                                                    $name = $particular->subParticular->name . ' - ' . $particular->district->name . ', ' . $particular->district->province->name;
                                                                 }
+                                                            } elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
+                                                                $name = $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
                                                             } else {
-                                                                $name = $particular->name;
+                                                                $name = $particular->subParticular->name;
                                                             }
+                                                        } else {
+                                                            $name = $particular->name;
+                                                        }
 
                                                         return [$particular->id => $name];
                                                     })->toArray();
@@ -959,7 +959,7 @@ class AttributionProjectProposalResource extends Resource
                                             ->live()
                                             ->validationAttribute('qualification title'),
 
-                                            Select::make('abdd_id')
+                                        Select::make('abdd_id')
                                             ->label('ABDD Sector')
                                             ->required()
                                             ->markAsRequired(false)
@@ -1040,7 +1040,7 @@ class AttributionProjectProposalResource extends Resource
                                             ])
                                             ->validationAttribute('slots'),
 
-                                            TextInput::make('per_capita_cost')
+                                        TextInput::make('per_capita_cost')
                                             ->label('Per Capita Cost')
                                             ->placeholder('Enter per capita cost')
                                             ->required()
@@ -1116,10 +1116,25 @@ class AttributionProjectProposalResource extends Resource
                     ->getStateUsing(function ($record) {
                         $particular = $record->allocation->attributorParticular;
 
-                        if ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                            return $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
+                        if (!$particular) {
+                            return '-';
+                        }
+
+                        $district = $particular->district;
+                        $districtName = $district ? $district->name : 'Unknown District';
+
+                        if ($districtName === 'Not Applicable') {
+                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                            } else {
+                                return $particular->subParticular->name ?? 'Unknown Particular Type';
+                            }
                         } else {
-                            return $particular->subParticular->name;
+                            if ($particular->district->underMunicipality) {
+                                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+                            } else {
+                                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                            }
                         }
                     }),
 
@@ -1246,7 +1261,7 @@ class AttributionProjectProposalResource extends Resource
                     ->toggleable()
                     ->getStateUsing(fn($record) => self::getLocationNames($record)),
 
-                    TextColumn::make('qualification_title_soc_code')
+                TextColumn::make('qualification_title_soc_code')
                     ->label('SOC Code')
                     ->sortable()
                     ->searchable()
@@ -1258,7 +1273,7 @@ class AttributionProjectProposalResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('allocation.scholarship_program.name')
+                TextColumn::make('qualification_title.scholarshipProgram.name')
                     ->label('Scholarship Program')
                     ->sortable()
                     ->searchable()
@@ -1326,7 +1341,7 @@ class AttributionProjectProposalResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed())
-                         ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
+                        ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
                     Action::make('viewHistory')
                         ->label('View History')
@@ -1742,10 +1757,25 @@ class AttributionProjectProposalResource extends Resource
                                         ->getStateUsing(function ($record) {
                                             $particular = $record->allocation->attributorParticular;
 
-                                            if ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                                                return $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
+                                            if (!$particular) {
+                                                return '-';
+                                            }
+
+                                            $district = $particular->district;
+                                            $districtName = $district ? $district->name : 'Unknown District';
+
+                                            if ($districtName === 'Not Applicable') {
+                                                if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                                    return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                                                } else {
+                                                    return $particular->subParticular->name ?? 'Unknown Particular Type';
+                                                }
                                             } else {
-                                                return $particular->subParticular->name;
+                                                if ($particular->district->underMunicipality) {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+                                                } else {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                                                }
                                             }
                                         }),
 
@@ -1817,7 +1847,7 @@ class AttributionProjectProposalResource extends Resource
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
 
-                                    Column::make('allocation.scholarship_program.name')
+                                    Column::make('qualification_title.scholarshipProgram.name')
                                         ->heading('Scholarship Program'),
 
                                     Column::make('abdd.name')

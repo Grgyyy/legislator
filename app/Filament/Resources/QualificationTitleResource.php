@@ -528,40 +528,54 @@ class QualificationTitleResource extends Resource
                             CustomScheduleOfCostExport::make()
                                 ->withColumns([
                                     Column::make('TrainingProgram.code')
-                                        ->heading('Qualification Code'),
+                                        ->heading('Qualification Code')
+                                        ->getStateUsing(fn($record) => empty($record->trainingProgram->code) ? '-' : $record->trainingProgram->code),
+
                                     Column::make('TrainingProgram.soc_code')
                                         ->heading('SOC Code'),
+
                                     Column::make('TrainingProgram.title')
                                         ->heading('Qualification Title'),
+
                                     Column::make('ScholarshipProgram.name')
                                         ->heading('Scholarship Program'),
+
                                     Column::make('training_cost_pcc')
                                         ->heading('Training Cost PCC')
                                         ->format('"₱ "#,##0.00'),
+
                                     Column::make('training_support_fund')
                                         ->heading('Training Support Fund')
                                         ->format('"₱ "#,##0.00'),
+
                                     Column::make('assessment_fee')
                                         ->heading('Assessment Fee')
                                         ->format('"₱ "#,##0.00'),
+
                                     Column::make('entrepreneurship_fee')
                                         ->heading('Entrepreneurship Fee')
                                         ->format('"₱ "#,##0.00'),
+
                                     Column::make('new_normal_assistance')
                                         ->heading('New Normal Assistance')
                                         ->format('"₱ "#,##0.00'),
+
                                     Column::make('accident_insurance')
                                         ->heading('Accidental Insurance')
                                         ->format('"₱ "#,##0.00'),
+
                                     Column::make('book_allowance')
                                         ->heading('Book Allowance')
                                         ->format('"₱ "#,##0.00'),
+
                                     Column::make('uniform_allowance')
                                         ->heading('Uniform Allowance')
                                         ->format('"₱ "#,##0.00'),
+
                                     Column::make('misc_fee')
                                         ->heading('Miscellaneous Fee')
                                         ->format('"₱ "#,##0.00'),
+
                                     Column::make('toolkit.price_per_toolkit')
                                         ->heading('Cost of Toolkits PCC')
                                         ->getStateUsing(function ($record) {
@@ -572,10 +586,23 @@ class QualificationTitleResource extends Resource
                                     Column::make('pcc')
                                         ->heading('Total PCC (w/o Toolkits)')
                                         ->format('"₱ "#,##0.00'),
+
                                     Column::make('days_duration')
-                                        ->heading('Training Days'),
+                                        ->heading('Training Days')
+                                        ->formatStateUsing(function ($state) {
+                                            $suffix = $state == 1 ? ' day' : ' days';
+
+                                            return $state . $suffix;
+                                        }),
+
                                     Column::make('hours_duration')
-                                        ->heading('Training Hours'),
+                                        ->heading('Training Hours')
+                                        ->formatStateUsing(function ($state) {
+                                            $suffix = $state == 1 ? ' hr' : ' hrs';
+
+                                            return $state . $suffix;
+                                        }),
+
                                     Column::make('status.desc')
                                         ->heading('Status'),
                                 ])

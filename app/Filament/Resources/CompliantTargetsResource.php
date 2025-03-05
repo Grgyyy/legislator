@@ -478,10 +478,21 @@ class CompliantTargetsResource extends Resource
                             return '-';
                         }
 
-                        if ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                            return $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
+                        $district = $particular->district;
+                        $districtName = $district ? $district->name : 'Unknown District';
+
+                        if ($districtName === 'Not Applicable') {
+                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                            } else {
+                                return $particular->subParticular->name ?? 'Unknown Particular Type';
+                            }
                         } else {
-                            return $particular->subParticular->name;
+                            if ($particular->district->underMunicipality) {
+                                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+                            } else {
+                                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                            }
                         }
                     }),
 
@@ -620,7 +631,7 @@ class CompliantTargetsResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('allocation.scholarship_program.name')
+                TextColumn::make('qualification_title.scholarshipProgram.name')
                     ->label('Scholarship Program')
                     ->sortable()
                     ->searchable()
@@ -855,10 +866,21 @@ class CompliantTargetsResource extends Resource
                                                 return '-';
                                             }
 
-                                            if ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
-                                                return $particular->subParticular->name . ' - ' . $particular->district->province->region->name;
+                                            $district = $particular->district;
+                                            $districtName = $district ? $district->name : 'Unknown District';
+
+                                            if ($districtName === 'Not Applicable') {
+                                                if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                                                    return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                                                } else {
+                                                    return $particular->subParticular->name ?? 'Unknown Particular Type';
+                                                }
                                             } else {
-                                                return $particular->subParticular->name;
+                                                if ($particular->district->underMunicipality) {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
+                                                } else {
+                                                    return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                                                }
                                             }
                                         }),
 
@@ -930,7 +952,7 @@ class CompliantTargetsResource extends Resource
                                     Column::make('qualification_title_name')
                                         ->heading('Qualification Title'),
 
-                                    Column::make('allocation.scholarship_program.name')
+                                    Column::make('qualification_title.scholarshipProgram.name')
                                         ->heading('Scholarship Program'),
 
                                     Column::make('abdd.name')
