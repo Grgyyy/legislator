@@ -51,8 +51,8 @@ class CreateAbdd extends CreateRecord
 
         $data['name'] = Helper::capitalizeWords($data['name']);
 
-        $abdd = DB::transaction(fn () => Abdd::create([
-                'name' => $data['name'],
+        $abdd = DB::transaction(fn() => Abdd::create([
+            'name' => $data['name'],
         ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'ABDD sector has been created successfully.');
@@ -63,14 +63,14 @@ class CreateAbdd extends CreateRecord
     protected function validateUniqueAbdd($data)
     {
         $abdd = Abdd::withTrashed()
-            ->where('name', $data['name'])
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->first();
 
         if ($abdd) {
-            $message = $abdd->deleted_at 
+            $message = $abdd->deleted_at
                 ? 'An ABDD sector with this name has been deleted and must be restored before reuse.'
                 : 'An ABDD sector with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

@@ -69,24 +69,27 @@ class PriorityResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records')
-                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter priority')),
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter top ten priority sectors')),
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Sector has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Sector has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -103,7 +106,8 @@ class PriorityResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected sectors have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete top ten priority sector')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete top ten priority sectors')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -111,6 +115,7 @@ class PriorityResource extends Resource
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected sectors have been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore top ten priority sector')),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
@@ -118,6 +123,7 @@ class PriorityResource extends Resource
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected sectors have been deleted permanently.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete top ten priority sector')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomTenPrioritySectorExport::make()
@@ -128,7 +134,7 @@ class PriorityResource extends Resource
                                 ->withFilename(date('m-d-Y') . ' - Top Ten Priority Sectors')
                         ]),
                 ])
-                ->label('Select Action')
+                    ->label('Select Action')
             ]);
     }
 

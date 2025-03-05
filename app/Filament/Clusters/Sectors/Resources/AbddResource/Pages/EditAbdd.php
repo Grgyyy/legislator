@@ -67,15 +67,15 @@ class EditAbdd extends EditRecord
     protected function validateUniqueAbdd($data, $currentId)
     {
         $abdd = Abdd::withTrashed()
-            ->where('name', $data['name'])
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->whereNot('id', $currentId)
             ->first();
 
         if ($abdd) {
-            $message = $abdd->deleted_at 
+            $message = $abdd->deleted_at
                 ? 'An ABDD sector with this name has been deleted and must be restored before reuse.'
                 : 'An ABDD sector with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

@@ -41,13 +41,12 @@ class ListPriorities extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-
-
             Action::make('TenPrioImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -61,9 +60,9 @@ class ListPriorities extends ListRecords
                         try {
                             Excel::import(new TenPrioImport, $filePath);
 
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The ten priorities sectors have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The priorities sectors have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the ten priorities sectors: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the priorities sectors: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);
@@ -71,10 +70,10 @@ class ListPriorities extends ListRecords
                         }
                     }
                 })
-                ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('import tvet')),
+                ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('import top ten priority sectors')),
 
             Action::make('PriorityExport')
-                ->label('Export')
+                ->label('Export All')
                 ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {

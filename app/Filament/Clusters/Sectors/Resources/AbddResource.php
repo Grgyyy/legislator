@@ -69,24 +69,27 @@ class AbddResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records')
-                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter abdd sector')),
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter abdd sectors')),
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Sector has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Sector has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -103,21 +106,24 @@ class AbddResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected sectors have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete abdd sector')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete abdd sectors')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected sectors have been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore abdd sector')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore abdd sectors')),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected sectors have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete abdd sector')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete abdd sectors')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomAbddSectorExport::make()
@@ -125,10 +131,10 @@ class AbddResource extends Resource
                                     Column::make('name')
                                         ->heading('ABDD Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - ABDD Sector Export')
+                                ->withFilename(date('m-d-Y') . ' - ABDD Sectors')
                         ]),
                 ])
-                ->label('Select Action')
+                    ->label('Select Action')
             ]);
     }
 

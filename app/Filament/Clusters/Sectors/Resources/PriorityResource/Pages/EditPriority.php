@@ -66,15 +66,15 @@ class EditPriority extends EditRecord
     protected function validateUniquePriority($data, $currentId)
     {
         $priority = Priority::withTrashed()
-            ->where('name', $data['name'])
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->whereNot('id', $currentId)
             ->first();
 
         if ($priority) {
-            $message = $priority->deleted_at 
+            $message = $priority->deleted_at
                 ? 'A priority sector with this name has been deleted and must be restored before reuse.'
                 : 'A priority sector with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

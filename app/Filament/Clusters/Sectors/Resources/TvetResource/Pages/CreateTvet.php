@@ -51,7 +51,7 @@ class CreateTvet extends CreateRecord
 
         $data['name'] = Helper::capitalizeWords($data['name']);
 
-        $tvet = DB::transaction(fn () => Tvet::create([
+        $tvet = DB::transaction(fn() => Tvet::create([
             'name' => $data['name'],
         ]));
 
@@ -63,14 +63,14 @@ class CreateTvet extends CreateRecord
     protected function validateUniqueTvet($data)
     {
         $tvet = Tvet::withTrashed()
-            ->where('name', $data['name'])
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->first();
 
         if ($tvet) {
-            $message = $tvet->deleted_at 
+            $message = $tvet->deleted_at
                 ? 'A TVET sector with this name has been deleted and must be restored before reuse.'
                 : 'A TVET sector with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

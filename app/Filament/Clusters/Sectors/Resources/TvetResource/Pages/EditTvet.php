@@ -14,7 +14,7 @@ class EditTvet extends EditRecord
     protected static string $resource = TvetResource::class;
 
     protected static ?string $title = 'Edit TVET Sectors';
-    
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
@@ -66,15 +66,15 @@ class EditTvet extends EditRecord
     protected function validateUniqueTvet($data, $currentId)
     {
         $tvet = Tvet::withTrashed()
-            ->where('name', $data['name'])
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->whereNot('id', $currentId)
             ->first();
 
         if ($tvet) {
-            $message = $tvet->deleted_at 
+            $message = $tvet->deleted_at
                 ? 'A TVET sector with this name has been deleted and must be restored before reuse.'
                 : 'A TVET sector with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

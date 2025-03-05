@@ -41,12 +41,12 @@ class ListTvets extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-
             Action::make('TvetImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -70,10 +70,10 @@ class ListTvets extends ListRecords
                         }
                     }
                 })
-                ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('import tvet')),
+                ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('import tvet sectors')),
 
             Action::make('TvetExport')
-                ->label('Export')
+                ->label('Export All')
                 ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
