@@ -81,8 +81,9 @@ class AllocationResource extends Resource
                             $set('attributor_particular_id', null);
                         }
 
-                        $particulars = self::getParticularOptions($state);
+                        $particulars = self::getParticularOptions($state, true);
 
+                        $set('attributor_particular_id', null);
                         $set('particularOptions', $particulars);
 
                         if ($particulars && count($particulars) === 1) {
@@ -108,7 +109,7 @@ class AllocationResource extends Resource
                         $legislatorId = $get('attributor_id');
 
                         return $legislatorId
-                            ? self::getParticularOptions($legislatorId)
+                            ? self::getParticularOptions($legislatorId, true)
                             : ['' => 'No particulars available. Select a legislator first.'];
                     })
                     ->disableOptionWhen(fn($value) => $value === '')
@@ -136,7 +137,7 @@ class AllocationResource extends Resource
                     ->afterStateUpdated(function (callable $set, $state) {
                         $set('particular_id', null);
 
-                        $particulars = self::getParticularOptions($state);
+                        $particulars = self::getParticularOptions($state, false);
 
                         $set('particularOptions', $particulars);
 
@@ -158,7 +159,7 @@ class AllocationResource extends Resource
                         $legislatorId = $get('legislator_id');
 
                         return $legislatorId
-                            ? self::getParticularOptions($legislatorId)
+                            ? self::getParticularOptions($legislatorId, false)
                             : ['no_particular' => 'No particulars available. Select a legislator first.'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_particular')
@@ -692,13 +693,27 @@ class AllocationResource extends Resource
             ]);
     }
 
-    private static function getParticularOptions($legislatorId)
+    private static function getParticularOptions($legislatorId, $isAttributor)
     {
         if (!$legislatorId) {
             return;
         }
 
-        $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
+        $particulars = ['RO Regular', 'CO Regular', 'House Speaker', 'House Speaker (LAKAS)'];
+
+        if ($isAttributor) {
+            $legislator = Legislator::with([
+                'particular' => function ($query) use ($particulars) {
+                    $query->whereHas('subParticular', function ($subQuery) use ($particulars) {
+                        $subQuery->whereIn('name', $particulars);
+                    });
+                },
+                'particular.district.municipality'
+            ])->find($legislatorId);
+        }
+        else {
+            $legislator = Legislator::with('particular.district.municipality')->find($legislatorId);
+        }
 
         if (!$legislator) {
             return;
