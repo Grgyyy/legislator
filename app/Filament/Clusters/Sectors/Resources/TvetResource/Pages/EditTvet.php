@@ -20,6 +20,14 @@ class EditTvet extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/sectors/tvets' => 'TVET Sectors',
+            'Edit'
+        ];
+    }
+
     protected function getSavedNotificationTitle(): ?string
     {
         return null;
@@ -31,14 +39,6 @@ class EditTvet extends EditRecord
             $this->getSaveFormAction(),
             $this->getCancelFormAction()
                 ->label('Exit'),
-        ];
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            '/sectors/tvets' => 'TVET Sectors',
-            'Edit'
         ];
     }
 

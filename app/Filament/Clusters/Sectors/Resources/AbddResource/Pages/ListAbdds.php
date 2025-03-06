@@ -20,17 +20,17 @@ class ListAbdds extends ListRecords
 
     protected static ?string $title = 'ABDD Sectors';
 
-    protected function getCreatedNotificationTitle(): ?string
-    {
-        return null;
-    }
-
     public function getBreadcrumbs(): array
     {
         return [
             '/sectors/abdds' => 'ABDD Sectors',
             'List'
         ];
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getHeaderActions(): array

@@ -16,6 +16,7 @@ use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
@@ -50,7 +51,7 @@ class TviResource extends Resource
 
     protected static ?int $navigationSort = 6;
 
-    // protected static ?string $slug = 'institutions';
+    protected static ?string $slug = 'institutions';
 
     public static function form(Form $form): Form
     {
@@ -60,8 +61,8 @@ class TviResource extends Resource
                     ->label('School ID')
                     ->placeholder('Enter school ID')
                     ->autocomplete(false)
-                    ->numeric()
-                    ->currencyMask(thousandSeparator: '', precision: 0)
+                    ->formatStateUsing(fn($state, $record) => $record && empty($state) ? '-' : $state)
+                    ->maxLength(8)
                     ->validationAttribute('school ID'),
 
                 TextInput::make("name")
@@ -76,11 +77,12 @@ class TviResource extends Resource
                     ->label("Institution Type")
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function () {
-                        return TviType::all()
+                        return TviType::whereNull('deleted_at')
+                            ->orderBy('name')
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_institution_type' => 'No institution types available'];
                     })
@@ -92,8 +94,8 @@ class TviResource extends Resource
                     ->relationship('tviClass', 'name')
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function ($get) {
                         $type = $get('tvi_type_id');
@@ -103,12 +105,15 @@ class TviResource extends Resource
 
                         $tviClasses = TviClass::all();
 
-                        $publicId = TviType::where('name', 'Public')->value('id');
-                        $privateId = TviType::where('name', 'Private')->value('id');
+                        $publicId = TviType::where('name', 'Public')
+                            ->value('id');
+                        $privateId = TviType::where('name', 'Private')
+                            ->value('id');
 
                         if ($type == $publicId) {
                             return $tviClasses
                                 ->whereIn('name', $publicTypes)
+                                ->sortBy('name')
                                 ->pluck('name', 'id')
                                 ->toArray() ?: ['no_public_class' => 'No public institution class available'];
                         }
@@ -116,25 +121,27 @@ class TviResource extends Resource
                         if ($type == $privateId) {
                             return $tviClasses
                                 ->whereIn('name', $privateTypes)
+                                ->sortBy('name')
                                 ->pluck('name', 'id')
                                 ->toArray() ?: ['no_private_class' => 'No private institution class available'];
                         }
 
-                        return [];
+                        return ['no_insti_class' => 'No institution class available. Select an institution type first.'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_private_class' || $value === 'no_public_class')
+                    ->disableOptionWhen(fn($value) => $value === 'no_private_class' || $value === 'no_public_class' || $value === 'no_insti_class')
                     ->validationAttribute('institution class (A)'),
 
                 Select::make('institution_class_id')
                     ->label("Institution Class (B)")
-                    ->relationship('InstitutionClass', 'name')
+                    ->relationship('institutionClass', 'name')
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function () {
-                        return InstitutionClass::all()
+                        return InstitutionClass::whereNull('deleted_at')
+                            ->orderBy('name')
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_institution_class' => 'No institution class (B) available'];
                     })
@@ -145,17 +152,17 @@ class TviResource extends Resource
                     ->label('District')
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function () {
                         return District::whereNot('name', 'Not Applicable')
                             ->get()
                             ->mapWithKeys(function (District $district) {
-                                if ($district->province->region->name === 'NCR') {
-                                    $label = $district->name . ' - ' . $district->underMunicipality->name . ', ' . $district->province->name;
+                                if ($district->underMunicipality) {
+                                    $label = $district->name . ', ' . $district->underMunicipality->name . ', ' . $district->province->name;
                                 } else {
-                                    $label = $district->name . ' - ' . $district->province->name;
+                                    $label = $district->name . ', ' . $district->province->name;
                                 }
                                 return [$district->id => $label];
                             })
@@ -163,7 +170,19 @@ class TviResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_district')
                     ->afterStateUpdated(function ($state, $get, $set) {
-                        $set('municipality_id', null);
+                        if (!$state) {
+                            $set('municipality_id', null);
+                        }
+
+                        $municipalities = self::getMunicipalitiesOptions($state);
+
+                        $set('municipalityOptions', $municipalities);
+
+                        if (count($municipalities) === 1) {
+                            $set('municipality_id', key($municipalities));
+                        } else {
+                            $set('municipality_id', null);
+                        }
                     })
                     ->reactive()
                     ->live()
@@ -173,8 +192,8 @@ class TviResource extends Resource
                     ->label('Municipality')
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function ($get) {
                         $districtId = $get('district_id');
@@ -185,7 +204,7 @@ class TviResource extends Resource
                             })
                                 ->get()
                                 ->mapWithKeys(function (Municipality $municipality) {
-                                    $label = $municipality->name . ' - ' . $municipality->province->name;
+                                    $label = $municipality->name;
                                     return [$municipality->id => $label];
                                 })
                                 ->toArray() ?: ['no_municipality' => 'No municipalities available'];
@@ -211,7 +230,7 @@ class TviResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('created_at', 'desc')
+            ->defaultSort('name')
             ->emptyStateHeading('No institutions available')
             ->columns([
                 TextColumn::make("school_id")
@@ -219,7 +238,19 @@ class TviResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->toggleable()
-                    ->getStateUsing(fn($record) => $record->school_id ?? '-'),
+                    ->getStateUsing(function ($record) {
+                        $schoolId = $record->school_id ?? '';
+                
+                        if (empty($schoolId)) {
+                            return '-';
+                        }
+
+                        $cleaned = preg_replace('/\D/', '', $schoolId);
+                
+                        $cleaned = str_pad($cleaned, 8, '0', STR_PAD_LEFT);
+                
+                        return substr($cleaned, 0, 4) . '-' . substr($cleaned, 4, 4);
+                    }),
 
                 TextColumn::make("name")
                     ->label("Institution")
@@ -238,47 +269,41 @@ class TviResource extends Resource
                 TextColumn::make("tviClass.name")
                     ->label('Institution Class(A)')
                     ->sortable()
-                    ->searchable()
                     ->toggleable(),
 
-                TextColumn::make("InstitutionClass.name")
+                TextColumn::make("institutionClass.name")
                     ->label("Institution Class(B)")
                     ->sortable()
-                    ->searchable()
-                    ->toggleable()
-                    ->getStateUsing(function ($record) {
-                        return $record->InstitutionClass
-                            ? $record->InstitutionClass->name
-                            : '-';
-                    }),
+                    ->toggleable(),
 
                 TextColumn::make('district.name')
+                    ->searchable()
+                    ->sortable()
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $district = $record->district;
-
-                        if (!$district) {
-                            return 'No District Information';
-                        }
                         $province = $district->province;
 
-                        $municipalityName = $record->municipality ? $record->municipality->name : '-';
-                        $districtName = $district->name;
-                        $provinceName = $province ? $province->name : '-';
+                        $municipalityName = $record->municipality ? $record->municipality->name : '';
+                        $districtName = $district ? $district->name : '';
+                        $provinceName = $province ? $province->name : '';
 
-                        return "{$municipalityName} - {$districtName}, {$provinceName}";
+                        if ($municipalityName) {
+                            return "{$districtName}, {$municipalityName}, {$provinceName}";
+                        } else {
+                            return "{$districtName}, {$provinceName}";
+                        }
                     }),
 
                 TextColumn::make("address")
-                    ->searchable()
                     ->toggleable()
-                    ->limit(40)
-                    ->tooltip(fn($state): ?string => strlen($state) > 40 ? $state : null),
+                    ->limit(45)
+                    ->tooltip(fn($state): ?string => strlen($state) > 45 ? $state : null),
             ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Records')
-                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter institution')),
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter institutions')),
 
                 Filter::make('institution')
                     ->form(function () {
@@ -287,25 +312,33 @@ class TviResource extends Resource
                                 ->schema([
                                     Select::make('tvi_class_id')
                                         ->label("Class (A)")
-                                        ->placeholder('All')
+                                        ->preload()
+                                        ->searchable()
                                         ->relationship('tviClass', 'name')
                                         ->reactive()
                                         ->live(),
 
                                     Select::make('institution_class_id')
                                         ->label("Class (B)")
-                                        ->placeholder('All')
+                                        ->preload()
+                                        ->searchable()
                                         ->relationship('InstitutionClass', 'name')
                                         ->reactive()
                                         ->live(),
-                                ]),
+                                ])
+                                ->columns(1),
 
-                            Fieldset::make('Address')
+                            Fieldset::make('Location')
                                 ->schema([
                                     Select::make('province_id')
                                         ->label('Province')
-                                        ->placeholder('All')
-                                        ->options(Province::whereNot('name', 'Not Applicable')->pluck('name', 'id'))
+                                        ->preload()
+                                        ->searchable()
+                                        ->options(function () {
+                                            return Province::whereNot('name', 'Not Applicable')
+                                                ->pluck('name', 'id')
+                                                ->toArray() ?: ['no_province' => 'No provinces available'];
+                                        })
                                         ->afterStateUpdated(function (callable $set, $state) {
                                             $set('municipality_id', null);
                                             $set('district_id', null);
@@ -315,19 +348,26 @@ class TviResource extends Resource
 
                                     Select::make('municipality_id')
                                         ->label('Municipality')
-                                        ->placeholder('All')
+                                        ->preload()
+                                        ->searchable()
                                         ->options(function ($get) {
                                             $provinceId = $get('province_id');
 
-                                            return Municipality::where('province_id', $provinceId)
-                                                ->pluck('name', 'id');
+                                            if ($provinceId) {
+                                                return Municipality::where('province_id', $provinceId)
+                                                    ->pluck('name', 'id')
+                                                    ->toArray() ?: ['no_municipality' => 'No municipalities available.'];
+                                            }
+
+                                            return ['no_municipality' => 'No municipalities available. Select a province first.'];
                                         })
                                         ->afterStateUpdated(function (callable $set) {
                                             $set('district_id', null);
                                         })
                                         ->reactive()
                                         ->live(),
-                                ]),
+                                ])
+                                ->columns(1),
                         ];
                     })
                     ->query(function (Builder $query, array $data): Builder {
@@ -384,28 +424,21 @@ class TviResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
-                    Action::make('viewRecognition')
-                        ->label('View Recognition')
-                        ->url(fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id]))
-                        ->icon('heroicon-o-magnifying-glass')
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('view recognition')),
-                    Action::make('viewProgram')
-                        ->label('View Training Programs')
-                        ->url(fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id]))
-                        ->icon('heroicon-o-magnifying-glass')
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('view training progrma')),
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Institution has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Institution has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -422,21 +455,24 @@ class TviResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected institutions have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete tvi')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete tvis')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected institutions have been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore tvi')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore tvis')),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institutions have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete tvi')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete tvis')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomInstitutionExport::make()
@@ -448,15 +484,14 @@ class TviResource extends Resource
                                     Column::make('name')
                                         ->heading('Institution'),
 
+                                    Column::make('tviType.name')
+                                        ->heading('Institution Type'),
 
                                     Column::make('tviClass.name')
                                         ->heading('Institution Class (A)'),
 
                                     Column::make('InstitutionClass.name')
                                         ->heading('Institution Class (B)'),
-
-                                    Column::make('tviType.name')
-                                        ->heading('Institution Type'),
 
                                     Column::make('district.name')
                                         ->heading('District'),
@@ -470,12 +505,20 @@ class TviResource extends Resource
                                     Column::make('address')
                                         ->heading('Address'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Institution Export')
+                                ->withFilename(date('m-d-Y') . ' - Institutions')
                         ]),
-
                 ])
                     ->label('Select Action'),
             ]);
+    }
+
+    public static function getMunicipalitiesOptions($districtId): array
+    {
+        return Municipality::whereHas('district', function ($query) use ($districtId) {
+            $query->where('district_id', $districtId);
+        })
+            ->pluck('name', 'id')
+            ->toArray();
     }
 
     public static function getEloquentQuery(): Builder

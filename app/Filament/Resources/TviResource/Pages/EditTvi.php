@@ -14,10 +14,24 @@ class EditTvi extends EditRecord
 {
     protected static string $resource = TviResource::class;
 
-    public function getHeading(): string
+    protected static ?string $title = 'Edit Institution';
+    
+    protected function getRedirectUrl(): string
     {
-        $record = $this->getRecord();
-        return $record ? $record->name : 'Institution';
+        return $this->getResource()::getUrl('index');
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/institutions' => 'Institution',
+            'Edit'
+        ];
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -28,23 +42,7 @@ class EditTvi extends EditRecord
                 ->label('Exit'),
         ];
     }
-
-    public function getBreadcrumbs(): array
-    {
-
-        $record = $this->getRecord();
-
-        return [
-            route('filament.admin.resources.tvis.index') => $record ? $record->name : 'Institution',
-            'Edit'
-        ];
-    }
-
-    protected function getRedirectUrl(): string
-    {
-        return $this->getResource()::getUrl('index');
-    }
-
+    
     protected function handleRecordUpdate($record, array $data): Tvi
     {
         $this->validateUniqueInstitution($data, $record->id);
@@ -67,30 +65,32 @@ class EditTvi extends EditRecord
     protected function validateUniqueInstitution(array $data, $currentId)
     {
         $tvi = Tvi::withTrashed()
-            ->where(DB::raw('LOWER(name)'), strtolower($data['name']))
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->where('school_id', $data['school_id'])
             ->whereNot('id', $currentId)
             ->first();
 
         if ($tvi) {
             $message = $tvi->deleted_at
-                ? 'This institution with the provided details has been deleted. Restoration is required before it can be reused.'
+                ? 'This institution with the provided details has been deleted and must be restored before reuse.'
                 : 'An institution with the provided details already exists.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
-        $schoolId = Tvi::withTrashed()
-            ->where('school_id', $data['school_id'])
-            ->whereNot('id', $currentId)
-            ->first();
+        if (!empty($data['code'])) {
+            $schoolId = Tvi::withTrashed()
+                ->where('school_id', $data['school_id'])
+                ->whereNot('id', $currentId)
+                ->first();
 
-        if ($schoolId) {
-            $message = $schoolId->deleted_at
-                ? 'An institution with this school ID already exists and has been deleted.'
-                : 'An institution with this school ID already exists.';
+            if ($schoolId) {
+                $message = $schoolId->deleted_at
+                    ? 'An institution with this school ID already exists and has been deleted.'
+                    : 'An institution with this school ID already exists.';
 
-            NotificationHandler::handleValidationException('Invalid School ID', $message);
+                NotificationHandler::handleValidationException('Invalid School ID', $message);
+            }
         }
     }
 }

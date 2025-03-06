@@ -20,6 +20,14 @@ class CreateTvet extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/sectors/tvets' => 'TVET Sectors',
+            'Create'
+        ];
+    }
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -34,14 +42,6 @@ class CreateTvet extends CreateRecord
                 ->label('Save & Create Another'),
             $this->getCancelFormAction()
                 ->label('Exit'),
-        ];
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            '/sectors/tvets' => 'TVET Sectors',
-            'Create'
         ];
     }
 

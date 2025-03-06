@@ -19,6 +19,14 @@ class CreateAbdd extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
+    
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/sectors/abdds' => 'ABDD Sectors',
+            'Create'
+        ];
+    }
 
     protected function getCreatedNotificationTitle(): ?string
     {
@@ -34,14 +42,6 @@ class CreateAbdd extends CreateRecord
                 ->label('Save & Create Another'),
             $this->getCancelFormAction()
                 ->label('Exit'),
-        ];
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            '/sectors/abdds' => 'ABDD Sectors',
-            'Create'
         ];
     }
 

@@ -20,6 +20,14 @@ class CreatePriority extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/sectors/priorities' => 'Top Ten Priority Sectors',
+            'Create'
+        ];
+    }
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -34,14 +42,6 @@ class CreatePriority extends CreateRecord
                 ->label('Save & Create Another'),
             $this->getCancelFormAction()
                 ->label('Exit'),
-        ];
-    }
-
-    public function getBreadcrumbs(): array
-    {
-        return [
-            '/sectors/priorities' => 'Top Ten Priority Sectors',
-            'Create'
         ];
     }
 
