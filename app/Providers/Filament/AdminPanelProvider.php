@@ -98,7 +98,7 @@ class AdminPanelProvider extends PanelProvider
                     ->shouldShowDeleteAccountForm(true)
                     ->shouldShowBrowserSessionsForm(true)
                     ->shouldShowAvatarForm(
-                        value: true,
+                        value: false,
                         directory: 'public/images/avatars',
                         rules: 'mimes:jpeg,png|max:1024',
                     ),
