@@ -99,8 +99,8 @@ class AllocationImport implements ToModel, WithHeadingRow
             }
         }
 
-        if (!is_numeric($row['allocation']) || $row['allocation'] <= 0) {
-            throw new \Exception("Validation error: The field 'allocation' must be a positive number. No changes were saved.");
+        if (!is_numeric($row['allocation']) || $row['allocation'] < 0) {
+            throw new \Exception("Validation error: The field 'allocation' must be a positive number and greater than ₱1.00. No changes were saved.");
         }
 
         if ($row['attributor'] != null) {

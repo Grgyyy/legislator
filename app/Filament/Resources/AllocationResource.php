@@ -207,7 +207,7 @@ class AllocationResource extends Resource
                     ->dehydrated()
                     ->validationAttribute('Allocation')
                     ->validationMessages([
-                        'min' => 'The allocation must be higher than ₱1.00',
+                        'min' => 'The allocation must be at least ₱1.00',
                         'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
                     ]),
 

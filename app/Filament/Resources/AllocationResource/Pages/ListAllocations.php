@@ -55,7 +55,7 @@ class ListAllocations extends ListRecords
                             Excel::import(new AllocationImport, $filePath);
                             NotificationHandler::sendSuccessNotification('Import Successful', 'The Allocations have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the allocation' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the allocation. ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);
