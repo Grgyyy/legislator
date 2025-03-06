@@ -1081,28 +1081,28 @@ class AttributionTargetResource extends Resource
                     })
                     ->toggleable()
                     ->getStateUsing(function ($record) {
+
+                        $particularType = $record->allocation->attributorParticular->subParticular;
                         $particular = $record->allocation->attributorParticular;
+                        $district = $particular->district ?? null;
+                        $municipalityName = $district->underMunicipality->name ?? null;
 
-                        if (!$particular) {
-                            return '-';
-                        }
-
-                        $district = $particular->district;
-                        $districtName = $district ? $district->name : 'Unknown District';
-
-                        if ($districtName === 'Not Applicable') {
-                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                        if ($district->name === 'Not Applicable') {
+                            if ($particularType->name === 'Party-list') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                            } else if ($particularType?->name === 'RO Regular' || $particularType?->name === 'CO Regular') {
+                                return "{$particularType->name} - {$particular->district->province->region->name}";
                             } else {
-                                return $particular->subParticular->name ?? 'Unknown Particular Type';
-                            }
-                        } else {
-                            if ($particular->district->underMunicipality) {
-                                return "{$particular->subParticular->name} - {$districtName}, {$district->underMunicipality->name}, {$district->province->name}";
-                            } else {
-                                return "{$particular->subParticular->name} - {$districtName}, {$district->province->name}";
+                                return $particular->subParticular->name ?? '';
                             }
                         }
+                         else {
+                            if ($municipalityName === null) {
+                                return "{$particular->subParticular->name} - {$district->name}, {$district->province->name}";
+                            } else {
+                                return "{$particular->subParticular->name} - {$district->name}, {$municipalityName}, {$district->province->name}";
+                            }
+                         }
                     }),
 
                 TextColumn::make('allocation.legislator.name')
@@ -1132,27 +1132,28 @@ class AttributionTargetResource extends Resource
                     })
                     ->toggleable()
                     ->getStateUsing(function ($record) {
-                        $particular = $record->allocation->particular;
-                        $district = $particular->district;
-                        $municipality = $district ? $district->underMunicipality : '';
 
-                        $districtName = $district ? $district->name : '';
-                        $provinceName = $district ? $district->province->name : '';
-                        $municipalityName = $municipality ? $municipality->name : '';
+                        $particularType = $record->allocation->attributorParticular->subParticular;
+                        $particular = $record->allocation->attributorParticular;
+                        $district = $particular->district ?? null;
+                        $municipalityName = $district->underMunicipality->name ?? null;
 
-                        if ($districtName === 'Not Applicable') {
-                            if ($particular->subParticular && $particular->subParticular->name === 'Party-list') {
+                        if ($district->name === 'Not Applicable') {
+                            if ($particularType->name === 'Party-list') {
                                 return "{$particular->subParticular->name} - {$particular->partylist->name}";
+                            } else if ($particularType?->name === 'RO Regular' || $particularType?->name === 'CO Regular') {
+                                return "{$particularType->name} - {$particular->district->province->region->name}";
                             } else {
-                                return $particular->subParticular->name ?? '-';
-                            }
-                        } else {
-                            if ($municipalityName === '') {
-                                return "{$particular->subParticular->name} - {$districtName}, {$provinceName}";
-                            } else {
-                                return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                return $particular->subParticular->name ?? '';
                             }
                         }
+                         else {
+                            if ($municipalityName === null) {
+                                return "{$particular->subParticular->name} - {$district->name}, {$district->province->name}";
+                            } else {
+                                return "{$particular->subParticular->name} - {$district->name}, {$municipalityName}, {$district->province->name}";
+                            }
+                         }
                     }),
 
                 TextColumn::make('appropriation_type')

@@ -7,6 +7,7 @@ use App\Filament\Resources\ToolkitResource\Pages;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\Toolkit;
+use App\Models\TrainingProgram;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -56,29 +57,37 @@ class ToolkitResource extends Resource
                     ->multiple()
                     ->preload()
                     ->native()
-                    ->default(fn($record) => $record?->qualificationTitles->pluck('id')->toArray() ?? [])
                     ->options(function () {
                         $step_scholarship = ScholarshipProgram::where('name', 'STEP')->first();
+
+                        if (!$step_scholarship) {
+                            return ['no_toolkits' => 'No toolkits available'];
+                        }
 
                         return QualificationTitle::whereNull('deleted_at')
                             ->where('scholarship_program_id', $step_scholarship->id)
                             ->get()
-                            ->mapWithKeys(function ($title) {
-                                return [
-                                    $title->id => "{$title->trainingProgram->title}",
-                                ];
-                            })
-                            ->toArray() ?: ['no_toolkits' => 'No toolkits available'];
+                            ->mapWithKeys(fn($title) => [$title->id => "{$title->trainingProgram->title}"])
+                            ->toArray();
                     })
-                    ->default(fn($get) => $get('qualification_title_id'))
+                    ->default(fn($record) => $record?->qualificationTitles?->pluck('id')->toArray() ?? [])
                     ->afterStateHydrated(
                         fn($set, $record) =>
-                        $set('qualification_title_id', $record?->qualificationTitles->pluck('id')->toArray())
+                        $set('qualification_title_id', $record?->qualificationTitles?->pluck('id')->toArray() ?? [])
                     )
-                    ->afterStateUpdated(
-                        fn($state, $set) =>
-                        empty($state) ? $set('lot_name', null) : null
-                    )
+                    ->afterStateUpdated(function ($state, $set) {
+                        if (!empty($state) && isset($state[0])) {
+                            $qualificationTitle = QualificationTitle::find($state[0]);
+
+                            if ($qualificationTitle) {
+                                $set('lot_name', $qualificationTitle->trainingProgram->title ?? null);
+                            } else {
+                                $set('lot_name', null);
+                            }
+                        } else {
+                            $set('lot_name', null);
+                        }
+                    })
                     ->reactive()
                     ->live()
                     ->validationAttribute('qualification title'),
@@ -99,12 +108,15 @@ class ToolkitResource extends Resource
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
-                    ->minValue(0)
+                    ->minValue(1)
                     ->currencyMask(thousandSeparator: '', precision: 0)
                     // ->disabled(fn($livewire) => $livewire->isEdit())
                     ->afterStateHydrated(function ($set, ?Toolkit $record) {
                         $set('number_of_toolkit', $record?->number_of_toolkits ?? 0);
                     })
+                    ->validationMessages([
+                        'min' => 'The number of toolkit must be at least 1.',
+                    ])
                     // ->dehydrated()
                     ->validationAttribute('number of toolkits'),
 
@@ -117,8 +129,12 @@ class ToolkitResource extends Resource
                     ->numeric()
                     ->prefix('₱')
                     ->default(0)
-                    ->minValue(0)
+                    ->minValue(1)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                    ->validationMessages([
+                        'min' => 'The allocation must be at least ₱1.00',
+                        'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                    ])
                     ->validationAttribute('price per toolkit'),
 
                 TextInput::make('number_of_items_per_toolkit')
@@ -129,8 +145,11 @@ class ToolkitResource extends Resource
                     ->autocomplete(false)
                     ->numeric()
                     ->default(0)
-                    ->minValue(0)
+                    ->minValue(1)
                     ->currencyMask(thousandSeparator: '', precision: 0)
+                    ->validationMessages([
+                        'min' => 'The number of toolkit must be at least 1.',
+                    ])
                     ->validationAttribute('number of items per toolkit'),
 
                 TextInput::make('year')

@@ -77,6 +77,8 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $row['soc_code'], $row['qualification_title_scholarship_program'], $scholarship_program);
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
 
+                $this->validateInstitutionProgram($tvi->id, $qualificationTitle->trainingProgram->id);
+
                 $skillPriority = $this->getSkillPriority(
                     $qualificationTitle->training_program_id,
                     $tvi->district_id,
@@ -196,6 +198,29 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
         $pastYear = $currentYear - 1;
         if ($year != $currentYear && $year != $pastYear) {
             $message = "The provided year '{$year}' must be either the current year '{$currentYear}' or the previous year '{$pastYear}'.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+    }
+
+
+    protected function validateInstitutionProgram(int $tviId, int $qualiId) {
+        $institution = Tvi::find($tviId);
+        $quali = TrainingProgram::find($qualiId);
+    
+        if (!$institution) {
+            $message = "Institution with ID {$tviId} not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+    
+        if (!$quali) {
+            $message = "Qualification with ID {$qualiId} not found.";
+            NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+        
+        $instiPrograms = $institution->trainingPrograms()->pluck('training_programs.id');
+
+        if (!$instiPrograms->contains($qualiId)) {
+            $message = "The qualification title '{$quali->title}' is not registered under the institution '{$institution->name}";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

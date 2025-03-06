@@ -44,6 +44,7 @@ class TargetImport implements ToModel, WithHeadingRow
             $this->validateRow($row);
             $this->validateNumberOfSlots($row['number_of_slots']);
             $this->validateYear($row['appropriation_year']);
+            
 
             DB::transaction(function () use ($row) {
                 $legislator = $this->getLegislatorId($row['legislator']);
@@ -64,6 +65,8 @@ class TargetImport implements ToModel, WithHeadingRow
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $row['soc_code'], $row['qualification_title_scholarship_program'], $scholarship_program);
                 $qualificationTitleName = Helper::capitalizeWords($qualificationTitle->trainingProgram->title);
                 $qualificationTitleCode = Helper::capitalizeWords($qualificationTitle->trainingProgram->code);
+
+                $this->validateInstitutionProgram($tvi->id, $qualificationTitle->trainingProgram->id);
 
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $row['appropriation_year']);
 
@@ -172,6 +175,27 @@ class TargetImport implements ToModel, WithHeadingRow
         $pastYear = $currentYear - 1;
         if ($year != $currentYear && $year != $pastYear) {
             throw new Exception("The provided year '{$year}' must be either the current year '{$currentYear}' or the previous year '{$pastYear}'.");
+        }
+    }
+
+    protected function validateInstitutionProgram(int $tviId, int $qualiId) {
+        $institution = Tvi::find($tviId);
+        $quali = TrainingProgram::find($qualiId);
+    
+        if (!$institution) {
+            throw new Exception("Institution with ID {$tviId} not found.");
+        }
+    
+        if (!$quali) {
+            throw new Exception("Qualification with ID {$qualiId} not found.");
+        }
+        
+        $instiPrograms = $institution->trainingPrograms()->pluck('training_programs.id');
+
+        if (!$instiPrograms->contains($qualiId)) {
+            throw new Exception(
+                "The qualification title '{$quali->title}' is not registered under the institution '{$institution->name}'."
+            );
         }
     }
 
@@ -323,6 +347,7 @@ class TargetImport implements ToModel, WithHeadingRow
 
         return $deliveryMode;
     }
+    
     protected function getLearningMode(string $learningModeName, int $deliveryModeId)
     {
         $learningMode = LearningMode::where('name', $learningModeName)

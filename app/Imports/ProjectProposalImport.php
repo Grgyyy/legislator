@@ -64,6 +64,8 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $row['soc_code'], $row['qualification_title_scholarship_program'], $scholarship_program);
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $row['appropriation_year']);
 
+                $this->validateInstitutionProgram($tvi->id, $qualificationTitle->trainingProgram->id);
+
                 if ($row['per_capita_cost']) {
                     if ($row['per_capita_cost'] > 0) {
                         $cost = $row['per_capita_cost'] * $numberOfSlots;
@@ -184,6 +186,27 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
         if ($year != $currentYear && $year != $pastYear) {
             $message = "The provided year '{$year}' must be either the current year '{$currentYear}' or the previous year '{$pastYear}'.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
+        }
+    }
+
+    protected function validateInstitutionProgram(int $tviId, int $qualiId) {
+        $institution = Tvi::find($tviId);
+        $quali = TrainingProgram::find($qualiId);
+    
+        if (!$institution) {
+            throw new Exception("Institution with ID {$tviId} not found.");
+        }
+    
+        if (!$quali) {
+            throw new Exception("Qualification with ID {$qualiId} not found.");
+        }
+        
+        $instiPrograms = $institution->trainingPrograms()->pluck('training_programs.id');
+
+        if (!$instiPrograms->contains($qualiId)) {
+            throw new Exception(
+                "The qualification title '{$quali->title}' is not registered under the institution '{$institution->name}'."
+            );
         }
     }
 

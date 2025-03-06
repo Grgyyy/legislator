@@ -746,11 +746,12 @@ class ProjectProposalTargetResource extends Resource
                                     ->numeric()
                                     ->prefix('₱')
                                     ->default(0)
-                                    ->minValue(0)
+                                    ->minValue(1)
                                     ->maxValue(999999999999.99)
                                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                                     ->validationMessages([
-                                        'max' => 'The PCC cannot exceed ₱999,999,999,999.99.'
+                                        'min' => 'The allocation must be higher than ₱1.00',
+                                        'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
                                     ])
                                     ->validationAttribute('PCC'),
                             ])
