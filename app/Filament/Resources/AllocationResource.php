@@ -57,7 +57,13 @@ class AllocationResource extends Resource
                         'Commitment' => 'Commitment'
                     ])
                     ->reactive()
-                    ->live(),
+                    ->live()
+                    ->afterStateUpdated(function ($state, $set) {
+                        $set('attributor_id', null);
+                        $set('attributor_particular_id', null);
+                        $set('legislator_id', null);
+                        $set('particular_id', null);
+                    }),
 
                 Select::make('attributor_id')
                     ->label('Attributor')
@@ -135,14 +141,17 @@ class AllocationResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_legislator')
                     ->afterStateUpdated(function (callable $set, $state) {
-                        $set('particular_id', null);
+                        if (!$state) {
+                            $set('particular_id', null);
+                        }
+                        else {
+                            $particulars = self::getParticularOptions($state, false);
 
-                        $particulars = self::getParticularOptions($state, false);
-
-                        $set('particularOptions', $particulars);
-
-                        if (count($particulars) === 1) {
-                            $set('particular_id', key($particulars));
+                            $set('particularOptions', $particulars);
+    
+                            if (count($particulars) === 1) {
+                                $set('particular_id', key($particulars));
+                            }
                         }
                     })
                     ->reactive()
@@ -189,7 +198,7 @@ class AllocationResource extends Resource
                     ->numeric()
                     ->prefix('₱')
                     ->default(0)
-                    ->minValue(0)
+                    ->minValue(1)
                     ->maxValue(999999999999.99)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                     ->reactive()
@@ -198,6 +207,7 @@ class AllocationResource extends Resource
                     ->dehydrated()
                     ->validationAttribute('Allocation')
                     ->validationMessages([
+                        'min' => 'The allocation must be higher than ₱1.00',
                         'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
                     ]),
 
