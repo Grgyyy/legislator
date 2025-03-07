@@ -50,7 +50,7 @@ class DistrictResource extends Resource
                     ->markAsRequired()
                     ->options(fn() => [
                         true => 'Yes',
-                        false => 'No'
+                        false => 'No '
                     ])
                     ->reactive()
                     ->live(),
