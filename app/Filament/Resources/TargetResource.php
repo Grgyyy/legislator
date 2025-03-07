@@ -1187,16 +1187,14 @@ class TargetResource extends Resource
                             $record->save();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
-                        })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('force delete target ')),
+                        }),
 
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Target has been deleted permanently.');
-                        })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('force delete target ')),
+                        }),
                 ])
                 // ->badge(fn($record) => $record->comments()->whereDoesntHave('readByUsers', function ($query) {
                 //     $query->where('user_id', auth()->id());

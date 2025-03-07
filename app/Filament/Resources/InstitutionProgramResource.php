@@ -70,12 +70,17 @@ class InstitutionProgramResource extends Resource
                     ->native(false)
                     ->default(fn($get) => request()->get('tvi_id'))
                     ->options(function () {
-                        return Tvi::whereNot('name', 'Not Applicable')
-                            ->pluck('name', 'id')
-                            ->mapWithKeys(function ($name, $id) {
-                                return [$id => $name];
+                        return TVI::whereNot('name', 'Not Applicable')
+                            ->has('trainingPrograms')
+                            ->orderBy('name')
+                            ->get()
+                            ->mapWithKeys(function ($tvi) {
+                                $schoolId = $tvi->school_id;
+                                $formattedName = $schoolId ? "{$schoolId} - {$tvi->name}" : $tvi->name;
+
+                                return [$tvi->id => $formattedName];
                             })
-                            ->toArray() ?: ['no_tvi' => 'No institution available'];
+                            ->toArray() ?: ['no_tvi' => 'No institutions available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
 
