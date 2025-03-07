@@ -40,8 +40,7 @@ class AppServiceProvider extends ServiceProvider
             return true;
         }, 'A province with this name and region already exists.');
 
-        if (env('APP_ENV') !== 'local')
-        {
+        if (env('APP_ENV') !== 'local') {
             // $url->forceHttps(true);
             $url->forceScheme('https');
         }
