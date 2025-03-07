@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Models\Legislator;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -21,6 +22,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
@@ -82,8 +84,7 @@ class AdminPanelProvider extends PanelProvider
                     ->setNavigationGroup('USER MANAGEMENT')
                     ->setIcon('heroicon-o-user')
                     ->setSort(1)
-                    // ->shouldShowDeleteAccountForm(true)
-                    ->shouldShowDeleteAccountForm(Auth::user()?->hasRole('Super Admin') ?? false)
+                    ->shouldShowDeleteAccountForm(true)
                     ->shouldShowBrowserSessionsForm(true)
                     ->shouldShowAvatarForm(
                         value: true,
