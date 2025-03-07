@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Province;
 use Illuminate\Routing\UrlGenerator;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Vite;
@@ -44,5 +45,9 @@ class AppServiceProvider extends ServiceProvider
             // $url->forceHttps(true);
             $url->forceScheme('https');
         }
+
+        Route::get('/devs', function () {
+            return view('devs');
+        });
     }
 }

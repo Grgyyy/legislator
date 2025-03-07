@@ -3,7 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Models\Legislator;
-use Filament\Facades\Filament;
+use Devonab\FilamentEasyFooter\EasyFooterPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -102,7 +102,18 @@ class AdminPanelProvider extends PanelProvider
                         directory: 'public/images/avatars',
                         rules: 'mimes:jpeg,png|max:1024',
                     ),
-                FilamentApexChartsPlugin::make()
+                FilamentApexChartsPlugin::make(),
+                EasyFooterPlugin::make()
+                    ->footerEnabled()
+                    ->withFooterPosition('footer')
+                    ->withSentence('Legislative Information System')
+                    ->withLogo(
+                        'https://www.tesda.gov.ph/Content/images/logos/TESDA%20Logo%20official.png', // Path to logo
+                        'https://laravel.com',                               // URL for logo link (optional)
+                        'TESDA - Regional Operations Management Office ',                                // Text to display (optional)
+                        20                                                   // Logo height in pixels (default: 20)
+                    )
+                    
             ])
             ->userMenuItems([
                 'profile' => MenuItem::make()

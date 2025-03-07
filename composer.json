@@ -11,6 +11,7 @@
         "php": "^8.3",
         "althinect/filament-spatie-roles-permissions": "^2.2",
         "ariaieboy/filament-currency": "^1.8",
+        "devonab/filament-easy-footer": "^1.1",
         "filament/actions": "3.2.123",
         "filament/filament": "3.2.123",
         "filament/infolists": "3.2.123",
