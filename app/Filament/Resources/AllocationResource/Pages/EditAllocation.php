@@ -2,12 +2,13 @@
 
 namespace App\Filament\Resources\AllocationResource\Pages;
 
-use App\Models\Allocation;
 use App\Filament\Resources\AllocationResource;
+use App\Models\Allocation;
 use App\Models\Particular;
 use App\Services\NotificationHandler;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
+use function PHPUnit\Framework\isEmpty;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -53,9 +54,9 @@ class EditAllocation extends EditRecord
             $record->update([
                 'soft_or_commitment' => $data['soft_or_commitment'],
                 'legislator_id' => $data['legislator_id'],
-                'attributor_id' => $data['attributor_id'],
+                'attributor_id' => $data['attributor_id'] ?? null,
                 'particular_id' => $data['particular_id'],
-                'attributor_particular_id' => $data['attributor_particular_id'],
+                'attributor_particular_id' => $data['attributor_particular_id'] ?? null,
                 'scholarship_program_id' => $data['scholarship_program_id'],
                 'allocation' => $data['allocation'],
                 'admin_cost' => $data['allocation'] * 0.02,
@@ -73,11 +74,13 @@ class EditAllocation extends EditRecord
 
     protected function validateUniqueAllocation(array $data, $currentId)
     {
+        $attributorParticular = $data['attributor_particular_id'] ?? null;
+
         $allocation = Allocation::withTrashed()
             ->where('soft_or_commitment', $data['soft_or_commitment'])
             ->where('legislator_id', $data['legislator_id'])
-            ->where('attributor_id', $data['attributor_id'])
-            ->where('attributor_particular_id', $data['attributor_particular_id'])
+            ->where('attributor_id', $data['attributor_id'] ?? null)
+            ->where('attributor_particular_id', $attributorParticular)
             ->where('particular_id', $data['particular_id'])
             ->where('scholarship_program_id', $data['scholarship_program_id'])
             ->where('year', $data['year'])
@@ -92,7 +95,7 @@ class EditAllocation extends EditRecord
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
-        if ($data['attributor_particular_id']) {
+        if ($attributorParticular) {
             $particular = Particular::find($data['attributor_particular_id']);
 
             if (!$particular) {

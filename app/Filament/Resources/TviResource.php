@@ -98,8 +98,8 @@ class TviResource extends Resource
                     ->options(function ($get) {
                         $type = $get('tvi_type_id');
 
-                        $publicTypes = ['LGU', 'LUC', 'NGA', 'SUC', 'TTI', 'HEI'];
-                        $privateTypes = ['TVI', 'HEI', 'Farm School'];
+                        $publicTypes = ['Farm School', 'GOCC/GFI', 'HEI', 'LGU', 'LUC', 'NGA', 'SUC', 'TTI', 'TVI'];
+                        $privateTypes = ['Enterprise', 'Farm School', 'HEI', 'LUC', 'NGO', 'TVI'];
 
                         $tviClasses = TviClass::all();
 

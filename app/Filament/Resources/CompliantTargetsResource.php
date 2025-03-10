@@ -12,6 +12,8 @@ use App\Models\Particular;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
+use App\Models\SkillPrograms;
+use App\Models\Status;
 use App\Models\SubParticular;
 use App\Models\Target;
 use App\Models\TargetComment;
@@ -811,18 +813,131 @@ class CompliantTargetsResource extends Resource
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->action(function ($records) {
-                            $records->each->delete();
+                        ->action(function ($record) {
+                            $allocation = $record->allocation;
+                            $totalAmount = $record->total_amount;
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected targets have been deleted successfully.');
+                            $qualificationTitleId = $record->qualification_title_id;
+                            $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+
+                            $provinceId = $record->tvi->district->province_id;
+                            $districtId = $record->tvi->district_id;
+
+                            $quali = QualificationTitle::find($qualificationTitleId);
+                            $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                            $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                            $compliant = TargetStatus::where("desc", "Compliant")->first();
+
+                            $slots = $record->number_of_slots;
+
+                            $totalCostOfToolkit = 0;
+                            if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+
+                                $toolkit->available_number_of_toolkits += $slots;
+                                $toolkit->save();
+                            }
+
+                            $active = Status::where('desc', 'Active')->first();
+                            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
+                                    $query->where('province_id', $provinceId)
+                                        ->where('district_id', $districtId)
+                                        ->where('year', $allocation->year)
+                                        ->where('status_id', $active->id);
+                                })
+                                ->first();
+
+                            if (!$skillPrograms) {
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($record) {
+                                        $query->where('province_id', $record->tvi->district->province_id)
+                                            ->where('year', $record->allocation->year);
+                                    })
+                                    ->first();
+                            }
+
+                            $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                            $skillsPriority->available_slots += $slots;
+                            $skillsPriority->save();
+
+                            $allocation->balance += $totalAmount + $totalCostOfToolkit;
+                            $allocation->save();
+
+                            $record->delete();
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete compliant target ')),
 
                     RestoreBulkAction::make()
-                        ->action(function ($records) {
-                            $records->each->restore();
+                        ->action(function ($record) {
+                            $allocation = $record->allocation;
+                            $totalAmount = $record->total_amount;
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected targets have been restored successfully.');
+                            $qualificationTitleId = $record->qualification_title_id;
+                            $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
+
+                            $provinceId = $record->tvi->district->province_id;
+                            $districtId = $record->tvi->district_id;
+
+                            $quali = QualificationTitle::find($qualificationTitleId);
+                            $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
+
+                            $stepId = ScholarshipProgram::where('name', 'STEP')->first();
+                            $compliant = TargetStatus::where("desc", "Compliant")->first();
+
+                            $slots = $record->number_of_slots;
+                            $totalCostOfToolkit = 0;
+
+                            if ($quali->scholarship_program_id === $stepId->id && $record->target_status_id === $compliant->id) {
+
+                                $toolkit->available_number_of_toolkits -= $slots;
+                                $toolkit->save();
+                            }
+
+                            $active = Status::where('desc', 'Active')->first();
+                            $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                ->whereHas('skillPriority', function ($query) use ($provinceId, $districtId, $allocation, $active) {
+                                    $query->where('province_id', $provinceId)
+                                        ->where('district_id', $districtId)
+                                        ->where('year', $allocation->year)
+                                        ->where('status_id', $active->id);
+                                })
+                                ->first();
+
+                            if (!$skillPrograms) {
+                                $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
+                                    ->whereHas('skillPriority', function ($query) use ($record) {
+                                        $query->where('province_id', $record->tvi->district->province_id)
+                                            ->where('year', $record->allocation->year);
+                                    })
+                                    ->first();
+                            }
+
+                            $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
+
+                            if ($skillsPriority->available_slots < $slots) {
+                                $message = "Insuffucient Target Benificiaries for the Skill Priority of {$quali->trainingProgram->title} under District {$record->tvi->district->name} in {$record->tvi->district->province->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
+                            }
+
+                            $skillsPriority->available_slots -= $slots;
+                            $skillsPriority->save();
+
+                            if ($allocation->balance < $totalAmount + $totalCostOfToolkit) {
+                                $message = "Insuffucient Allocation Balance for {$allocation->legislator->name}.";
+                                NotificationHandler::handleValidationException('Something went wrong', $message);
+                            }
+
+                            $allocation->balance -= $totalAmount + $totalCostOfToolkit;
+                            $allocation->save();
+
+                            $record->deleted_at = null;
+                            $record->save();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('restore compliant target ')),
 

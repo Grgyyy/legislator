@@ -177,7 +177,12 @@ class ToolkitResource extends Resource
                 TextColumn::make('qualificationTitles')
                     ->label('SOC Title')
                     ->sortable()
-                    ->searchable()
+                    ->searchable(query: function ($query, $search) {
+                        $query->whereHas('qualificationTitles.trainingProgram', function ($query) use ($search) {
+                            $query->where('title', 'like', "%{$search}%")
+                                  ->orWhere('soc_code', 'like', "%{$search}%");
+                        });
+                    })
                     ->toggleable()
                     ->formatStateUsing(function ($record) {
                         $qualificationTitles = $record->qualificationTitles->map(function ($qualificationTitle) {
