@@ -84,14 +84,16 @@ class EditSkillPriority extends EditRecord
             }
         
 
-            $difference = $data['total_slots'] - $record['total_slots'];
-            $new_available_slots = $record['available_slots'] + $difference;
-
+            $difference = $data['total_slots'] - $record['total_slots']; 
+            $used_slots = $record['total_slots'] - $record['available_slots'];
+            
+            $new_available_slots = max(0, $data['total_slots'] - $used_slots);
+            
             $record->update([
                 'province_id' => $data['province_id'],
                 'district_id' => $data['district_id'] ?? null,
                 'qualification_title' => $data['qualification_title'],
-                'available_slots' => $new_available_slots,
+                'available_slots' => $new_available_slots, 
                 'total_slots' => $data['total_slots'],
                 'year' => $data['year'],
                 'status_id' => $status->id,
