@@ -51,19 +51,16 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->font('Poppins')
             // ->brandLogo('images/TESDA_logo.png')
-            // ->brandName('Legislator App')
+            ->brandName('Legislator App')
 
-            ->brandLogo(fn() => new HtmlString('
-    <div style="display: flex; align-items: center; gap: 2px; margin: 0; padding: 0;">
-        <img src="' . asset('images/TESDA_logo.png') . '" alt="Logo" style="height: 45px; margin: 0; padding: 0;">
-        <span style="font-size: 14px; font-weight: bold; margin: 0; padding: 0;">
-            Legislative Information System
-        </span>
-    </div>
-'))
-
-
-
+            //             ->brandLogo(fn() => new HtmlString('
+//     <div style="display: flex; align-items: center; gap: 2px; margin: 0; padding: 0;">
+//         <img src="' . asset('images/TESDA_logo.png') . '" alt="Logo" style="height: 45px; margin: 0; padding: 0;">
+//         <span style="font-size: 14px; font-weight: bold; margin: 0; padding: 0;">
+//             Legislative Information System
+//         </span>
+//     </div>
+// '))
             ->favicon(asset('images/TESDA_logo.png'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
