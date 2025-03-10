@@ -49,12 +49,12 @@ class DistrictResource extends Resource
                     ->label('HUC District')
                     ->markAsRequired()
                     ->options(fn() => [
-                        true => 'True',
-                        false => 'False'
+                        true => 'Yes',
+                        false => 'No '
                     ])
-                   ->reactive()
-                   ->live(),
-                
+                    ->reactive()
+                    ->live(),
+
                 TextInput::make('name')
                     ->label('District')
                     ->placeholder('Enter district name')
@@ -86,7 +86,7 @@ class DistrictResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_province')
                     ->afterStateUpdated(function ($state, callable $set) {
-                            $set('municipality_id', null);
+                        $set('municipality_id', null);
                     })
                     ->reactive()
                     ->live()

@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Models\Legislator;
+use Filament\Facades\Filament;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -21,7 +22,9 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Joaopaulolndev\FilamentEditProfile\FilamentEditProfilePlugin;
 use Joaopaulolndev\FilamentEditProfile\Pages\EditProfilePage;
@@ -47,7 +50,17 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => '#78a2cc',
             ])
             ->font('Poppins')
+            // ->brandLogo('images/TESDA_logo.png')
             ->brandName('Legislator App')
+
+            //             ->brandLogo(fn() => new HtmlString('
+//     <div style="display: flex; align-items: center; gap: 2px; margin: 0; padding: 0;">
+//         <img src="' . asset('images/TESDA_logo.png') . '" alt="Logo" style="height: 45px; margin: 0; padding: 0;">
+//         <span style="font-size: 14px; font-weight: bold; margin: 0; padding: 0;">
+//             Legislative Information System
+//         </span>
+//     </div>
+// '))
             ->favicon(asset('images/TESDA_logo.png'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -82,8 +95,7 @@ class AdminPanelProvider extends PanelProvider
                     ->setNavigationGroup('USER MANAGEMENT')
                     ->setIcon('heroicon-o-user')
                     ->setSort(1)
-                    // ->shouldShowDeleteAccountForm(true)
-                    ->shouldShowDeleteAccountForm(Auth::user()?->hasRole('Super Admin') ?? false)
+                    ->shouldShowDeleteAccountForm(true)
                     ->shouldShowBrowserSessionsForm(true)
                     ->shouldShowAvatarForm(
                         value: true,
