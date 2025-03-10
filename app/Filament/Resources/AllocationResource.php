@@ -7,6 +7,7 @@ use App\Filament\Resources\AllocationResource\Pages;
 use App\Models\Allocation;
 use App\Models\Legislator;
 use App\Models\ScholarshipProgram;
+use App\Models\Status;
 use App\Models\TargetStatus;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
@@ -75,9 +76,12 @@ class AllocationResource extends Resource
                     ->preload()
                     ->native(false)
                     ->options(function () {
+                        $activeStatusId = Status::where('desc', 'Active')->value('id');
+                    
                         return Legislator::whereHas('particular.subParticular', function ($query) {
-                            $query->whereIn('name', ['House Speaker', 'RO Regular', 'CO Regular']);
-                        })
+                                $query->whereIn('name', ['House Speaker', 'Senator', 'RO Regular', 'CO Regular']);
+                            })
+                            ->where('status_id', $activeStatusId)
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_legislator' => 'No legislators available'];
                     })
