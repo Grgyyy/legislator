@@ -403,6 +403,23 @@ class NonCompliantTargetResource extends Resource
                                 ])
                                 ->validationAttribute('slots'),
 
+                            TextInput::make('per_capita_cost')
+                                ->label('Per Capita Cost')
+                                ->placeholder('Enter per capita cost amount')
+                                ->markAsRequired(false) // Optional: no validation enforced
+                                ->autocomplete(false)
+                                ->currencyMask(precision: 0) // Formats as currency
+                                ->hidden(function ($get) {
+                                    $id = $get('qualification_title_id');
+                                    $qualificationTitle = QualificationTitle::find($id)?->soc; // Safe retrieval
+                                
+                                    return $qualificationTitle; // Show when soc = 1, hide otherwise
+                                })
+                                ->reactive()
+                                ->live()
+                                ->disabled($isDisabled)
+                                ->dehydrated(),
+
                             TextInput::make('target_id')
                                 ->label('')
                                 ->default($record ? $record->id : null)
@@ -1230,7 +1247,9 @@ class NonCompliantTargetResource extends Resource
 
         $provinceId = $tvi->district->province->id;
 
-        $institutionPrograms = $tvi->trainingPrograms()->pluck('training_programs.id')->toArray();
+        $institutionPrograms = $tvi->trainingPrograms()
+            ->pluck('training_programs.id')
+            ->toArray();
 
         if (empty($institutionPrograms)) {
             return ['no_qualification_title' => 'No qualification titles available for the selected institution'];
@@ -1244,7 +1263,6 @@ class NonCompliantTargetResource extends Resource
 
         $qualificationTitlesQuery = QualificationTitle::whereIn('scholarship_program_id', $scholarshipPrograms)
             ->where('status_id', 1)
-            ->where('soc', 1)
             ->whereNull('deleted_at')
             ->with('trainingProgram')
             ->get();

@@ -47,7 +47,7 @@ class DistrictResource extends Resource
             ->schema([
                 Select::make('huc')
                     ->label('HUC District')
-                    ->markAsRequired()
+                    ->markAsRequired(false)
                     ->options(fn() => [
                         true => 'Yes',
                         false => 'No '
