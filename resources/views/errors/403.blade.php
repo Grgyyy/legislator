@@ -1,4 +1,4 @@
-@extends('errors::minimal')
+@extends('errors::403forbidden')
 
 @section('title', __('Forbidden'))
 @section('code', '403')

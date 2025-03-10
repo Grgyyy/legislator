@@ -60,6 +60,7 @@ class TvetResource extends Resource
         return $table
             ->defaultSort('name')
             ->emptyStateHeading('No sectors available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name')
                     ->label("Sector")
@@ -69,24 +70,27 @@ class TvetResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records')
-                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter tvet sector')),
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter tvet sectors')),
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Sector has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Sector has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -103,21 +107,24 @@ class TvetResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected sectors have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete tvet sector')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete tvet sectors')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected sectors have been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore tvet sector')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore tvet sectors')),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected sectors have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete tvet sector')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete tvet sectors')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomTvetSectorExport::make()
@@ -125,9 +132,10 @@ class TvetResource extends Resource
                                     Column::make('name')
                                         ->heading('TVET Sector'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - TVET Sector Export')
+                                ->withFilename(date('m-d-Y') . ' - TVET Sectors')
                         ]),
-                ]),
+                ])
+                    ->label('Select Action')
             ]);
     }
 

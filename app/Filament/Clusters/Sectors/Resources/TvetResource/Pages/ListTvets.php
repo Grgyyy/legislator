@@ -21,17 +21,17 @@ class ListTvets extends ListRecords
 
     protected static ?string $title = 'TVET Sectors';
 
-    protected function getCreatedNotificationTitle(): ?string
-    {
-        return null;
-    }
-
     public function getBreadcrumbs(): array
     {
         return [
             '/sectors/tvets' => 'TVET Sectors',
             'List'
         ];
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getHeaderActions(): array
@@ -41,12 +41,12 @@ class ListTvets extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-
             Action::make('TvetImport')
                 ->label('Import')
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -70,14 +70,14 @@ class ListTvets extends ListRecords
                         }
                     }
                 })
-                ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('import tvet')),
+                ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('import tvet sectors')),
 
             Action::make('TvetExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->label('Export All')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new TvetExport, now()->format('m-d-Y') . ' - ' . 'TVET Sector Export.xlsx');
+                        return Excel::download(new TvetExport, now()->format('m-d-Y') . ' - ' . 'TVET Sectors.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

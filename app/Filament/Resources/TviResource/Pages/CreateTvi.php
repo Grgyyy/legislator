@@ -2,8 +2,9 @@
 
 namespace App\Filament\Resources\TviResource\Pages;
 
-use App\Models\Tvi;
 use App\Filament\Resources\TviResource;
+use App\Helpers\Helper;
+use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,7 @@ class CreateTvi extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvis' => 'Institutions',
+            '/institutions' => 'Institutions',
             'Create',
         ];
     }
@@ -46,10 +47,21 @@ class CreateTvi extends CreateRecord
 
     protected function handleRecordCreation(array $data): Tvi
     {
-
         $this->validateUniqueInstitution($data);
 
-        $tvi = DB::transaction(fn() => Tvi::create($data));
+        $data['name'] = Helper::capitalizeWords($data['name']);
+        
+        $tvi = DB::transaction(fn() => Tvi::create([
+            'name' => $data['name'],
+            'school_id' => $data['school_id'],
+            'district_id' => $data['district_id'],
+            'municipality_id' => $data['municipality_id'],
+            'tvi_type_id' => $data['tvi_type_id'],
+            'tvi_class_id' => $data['tvi_class_id'],
+            'institution_class_id' => $data['institution_class_id'],
+            'status_id' => $data['status_id'],
+            'address' => $data['address'],
+        ]));
 
         NotificationHandler::sendSuccessNotification('Created', 'Institution has been created successfully.');
 
@@ -59,7 +71,7 @@ class CreateTvi extends CreateRecord
     protected function validateUniqueInstitution($data)
     {
         $tvi = Tvi::withTrashed()
-            ->where(DB::raw('LOWER(name)'), strtolower($data['name']))
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->where('school_id', $data['school_id'])
             ->first();
 
@@ -71,16 +83,18 @@ class CreateTvi extends CreateRecord
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
 
-        $schoolId = Tvi::withTrashed()
-            ->where('school_id', $data['school_id'])
-            ->first();
+        if (!empty($data['code'])) {
+            $schoolId = Tvi::withTrashed()
+                ->where('school_id', $data['school_id'])
+                ->first();
 
-        if ($schoolId) {
-            $message = $schoolId->deleted_at
-                ? 'An institution with this school ID already exists and has been deleted.'
-                : 'An institution with this school ID already exists.';
+            if ($schoolId) {
+                $message = $schoolId->deleted_at
+                    ? 'An institution with this school ID already exists and has been deleted.'
+                    : 'An institution with this school ID already exists.';
 
-            NotificationHandler::handleValidationException('Invalid School ID', $message);
+                NotificationHandler::handleValidationException('Invalid School ID', $message);
+            }
         }
     }
 }

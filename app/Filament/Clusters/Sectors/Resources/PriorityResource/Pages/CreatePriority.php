@@ -20,6 +20,14 @@ class CreatePriority extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/sectors/priorities' => 'Top Ten Priority Sectors',
+            'Create'
+        ];
+    }
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -37,21 +45,13 @@ class CreatePriority extends CreateRecord
         ];
     }
 
-    public function getBreadcrumbs(): array
-    {
-        return [
-            '/sectors/priorities' => 'Top Ten Priority Sectors',
-            'Create'
-        ];
-    }
-
     protected function handleRecordCreation(array $data): Priority
     {
         $this->validateUniquePriority($data);
 
         $data['name'] = Helper::capitalizeWords($data['name']);
 
-        $priority = DB::transaction(fn () => Priority::create([
+        $priority = DB::transaction(fn() => Priority::create([
             'name' => $data['name'],
         ]));
 
@@ -63,14 +63,14 @@ class CreatePriority extends CreateRecord
     protected function validateUniquePriority($data)
     {
         $priority = Priority::withTrashed()
-            ->where('name', $data['name'])
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->first();
 
         if ($priority) {
-            $message = $priority->deleted_at 
+            $message = $priority->deleted_at
                 ? 'A priority sector with this name has been deleted and must be restored before reuse.'
                 : 'A priority sector with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
