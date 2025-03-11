@@ -2,9 +2,9 @@
 
 namespace App\Policies;
 
-use App\Models\User;
-use App\Models\Target;
 use App\Models\Legislator;
+use App\Models\Target;
+use App\Models\User;
 
 class LegislativeTargetPolicy
 {
@@ -13,7 +13,7 @@ class LegislativeTargetPolicy
      */
     public function viewTargetReport(User $user, target $target): bool
     {
-        return $user->hasRole(['Super Admin', 'Director']);
+        return $user->hasRole(['Super Admin', 'Director', 'TESDO', 'SMD Head', 'SMD Focal']);
     }
 
     /**
@@ -21,7 +21,7 @@ class LegislativeTargetPolicy
      */
     public function viewAnyTargetReport(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Director']);
+        return $user->hasRole(['Super Admin', 'Director', 'TESDO', 'SMD Head', 'SMD Focal']);
     }
 
     /**
@@ -29,6 +29,6 @@ class LegislativeTargetPolicy
      */
     public function exportTargetReport(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Director']);
+        return $user->hasRole(['Super Admin', 'Director', 'TESDO', 'SMD Head', 'SMD Focal']);
     }
 }
