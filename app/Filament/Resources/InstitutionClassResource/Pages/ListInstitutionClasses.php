@@ -64,7 +64,7 @@ class ListInstitutionClasses extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new InsitutionClassBExport, now()->format('m-d-Y') . ' - ' . 'Institution Class B Export.xlsx');
+                        return Excel::download(new InsitutionClassBExport, now()->format('m-d-Y') . ' - ' . 'Institution Classes (B).xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

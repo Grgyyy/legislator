@@ -124,7 +124,7 @@ class FundSourceResource extends Resource
                                     Column::make('name')
                                         ->heading('Fund Source'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Fund Source Export'),
+                                ->withFilename(date('m-d-Y') . ' - Fund Sources'),
                         ])
                 ])
                     ->label('Select Action'),

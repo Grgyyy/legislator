@@ -375,7 +375,7 @@ class ToolkitResource extends Resource
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Toolkit Export')
+                                ->withFilename(date('m-d-Y') . ' - Toolkits')
                         ])
 
                 ])

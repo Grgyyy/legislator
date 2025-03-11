@@ -280,7 +280,7 @@ class MunicipalityResource extends Resource
                                     Column::make('province.region.name')
                                         ->heading('Region'),
                                 ])
-                                ->withFilename(now()->format('m-d-Y') . ' - Municipality Export'),
+                                ->withFilename(now()->format('m-d-Y') . ' - Municipalities'),
                         ]),
                 ])
                     ->label('Select Action'),

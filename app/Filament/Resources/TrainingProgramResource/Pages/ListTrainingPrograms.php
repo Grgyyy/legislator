@@ -74,7 +74,7 @@ class ListTrainingPrograms extends ListRecords
                 ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new TrainingProgramExport, now()->format('m-d-Y') . ' - ' . 'Qualification Title Export.xlsx');
+                        return Excel::download(new TrainingProgramExport, now()->format('m-d-Y') . ' - ' . 'Qualification Titles.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

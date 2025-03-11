@@ -63,7 +63,7 @@ class ListRecognitions extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->action(function (array $data) {
                     try {
-                        return Excel::download(new RecognitionExport, now()->format('m-d-Y') . ' - ' . 'Recognition Title Export.xlsx');
+                        return Excel::download(new RecognitionExport, now()->format('m-d-Y') . ' - ' . 'Recognition Titles.xlsx');
                     } catch (ValidationException $e) {
                         NotificationHandler::sendErrorNotification('Export Failed', 'Validation failed: ' . $e->getMessage());
                     } catch (Exception $e) {

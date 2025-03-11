@@ -123,7 +123,7 @@ class TviTypeResource extends Resource
                                     Column::make('name')
                                         ->heading('Institution Type'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Institution Type Export')
+                                ->withFilename(date('m-d-Y') . ' - Institution Types')
                         ]),
                 ])
                     ->label('Select Action'),

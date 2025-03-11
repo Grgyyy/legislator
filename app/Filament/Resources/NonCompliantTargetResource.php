@@ -1179,7 +1179,7 @@ class NonCompliantTargetResource extends Resource
                                         ->heading('Status'),
 
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Non-compliant Targets Export')
+                                ->withFilename(date('m-d-Y') . ' - Non-compliant Targets')
                         ]),
                 ])
                     ->label('Select Action'),

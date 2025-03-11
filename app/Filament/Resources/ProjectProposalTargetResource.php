@@ -1593,7 +1593,7 @@ class ProjectProposalTargetResource extends Resource
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Pending Project Proposal Targets Export')
+                                ->withFilename(date('m-d-Y') . ' - Pending Project Proposal Targets')
                         ]),
                 ])
                     ->label('Select Action'),

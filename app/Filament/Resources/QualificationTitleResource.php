@@ -595,7 +595,7 @@ class QualificationTitleResource extends Resource
                                     Column::make('status.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Schedule of Cost Export')
+                                ->withFilename(date('m-d-Y') . ' - Schedule of Cost')
                         ]),
                 ])
                     ->label('Select Action'),

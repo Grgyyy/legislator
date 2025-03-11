@@ -700,7 +700,7 @@ class AllocationResource extends Resource
                                     Column::make('year')
                                         ->heading('Year'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Allocation Export')
+                                ->withFilename(date('m-d-Y') . ' - Allocations')
                         ]),
                 ])
                     ->label('Select Action'),

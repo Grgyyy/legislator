@@ -1914,7 +1914,7 @@ class AttributionTargetResource extends Resource
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Pending Attribution Targets Export')
+                                ->withFilename(date('m-d-Y') . ' - Pending Attribution Targets')
                         ]),
                 ])
                     ->label('Select Action'),

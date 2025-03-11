@@ -1555,7 +1555,7 @@ class TargetResource extends Resource
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Pending Targets Export')
+                                ->withFilename(date('m-d-Y') . ' - Pending Targets')
                         ]),
                 ])
                     ->label('Select Action'),

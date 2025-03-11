@@ -121,7 +121,7 @@ class InstitutionClassResource extends Resource
                                     Column::make('name')
                                         ->heading('Institution Class (B)'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Institution Class B Export')
+                                ->withFilename(date('m-d-Y') . ' - Institution Classes (B)')
                         ]),
                 ])
                     ->label('Select Action'),
