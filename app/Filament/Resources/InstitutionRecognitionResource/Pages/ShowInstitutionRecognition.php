@@ -2,11 +2,15 @@
 namespace App\Filament\Resources\InstitutionRecognitionResource\Pages;
 
 use App\Filament\Resources\InstitutionRecognitionResource;
-use App\Models\Region;
-use App\Filament\Resources\ProvinceResource;
+use App\Imports\InstitutionRecognitionImport;
 use App\Models\Tvi;
-use Filament\Resources\Pages\ListRecords;
+use App\Services\NotificationHandler;
+use Exception;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Filament\Resources\Pages\ListRecords;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ShowInstitutionRecognition extends ListRecords
 {
@@ -23,6 +27,14 @@ class ShowInstitutionRecognition extends ListRecords
             'Recognitions',
             'List'
         ];
+    }
+
+    public function getTitle(): string
+    {
+        $tviId = $this->getTviId();
+        $tvi = Tvi::find($tviId);
+
+        return $tvi ? $tvi->name : 'Institution';
     }
 
     protected function getFormActions(): array
@@ -51,6 +63,34 @@ class ShowInstitutionRecognition extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus')
                 ->url(route('filament.admin.resources.institution-recognitions.create', ['tvi_id' => $tviId])),
+
+            Action::make('InstitutionRecognitionImport')
+                ->label('Import')
+                ->icon('heroicon-o-document-arrow-up')
+                ->form([
+                    FileUpload::make('file')
+                        ->required()
+                        ->markAsRequired(false)
+                        ->disk('local')
+                        ->directory('imports')
+                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']),
+                ])
+                ->action(function (array $data) {
+                    if (isset($data['file']) && is_string($data['file'])) {
+                        $filePath = storage_path('app/' . $data['file']);
+
+                        try {
+                            Excel::import(new InstitutionRecognitionImport, $filePath);
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Institution Recognitions have been successfully imported from the file.');
+                        } catch (Exception $e) {
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institution recognitions: ' . $e->getMessage());
+                        } finally {
+                            if (file_exists($filePath)) {
+                                unlink($filePath);
+                            }
+                        }
+                    }
+                }),
         ];
     }
 
