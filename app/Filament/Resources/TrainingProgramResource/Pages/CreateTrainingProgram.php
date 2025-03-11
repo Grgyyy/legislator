@@ -82,8 +82,8 @@ class CreateTrainingProgram extends CreateRecord
 
         $trainingProgram = TrainingProgram::withTrashed()
             ->where('title', $data['title'])
-            ->where('tvet_id', $data['tvet_id'])
-            ->where('priority_id', $data['priority_id'])
+            ->where('soc_code', $data['soc_code'])
+            ->where('soc', true)
             ->first();
 
         if ($trainingProgram) {

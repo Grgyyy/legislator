@@ -50,7 +50,7 @@ class EditTrainingProgram extends EditRecord
         $data['title'] = Helper::capitalizeWords($data['title']);
 
         try {
-            if ($data['full_coc_ele'] === 'COC' || $data['full_coc_ele'] === 'ELEV') {
+            if ($data['full_coc_ele'] === 'COC' || $data['full_coc_ele'] === 'ELE') {
                 $data['nc_level'] = null;
             }
 
@@ -85,8 +85,8 @@ class EditTrainingProgram extends EditRecord
 
         $trainingProgram = TrainingProgram::withTrashed()
             ->where('title', $data['title'])
-            ->where('tvet_id', $data['tvet_id'])
-            ->where('priority_id', $data['priority_id'])
+            ->where('soc_code', $data['soc_code'])
+            ->where('soc', true)
             ->whereNot('id', $currentId)
             ->first();
 

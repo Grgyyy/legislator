@@ -300,6 +300,9 @@ class TviResource extends Resource
                     ->limit(45)
                     ->tooltip(fn($state): ?string => strlen($state) > 45 ? $state : null),
             ])
+            ->recordUrl(
+                fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id]),
+            )
             ->filters([
                 TrashedFilter::make()
                     ->label('Records')
@@ -424,6 +427,11 @@ class TviResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+
+                    Action::make('showRecognitions')
+                        ->label('View Recognition')
+                        ->icon('heroicon-o-magnifying-glass')
+                        ->url(fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id])),
 
                     DeleteAction::make()
                         ->action(function ($record, $data) {
