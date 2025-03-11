@@ -130,6 +130,7 @@ class CreateProjectProposal extends CreateRecord
     {
         $trainingProgram = TrainingProgram::withTrashed()
             ->where('title', $data['title'])
+            ->where('soc', false)
             ->first();
 
         if ($trainingProgram) {

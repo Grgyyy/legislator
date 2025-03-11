@@ -96,6 +96,7 @@ class EditProjectProposal extends EditRecord
     {
         $trainingProgram = TrainingProgram::withTrashed()
             ->where('title', $data['title'])
+            ->where('soc', false)
             ->whereNot('id', $currentId)
             ->first();
 
