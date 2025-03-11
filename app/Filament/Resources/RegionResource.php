@@ -81,6 +81,9 @@ class RegionResource extends Resource
                     ->searchable()
                     ->toggleable(),
             ])
+            ->recordUrl(
+                fn($record) => route('filament.admin.resources.provinces.showProvince', ['record' => $record->id]),
+            )
             ->filters([
                 TrashedFilter::make()->label('Records')
                     ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter region ')),
