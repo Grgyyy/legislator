@@ -39,39 +39,31 @@ class EditToolkit extends EditRecord
     
     protected function handleRecordUpdate($record, array $data): Toolkit
     {
+
         $this->validateUniqueToolkit($data, $record->id);
 
         $data['lot_name'] = Helper::capitalizeWords($data['lot_name']);
 
         return DB::transaction(function () use ($record, $data) {
-            if ($data['number_of_toolkit']) {
-                $difference = $data['number_of_toolkit'] - $record['number_of_toolkit'];
-                $new_anot = $record['available_number_of_toolkit'] + $difference;
+            $difference = $data['number_of_toolkit'] - $record->number_of_toolkits;
+            $new_available_toolkits = max(0, $record->available_number_of_toolkits + $difference);
 
-                $record->update([
-                    'lot_name' => $data['lot_name'],
-                    'price_per_toolkit' => $data['price_per_toolkit'],
-                    'available_number_of_toolkits' => $new_anot,
-                    'number_of_toolkits' => $data['number_of_toolkit'],
-                    'total_abc_per_lot' => $data['price_per_toolkit'] * $data['number_of_toolkit'],
-                    'number_of_items_per_toolkit' => $data['number_of_items_per_toolkit'],
-                    'year' => $data['year']
-                ]);
-            }
-            else {
-                $record->update([
-                    'lot_name' => $data['lot_name'],
-                    'price_per_toolkit' => $data['price_per_toolkit'],
-                    'number_of_items_per_toolkit' => $data['number_of_items_per_toolkit'],
-                    'year' => $data['year']
-                ]);
-            }
+            $record->update([
+                'lot_name' => $data['lot_name'],
+                'price_per_toolkit' => $data['price_per_toolkit'],
+                'available_number_of_toolkits' => min($data['number_of_toolkit'], $new_available_toolkits),
+                'number_of_toolkits' => $data['number_of_toolkit'],
+                'total_abc_per_lot' => $data['price_per_toolkit'] * $data['number_of_toolkit'],
+                'number_of_items_per_toolkit' => $data['number_of_items_per_toolkit'],
+                'year' => $data['year'],
+            ]);
 
             NotificationHandler::sendSuccessNotification('Saved', 'Toolkit has been updated successfully.');
 
             return $record;
         });
     }
+
 
     protected function validateUniqueToolkit($data, $currentId)
     {

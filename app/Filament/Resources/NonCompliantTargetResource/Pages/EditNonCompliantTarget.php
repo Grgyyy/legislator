@@ -89,6 +89,8 @@ class EditNonCompliantTarget extends EditRecord
         $data['allocation_year'] = $record->allocation->year ?? null;
         $data['target_id'] = $record->id ?? null;
 
+        $data['per_capita_cost'] = $record->total_amount / $record->number_of_slots;
+
         return $data;
     }
 
@@ -113,13 +115,13 @@ class EditNonCompliantTarget extends EditRecord
                 }
 
                 $allocation = Allocation::where('legislator_id', $receiverLegislatorId)
-                ->where('attributor_id', $senderLegislatorId)
-                ->where('particular_id', $receiverParticularId)
-                ->where('attributor_particular_id', $senderParticularId)
-                ->where('scholarship_program_id', $data['scholarship_program_id'])
-                ->where('year', $data['allocation_year'])
-                ->whereNull('deleted_at')
-                ->first();
+                    ->where('attributor_id', $senderLegislatorId)
+                    ->where('particular_id', $receiverParticularId)
+                    ->where('attributor_particular_id', $senderParticularId)
+                    ->where('scholarship_program_id', $data['scholarship_program_id'])
+                    ->where('year', $data['allocation_year'])
+                    ->whereNull('deleted_at')
+                    ->first();
 
                 $institution = Tvi::find($data['tvi_id']);
                 if (!$institution) {
@@ -140,7 +142,13 @@ class EditNonCompliantTarget extends EditRecord
                 }
 
                 $numberOfSlots = $data['number_of_slots'] ?? 0;
-                $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
+                
+                if ($qualificationTitle->soc) {
+                    $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
+                } else {
+                    $totalAmount = $data['per_capita_cost'] * $numberOfSlots;
+                }
+                
 
                 if ($allocation->balance < $totalAmount) {
                     $message = "Insufficient balance to process the transfer.";
@@ -175,7 +183,7 @@ class EditNonCompliantTarget extends EditRecord
                     'total_book_allowance' => $qualificationTitle->book_allowance * $numberOfSlots,
                     'total_uniform_allowance' => $qualificationTitle->uniform_allowance * $numberOfSlots,
                     'total_misc_fee' => $qualificationTitle->misc_fee * $numberOfSlots,
-                    'total_amount' => $qualificationTitle->pcc * $numberOfSlots,
+                    'total_amount' => $totalAmount,
                     'appropriation_type' => $data['appropriation_type'],
                     'target_status_id' => 1,
                 ]);

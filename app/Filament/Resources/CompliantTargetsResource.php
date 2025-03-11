@@ -1192,7 +1192,7 @@ class CompliantTargetsResource extends Resource
                                         ->heading('Status'),
 
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Compliant Targets Export')
+                                ->withFilename(date('m-d-Y') . ' - Compliant Targets')
                         ]),
                 ])
                     ->label('Select Action'),

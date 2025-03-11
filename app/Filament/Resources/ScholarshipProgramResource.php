@@ -154,7 +154,7 @@ class ScholarshipProgramResource extends Resource
                                     Column::make('desc')
                                         ->heading('Description'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Scholarship Program Export')
+                                ->withFilename(date('m-d-Y') . ' - Scholarship Programs')
                         ]),
                 ])
                     ->label('Select Action'),

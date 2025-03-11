@@ -126,7 +126,7 @@ class PartylistResource extends Resource
                                     Column::make('name')
                                         ->heading('Party-list'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Party-list Export'),
+                                ->withFilename(date('m-d-Y') . ' - Party-lists'),
                         ]),
                 ])
                     ->label('Select Action'),

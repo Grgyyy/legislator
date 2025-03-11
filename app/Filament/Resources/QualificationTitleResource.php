@@ -372,17 +372,6 @@ class QualificationTitleResource extends Resource
                         return number_format($state, 2, '.', ',');
                     }),
 
-                TextColumn::make("toolkit.price_per_toolkit")
-                    ->label("Cost of Toolkits PCC")
-                    ->sortable()
-                    ->toggleable()
-                    ->prefix('₱ ')
-                    ->getStateUsing(function ($record) {
-                        return $record->toolkit && $record->toolkit->price_per_toolkit !== null
-                            ? number_format($record->toolkit->price_per_toolkit, 2, '.', ',')
-                            : '0.00';
-                    }),
-
                 TextColumn::make("pcc")
                     ->label("Total PCC (w/o Toolkits)")
                     ->sortable()
@@ -606,7 +595,7 @@ class QualificationTitleResource extends Resource
                                     Column::make('status.desc')
                                         ->heading('Status'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Schedule of Cost Export')
+                                ->withFilename(date('m-d-Y') . ' - Schedule of Cost')
                         ]),
                 ])
                     ->label('Select Action'),

@@ -183,7 +183,7 @@ class SubParticularResource extends Resource
                                     Column::make('fundSource.name')
                                         ->heading('Fund Source'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Particular Type Export'),
+                                ->withFilename(date('m-d-Y') . ' - Particular Types'),
                         ]),
                 ])
                     ->label('Select Action'),

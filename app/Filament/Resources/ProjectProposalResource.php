@@ -335,7 +335,7 @@ class ProjectProposalResource extends Resource
                                     Column::make('title')
                                         ->heading('Qualification Title'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Project Proposal Program Export')
+                                ->withFilename(date('m-d-Y') . ' - Project Proposal Programs')
                         ]),
                 ])
                     ->label('Select Action'),

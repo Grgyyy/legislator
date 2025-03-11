@@ -46,10 +46,13 @@ class EditAllocation extends EditRecord
 
         $allocation = DB::transaction(function () use ($record, $data) {
             
-            $difference = $data['allocation'] - $record['allocation'];
-            $deduction = $difference * 0.02;
-            $new_balance = $record['balance'] + ($difference - $deduction);
+            $previousAllocation = (float) $record['allocation'];
+            $newAllocation = (float) $data['allocation'];
+            $previousBalance = (float) $record['balance'];
 
+            $usedSlots = $previousAllocation - $previousBalance;
+
+            $newBalance = max(0, $newAllocation - $usedSlots);
 
             $record->update([
                 'soft_or_commitment' => $data['soft_or_commitment'],
@@ -58,9 +61,9 @@ class EditAllocation extends EditRecord
                 'particular_id' => $data['particular_id'],
                 'attributor_particular_id' => $data['attributor_particular_id'] ?? null,
                 'scholarship_program_id' => $data['scholarship_program_id'],
-                'allocation' => $data['allocation'],
-                'admin_cost' => $data['allocation'] * 0.02,
-                'balance' => $new_balance,
+                'allocation' => $newAllocation, 
+                'admin_cost' => $newAllocation * 0.02, 
+                'balance' => $newBalance, 
                 'year' => $data['year'],
             ]);
 

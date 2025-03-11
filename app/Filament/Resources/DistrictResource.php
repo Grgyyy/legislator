@@ -47,7 +47,7 @@ class DistrictResource extends Resource
             ->schema([
                 Select::make('huc')
                     ->label('HUC District')
-                    ->markAsRequired()
+                    ->markAsRequired(false)
                     ->options(fn() => [
                         true => 'Yes',
                         false => 'No '
@@ -249,7 +249,7 @@ class DistrictResource extends Resource
                                     Column::make('province.region.name')
                                         ->heading('Region')
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - District Export')
+                                ->withFilename(date('m-d-Y') . ' - Districts')
                         ])
                 ])
                     ->label('Select Action'),

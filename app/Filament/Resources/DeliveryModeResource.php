@@ -114,7 +114,7 @@ class DeliveryModeResource extends Resource
                                     Column::make('name')
                                         ->heading('Delivery Mode Name'),
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Delivery Mode Export')
+                                ->withFilename(date('m-d-Y') . ' - Delivery Modes')
                         ])
 
 

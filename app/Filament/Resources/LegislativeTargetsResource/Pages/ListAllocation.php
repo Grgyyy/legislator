@@ -56,6 +56,14 @@ class ListAllocation extends ListRecords
             ->columns([
                 TextColumn::make('scholarship_program.name')
                     ->label('Scholarship Program'),
+                TextColumn::make('attributor.name')
+                    ->label('Attributor Name')
+                    ->getStateUsing(function ($record) {
+                        if ($record->attributor) {
+                            return $record->attributor->name;
+                        }
+                        return '-';
+                    }),
                 TextColumn::make('year')
                     ->label('Year'),
             ])

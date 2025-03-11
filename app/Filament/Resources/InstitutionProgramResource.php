@@ -395,7 +395,7 @@ class InstitutionProgramResource extends Resource
 
 
                                 ])
-                                ->withFilename(date('m-d-Y') . ' - Institution Qualification Title Export')
+                                ->withFilename(date('m-d-Y') . ' - Institution Qualification Titles')
                         ]),
                 ])
                     ->label('Select Action'),

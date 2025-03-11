@@ -25,11 +25,15 @@ use Maatwebsite\Excel\Facades\Excel;
 
 Route::get('/export-targets/{allocationId}', function ($allocationId) {
     $allocation = Allocation::find($allocationId);
-    if (!$allocation) {
-        return redirect()->route('some.error.page')->with('error', 'Invalid Allocation ID');
+    
+    if (!$allocation || !$allocation->legislator) {
+        return redirect()->route('some.error.page')->with('error', 'Invalid Allocation ID or Missing Legislator');
     }
 
-    return Excel::download(new TargetReportExport($allocationId), 'Target Report Export.xlsx');
+    $legislatorName = preg_replace('/[^A-Za-z0-9-_ ]/', '', $allocation->legislator->name); 
+    $filename = now()->format('m-d-Y') . ' - ' . $legislatorName . ' Target Report.xlsx';
+
+    return Excel::download(new TargetReportExport($allocationId), $filename);
 })->name('export.targets');
 
 
