@@ -1,4 +1,4 @@
-@extends('errors::server')
+@extends('errors::500server')
 
 @section('title', __('Server Error'))
 @section('code', '500')

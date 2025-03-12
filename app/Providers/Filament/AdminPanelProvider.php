@@ -108,12 +108,17 @@ class AdminPanelProvider extends PanelProvider
                     ->withFooterPosition('footer')
                     ->withSentence('Legislative Information System')
                     ->withLogo(
-                        'https://www.tesda.gov.ph/Content/images/logos/TESDA%20Logo%20official.png', // Path to logo
-                        'https://laravel.com',                               // URL for logo link (optional)
-                        'TESDA - Regional Operations Management Office ',                                // Text to display (optional)
-                        20                                                   // Logo height in pixels (default: 20)
+                        'https://www.tesda.gov.ph/Content/images/logos/TESDA%20Logo%20official.png',
+                        'https://laravel.com',
+                        'TESDA - Regional Operations Management Office ',
+                        18
                     )
-                    
+                    ->withLinks([
+                        [
+                            'title' => 'Manual',
+                            'url' => 'https://docs.google.com/document/d/1-TlUIOWk7I-SLsWEwLGDwD-kYndNrrJH8wPGv9G5X5c/edit?usp=sharing', 
+                        ],
+                    ])
             ])
             ->userMenuItems([
                 'profile' => MenuItem::make()

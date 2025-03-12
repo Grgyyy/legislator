@@ -4,11 +4,11 @@
 @endphp
 <footer
     @class([
-        'fi-footer my-3 flex flex-wrap items-center justify-center text-sm text-gray-500 dark:text-gray-400',
+        'fi-footer my-3 flex flex-wrap items-center justify-center text-xs text-gray-500 dark:text-gray-400',
         'border-t border-gray-200 dark:border-gray-700 text-center p-2' => $footerPosition === 'sidebar' || $footerPosition === 'sidebar.footer' || $borderTopEnabled === true,
         'fi-sidebar gap-2' => $footerPosition === 'sidebar' || $footerPosition === 'sidebar.footer',
         'gap-4' => $footerPosition !== 'sidebar' && $footerPosition !== 'sidebar.footer',
-        'mx-auto w-full px-4 md:px-6 lg:px-8 dark:text-white' => $footerPosition === 'footer',
+        'mx-auto w-full px-4 md:px-6 lg:px-8 dark:text-gray-200' => $footerPosition === 'footer',
         match ($maxContentWidth ??= (filament()->getMaxContentWidth() ?? MaxWidth::SevenExtraLarge)) {
             MaxWidth::ExtraSmall, 'xs' => 'max-w-xs',
             MaxWidth::Small, 'sm' => 'max-w-sm',
@@ -83,10 +83,10 @@
     @endif
 
     @if(count($links) > 0)
-        <ul class="gap-2 flex">
+        <ul class="flex gap-4 text-xs">
             @foreach($links as $link)
                 <li>
-                    <a href="{{ $link['url'] }}" class="text-primary-600 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300" target="_blank">{{ $link['title'] }}</a>
+                    <a href="{{ $link['url'] }}" class="text-gray-500 dark:text-gray-400 dark:hover:text-primary-300" target="_blank">{{ $link['title'] }}</a>
                 </li>
             @endforeach
         </ul>
