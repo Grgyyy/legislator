@@ -1,4 +1,4 @@
-@extends('errors::tooManyRequests')
+@extends('errors::429tooManyRequests')
 
 @section('title', __('Too Many Requests'))
 @section('code', '429')
