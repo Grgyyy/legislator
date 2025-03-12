@@ -46,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
             $url->forceScheme('https');
         }
 
-        Route::get('/devs', function () {
+        Route::get('/who-made-this', function () {
             return view('devs');
         });
     }
