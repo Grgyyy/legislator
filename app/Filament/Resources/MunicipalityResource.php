@@ -148,6 +148,7 @@ class MunicipalityResource extends Resource
         return $table
             ->defaultSort('province.region.name')
             ->emptyStateHeading('No municipalities available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('code')
                     ->label('PSG Code')

@@ -106,6 +106,7 @@ class ParticularResource extends Resource
         return $table
             ->defaultSort('district.province.region.name')
             ->emptyStateHeading('No particulars available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make("subParticular.name")
                     ->label('Particular Type')

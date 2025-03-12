@@ -58,6 +58,7 @@ class TviTypeResource extends Resource
     {
         return $table
             ->emptyStateHeading('no institution types available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name')
                     ->label('Institution Types')

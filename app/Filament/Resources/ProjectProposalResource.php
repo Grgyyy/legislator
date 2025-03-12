@@ -169,6 +169,7 @@ class ProjectProposalResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No project proposal programs available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('soc_code')
                     ->label('SOC Code')

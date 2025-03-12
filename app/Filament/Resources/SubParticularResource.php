@@ -84,6 +84,7 @@ class SubParticularResource extends Resource
                     ->orderBy('name');
             })
             ->emptyStateHeading('No particular types available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name')
                     ->label('Particular Type')

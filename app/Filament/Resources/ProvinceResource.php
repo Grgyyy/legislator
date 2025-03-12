@@ -89,6 +89,7 @@ class ProvinceResource extends Resource
                     ->orderBy('name');
             })
             ->emptyStateHeading('No provinces available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('code')
                     ->label('PSG Code')

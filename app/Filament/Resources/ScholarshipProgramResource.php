@@ -73,6 +73,7 @@ class ScholarshipProgramResource extends Resource
         return $table
             ->defaultSort('name')
             ->emptyStateHeading('No scholarship programs available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make("code")
                     ->sortable()

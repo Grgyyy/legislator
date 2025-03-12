@@ -61,6 +61,7 @@ class TviClassResource extends Resource
     {
         return $table
             ->emptyStateHeading('no institution classes available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name')
                     ->Label('Institution Class (A)')

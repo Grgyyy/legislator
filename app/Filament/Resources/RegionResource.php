@@ -69,6 +69,7 @@ class RegionResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No regions available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make("code")
                     ->label("PSG Code")

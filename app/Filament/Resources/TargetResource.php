@@ -729,6 +729,7 @@ class TargetResource extends Resource
         return $table
             ->defaultSort('updated_at', 'desc')
             ->emptyStateHeading('No targets available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 // TextColumn::make('abscap_id')
                 //     ->sortable()

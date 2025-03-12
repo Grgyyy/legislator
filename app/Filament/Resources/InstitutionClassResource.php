@@ -58,6 +58,7 @@ class InstitutionClassResource extends Resource
     {
         return $table
             ->emptyStateHeading('no institution class available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name')
                     ->label('Institution Classes (B)')

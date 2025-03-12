@@ -173,6 +173,7 @@ class ToolkitResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No toolkits available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('qualificationTitles')
                     ->label('SOC Title')

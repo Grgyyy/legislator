@@ -180,6 +180,7 @@ class TargetReport extends ListRecords
     public function table(Tables\Table $table): Tables\Table
     {
         return $table
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('region_name')
                     ->label('Region Name'),

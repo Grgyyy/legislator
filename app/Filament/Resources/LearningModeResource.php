@@ -64,6 +64,7 @@ class LearningModeResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->paginated([5, 10, 25, 50])
             ->columns([
 
                 TextColumn::make('name')

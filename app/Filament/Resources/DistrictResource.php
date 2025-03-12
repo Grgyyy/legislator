@@ -144,6 +144,7 @@ class DistrictResource extends Resource
         return $table
             ->defaultSort('province.region.name')
             ->emptyStateHeading('No districts available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('code')
                     ->label('PSG Code')
