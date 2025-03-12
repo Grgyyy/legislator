@@ -448,6 +448,10 @@ class AllocationResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    Action::make('viewLogs')
+                        ->label('View Logs')
+                        ->url(fn($record) => route('filament.admin.resources.activity-logs.allocationLogs', ['record' => $record->id]))
+                        ->icon('heroicon-o-document-text'),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();

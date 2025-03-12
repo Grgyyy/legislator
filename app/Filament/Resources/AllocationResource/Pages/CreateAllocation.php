@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\AllocationResource\Pages;
 
-use App\Models\Allocation;
 use App\Filament\Resources\AllocationResource;
+use App\Models\Allocation;
 use App\Models\Particular;
 use App\Services\NotificationHandler;
 use Filament\Actions\Action;
@@ -71,6 +71,32 @@ class CreateAllocation extends CreateRecord
 
         return $allocation;
     }
+
+    protected function afterCreate(): void
+    {
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($this->record)
+            ->event('Created') // Set the event type
+            ->withProperties([
+                'soft_or_commitment' => $this->record->soft_or_commitment,
+                'legislator_id' => $this->record->legislator_id,
+                'attributor_id' => $this->record->attributor_id,
+                'particular_id' => $this->record->particular_id,
+                'attributor_particular_id' => $this->record->attributor_particular_id,
+                'scholarship_program_id' => $this->record->scholarship_program_id,
+                'allocation' => $this->record->allocation,
+                'admin_cost' => $this->record->admin_cost,
+                'balance' => $this->record->balance,
+                'year' => $this->record->year,
+            ])
+            ->log(
+                $this->record->attributor
+                    ? "Attribution Allocation for '{$this->record->legislator->name}' was created by '{$this->record->attributor->name}'."
+                    : "Allocation for '{$this->record->legislator->name}' was created without an attributor."
+            );
+    }
+
 
     protected function validateAttributorParticularId($attributorParticularId): void
     {
