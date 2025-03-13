@@ -142,7 +142,7 @@ class ProvinceSeeder extends Seeder
         ];
 
         foreach ($provinces as [$code, $name]) {
-            $regionId = substr(trim($code), 0, 2);
+            $regionId = substr(trim($code), 0, 2) . '00000000';
 
             $region = Region::where('code', $regionId)->first();
 
