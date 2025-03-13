@@ -6,6 +6,8 @@ use App\Filament\Resources\ActivityLogResource;
 use App\Filament\Resources\LegislativeTargetsResource;
 use App\Models\Allocation;
 use App\Models\Legislator;
+use App\Models\Particular;
+use App\Models\User;
 use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables;
@@ -34,12 +36,10 @@ class AllocationLogs extends ListRecords
     public function getTitle(): string
     {
         $allocationId = request()->route('record');
-        $allocation = Allocation::find($allocationId);
-
-        if (!$allocation) {
-            return 'Allocation Not Found';
-        }
-
+        $allocation = Allocation::withTrashed()
+            ->where('id', $allocationId)
+            ->first();
+        
         return $allocation->legislator->name ?? 'Unknown Legislator';
     }
 
@@ -59,8 +59,9 @@ class AllocationLogs extends ListRecords
     {
         $allocationId = request()->route('record');
 
-        return Activity::where('subject_type', Allocation::class)
-                    ->where('subject_id', $allocationId);
+        return Activity::query()
+            ->where('subject_type', Allocation::class)
+            ->where('subject_id', $allocationId);
     }
 
 
@@ -96,25 +97,82 @@ class AllocationLogs extends ListRecords
     {
         return $table
             ->columns([
-                TextColumn::make('event')
-                    ->label('Event')
-                    ->badge()
-                    ->formatStateUsing(fn ($state) => ucfirst($state)),
+
+                TextColumn::make('source_of_fund')
+                    ->label('Source of Fund')
+                    ->getStateUsing(fn ($record) => 
+                        optional(json_decode($record->properties, true))['soft_or_commitment']
+                    ),
+
+                TextColumn::make('attributor')
+                    ->label('Attributor')
+                    ->getStateUsing(fn ($record) => 
+                        optional(json_decode($record->properties, true))['attributor'] ?? '-'
+                    ),
+
+                TextColumn::make('attributor_particular')
+                    ->label('Attributor Particular')
+                    ->getStateUsing(function ($record) { 
+                        $properties = json_decode($record->properties, true); 
+                        $particulaId = $properties['attributor_particular'] ?? null;
+                
+                        if (!$particulaId) {
+                            return '-';
+                        }
+                
+                        $particular = Particular::find($particulaId);
+                
+                        if ($particular->subParticular->name === 'District') {
+                            if ($particular->district->underMunicipality) {
+                                return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->underMunicipality->name}, {$particular->district->province->name}" : '-';
+                            }
+                            else {
+                                return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->province->name}" : '-';
+                            }
+                        }
+                        elseif ($particular->subParticular->name === 'Senator' || $particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
+                            return $particular ? "{$particular->subParticular->name}" : '-';
+                        }
+
+                    }),
 
                 TextColumn::make('legislator')
                     ->label('Legislator')
-                    ->getStateUsing(function ($record) { // Use function() {} instead of fn()
-                        $properties = json_decode($record->properties, true); // Decode JSON safely
-                        $legislatorId = $properties['legislator_id'] ?? null;
+                    ->getStateUsing(fn ($record) => 
+                        optional(json_decode($record->properties, true))['legislator']
+                    ),
+
+                TextColumn::make('particular')
+                    ->label('Particular')
+                    ->getStateUsing(function ($record) { 
+                        $properties = json_decode($record->properties, true); 
+                        $particulaId = $properties['particular'] ?? null;
                 
-                        if (!$legislatorId) {
-                            return 'Unknown Legislator'; // Handle missing legislator_id
+                        if (!$particulaId) {
+                            return '-';
                         }
                 
-                        $legislator = Legislator::find($legislatorId);
+                        $particular = Particular::find($particulaId);
                 
-                        return $legislator ? $legislator->name : 'Unknown Legislator';
+                        if ($particular->subParticular->name === 'District') {
+                            if ($particular->district->underMunicipality) {
+                                return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->underMunicipality->name},  {$particular->district->province->name}" : '-';
+                            }
+                            else {
+                                return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->province->name}" : '-';
+                            }
+                        }
+                        elseif ($particular->subParticular->name === 'Senator' || $particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
+                            return $particular ? "{$particular->subParticular->name}" : '-';
+                        }
+
                     }),
+
+                TextColumn::make('scholarship_program')
+                    ->label('Scholarship Program')
+                    ->getStateUsing(fn ($record) => 
+                        optional(json_decode($record->properties, true))['scholarship_program'] ?? '-'
+                    ),
 
                 TextColumn::make('allocation')
                     ->label('Allocation')
@@ -131,7 +189,7 @@ class AllocationLogs extends ListRecords
                     ),
 
                 TextColumn::make('allocation_without_adminCost')
-                    ->label('Allocation w/o Admin Cost')
+                    ->label('Allocation - Admin Cost')
                     ->prefix('₱')
                     ->getStateUsing(fn ($record) => 
                         number_format(
@@ -142,16 +200,53 @@ class AllocationLogs extends ListRecords
                     ),
 
                 TextColumn::make('balance')
-                    ->label('Balance'),
+                    ->label('Balance')
+                    ->prefix('₱')
+                    ->getStateUsing(fn ($record) => 
+                        number_format((float) (optional(json_decode($record->properties, true))['balance'] ?? 0), 2)
+                    ),
                 
                 TextColumn::make('year')
-                    ->label('Year')
+                    ->getStateUsing(fn ($record) => 
+                        optional(json_decode($record->properties, true))['year']
+                    ),
+
+                TextColumn::make('causer_id')
+                    ->label("Processor's Name")
+                    ->getStateUsing(function ($record) { 
+                        // $properties = json_decode($record->properties, true); 
+                        // $particulaId = $properties['particular'] ?? null;
+                
+                        // if (!$particulaId) {
+                        //     return '-';
+                        // }
+                
+                        // $particular = Particular::find($particulaId);
+                
+                        // if ($particular->subParticular->name === 'District') {
+                        //     if ($particular->district->underMunicipality) {
+                        //         return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->underMunicipality->name},  {$particular->district->province->name}" : '-';
+                        //     }
+                        //     else {
+                        //         return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->province->name}" : '-';
+                        //     }
+                        // }
+                        // elseif ($particular->subParticular->name === 'Senator' || $particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
+                        //     return $particular ? "{$particular->subParticular->name}" : '-';
+                        // }
+
+                        $userId = $record->causer_id;
+                        $user = User::find($userId);
+
+                        return $user->name;
+                    }),
                     
+                TextColumn::make('event')
+                    ->label('Event')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => ucfirst($state)),
                 
             ])
-            ->recordUrl(
-                fn($record) => route('filament.admin.resources.legislative-targets.targetReport', ['record' => $record->id]),
-            )
             ->filters([
             ]);
     }

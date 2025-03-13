@@ -27,16 +27,13 @@ class ActivityLogResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return true; 
+        return false; 
     }
 
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListActivityLogs::route('/'),
-            'create' => Pages\CreateActivityLog::route('/create'),
-            'edit' => Pages\EditActivityLog::route('/{record}/edit'),
             'allocationLogs' => Pages\AllocationLogs::route('/{record}/edit'),
         ];
     }

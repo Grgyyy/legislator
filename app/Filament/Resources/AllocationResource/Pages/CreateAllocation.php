@@ -80,23 +80,27 @@ class CreateAllocation extends CreateRecord
             ->event('Created') // Set the event type
             ->withProperties([
                 'soft_or_commitment' => $this->record->soft_or_commitment,
-                'legislator_id' => $this->record->legislator_id,
-                'attributor_id' => $this->record->attributor_id,
-                'particular_id' => $this->record->particular_id,
-                'attributor_particular_id' => $this->record->attributor_particular_id,
-                'scholarship_program_id' => $this->record->scholarship_program_id,
-                'allocation' => $this->record->allocation,
-                'admin_cost' => $this->record->admin_cost,
-                'balance' => $this->record->balance,
+                'legislator' => $this->record->legislator->name,
+                'attributor' => $this->record->attributor->name ?? null,
+                'particular' => $this->record->particular_id,
+                'attributor_particular' => $this->record->attributor_particular_id,
+                'scholarship_program' => $this->record->scholarship_program->name,
+                'allocation' => $this->removeLeadingZeros($this->record->allocation),
+                'admin_cost' => $this->removeLeadingZeros($this->record->admin_cost),
+                'balance' => $this->removeLeadingZeros($this->record->balance),
                 'year' => $this->record->year,
             ])
             ->log(
                 $this->record->attributor
-                    ? "Attribution Allocation for '{$this->record->legislator->name}' was created by '{$this->record->attributor->name}'."
-                    : "Allocation for '{$this->record->legislator->name}' was created without an attributor."
+                    ? "An Attribution Allocation for '{$this->record->legislator->name}' has been created, attributed by '{$this->record->attributor->name}'."
+                    : "An Allocation for '{$this->record->legislator->name}' has been successfully created."
             );
     }
 
+    protected function removeLeadingZeros($value)
+    {
+        return ltrim($value, '0') ?: '0';
+    }
 
     protected function validateAttributorParticularId($attributorParticularId): void
     {
