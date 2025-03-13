@@ -46,13 +46,26 @@ class EditAllocation extends EditRecord
 
         $allocation = DB::transaction(function () use ($record, $data) {
             
+            // $previousAllocation = (float) $record['allocation'];
+            // $newAllocation = (float) $data['allocation'];
+            // $newAllowableAllocation = (float) $data['allocation'] - ($data['allocation'] * 0.02);
+            // $previousAdminCost = (float) $record['admin_cost'];
+
+            // $usedSlots = $previousAllocation - $previousAdminCost;
+
+            // $newBalance =  $newAllowableAllocation - $usedSlots;
+
             $previousAllocation = (float) $record['allocation'];
-            $newAllocation = (float) $data['allocation'];
+            $previousAdminCost = (float) $record['admin_cost'];
+            $previousAllowableAllocation = (float) $previousAllocation - $previousAdminCost;
             $previousBalance = (float) $record['balance'];
+            $consumedAllocation = (float) $previousAllowableAllocation - $previousBalance;
 
-            $usedSlots = $previousAllocation - $previousBalance;
+            $newAllocation = (float) $data['allocation'];
+            $newAdminCost = (float) $data['allocation'] * 0.02;
+            $newAllowableAllocation = (float) $newAllocation - $newAdminCost;
+            $newBalance = (float) $newAllowableAllocation - $consumedAllocation;
 
-            $newBalance = max(0, $newAllocation - $usedSlots);
 
             $record->update([
                 'soft_or_commitment' => $data['soft_or_commitment'],
@@ -62,7 +75,7 @@ class EditAllocation extends EditRecord
                 'attributor_particular_id' => $data['attributor_particular_id'] ?? null,
                 'scholarship_program_id' => $data['scholarship_program_id'],
                 'allocation' => $newAllocation, 
-                'admin_cost' => $newAllocation * 0.02, 
+                'admin_cost' => $newAdminCost, 
                 'balance' => $newBalance, 
                 'year' => $data['year'],
             ]);
@@ -73,6 +86,36 @@ class EditAllocation extends EditRecord
         NotificationHandler::sendSuccessNotification('Saved', 'Allocation has been updated successfully.');
 
         return $allocation;
+    }
+
+    protected function afterSave(): void
+    {
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($this->record)
+            ->event('Updated') 
+            ->withProperties([
+                'soft_or_commitment' => $this->record->soft_or_commitment,
+                'legislator' => $this->record->legislator->name,
+                'attributor' => $this->record->attributor->name ?? null,
+                'particular' => $this->record->particular_id,
+                'attributor_particular' => $this->record->attributor_particular_id,
+                'scholarship_program' => $this->record->scholarship_program->name,
+                'allocation' => $this->removeLeadingZeros($this->record->allocation),
+                'admin_cost' => $this->removeLeadingZeros($this->record->admin_cost),
+                'balance' => $this->removeLeadingZeros($this->record->balance),
+                'year' => $this->record->year,
+            ])
+            ->log(
+                $this->record->attributor
+                    ? "An Attribution Allocation for '{$this->record->legislator->name}' has been updated, attributed by '{$this->record->attributor->name}'."
+                    : "An Allocation for '{$this->record->legislator->name}' has been successfully updated."
+            );
+    }
+
+    protected function removeLeadingZeros($value)
+    {
+        return ltrim($value, '0') ?: '0';
     }
 
     protected function validateUniqueAllocation(array $data, $currentId)

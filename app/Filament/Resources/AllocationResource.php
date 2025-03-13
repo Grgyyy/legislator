@@ -448,9 +448,35 @@ class AllocationResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+                    Action::make('viewLogs')
+                        ->label('View Logs')
+                        ->url(fn($record) => route('filament.admin.resources.activity-logs.allocationLogs', ['record' => $record->id]))
+                        ->icon('heroicon-o-document-text'),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
+
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Deleted')
+                                ->withProperties([
+                                    'soft_or_commitment' => $record->soft_or_commitment,
+                                    'legislator' => $record->legislator->name,
+                                    'attributor' => $record->attributor->name ?? null,
+                                    'particular' => $record->particular_id,
+                                    'attributor_particular' => $record->attributor_particular_id,
+                                    'scholarship_program' => $record->scholarship_program->name,
+                                    'allocation' => ltrim($record->allocation, '0'),
+                                    'admin_cost' => ltrim($record->admin_cost, '0'),
+                                    'balance' => ltrim($record->balance, '0'),
+                                    'year' => $record->year,
+                                ])
+                                ->log(
+                                    $record->attributor
+                                        ? "An Attribution Allocation for '{$record->legislator->name}' has been deleted, attributed by '{$record->attributor->name}'."
+                                        : "An Allocation for '{$record->legislator->name}' has been successfully deleted."
+                                );
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Allocation has been deleted successfully.');
                         }),
@@ -458,6 +484,28 @@ class AllocationResource extends Resource
                         ->action(function ($record, $data) {
                             $record->restore();
 
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Restored')
+                                ->withProperties([
+                                    'soft_or_commitment' => $record->soft_or_commitment,
+                                    'legislator' => $record->legislator->name,
+                                    'attributor' => $record->attributor->name ?? null,
+                                    'particular' => $record->particular_id,
+                                    'attributor_particular' => $record->attributor_particular_id,
+                                    'scholarship_program' => $record->scholarship_program->name,
+                                    'allocation' => ltrim($record->allocation, '0'),
+                                    'admin_cost' => ltrim($record->admin_cost, '0'),
+                                    'balance' => ltrim($record->balance, '0'),
+                                    'year' => $record->year,
+                                ])
+                                ->log(
+                                    $record->attributor
+                                        ? "An Attribution Allocation for '{$record->legislator->name}' has been restored, attributed by '{$record->attributor->name}'."
+                                        : "An Allocation for '{$record->legislator->name}' has been successfully restored."
+                                );
+                                
                             NotificationHandler::sendSuccessNotification('Restored', 'Allocation has been restored successfully.');
                         }),
                     ForceDeleteAction::make()
@@ -780,4 +828,5 @@ class AllocationResource extends Resource
             'edit' => Pages\EditAllocation::route('/{record}/edit'),
         ];
     }
+
 }

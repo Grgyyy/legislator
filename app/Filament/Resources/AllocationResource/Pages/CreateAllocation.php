@@ -2,8 +2,8 @@
 
 namespace App\Filament\Resources\AllocationResource\Pages;
 
-use App\Models\Allocation;
 use App\Filament\Resources\AllocationResource;
+use App\Models\Allocation;
 use App\Models\Particular;
 use App\Services\NotificationHandler;
 use Filament\Actions\Action;
@@ -70,6 +70,36 @@ class CreateAllocation extends CreateRecord
         NotificationHandler::sendSuccessNotification('Created', 'Allocation has been created successfully.');
 
         return $allocation;
+    }
+
+    protected function afterCreate(): void
+    {
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($this->record)
+            ->event('Created') // Set the event type
+            ->withProperties([
+                'soft_or_commitment' => $this->record->soft_or_commitment,
+                'legislator' => $this->record->legislator->name,
+                'attributor' => $this->record->attributor->name ?? null,
+                'particular' => $this->record->particular_id,
+                'attributor_particular' => $this->record->attributor_particular_id,
+                'scholarship_program' => $this->record->scholarship_program->name,
+                'allocation' => $this->removeLeadingZeros($this->record->allocation),
+                'admin_cost' => $this->removeLeadingZeros($this->record->admin_cost),
+                'balance' => $this->removeLeadingZeros($this->record->balance),
+                'year' => $this->record->year,
+            ])
+            ->log(
+                $this->record->attributor
+                    ? "An Attribution Allocation for '{$this->record->legislator->name}' has been created, attributed by '{$this->record->attributor->name}'."
+                    : "An Allocation for '{$this->record->legislator->name}' has been successfully created."
+            );
+    }
+
+    protected function removeLeadingZeros($value)
+    {
+        return ltrim($value, '0') ?: '0';
     }
 
     protected function validateAttributorParticularId($attributorParticularId): void
