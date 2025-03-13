@@ -10,6 +10,7 @@ use App\Filament\Resources\LegislativeTargetsResource\Widgets\LegislativeTargetS
 use App\Filament\Resources\LegislativeTargetsResource\Widgets\StatsOverview as WidgetsStatsOverview;
 use App\Models\Allocation;
 use App\Models\Target;
+use App\Policies\LegislativeTargetPolicy;
 use App\Services\NotificationHandler;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -17,6 +18,7 @@ use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Validators\ValidationException;
