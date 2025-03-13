@@ -502,8 +502,8 @@ class AllocationResource extends Resource
                                 ])
                                 ->log(
                                     $record->attributor
-                                        ? "An Attribution Allocation for '{$record->legislator->name}' has been deleted, attributed by '{$record->attributor->name}'."
-                                        : "An Allocation for '{$record->legislator->name}' has been successfully deleted."
+                                        ? "An Attribution Allocation for '{$record->legislator->name}' has been restored, attributed by '{$record->attributor->name}'."
+                                        : "An Allocation for '{$record->legislator->name}' has been successfully restored."
                                 );
                                 
                             NotificationHandler::sendSuccessNotification('Restored', 'Allocation has been restored successfully.');
