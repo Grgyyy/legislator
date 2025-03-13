@@ -75,7 +75,7 @@ class MunicipalityResource extends Resource
                         '4th' => '4th',
                         '5th' => '5th',
                         '6th' => '6th',
-                        'Not Applicable' => 'Not Applicable',
+                        '-' => 'Not Applicable',
                     ]),
 
                 Select::make('province_id')
