@@ -61,13 +61,22 @@ class MunicipalityResource extends Resource
                     ->currencyMask(thousandSeparator: '', precision: 0)
                     ->validationAttribute('PSG code'),
 
-                TextInput::make('class')
+                Select::make('class')
                     ->label('Municipality Class')
                     ->placeholder('Enter municipality class')
                     ->required()
                     ->markAsRequired(false)
-                    ->autocomplete(false)
-                    ->validationAttribute('municipality class'),
+                    // ->autocomplete(false)
+                    ->validationAttribute('municipality class')
+                    ->options([
+                        '1st' => '1st',
+                        '2nd' => '2nd',
+                        '3rd' => '3rd',
+                        '4th' => '4th',
+                        '5th' => '5th',
+                        '6th' => '6th',
+                        '-' => 'Not Applicable',
+                    ]),
 
                 Select::make('province_id')
                     ->label('Province')

@@ -50,7 +50,7 @@ class CreateTvi extends CreateRecord
         $this->validateUniqueInstitution($data);
 
         $data['name'] = Helper::capitalizeWords($data['name']);
-        
+
         $tvi = DB::transaction(fn() => Tvi::create([
             'name' => $data['name'],
             'school_id' => $data['school_id'],
@@ -59,7 +59,7 @@ class CreateTvi extends CreateRecord
             'tvi_type_id' => $data['tvi_type_id'],
             'tvi_class_id' => $data['tvi_class_id'],
             'institution_class_id' => $data['institution_class_id'],
-            'status_id' => $data['status_id'],
+            // 'status_id' => $data['status_id'],
             'address' => $data['address'],
         ]));
 

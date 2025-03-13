@@ -240,15 +240,15 @@ class TviResource extends Resource
                     ->toggleable()
                     ->getStateUsing(function ($record) {
                         $schoolId = $record->school_id ?? '';
-                
+
                         if (empty($schoolId)) {
                             return '-';
                         }
 
                         $cleaned = preg_replace('/\D/', '', $schoolId);
-                
+
                         $cleaned = str_pad($cleaned, 8, '0', STR_PAD_LEFT);
-                
+
                         return substr($cleaned, 0, 4) . '-' . substr($cleaned, 4, 4);
                     }),
 
