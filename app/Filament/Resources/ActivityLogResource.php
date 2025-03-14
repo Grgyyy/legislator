@@ -34,7 +34,7 @@ class ActivityLogResource extends Resource
     public static function getPages(): array
     {
         return [
-            'allocationLogs' => Pages\AllocationLogs::route('/{record}/edit'),
+            'allocationLogs' => Pages\AllocationLogs::route('/{record}/allocation'),
         ];
     }
 }

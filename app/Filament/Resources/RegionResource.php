@@ -45,6 +45,8 @@ class RegionResource extends Resource
                 TextInput::make("name")
                     ->label('Region')
                     ->placeholder('Enter region name')
+                    ->minLength(10)
+                    ->maxLength(10)
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
