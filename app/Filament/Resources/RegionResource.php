@@ -45,6 +45,8 @@ class RegionResource extends Resource
                 TextInput::make("name")
                     ->label('Region')
                     ->placeholder('Enter region name')
+                    ->minLength(10)
+                    ->maxLength(10)
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
@@ -71,8 +73,6 @@ class RegionResource extends Resource
                 TextColumn::make("code")
                     ->label("PSG Code")
                     ->sortable()
-                    ->minLength(10)
-                    ->maxLength(10)
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(fn($record) => $record->code ?? '-'),
