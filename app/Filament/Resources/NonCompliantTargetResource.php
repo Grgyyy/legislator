@@ -726,20 +726,9 @@ class NonCompliantTargetResource extends Resource
 
                 TextColumn::make('nonCompliantRemark.target_remarks.remarks')
                     ->label('Remarks')
-                    ->description(
-                        fn($record) =>
-                        ($record->nonCompliantRemark?->target_remarks?->remarks === 'Others')
-                        ? ($record->nonCompliantRemark?->others_remarks ?? 'N/A')
-                        : null
-                    )
+                    ->description(fn($record) => $record->nonCompliantRemark?->others_remarks ?? 'N/A')
                     ->wrap()
-                    ->extraAttributes(['style' => 'width: 500px'])
-                    ->formatStateUsing(
-                        fn($record) =>
-                        ($record->nonCompliantRemark?->target_remarks?->remarks === 'Others')
-                        ? 'Others'
-                        : ($record->nonCompliantRemark?->target_remarks?->remarks ?? 'N/A')
-                    ),
+                    ->extraAttributes(['style' => 'width: 500px']),
 
                 // TextColumn::make('nonCompliantRemark.target_remarks.remarks')
                 //     ->label('Remarks')
@@ -1166,12 +1155,7 @@ class NonCompliantTargetResource extends Resource
 
                                     Column::make('other_remarks')
                                         ->heading('Other Specification')
-                                        ->getStateUsing(
-                                            fn($record) =>
-                                            ($record->nonCompliantRemark?->target_remarks?->remarks === 'Others')
-                                            ? ($record->nonCompliantRemark?->others_remarks ?? 'N/A')
-                                            : '-'
-                                        ),
+                                        ->getStateUsing(fn($record) => $record->nonCompliantRemark?->others_remarks ?? '-'),
 
                                     Column::make('targetStatus.desc')
                                         ->heading('Status'),
