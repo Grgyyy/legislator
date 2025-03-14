@@ -64,35 +64,6 @@ class AllocationLogs extends ListRecords
             ->where('subject_id', $allocationId);
     }
 
-
-    // protected function getLegislatorName(): string
-    // {
-    //     $legislatorId = request()->route('record');
-    //     $legislator = Legislator::find($legislatorId);
-
-    //     return $legislator ? $legislator->name : 'Unknown Legislator';
-    // }
-
-    // public function mount(): void
-    // {
-    //     $legis = $this->getLegislatorName();
-    //     static::$title = "{$legis}";
-    // }
-
-    // protected function getTableQuery(): \Illuminate\Database\Eloquent\Builder
-    // {
-    //     $legislatorId = request()->route('record');
-
-    //     if (!$legislatorId) {
-    //         abort(404, 'Legislator ID not provided in the route.');
-    //     }
-
-    //     return Allocation::query()
-    //         ->where('legislator_id', $legislatorId)
-    //         ->has('target')
-    //         ->with('scholarship_program');
-    // }
-
     public function table(Tables\Table $table): Tables\Table
     {
         return $table
@@ -214,26 +185,6 @@ class AllocationLogs extends ListRecords
                 TextColumn::make('causer_id')
                     ->label("Processor's Name")
                     ->getStateUsing(function ($record) { 
-                        // $properties = json_decode($record->properties, true); 
-                        // $particulaId = $properties['particular'] ?? null;
-                
-                        // if (!$particulaId) {
-                        //     return '-';
-                        // }
-                
-                        // $particular = Particular::find($particulaId);
-                
-                        // if ($particular->subParticular->name === 'District') {
-                        //     if ($particular->district->underMunicipality) {
-                        //         return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->underMunicipality->name},  {$particular->district->province->name}" : '-';
-                        //     }
-                        //     else {
-                        //         return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->province->name}" : '-';
-                        //     }
-                        // }
-                        // elseif ($particular->subParticular->name === 'Senator' || $particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
-                        //     return $particular ? "{$particular->subParticular->name}" : '-';
-                        // }
 
                         $userId = $record->causer_id;
                         $user = User::find($userId);
