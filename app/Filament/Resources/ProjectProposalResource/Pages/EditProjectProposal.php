@@ -4,8 +4,6 @@ namespace App\Filament\Resources\ProjectProposalResource\Pages;
 
 use App\Filament\Resources\ProjectProposalResource;
 use App\Helpers\Helper;
-use App\Models\QualificationTitle;
-use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
 use App\Services\NotificationHandler;
 use Exception;
@@ -16,7 +14,7 @@ use Illuminate\Database\QueryException;
 class EditProjectProposal extends EditRecord
 {
     protected static string $resource = ProjectProposalResource::class;
-    
+
     protected static ?string $title = 'Edit Project Proposal Program';
 
     protected function getRedirectUrl(): string
@@ -37,7 +35,7 @@ class EditProjectProposal extends EditRecord
                 ->label('Exit'),
         ];
     }
-    
+
     public function getBreadcrumbs(): array
     {
         return [
@@ -105,7 +103,7 @@ class EditProjectProposal extends EditRecord
                 ? 'A qualification title with the provided details has been deleted and must be restored before reuse.'
                 : 'A qualification title with the provided details already exists.';
 
-                NotificationHandler::handleValidationException('Something went wrong', $message);
+            NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
 }

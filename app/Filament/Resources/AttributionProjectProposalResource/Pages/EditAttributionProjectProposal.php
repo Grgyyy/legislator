@@ -17,7 +17,6 @@ use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Auth;
 use Exception;
-use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -79,9 +78,17 @@ class EditAttributionProjectProposal extends EditRecord
     {
         return DB::transaction(function () use ($record, $data) {
             $requiredFields = [
-                'attribution_sender', 'attribution_sender_particular', 'attribution_scholarship_program',
-                'allocation_year', 'attribution_appropriation_type', 'attribution_receiver', 'attribution_receiver_particular',
-                'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots',
+                'attribution_sender',
+                'attribution_sender_particular',
+                'attribution_scholarship_program',
+                'allocation_year',
+                'attribution_appropriation_type',
+                'attribution_receiver',
+                'attribution_receiver_particular',
+                'tvi_id',
+                'qualification_title_id',
+                'abdd_id',
+                'number_of_slots',
             ];
 
             foreach ($requiredFields as $field) {
@@ -115,7 +122,7 @@ class EditAttributionProjectProposal extends EditRecord
             $totalAmount = $data['per_capita_cost'] * $numberOfSlots;
 
             if ($qualificationTitle->scholarship_program_id === $step->id) {
-                
+
                 if (!$costOfToolkitPcc) {
                     $message = "STEP Toolkits are required before proceeding. Please add them first";
                     NotificationHandler::handleValidationException('Something went wrong', $message);
@@ -137,9 +144,7 @@ class EditAttributionProjectProposal extends EditRecord
             $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
             $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
 
-            // Remove admin cost
-            $total_amount = $totalAmount; // Removed admin_cost
-
+            $total_amount = $totalAmount;
             $institution = Tvi::find($data['tvi_id']);
             if (!$institution) {
                 $message = "Institution not found.";
@@ -161,12 +166,12 @@ class EditAttributionProjectProposal extends EditRecord
                 $trainingProgram = TrainingProgram::where('id', $record->qualification_title->training_program_id)->first();
                 $province = Province::where('id', $record->tvi->district->province_id)->first();
                 $district = District::where('id', $record->tvi->district_id)->first();
-            
+
                 if (!$trainingProgram || !$province || !$district) {
                     NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                     return;
                 }
-            
+
                 $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
                 NotificationHandler::handleValidationException('Something went wrong', $message);
             }
@@ -182,12 +187,12 @@ class EditAttributionProjectProposal extends EditRecord
                 $trainingProgram = TrainingProgram::where('id', $qualificationTitle->training_program_id)->first();
                 $province = Province::where('id', $institution->district->province_id)->first();
                 $district = District::where('id', $institution->district_id)->first();
-            
+
                 if (!$trainingProgram || !$province || !$district) {
                     NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                     return;
                 }
-            
+
                 $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
                 NotificationHandler::handleValidationException('Something went wrong', $message);
             }
@@ -297,19 +302,19 @@ class EditAttributionProjectProposal extends EditRecord
                 })
                 ->first();
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

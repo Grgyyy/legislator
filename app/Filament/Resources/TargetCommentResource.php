@@ -5,10 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TargetCommentResource\Pages;
 use App\Models\Target;
 use App\Models\TargetComment;
-use Filament\Forms;
-use Filament\Forms\Components\Grid;
 use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Text;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -24,7 +21,7 @@ class TargetCommentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-    
+
     protected static bool $shouldRegisterNavigation = false;
 
     public static function form(Form $form): Form
@@ -32,7 +29,6 @@ class TargetCommentResource extends Resource
         $targetIdParams = request()->query('record');
         $targetRecord = $targetIdParams ? Target::find($targetIdParams) : null;
 
-        // Prepare target data
         $targetData = $targetRecord ? [
             'Fund Source' => $targetRecord->allocation->particular->subParticular->FundSource->name ?? 'N/A',
             'Legislator' => $targetRecord->allocation->legislator->name ?? 'N/A',
@@ -58,12 +54,10 @@ class TargetCommentResource extends Resource
             'Total Amount' => $targetRecord->total_amount ?? 'N/A',
         ] : [];
 
-        // Create an array for the TextInput components
         $textInputs = [];
         foreach ($targetData as $key => $value) {
-            // Check if the key is "Per Capita Cost" or "Total Amount" and format accordingly
             if ($key === 'Per Capita Cost' || $key === 'Total Amount') {
-                $value = '₱' . number_format($value, 2); // Format as currency
+                $value = '₱' . number_format($value, 2);
             }
 
             $textInputs[] = TextInput::make($key)
@@ -72,13 +66,10 @@ class TargetCommentResource extends Resource
                 ->readOnly();
         }
 
-        // Return the form schema
         return $form->schema([
-            // Display target details using TextInput components in a Grid
             Section::make()
-                ->columns(5) // Adjust number of columns as needed
+                ->columns(5)
                 ->schema($textInputs),
-                        // Comment Section
             Section::make()
                 ->schema([
                     Textarea::make('content')
@@ -107,8 +98,9 @@ class TargetCommentResource extends Resource
                 TextColumn::make('content'),
                 TextColumn::make("updated_at")
                     ->label("Date Encoded")
-                    ->formatStateUsing(fn ($state) => 
-                        \Carbon\Carbon::parse($state)->format('M j, Y') . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 
+                    ->formatStateUsing(
+                        fn($state) =>
+                        \Carbon\Carbon::parse($state)->format('M j, Y') . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' .
                         \Carbon\Carbon::parse($state)->format('h:i A')
                     )
                     ->html()
@@ -119,7 +111,7 @@ class TargetCommentResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 
@@ -140,11 +132,11 @@ class TargetCommentResource extends Resource
     {
         $query = parent::getEloquentQuery();
         $routeParameter = request()->route('record');
-    
+
         if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
             $query->where('target_id', (int) $routeParameter);
         }
-    
+
         return $query->orderBy('updated_at', 'desc');
-    }    
+    }
 }

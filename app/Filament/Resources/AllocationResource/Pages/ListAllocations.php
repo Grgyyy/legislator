@@ -65,7 +65,6 @@ class ListAllocations extends ListRecords
                 })
                 ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']) || Auth::user()->can('import allocation')),
 
-
             Action::make('AllocationExport')
                 ->label('Export')
                 ->icon('heroicon-o-document-arrow-down')

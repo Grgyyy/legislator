@@ -32,9 +32,6 @@ class TargetReport extends ListRecords
 
     protected static ?string $title = null;
 
-    /**
-     * Retrieves legislator name based on allocation ID in the route.
-     */
     protected function getLegislatorName(): string
     {
         $allocationId = request()->route('record');
@@ -91,41 +88,21 @@ class TargetReport extends ListRecords
         }
     }
 
-    /**
-     * Mount method to set the title dynamically.
-     */
     public $allocationId;
 
     public function mount(): void
     {
-        // Fetch allocationId from the route
         $this->allocationId = request()->route('record');
 
-        // Ensure that the allocationId is valid and exists
         $allocation = Allocation::find($this->allocationId);
         if (!$allocation) {
             abort(404, 'Allocation not found.');
         }
-
-        // Set the title dynamically
         $legis = $this->getLegislatorName();
         $particular = $this->getParticularName();
         static::$title = "{$legis} - {$particular}";
     }
 
-    /**
-     * Define header widgets.
-    //  */
-    // protected function getHeaderWidgets(): array
-    // {
-    //     return [
-    //         StatsOverview::class,
-    //     ];
-    // }
-
-    /**
-     * Define header actions, including the export action.
-     */
     protected function getHeaderActions(): array
     {
         return [
@@ -143,17 +120,9 @@ class TargetReport extends ListRecords
         ];
     }
 
-
-    /**
-     * Define the table query.
-     */
     protected function getTableQuery(): ?\Illuminate\Database\Eloquent\Builder
     {
         $allocationId = request()->route('record');
-
-        // if (!$allocationId) {
-        //     throw new NotFoundHttpException('Allocation ID not provided in the route.');
-        // }
 
         return Target::query()
             ->select([

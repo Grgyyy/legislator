@@ -6,7 +6,6 @@ use App\Filament\Resources\AllocationResource;
 use App\Models\Allocation;
 use App\Models\Particular;
 use App\Services\NotificationHandler;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -45,7 +44,6 @@ class CreateAllocation extends CreateRecord
     {
         $this->validateUniqueAllocation($data);
 
-        // Validate that the 'attributor_particular_id' exists in the 'particulars' table if provided
         $this->validateAttributorParticularId($data['attributor_particular_id'] ?? null);
 
         $adminCost = $this->calculateAdminCost($data['allocation']);
@@ -66,7 +64,6 @@ class CreateAllocation extends CreateRecord
             ]);
         });
 
-        // Send success notification
         NotificationHandler::sendSuccessNotification('Created', 'Allocation has been created successfully.');
 
         return $allocation;
@@ -77,7 +74,7 @@ class CreateAllocation extends CreateRecord
         activity()
             ->causedBy(auth()->user())
             ->performedOn($this->record)
-            ->event('Created') // Set the event type
+            ->event('Created')
             ->withProperties([
                 'soft_or_commitment' => $this->record->soft_or_commitment,
                 'legislator' => $this->record->legislator->name,
@@ -92,8 +89,8 @@ class CreateAllocation extends CreateRecord
             ])
             ->log(
                 $this->record->attributor
-                    ? "An Attribution Allocation for '{$this->record->legislator->name}' has been created, attributed by '{$this->record->attributor->name}'."
-                    : "An Allocation for '{$this->record->legislator->name}' has been successfully created."
+                ? "An Attribution Allocation for '{$this->record->legislator->name}' has been created, attributed by '{$this->record->attributor->name}'."
+                : "An Allocation for '{$this->record->legislator->name}' has been successfully created."
             );
     }
 
@@ -113,12 +110,6 @@ class CreateAllocation extends CreateRecord
         }
     }
 
-    /**
-     * Validate that the allocation details are unique.
-     *
-     * @param array $data
-     * @return void
-     */
     protected function validateUniqueAllocation(array $data): void
     {
         $query = Allocation::where('soft_or_commitment', $data['soft_or_commitment'])
@@ -127,7 +118,6 @@ class CreateAllocation extends CreateRecord
             ->where('scholarship_program_id', $data['scholarship_program_id'])
             ->where('year', $data['year']);
 
-        // Apply optional filters only if values are present
         if (!empty($data['attributor_id'])) {
             $query->where('attributor_id', $data['attributor_id']);
         }
@@ -147,35 +137,16 @@ class CreateAllocation extends CreateRecord
         }
     }
 
-    /**
-     * Calculate the administrative cost as 2% of the allocation.
-     *
-     * @param float $allocation
-     * @return float
-     */
     protected function calculateAdminCost(float $allocation): float
     {
         return $allocation * 0.02;
     }
 
-    /**
-     * Calculate the balance by subtracting the admin cost from the allocation.
-     *
-     * @param float $allocation
-     * @param float $adminCost
-     * @return float
-     */
     protected function calculateBalance(float $allocation, float $adminCost): float
     {
         return $allocation - $adminCost;
     }
 
-    /**
-     * Handle validation exception by throwing a custom validation error.
-     *
-     * @param string $message
-     * @throws \Illuminate\Validation\ValidationException
-     */
     protected function handleValidationException(string $message): void
     {
         NotificationHandler::handleValidationException('Something went wrong', $message);

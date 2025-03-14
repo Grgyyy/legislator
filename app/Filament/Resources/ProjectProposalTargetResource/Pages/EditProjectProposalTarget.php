@@ -16,8 +16,6 @@ use App\Models\TargetHistory;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
-use Exception;
-use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -63,7 +61,6 @@ class EditProjectProposalTarget extends EditRecord
         $record = $this->record;
         $allocation = $record->allocation;
 
-        // Set default data values if not already set
         $data['legislator_id'] = $data['legislator_id'] ?? $allocation->legislator_id ?? null;
         $data['particular_id'] = $data['particularId'] ?? $allocation->particular_id ?? null;
         $data['scholarship_program_id'] = $data['scholarship_program_id'] ?? $allocation->scholarship_program_id ?? null;
@@ -142,8 +139,6 @@ class EditProjectProposalTarget extends EditRecord
 
             $this->sendSuccessNotification('Target updated successfully.');
 
-            // dd($data, $qualificationTitle->trainingProgram->title);
-
             return $record;
 
         });
@@ -161,9 +156,14 @@ class EditProjectProposalTarget extends EditRecord
     private function validateTargetData(array $data): void
     {
         $requiredFields = [
-            'legislator_id', 'particular_id', 'scholarship_program_id',
-            'qualification_title_id', 'number_of_slots', 'tvi_id',
-            'appropriation_type', 'abdd_id',
+            'legislator_id',
+            'particular_id',
+            'scholarship_program_id',
+            'qualification_title_id',
+            'number_of_slots',
+            'tvi_id',
+            'appropriation_type',
+            'abdd_id',
         ];
 
         foreach ($requiredFields as $field) {
@@ -183,8 +183,8 @@ class EditProjectProposalTarget extends EditRecord
             'soft_or_commitment' => 'Soft',
             'year' => $data['allocation_year']
         ])
-        ->whereNull('attributor_id')
-        ->first();
+            ->whereNull('attributor_id')
+            ->first();
 
         if (!$allocation) {
             $message = "Allocation not found.";
@@ -227,19 +227,19 @@ class EditProjectProposalTarget extends EditRecord
                 })
                 ->first();
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
@@ -275,12 +275,12 @@ class EditProjectProposalTarget extends EditRecord
         $totalCostOfToolkit = 0;
         $totalAmount = $perCapitaCost * $numberOfSlots;
         if ($quali->scholarship_program_id === $step->id) {
-            
+
             if (!$costOfToolkitPcc) {
                 $message = "STEP Toolkits are required before proceeding. Please add them first";
                 NotificationHandler::handleValidationException('Something went wrong', $message);
             }
-            
+
             $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
             $totalAmount += $totalCostOfToolkit;
         }

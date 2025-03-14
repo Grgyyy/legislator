@@ -2,10 +2,8 @@
 
 namespace App\Filament\Resources\ActivityLogResource\Pages;
 
-use App\Filament\Resources\ActivityLogResource;
 use App\Filament\Resources\LegislativeTargetsResource;
 use App\Models\Allocation;
-use App\Models\Legislator;
 use App\Models\Particular;
 use App\Models\User;
 use Filament\Pages\Concerns\ExposesTableToWidgets;

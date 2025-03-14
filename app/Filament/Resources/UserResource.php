@@ -9,7 +9,6 @@ use App\Models\Province;
 use App\Models\Region;
 use App\Models\User;
 use App\Services\NotificationHandler;
-use Closure;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -404,7 +403,6 @@ class UserResource extends Resource
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ])
-            // ->where('roles.name', '!=', 'Admin')
             ->whereNot('id', Auth::id());
     }
 

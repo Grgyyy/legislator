@@ -3,17 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TargetHistoryResource\Pages;
-use App\Filament\Resources\TargetHistoryResource\RelationManagers;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
 use DB;
 use Filament\Facades\Filament;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -137,7 +134,7 @@ class TargetHistoryResource extends Resource
                     ->label('Institution')
                     ->searchable()
                     ->toggleable()
-                    ->formatStateUsing(fn ($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
+                    ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
                 TextColumn::make('tvi.tviType.name')
                     ->label('Institution Type')
@@ -239,8 +236,9 @@ class TargetHistoryResource extends Resource
 
                 TextColumn::make("updated_at")
                     ->label("Date Encoded")
-                    ->formatStateUsing(fn ($state) => 
-                        \Carbon\Carbon::parse($state)->format('M j, Y') . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 
+                    ->formatStateUsing(
+                        fn($state) =>
+                        \Carbon\Carbon::parse($state)->format('M j, Y') . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' .
                         \Carbon\Carbon::parse($state)->format('h:i A')
                     )
                     ->html()
@@ -263,7 +261,7 @@ class TargetHistoryResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                 ])
-                ->label('Select Action'),
+                    ->label('Select Action'),
             ]);
     }
 
@@ -300,27 +298,21 @@ class TargetHistoryResource extends Resource
 
     protected static function restoreTarget(TargetHistory $record)
     {
-        // Use a transaction to ensure atomicity
         DB::transaction(function () use ($record) {
-            // Find the target record using the target_id from the TargetHistory
             $targetRecord = Target::find($record->target_id);
 
-            // Ensure the target record exists before proceeding
             if (!$targetRecord) {
                 Filament::notify('error', 'Target record not found.');
                 return;
             }
 
-            // Fetch the 'Pending' status
             $pendingStatus = TargetStatus::where('desc', 'Pending')->first();
 
-            // Make sure the status exists
             if (!$pendingStatus) {
                 Filament::notify('error', 'Pending status not found.');
                 return;
             }
 
-            // Assign the values from the TargetHistory record to the Target record
             $targetRecord->fill([
                 'allocation_id' => $record->allocation_id,
                 'tvi_id' => $record->tvi_id,
@@ -342,10 +334,8 @@ class TargetHistoryResource extends Resource
                 'target_status_id' => $pendingStatus->id,
             ]);
 
-            // Save the target record
             $targetRecord->save();
 
-            // Create a new TargetHistory record to log the restoration
             TargetHistory::create([
                 'target_id' => $record->id,
                 'allocation_id' => $record->allocation_id,

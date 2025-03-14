@@ -2,12 +2,9 @@
 
 namespace App\Filament\Resources\LegislativeTargetsResource\Widgets;
 use App\Models\Allocation;
-use App\Models\Legislator;
 use App\Models\Target;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Filament\Widgets\StatsOverviewWidget\Card;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class LegislativeTargetStatsOverview_ extends BaseWidget
@@ -26,7 +23,7 @@ class LegislativeTargetStatsOverview_ extends BaseWidget
         $adminCost = $this->calculateAdminCost($totalAllocation);
         $totalAmount = $this->getTotalAmount($this->allocationId);
         $totalBalance = $totalAllocation - $adminCost - $totalAmount;
-        
+
         Log::info('Legislator ID: ' . $this->legislatorId);
 
         return [

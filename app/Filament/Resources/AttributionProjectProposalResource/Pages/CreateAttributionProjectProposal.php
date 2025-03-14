@@ -17,8 +17,6 @@ use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Auth;
-use Exception;
-use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -70,9 +68,17 @@ class CreateAttributionProjectProposal extends CreateRecord
 
             foreach ($data['targets'] as $targetData) {
                 $requiredFields = [
-                    'attribution_sender', 'attribution_sender_particular', 'attribution_scholarship_program',
-                    'allocation_year', 'attribution_appropriation_type', 'attribution_receiver', 'attribution_receiver_particular',
-                    'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots',
+                    'attribution_sender',
+                    'attribution_sender_particular',
+                    'attribution_scholarship_program',
+                    'allocation_year',
+                    'attribution_appropriation_type',
+                    'attribution_receiver',
+                    'attribution_receiver_particular',
+                    'tvi_id',
+                    'qualification_title_id',
+                    'abdd_id',
+                    'number_of_slots',
                 ];
 
                 foreach ($requiredFields as $field) {
@@ -128,8 +134,7 @@ class CreateAttributionProjectProposal extends CreateRecord
                 $total_uniform_allowance = $qualificationTitle->uniform_allowance * $numberOfSlots;
                 $total_misc_fee = $qualificationTitle->misc_fee * $numberOfSlots;
 
-                // Remove admin cost
-                $total_amount = $totalAmount; // Removed admin_cost
+                $total_amount = $totalAmount;
 
                 $institution = Tvi::find($targetData['tvi_id']);
                 if (!$institution) {
@@ -159,7 +164,6 @@ class CreateAttributionProjectProposal extends CreateRecord
                     NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
-                // If both conditions are met, proceed with creation
                 $target = Target::create([
                     'allocation_id' => $allocation->id,
                     'tvi_id' => $institution->id,
@@ -184,7 +188,7 @@ class CreateAttributionProjectProposal extends CreateRecord
                     'total_book_allowance' => $total_book_allowance,
                     'total_uniform_allowance' => $total_uniform_allowance,
                     'total_misc_fee' => $total_misc_fee,
-                    'total_amount' => $total_amount, // Removed admin_cost
+                    'total_amount' => $total_amount,
                     'appropriation_type' => $targetData['attribution_appropriation_type'],
                     'target_status_id' => 1,
                 ]);
@@ -225,7 +229,7 @@ class CreateAttributionProjectProposal extends CreateRecord
                     'user_id' => Auth::user()->id,
                 ]);
 
-                
+
                 $lastCreatedTarget = $target;
             }
 
@@ -272,19 +276,19 @@ class CreateAttributionProjectProposal extends CreateRecord
                 })
                 ->first();
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

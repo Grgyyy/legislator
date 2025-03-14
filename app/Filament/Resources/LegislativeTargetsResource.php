@@ -3,19 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\LegislativeTargetsResource\Pages;
-use App\Filament\Resources\LegislativeTargetsResource\RelationManagers;
 use App\Models\Legislator;
-use App\Models\User;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Actions\ExportAction;
-use Filament\Tables\Actions\ViewAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Gate;
 
 class LegislativeTargetsResource extends Resource

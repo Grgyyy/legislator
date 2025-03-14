@@ -6,7 +6,6 @@ use App\Exports\SkillsPriorityExport;
 use App\Filament\Resources\SkillPriorityResource;
 use App\Imports\SkillPriorityUpdate;
 use App\Imports\SkillsPriorityImport;
-use App\Imports\TargetImport;
 use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;
@@ -31,8 +30,7 @@ class ListSkillPriorities extends ListRecords
         return [
             CreateAction::make()
                 ->icon('heroicon-m-plus')
-                ->label('New')
-            ,
+                ->label('New'),
 
             Action::make('SkillPriorityUpdate')
                 ->label('Update')
@@ -92,7 +90,6 @@ class ListSkillPriorities extends ListRecords
                 })
                 ->visible(fn() => !Auth::user()->hasRole('TESDO')),
 
-
             Action::make('SkillsPriorityExport')
                 ->label('Export')
                 ->icon('heroicon-o-document-arrow-down')
@@ -107,9 +104,6 @@ class ListSkillPriorities extends ListRecords
                         NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
                     };
                 }),
-
-
-
         ];
     }
 }

@@ -6,14 +6,13 @@ use App\Filament\Resources\ToolkitResource;
 use App\Helpers\Helper;
 use App\Models\Toolkit;
 use App\Services\NotificationHandler;
-use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\DB;
 
 class EditToolkit extends EditRecord
 {
     protected static string $resource = ToolkitResource::class;
-    
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
@@ -36,7 +35,7 @@ class EditToolkit extends EditRecord
     {
         return true;
     }
-    
+
     protected function handleRecordUpdate($record, array $data): Toolkit
     {
 
@@ -74,10 +73,10 @@ class EditToolkit extends EditRecord
             ->first();
 
         if ($toolkit) {
-            $message = $toolkit->deleted_at 
+            $message = $toolkit->deleted_at
                 ? "{$data['lot_name']} toolkits for {$data['year']} has been deleted and must be restored before reuse."
                 : "{$data['lot_name']} toolkits for {$data['year']} already exists.";
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

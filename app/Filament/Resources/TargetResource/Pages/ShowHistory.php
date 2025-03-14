@@ -3,10 +3,7 @@
 namespace App\Filament\Resources\TargetResource\Pages;
 
 use App\Filament\Resources\TargetHistoryResource;
-use App\Models\Province;
-use App\Models\Region;
 use Filament\Resources\Pages\ListRecords;
-use Filament\Actions\CreateAction;
 
 class ShowHistory extends ListRecords
 {

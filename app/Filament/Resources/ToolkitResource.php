@@ -7,7 +7,6 @@ use App\Filament\Resources\ToolkitResource\Pages;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\Toolkit;
-use App\Models\TrainingProgram;
 use App\Services\NotificationHandler;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -31,7 +30,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class ToolkitResource extends Resource
 {
@@ -181,7 +179,7 @@ class ToolkitResource extends Resource
                     ->searchable(query: function ($query, $search) {
                         $query->whereHas('qualificationTitles.trainingProgram', function ($query) use ($search) {
                             $query->where('title', 'like', "%{$search}%")
-                                  ->orWhere('soc_code', 'like', "%{$search}%");
+                                ->orWhere('soc_code', 'like', "%{$search}%");
                         });
                     })
                     ->toggleable()

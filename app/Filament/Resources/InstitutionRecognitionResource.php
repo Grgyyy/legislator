@@ -95,8 +95,6 @@ class InstitutionRecognitionResource extends Resource
                     ->native(false)
                     ->weekStartsOnSunday()
                     ->closeOnDateSelection(),
-                // ->minDate(today()),
-                // ->rules(['after_or_equal:today']),
 
                 DatePicker::make('expiration_date')
                     ->label('Expiration Date')

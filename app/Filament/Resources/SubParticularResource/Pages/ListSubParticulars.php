@@ -5,7 +5,6 @@ namespace App\Filament\Resources\SubParticularResource\Pages;
 use App\Exports\ParticularTypesExport;
 use App\Filament\Resources\SubParticularResource;
 use App\Imports\ParticularTypesImport;
-use App\Models\SubParticular;
 use App\Services\NotificationHandler;
 use Exception;
 use Filament\Actions\Action;

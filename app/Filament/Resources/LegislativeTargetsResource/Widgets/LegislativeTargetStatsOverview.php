@@ -1,10 +1,8 @@
 <?php
 namespace App\Filament\Resources\LegislativeTargetsResource\Widgets;
 use App\Models\Allocation;
-use App\Models\Legislator;
 use App\Models\Target;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Filament\Widgets\StatsOverviewWidget\Card;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -27,14 +25,14 @@ class LegislativeTargetStatsOverview extends BaseWidget
         $adminCost = $this->calculateAdminCost($totalAllocation);
         $trainingCost = $this->getTotalTrainingCost($this->allocationId);
         $costOfToolkits = $this->getTotalCostOfToolkits($this->allocationId);
-        
+
         Log::info('Legislator ID: ' . $this->legislatorId);
-    Log::info('Scholarship Program ID: ' . $this->scholarshipProgramId);
+        Log::info('Scholarship Program ID: ' . $this->scholarshipProgramId);
 
         return [
             Stat::make('Total Allocation', '₱ ' . number_format($totalAllocation))
                 ->description('Admin Cost: ₱ ' . number_format($adminCost))
-                ->color('info'), //might change if attribution is included or not in the report
+                ->color('info'),
             Stat::make('Training Cost', '₱ ' . number_format($trainingCost))
                 ->description('Total training cost')
                 ->color('warning'),
@@ -57,19 +55,19 @@ class LegislativeTargetStatsOverview extends BaseWidget
 
     protected function getTotalTrainingCost($allocationId): float
     {
-        return Target::where('allocation_id' , $allocationId)
+        return Target::where('allocation_id', $allocationId)
             ->sum(DB::raw('total_training_cost_pcc + total_training_support_fund + total_assessment_fee'));
     }
 
     protected function getTotalCostOfToolkits($allocationId): float
     {
-        return Target::where('allocation_id' , $allocationId)
+        return Target::where('allocation_id', $allocationId)
             ->sum(DB::raw('total_cost_of_toolkit_pcc'));
     }
 
     protected function getTotalAmount($allocationId): float
     {
-        return Target::where('allocation_id' , $allocationId)
+        return Target::where('allocation_id', $allocationId)
             ->sum(DB::raw('total_cost_of_toolkit_pcc'));
     }
 }
