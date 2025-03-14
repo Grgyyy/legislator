@@ -18,7 +18,7 @@ class CreateTviClass extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/institution-classes' => 'Institution Classes',
+            '/institution-classes-a' => 'Institution Classes',
             'Create'
         ];
     }

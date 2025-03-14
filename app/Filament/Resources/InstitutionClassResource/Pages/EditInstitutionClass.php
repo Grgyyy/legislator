@@ -24,6 +24,14 @@ class EditInstitutionClass extends EditRecord
         return null;
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/institution-classes-b' => 'Institution Classes',
+            'Edit'
+        ];
+    }
+
     protected function getFormActions(): array
     {
         return [

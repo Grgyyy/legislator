@@ -19,7 +19,7 @@ class EditTviClass extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/institution-classes' => 'Institution Classes',
+            '/institution-classes-a' => 'Institution Classes',
             'Edit'
         ];
     }

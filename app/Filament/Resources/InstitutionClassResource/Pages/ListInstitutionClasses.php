@@ -23,6 +23,14 @@ class ListInstitutionClasses extends ListRecords
         return null;
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/institution-classes-b' => 'Institution Classes',
+            'List'
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
