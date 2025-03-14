@@ -136,7 +136,7 @@ class AllocationLogs extends ListRecords
                 
                         if ($particular->subParticular->name === 'District') {
                             if ($particular->district->underMunicipality) {
-                                return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->underMunicipality->name}, {$particular->district->province->name}" : '-';
+                                return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->underMunicipality->name},  {$particular->district->province->name}" : '-';
                             }
                             else {
                                 return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->province->name}" : '-';
