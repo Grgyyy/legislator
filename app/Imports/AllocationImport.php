@@ -78,6 +78,28 @@ class AllocationImport implements ToModel, WithHeadingRow
                         'balance' => $allocation - $adminCost,
                         'year' => $row['year'],
                     ]);
+
+                    activity()
+                    ->causedBy(auth()->user())
+                    ->performedOn($allocationRecord)
+                    ->event('Created')
+                    ->withProperties([
+                        'soft_or_commitment' => $allocationRecord->soft_or_commitment,
+                        'legislator' => $allocationRecord->legislator->name,
+                        'attributor' => $allocationRecord->attributor->name ?? null,
+                        'particular' => $allocationRecord->particular_id,
+                        'attributor_particular' => $allocationRecord->attributor_particular_id,
+                        'scholarship_program' => $allocationRecord->scholarship_program->name,
+                        'allocation' => $this->removeLeadingZeros($allocationRecord->allocation),
+                        'admin_cost' => $this->removeLeadingZeros($allocationRecord->admin_cost),
+                        'balance' => $this->removeLeadingZeros($allocationRecord->balance),
+                        'year' => $allocationRecord->year,
+                    ])
+                    ->log(
+                        $allocationRecord->attributor
+                            ? "An Attribution Allocation for '{$allocationRecord->legislator->name}' has been created, attributed by '{$allocationRecord->attributor->name}'."
+                            : "An Allocation for '{$allocationRecord->legislator->name}' has been successfully created."
+                    );
                 }
 
             } catch (Throwable $e) {
@@ -86,6 +108,10 @@ class AllocationImport implements ToModel, WithHeadingRow
         });
     }
 
+    protected function removeLeadingZeros($value)
+    {
+        return ltrim($value, '0') ?: '0';
+    }
 
     protected function validateRow(array $row)
     {
