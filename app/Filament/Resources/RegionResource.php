@@ -71,6 +71,8 @@ class RegionResource extends Resource
                 TextColumn::make("code")
                     ->label("PSG Code")
                     ->sortable()
+                    ->minLength(10)
+                    ->maxLength(10)
                     ->searchable()
                     ->toggleable()
                     ->getStateUsing(fn($record) => $record->code ?? '-'),

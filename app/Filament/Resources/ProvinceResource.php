@@ -57,8 +57,8 @@ class ProvinceResource extends Resource
                     ->placeholder('Enter PSG code')
                     ->autocomplete(false)
                     ->numeric()
-                    ->minLength(5)
-                    ->maxLength(5)
+                    ->minLength(10)
+                    ->maxLength(10)
                     ->currencyMask(thousandSeparator: '', precision: 0)
                     ->validationAttribute('PSG code'),
 
