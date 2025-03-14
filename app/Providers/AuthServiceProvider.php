@@ -37,6 +37,7 @@ use App\Models\TviClass;
 use App\Models\TviType;
 use App\Models\User;
 use App\Policies\AbddPolicy;
+use App\Policies\ActivityLogPolicy;
 use App\Policies\AllocationPolicy;
 
 use App\Policies\DeliveryModePolicy;
@@ -74,6 +75,7 @@ use App\Policies\TvetSectorPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
+use Spatie\Activitylog\Models\Activity;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -112,6 +114,8 @@ class AuthServiceProvider extends ServiceProvider
         InstitutionProgram::class => InstitutionProgramPolicy::class,
         Toolkit::class => ToolkitPolicy::class,
         Target::class => LegislativeTargetPolicy::class,
+        Activity::class => ActivityLogPolicy::class,
+
     ];
 
     public function boot(): void
