@@ -23,6 +23,14 @@ class CreateInstitutionClass extends CreateRecord
         return null;
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/institution-classes-b' => 'Institution Classes',
+            'Create'
+        ];
+    }
+
     protected function getFormActions(): array
     {
         return [

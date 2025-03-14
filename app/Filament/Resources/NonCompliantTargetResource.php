@@ -458,12 +458,9 @@ class NonCompliantTargetResource extends Resource
                             ->validationAttribute('remarks'),
 
                         Textarea::make('other_remarks')
-                            ->label('If others, please specify...')
-                            ->required(fn($get) => TargetRemark::where('id', $get('remarks_id'))
-                                ->value('remarks') === 'Others')
+                            ->label('Specify the remarks...')
+                            ->required()
                             ->markAsRequired(false)
-                            ->hidden(fn($get) => TargetRemark::where('id', $get('remarks_id'))
-                                ->value('remarks') !== 'Others')
                             ->reactive()
                             ->validationAttribute('remarks'),
                     ]),

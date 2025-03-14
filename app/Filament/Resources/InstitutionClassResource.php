@@ -39,6 +39,8 @@ class InstitutionClassResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    protected static ?string $slug = 'institution-classes-b';
+
     public static function form(Form $form): Form
     {
         return $form

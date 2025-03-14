@@ -32,7 +32,7 @@ class Handler extends ExceptionHandler
     public function render($request, Throwable $e): \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\Response
     {
         if ($e instanceof RouteNotFoundException) {
-            return redirect('/login');
+            return redirect('/');
         }
 
         return parent::render($request, $e);

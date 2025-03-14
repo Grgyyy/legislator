@@ -46,8 +46,11 @@ class DistrictResource extends Resource
         return $form
             ->schema([
                 Select::make('huc')
-                    ->label('HUC District')
+                    ->label('HUC')
+                    ->required()
                     ->markAsRequired(false)
+                    ->preload()
+                    ->searchable()
                     ->options(fn() => [
                         true => 'Yes',
                         false => 'No '
@@ -86,7 +89,21 @@ class DistrictResource extends Resource
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_province')
                     ->afterStateUpdated(function ($state, callable $set) {
-                        $set('municipality_id', null);
+                        if (!$state) {
+                            $set('municipality_id', null);
+
+                            return;
+                        }
+
+                        $municipality = Municipality::where('province_id', $state)
+                            ->pluck('name', 'id')
+                            ->toArray();
+
+                        if (!empty($municipality) && count($municipality) === 1) {
+                            $set('municipality_id', array_key_first($municipality));
+                        } else {
+                            $set('municipality_id', null);
+                        }
                     })
                     ->reactive()
                     ->live()

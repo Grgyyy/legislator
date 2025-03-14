@@ -28,7 +28,7 @@ class ListTviClasses extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            '/institution-classes' => 'Institution Classes',
+            '/institution-classes-a' => 'Institution Classes',
             'List'
         ];
     }
