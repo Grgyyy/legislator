@@ -236,6 +236,7 @@ class UserResource extends Resource
     {
         return $table
             ->emptyStateHeading('No users available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make("name")
                     ->sortable()

@@ -1073,6 +1073,7 @@ class AttributionProjectProposalResource extends Resource
         return $table
             ->defaultSort('updated_at', 'desc')
             ->emptyStateHeading('No attribution targets available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('allocation.attributorParticular.subParticular.fundSource.name')
                     ->label('Fund Source')

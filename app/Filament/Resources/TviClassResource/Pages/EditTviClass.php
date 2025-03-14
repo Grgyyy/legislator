@@ -2,25 +2,31 @@
 
 namespace App\Filament\Resources\TviClassResource\Pages;
 
-use App\Models\TviClass;
 use App\Filament\Resources\TviClassResource;
+use App\Helpers\Helper;
+use App\Models\TviClass;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
 
 class EditTviClass extends EditRecord
 {
     protected static string $resource = TviClassResource::class;
 
     protected static ?string $title = 'Edit Institution Class';
-    
+
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvi-classes' => 'Institution Classes',
+            '/institution-classes' => 'Institution Classes',
             'Edit'
         ];
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -32,11 +38,6 @@ class EditTviClass extends EditRecord
         ];
     }
 
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return null;
-    }
-
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
@@ -44,7 +45,9 @@ class EditTviClass extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): TviClass
     {
-        $this->validateUniqueTviClass($data['name'], $record->id);
+        $this->validateUniqueTviClass($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -61,18 +64,18 @@ class EditTviClass extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueTviClass($name, $currentId)
+    protected function validateUniqueTviClass($data, $currentId)
     {
         $tviClass = TviClass::withTrashed()
-            ->where('name', $name)
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->whereNot('id', $currentId)
             ->first();
 
         if ($tviClass) {
-            $message = $tviClass->deleted_at 
-                ? 'This institution class has been deleted. Restoration is required before it can be reused.' 
+            $message = $tviClass->deleted_at
+                ? 'An institution class with this name has been deleted and must be restored before reuse.'
                 : 'An institution class with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

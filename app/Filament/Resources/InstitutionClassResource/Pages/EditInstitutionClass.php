@@ -2,12 +2,13 @@
 
 namespace App\Filament\Resources\InstitutionClassResource\Pages;
 
-use App\Models\InstitutionClass;
 use App\Filament\Resources\InstitutionClassResource;
+use App\Helpers\Helper;
+use App\Models\InstitutionClass;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
 
 class EditInstitutionClass extends EditRecord
 {
@@ -16,6 +17,11 @@ class EditInstitutionClass extends EditRecord
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
     }
 
     protected function getFormActions(): array
@@ -27,14 +33,11 @@ class EditInstitutionClass extends EditRecord
         ];
     }
 
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return null;
-    }
-
     protected function handleRecordUpdate($record, array $data): InstitutionClass
     {
-        $this->validateUniqueInstitutionClass($data['name'], $record->id);
+        $this->validateUniqueInstitutionClass($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -51,18 +54,18 @@ class EditInstitutionClass extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueInstitutionClass($name, $currentId)
+    protected function validateUniqueInstitutionClass($data, $currentId)
     {
         $institutionClass = InstitutionClass::withTrashed()
-            ->where('name', $name)
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->whereNot('id', $currentId)
             ->first();
 
         if ($institutionClass) {
-            $message = $institutionClass->deleted_at 
-                ? 'This institution class has been deleted. Restoration is required before it can be reused.' 
+            $message = $institutionClass->deleted_at
+                ? 'An institution class with this name has been deleted. Restoration is required before it can be reused.'
                 : 'An institution class with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

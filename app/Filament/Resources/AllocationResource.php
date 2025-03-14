@@ -235,6 +235,7 @@ class AllocationResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No allocations available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('soft_or_commitment')
                     ->label('Source of Fund')

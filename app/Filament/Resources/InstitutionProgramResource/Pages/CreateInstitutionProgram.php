@@ -5,11 +5,8 @@ namespace App\Filament\Resources\InstitutionProgramResource\Pages;
 use App\Filament\Resources\InstitutionProgramResource;
 use App\Models\InstitutionProgram;
 use App\Services\NotificationHandler;
-use Filament\Actions;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
 class CreateInstitutionProgram extends CreateRecord
 {
@@ -27,6 +24,14 @@ class CreateInstitutionProgram extends CreateRecord
         return null;
     }
 
+    public function getBreadcrumbs(): array
+    {
+        return [
+            '/institution-programs' => "Institution Qualification Title",
+            'Create',
+        ];
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -38,17 +43,9 @@ class CreateInstitutionProgram extends CreateRecord
                 ->label('Exit'),
         ];
     }
-    public function getBreadcrumbs(): array
-    {
-        return [
-            '/institution-programs' => "Institution Qualification Titles",
-            'Create',
-        ];
-    }
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Validation to check unique tvi_id and training_program_id combination
         $this->validateData($data);
 
         return $data;
@@ -58,23 +55,26 @@ class CreateInstitutionProgram extends CreateRecord
     {
         $this->validateData($data);
 
-        $institutionProgram = DB::transaction(fn() => InstitutionProgram::create($data));
+        $institutionProgram = DB::transaction(fn() => InstitutionProgram::create([
+            'tvi_id' => $data['tvi_id'],
+            'training_program_id' => $data['training_program_id'],
+        ]));
 
-        NotificationHandler::sendSuccessNotification('Created', "Institution's Training Program has been created successfully.");
+        NotificationHandler::sendSuccessNotification('Created', "Institution qualification title has been created successfully.");
 
         return $institutionProgram;
     }
 
     private function validateData(array $data): void
     {
-        $exists = InstitutionProgram::where('tvi_id', $data['tvi_id'])
+        $institutionProgram = InstitutionProgram::where('tvi_id', $data['tvi_id'])
             ->where('training_program_id', $data['training_program_id'])
             ->exists();
 
-        if ($exists) {
+        if ($institutionProgram) {
             NotificationHandler::handleValidationException(
-                'Duplicate Association Detected',
-                'The selected training program is already linked to this institution. Please choose a different training program or institution.'
+                'Duplicate',
+                'The selected qualification title is already associated to this institution.'
             );
         }
     }

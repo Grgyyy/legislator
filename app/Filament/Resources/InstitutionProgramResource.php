@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Exports\CustomExport\CustomInstitutionQualificationTitleExport;
 use App\Filament\Resources\InstitutionProgramResource\Pages;
-use App\Filament\Resources\InstitutionProgramResource\RelationManagers;
 use App\Models\District;
 use App\Models\InstitutionProgram;
 use App\Models\Province;
@@ -13,14 +12,12 @@ use App\Models\Status;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
-use Filament\Forms;
 use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
+use Filament\Resources\Pages\CreateRecord;
 use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -40,7 +37,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class InstitutionProgramResource extends Resource
 {
@@ -65,8 +61,8 @@ class InstitutionProgramResource extends Resource
                     ->relationship('tvi', 'name')
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->default(fn($get) => request()->get('tvi_id'))
                     ->options(function () {
@@ -82,31 +78,31 @@ class InstitutionProgramResource extends Resource
                             })
                             ->toArray() ?: ['no_tvi' => 'No institutions available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_tvi')
+                    ->validationAttribute('institution'),
 
                 Select::make('training_program_id')
-                    ->label('Qualification TItle')
+                    ->label('Qualification Title')
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function () {
                         return TrainingProgram::all()
+                            ->sortBy('title')
                             ->pluck('title', 'id')
                             ->mapWithKeys(function ($title, $id) {
-                                // Assuming `soc_code` is a column in the TrainingProgram model
                                 $program = TrainingProgram::find($id);
 
                                 return [$id => "{$program->soc_code} - {$program->title}"];
                             })
-                            ->toArray() ?: ['no_training_program' => 'No Training Program Available'];
+                            ->toArray() ?: ['no_training_program' => 'No qualification titles available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_training_program')
-                    ->live(),
+                    ->validationAttribute('qualification title'),
 
                 Select::make('status_id')
-                    ->relationship('status', 'desc')
                     ->required()
                     ->markAsRequired(false)
                     ->hidden(fn(Page $livewire) => $livewire instanceof CreateRecord)
@@ -124,31 +120,75 @@ class InstitutionProgramResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('trainingProgram.title')
+            ->emptyStateHeading('No institution qualification titles available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
-                TextColumn::make('trainingProgram.soc_code')
-                    ->label('SOC Code')
-                    ->searchable(),
-                TextColumn::make('trainingProgram.title')
-                    ->label('Qualification Title')
-                    ->searchable(),
                 TextColumn::make('tvi.name')
                     ->label('Institution')
-                    ->searchable(),
+                    ->sortable()
+                    ->searchable(query: function ($query, $search) {
+                        return $query->whereHas('tvi', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%")
+                                ->orWhere('school_id', 'like', "%{$search}%");
+                        });
+                    })
+                    ->toggleable()
+                    ->formatStateUsing(function ($state, $record) {
+                        $schoolId = $record->tvi->school_id ?? '';
+                        $institutionName = $record->tvi->name ?? '';
+
+                        if ($schoolId) {
+                            return "{$schoolId} - {$institutionName}";
+                        }
+
+                        return $institutionName;
+                    })
+                    ->limit(50)
+                    ->tooltip(fn($state): ?string => strlen($state) > 50 ? $state : null),
+
+                TextColumn::make('trainingProgram.soc_code')
+                    ->label('SOC Code')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => $record->trainingProgram->soc_code ?? '-'),
+
+                TextColumn::make('trainingProgram.title')
+                    ->label('Qualification Title')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->limit(50)
+                    ->tooltip(fn($state): ?string => strlen($state) > 50 ? $state : null),
+
                 TextColumn::make('tvi.district.name')
                     ->label('District')
-                    ->searchable(),
-                TextColumn::make('tvi.municipality.name')
-                    ->label('Municipality')
-                    ->searchable(),
-                TextColumn::make('tvi.district.province.name')
-                    ->label('Province')
-                    ->searchable(),
-                TextColumn::make('tvi.district.province.region.name')
-                    ->label('Region')
-                    ->searchable(),
+                    ->sortable()
+                    ->searchable(query: function ($query, $search) {
+                        return $query->whereHas('tvi.district', function ($q) use ($search) {
+                            $q->whereRaw("LOWER(name) LIKE ?", ["%" . strtolower($search) . "%"])
+                                ->orWhereRaw("LOWER(name) = ?", [strtolower($search)]);
+                        })
+                            ->orWhereHas('tvi.district.province', function ($q) use ($search) {
+                                $q->whereRaw("LOWER(name) LIKE ?", ["%" . strtolower($search) . "%"])
+                                    ->orWhereRaw("LOWER(name) = ?", [strtolower($search)]);
+                            })
+                            ->orWhereHas('tvi.district.underMunicipality', function ($q) use ($search) {
+                                $q->whereRaw("LOWER(name) LIKE ?", ["%" . strtolower($search) . "%"])
+                                    ->orWhereRaw("LOWER(name) = ?", [strtolower($search)]);
+                            });
+                    })
+                    ->toggleable()
+                    ->getStateUsing(fn($record) => self::getLocationNames($record)),
+
                 TextColumn::make('tvi.address')
                     ->label('Address')
-                    ->searchable(),
+                    ->sortable()
+                    ->toggleable()
+                    ->limit(45)
+                    ->tooltip(fn($state): ?string => strlen($state) > 45 ? $state : null),
+
                 SelectColumn::make('status_id')
                     ->label('Status')
                     ->options([
@@ -157,22 +197,8 @@ class InstitutionProgramResource extends Resource
                     ])
                     ->disablePlaceholderSelection()
                     ->extraAttributes(['style' => 'width: 125px;'])
-
-                // ->formatStateUsing(function ($state) {
-                //     if (!$state) {
-                //         return $state;
-                //     }
-
-                //     $state = ucwords($state);
-
-                //     if (preg_match('/\bNC\s+[I]{1,3}\b/i', $state)) {
-                //         $state = preg_replace_callback('/\bNC\s+([I]{1,3})\b/i', function ($matches) {
-                //             return 'NC ' . strtoupper($matches[1]);
-                //         }, $state);
-                //     }
-
-                //     return $state;
-                // })
+                    ->toggleable()
+                    ->sortable()
             ])
             ->filters([
                 TrashedFilter::make()
@@ -186,55 +212,136 @@ class InstitutionProgramResource extends Resource
                                 ->schema([
                                     Select::make('region_id')
                                         ->label('Region')
-                                        ->placeholder('All')
-                                        ->options(
-                                            Region::whereNot('name', 'Not Applicable')
+                                        ->placeholder('Select region')
+                                        ->searchable()
+                                        ->options(function () {
+                                            return Region::whereNot('name', 'Not Applicable')
                                                 ->pluck('name', 'id')
-                                        )
+                                                ->toArray() ?: ['no_region' => 'No regions available'];
+                                        })
+                                        ->disableOptionWhen(fn($value) => $value === 'no_region')
                                         ->afterStateUpdated(function (callable $set, $state) {
-                                            $set('province_id', null);
+                                            if (!$state) {
+                                                $set('province_id', null);
+                                                $set('tvi_id', null);
+                                                $set('training_program_id', null);
+
+                                                return;
+                                            }
                                         })
                                         ->reactive(),
 
                                     Select::make('province_id')
                                         ->label('Province')
-                                        ->placeholder('All')
+                                        ->placeholder('Select province')
+                                        ->searchable()
                                         ->options(function ($get) {
                                             $regionId = $get('region_id');
 
-                                            return Province::whereNot('name', 'Not Applicable')
-                                                ->where('region_id', $regionId)
-                                                ->pluck('name', 'id');
+                                            if ($regionId) {
+                                                return Province::whereNot('name', 'Not Applicable')
+                                                    ->where('region_id', $regionId)
+                                                    ->pluck('name', 'id')
+                                                    ->toArray() ?: ['no_provinces' => 'No provinces available'];
+                                            }
+
+                                            return ['no_provinces' => 'No provinces available. Select a region first.'];
+                                        })
+                                        ->disableOptionWhen(fn($value) => $value === 'no_provinces')
+                                        ->afterStateUpdated(function (callable $set, $state) {
+                                            if (!$state) {
+                                                $set('tvi_id', null);
+                                                $set('training_program_id', null);
+
+                                                return;
+                                            }
                                         })
                                         ->reactive(),
-                                ]),
+                                ])
+                                ->columns(1),
 
                             Select::make('tvi_id')
                                 ->label('Institution')
                                 ->placeholder('Select institution')
                                 ->searchable()
                                 ->options(function ($get) {
+                                    $regionId = $get('region_id');
                                     $provinceId = $get('province_id');
 
-                                    $districtIds = District::where('province_id', $provinceId)->pluck('id');
+                                    if (!$regionId && !$provinceId) {
+                                        return Tvi::whereNot('name', 'Not Applicable')
+                                            ->get()
+                                            ->mapWithKeys(function ($tvi) {
+                                                $schoolId = $tvi->school_id;
+                                                $formattedName = $schoolId ? "{$schoolId} - {$tvi->name}" : $tvi->name;
+                                                return [$tvi->id => $formattedName];
+                                            })
+                                            ->toArray() ?: ['no_tvi' => 'No institutions available'];
+                                    }
 
-                                    return Tvi::whereIn('district_id', $districtIds)
-                                        ->whereNot('name', 'Not Applicable')
+                                    if (!$provinceId) {
+                                        return Tvi::whereNot('name', 'Not Applicable')
+                                            ->whereHas('district.province.region', function ($query) use ($regionId) {
+                                                $query->where('id', $regionId);
+                                            })
+                                            ->get()
+                                            ->mapWithKeys(function ($tvi) {
+                                                $schoolId = $tvi->school_id;
+                                                $formattedName = $schoolId ? "{$schoolId} - {$tvi->name}" : $tvi->name;
+
+                                                return [$tvi->id => $formattedName];
+                                            })
+                                            ->toArray() ?: ['no_tvi' => 'No institutions available'];
+                                    }
+
+                                    return Tvi::whereNot('name', 'Not Applicable')
+                                        ->whereHas('district', function ($query) use ($provinceId) {
+                                            $query->where('province_id', $provinceId);
+                                        })
                                         ->get()
-                                        ->mapWithKeys(fn($tvi) => [$tvi->id => "{$tvi->school_id} - {$tvi->name}"]);
+                                        ->mapWithKeys(function ($tvi) {
+                                            $schoolId = $tvi->school_id;
+                                            $formattedName = $schoolId ? "{$schoolId} - {$tvi->name}" : $tvi->name;
+
+                                            return [$tvi->id => $formattedName];
+                                        })
+                                        ->toArray() ?: ['no_tvi' => 'No institutions available'];
                                 })
+                                ->disableOptionWhen(fn($value) => $value === 'no_tvi')
                                 ->reactive(),
 
                             Select::make('training_program_id')
                                 ->label('Qualification Title')
-                                ->placeholder('All')
+                                ->placeholder('Select qualification title')
                                 ->searchable()
                                 ->options(function ($get) {
+                                    $regionId = $get('region_id');
                                     $provinceId = $get('province_id');
-                                    $tviId = $get('tvi_id');
+
+                                    if (!$regionId && !$provinceId) {
+                                        return Tvi::whereNot('name', 'Not Applicable')
+                                            ->get()
+                                            ->mapWithKeys(function ($tvi) {
+                                                $schoolId = $tvi->school_id;
+                                                $formattedName = $schoolId ? "{$schoolId} - {$tvi->name}" : $tvi->name;
+                                                return [$tvi->id => $formattedName];
+                                            })
+                                            ->toArray() ?: ['no_tvi' => 'No institutions available'];
+                                    }
 
                                     if (!$provinceId) {
-                                        return [];
+                                        return Tvi::whereNot('name', 'Not Applicable')
+                                            ->whereHas('district.province.region', function ($query) use ($regionId) {
+                                                $query->where('id', $regionId);
+                                            })
+                                            ->get()
+                                            ->mapWithKeys(function ($tvi) {
+                                                $schoolId = $tvi->school_id;
+                                                $formattedName = $schoolId ? "{$schoolId} - {$tvi->name}" : $tvi->name;
+
+                                                return [$tvi->id => $formattedName];
+                                            })
+                                            ->toArray() ?: ['no_tvi' => 'No institutions available'];
                                     }
 
                                     $districtIds = District::where('province_id', $provinceId)
@@ -242,10 +349,6 @@ class InstitutionProgramResource extends Resource
 
                                     $tviIds = Tvi::whereIn('district_id', $districtIds)
                                         ->pluck('id');
-
-                                    if ($tviId) {
-                                        $tviIds = [$tviId];
-                                    }
 
                                     return TrainingProgram::whereHas('tvis', function ($query) use ($tviIds) {
                                         $query->whereIn('tvi_id', $tviIds);
@@ -267,6 +370,7 @@ class InstitutionProgramResource extends Resource
                                     $query->where('id', $regionId);
                                 })
                             )
+
                             ->when(
                                 $data['province_id'] ?? null,
                                 fn(Builder $query, $provinceId) => $query->whereHas('tvi.district.province', function ($query) use ($provinceId) {
@@ -316,19 +420,23 @@ class InstitutionProgramResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
-                    EditAction::make()->hidden(fn($record) => $record->trashed()),
+                    EditAction::make()
+                        ->hidden(fn($record) => $record->trashed()),
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Institution has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Institution has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -346,6 +454,7 @@ class InstitutionProgramResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected institutions have been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution qualification title')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -353,6 +462,7 @@ class InstitutionProgramResource extends Resource
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected institutions have been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution qualification title')),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
@@ -360,18 +470,24 @@ class InstitutionProgramResource extends Resource
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institutions have been deleted permanently.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution qualification title')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomInstitutionQualificationTitleExport::make()
                                 ->withColumns([
-                                    Column::make('trainingProgram.soc_code')
-                                        ->heading('SOC Code'),
-
-                                    Column::make('trainingProgram.title')
-                                        ->heading('Qualification Title'),
+                                    Column::make('school_id')
+                                        ->heading('School ID')
+                                        ->getStateUsing(fn($record) => $record->school_id ?? '-'),
 
                                     Column::make('tvi.name')
                                         ->heading('Institution'),
+
+                                    Column::make('trainingProgram.soc_code')
+                                        ->heading('SOC Code')
+                                        ->getStateUsing(fn($record) => $record->trainingProgram->soc_code ?? '-'),
+
+                                    Column::make('trainingProgram.title')
+                                        ->heading('Qualification Title'),
 
                                     Column::make('tvi.district.name')
                                         ->heading('District'),
@@ -389,11 +505,7 @@ class InstitutionProgramResource extends Resource
                                         ->heading('Address'),
 
                                     Column::make('status.desc')
-                                        ->heading('Status')
-                                        ->getStateUsing(fn($record) => $record->status?->desc ?? '-'),
-
-
-
+                                        ->heading('Status'),
                                 ])
                                 ->withFilename(date('m-d-Y') . ' - Institution Qualification Titles')
                         ]),
@@ -402,11 +514,23 @@ class InstitutionProgramResource extends Resource
             ]);
     }
 
-    public static function getRelations(): array
+    protected static function getLocationNames($record): string
     {
-        return [
-            // Relationships here
-        ];
+        $tvi = $record->tvi;
+
+        if ($tvi) {
+            $districtName = $tvi->district->name ?? '';
+            $provinceName = $tvi->district->province->name ?? '';
+            $municipalityName = $tvi->municipality->name ?? '';
+
+            if ($municipalityName) {
+                return "{$districtName}, {$municipalityName}, {$provinceName}";
+            } else {
+                return "{$districtName}, {$provinceName}";
+            }
+        }
+
+        return 'Location information not available';
     }
 
     public static function getEloquentQuery(): Builder

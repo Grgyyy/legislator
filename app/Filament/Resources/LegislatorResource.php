@@ -90,6 +90,7 @@ class LegislatorResource extends Resource
         return $table
             ->defaultSort('name')
             ->emptyStateHeading('No legislators available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make("name")
                     ->label('Legislator')

@@ -28,7 +28,7 @@ class ListTviClasses extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvi-classes' => 'Institution Classes',
+            '/institution-classes' => 'Institution Classes',
             'List'
         ];
     }
@@ -40,12 +40,12 @@ class ListTviClasses extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-
             Action::make('TviClassImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -58,7 +58,7 @@ class ListTviClasses extends ListRecords
 
                         try {
                             Excel::import(new TviClassImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Institution Classes (A) have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The institution classes (A) have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the no. of institution classes (A): ' . $e->getMessage());
                         } finally {
@@ -71,7 +71,7 @@ class ListTviClasses extends ListRecords
 
             Action::make('InsitutionClassAExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new InsitutionClassAExport, now()->format('m-d-Y') . ' - ' . 'Institution Classes (A).xlsx');

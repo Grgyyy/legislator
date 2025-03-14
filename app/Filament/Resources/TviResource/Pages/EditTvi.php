@@ -3,19 +3,19 @@
 namespace App\Filament\Resources\TviResource\Pages;
 
 use App\Filament\Resources\TviResource;
+use App\Helpers\Helper;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
 
 class EditTvi extends EditRecord
 {
     protected static string $resource = TviResource::class;
 
     protected static ?string $title = 'Edit Institution';
-    
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
@@ -24,7 +24,7 @@ class EditTvi extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/institutions' => 'Institution',
+            '/institutions' => 'Institutions',
             'Edit'
         ];
     }
@@ -42,10 +42,12 @@ class EditTvi extends EditRecord
                 ->label('Exit'),
         ];
     }
-    
+
     protected function handleRecordUpdate($record, array $data): Tvi
     {
         $this->validateUniqueInstitution($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);

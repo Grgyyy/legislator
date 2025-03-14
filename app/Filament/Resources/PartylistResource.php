@@ -61,6 +61,7 @@ class PartylistResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No party-lists available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name')
                     ->label('Party-list')

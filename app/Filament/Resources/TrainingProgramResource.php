@@ -162,6 +162,7 @@ class TrainingProgramResource extends Resource
         return $table
             ->defaultSort('created_at', 'desc')
             ->emptyStateHeading('No qualification titles available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('code')
                     ->label('Qualification Code')

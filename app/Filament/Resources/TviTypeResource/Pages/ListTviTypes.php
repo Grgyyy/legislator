@@ -28,7 +28,7 @@ class ListTviTypes extends ListRecords
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvi-types' => 'Institution Types',
+            '/institution-types' => 'Institution Types',
             'List'
         ];
     }
@@ -40,12 +40,12 @@ class ListTviTypes extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-
             Action::make('TviTypeImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -58,9 +58,9 @@ class ListTviTypes extends ListRecords
 
                         try {
                             Excel::import(new TviTypeImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Institution Type have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The institution types have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Institution Type: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institution types: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);
@@ -71,7 +71,7 @@ class ListTviTypes extends ListRecords
 
             Action::make('InsitutionTypeExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new InsitutionTypeExport, now()->format('m-d-Y') . ' - ' . 'Institution Types.xlsx');

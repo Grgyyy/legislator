@@ -26,7 +26,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class TviTypeResource extends Resource
 {
@@ -40,24 +39,28 @@ class TviTypeResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    protected static ?string $slug = 'institution-types';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make('name')
                     ->label('Institution Type')
-                    ->placeholder(placeholder: 'Enter institution type')
+                    ->placeholder('Enter institution type')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Institution Type'),
+                    ->validationAttribute('institution type'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no institution types available')
+            ->defaultSort('name')
+            ->emptyStateHeading('No institution types available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name')
                     ->label('Institution Types')
@@ -67,24 +70,27 @@ class TviTypeResource extends Resource
             ->filters([
                 TrashedFilter::make()
                     ->label('Records')
-                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter institution type')),
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter institution types')),
             ])
             ->actions([
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Institution type has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Institution type has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -101,21 +107,24 @@ class TviTypeResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected institution types have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution type')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution types')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected institution types have been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution type')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution types')),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institution types have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution type')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution types')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomInstitutionTypeExport::make()

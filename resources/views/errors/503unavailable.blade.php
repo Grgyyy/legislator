@@ -23,7 +23,7 @@
                         blush: '#fce7eb',
                         dolphin: '#7f7797',
                         background: '#12151d',
-                        button: '#f1e5e4',
+                        pearl: '#f1e5e4',
                     }
                 }
             }

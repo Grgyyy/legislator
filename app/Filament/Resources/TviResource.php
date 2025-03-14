@@ -16,7 +16,6 @@ use Filament\Forms\Components\Fieldset;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
-use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
@@ -37,7 +36,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class TviResource extends Resource
 {
@@ -232,6 +230,7 @@ class TviResource extends Resource
         return $table
             ->defaultSort('name')
             ->emptyStateHeading('No institutions available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make("school_id")
                     ->label("School ID")
@@ -428,9 +427,14 @@ class TviResource extends Resource
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
 
+                    Action::make('showPrograms')
+                        ->label('View Qualification Titles')
+                        ->icon('heroicon-o-book-open')
+                        ->url(fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id])),
+
                     Action::make('showRecognitions')
                         ->label('View Recognition')
-                        ->icon('heroicon-o-magnifying-glass')
+                        ->icon('heroicon-o-star')
                         ->url(fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id])),
 
                     DeleteAction::make()

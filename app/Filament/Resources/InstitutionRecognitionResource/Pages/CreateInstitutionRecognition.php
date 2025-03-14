@@ -3,23 +3,24 @@
 namespace App\Filament\Resources\InstitutionRecognitionResource\Pages;
 
 use App\Filament\Resources\InstitutionRecognitionResource;
-use Filament\Actions\Action;
+use App\Helpers\Helper;
+use App\Models\InstitutionRecognition;
+use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class CreateInstitutionRecognition extends CreateRecord
 {
     protected static string $resource = InstitutionRecognitionResource::class;
-
-    protected function handleRecordCreation(array $data): Model
-    {
-        $record = parent::handleRecordCreation($data);
-
-        $this->data['record_id'] = $record->tvi_id;
-
-        return $record;
-    }
     
+    protected static ?string $title = 'Create Institution Qualification Titles';
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -37,10 +38,17 @@ class CreateInstitutionRecognition extends CreateRecord
         ];
     }
 
-    protected function getRedirectUrl(): string
+    protected function handleRecordCreation(array $data): Model
     {
-        $recordId = $this->data['record_id'] ?? null;
+        $institutionRecog = DB::transaction(fn() => InstitutionRecognition::create([
+            'tvi_id' => $data['tvi_id'],
+            'recognition_id' => $data['recognition_id'],
+            'accreditation_date' => $data['accreditation_date'],
+            'expiration_date' => $data['expiration_date']
+        ]));
 
-        return route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $recordId]);
+        NotificationHandler::sendSuccessNotification('Created', 'Institution Recognition has been created successfully.');
+
+        return $institutionRecog;
     }
 }

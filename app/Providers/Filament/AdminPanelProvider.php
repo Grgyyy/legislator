@@ -61,7 +61,7 @@ class AdminPanelProvider extends PanelProvider
 //         </span>
 //     </div>
 // '))
-            ->favicon(asset('images/TESDA_logo.png'))
+            ->favicon('images/TESDA_logo.png')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -95,7 +95,7 @@ class AdminPanelProvider extends PanelProvider
                     ->setNavigationGroup('USER MANAGEMENT')
                     ->setIcon('heroicon-o-user')
                     ->setSort(1)
-                    ->shouldShowDeleteAccountForm(true)
+                    ->shouldShowDeleteAccountForm(false)
                     ->shouldShowBrowserSessionsForm(true)
                     ->shouldShowAvatarForm(
                         value: false,

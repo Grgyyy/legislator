@@ -2,12 +2,13 @@
 
 namespace App\Filament\Resources\TviTypeResource\Pages;
 
-use App\Models\TviType;
 use App\Filament\Resources\TviTypeResource;
+use App\Helpers\Helper;
+use App\Models\TviType;
 use App\Services\NotificationHandler;
+use Exception;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\QueryException;
-use Exception;
 
 class EditTviType extends EditRecord
 {
@@ -18,7 +19,7 @@ class EditTviType extends EditRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvi-types' => 'Institution Types',
+            '/institution-types' => 'Institution Types',
             'Edit',
         ];
     }
@@ -44,7 +45,9 @@ class EditTviType extends EditRecord
 
     protected function handleRecordUpdate($record, array $data): TviType
     {
-        $this->validateUniqueTviType($data['name'], $record->id);
+        $this->validateUniqueTviType($data, $record->id);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         try {
             $record->update($data);
@@ -61,18 +64,18 @@ class EditTviType extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueTviType($name, $currentId)
+    protected function validateUniqueTviType($data, $currentId)
     {
         $tviType = TviType::withTrashed()
-            ->where('name', $name)
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->whereNot('id', $currentId)
             ->first();
 
         if ($tviType) {
-            $message = $tviType->deleted_at 
-                ? 'This institution type has been deleted. Restoration is required before it can be reused.' 
+            $message = $tviType->deleted_at
+                ? 'An institution type with this name has been deleted and must be restored before reuse.'
                 : 'An institution type with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

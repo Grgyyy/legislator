@@ -477,6 +477,7 @@ class NonCompliantTargetResource extends Resource
     {
         return $table
             ->defaultSort('updated_at', 'desc')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('allocation.particular.subParticular.fundSource.name')
                     ->label('Fund Source')

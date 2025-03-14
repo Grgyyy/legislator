@@ -4,11 +4,9 @@ namespace App\Filament\Resources\InstitutionProgramResource\Pages;
 
 use App\Exports\InsitutionQualificationTitleExport;
 use App\Filament\Resources\InstitutionProgramResource;
-use App\Imports\InstitutionClassImport;
 use App\Imports\InstitutionProgramImport;
 use App\Services\NotificationHandler;
 use Exception;
-use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
@@ -42,13 +40,12 @@ class ListInstitutionPrograms extends ListRecords
                 ->label('New')
                 ->icon('heroicon-m-plus'),
 
-
-
             Action::make('TviImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -61,7 +58,7 @@ class ListInstitutionPrograms extends ListRecords
 
                         try {
                             Excel::import(new InstitutionProgramImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Institution Qualification Titles have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The institution qualification titles have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the institution qualification titles: ' . $e->getMessage());
                         } finally {
@@ -73,8 +70,8 @@ class ListInstitutionPrograms extends ListRecords
                 }),
 
             Action::make('InsitutionQualificationTitleExport')
-                ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->label('Export All')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new InsitutionQualificationTitleExport, now()->format('m-d-Y') . ' - ' . 'Institution Qualification Titles.xlsx');

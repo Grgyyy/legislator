@@ -26,7 +26,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class InstitutionClassResource extends Resource
 {
@@ -46,21 +45,25 @@ class InstitutionClassResource extends Resource
             ->schema([
                 TextInput::make('name')
                     ->label('Institution Class (B)')
-                    ->placeholder(placeholder: 'Enter institution class')
+                    ->placeholder('Enter institution class')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Institution Class (B)'),
+                    ->validationAttribute('institution class (B)'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no institution class available')
+            ->defaultSort('name')
+            ->emptyStateHeading('No institution class available')
+            ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name')
                     ->label('Institution Classes (B)')
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -71,23 +74,26 @@ class InstitutionClassResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Institution has been deleted successfully.');
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Institution class has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Institution has been restored successfully.');
+                            NotificationHandler::sendSuccessNotification('Restored', 'Institution class has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
 
-                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Institution has been deleted permanently.');
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Institution class has been deleted permanently.');
                         }),
                 ])
             ])
@@ -100,6 +106,7 @@ class InstitutionClassResource extends Resource
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected institutions have been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution class b')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -107,6 +114,7 @@ class InstitutionClassResource extends Resource
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected institutions have been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution class b')),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
@@ -114,6 +122,7 @@ class InstitutionClassResource extends Resource
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institutions have been deleted permanently.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution class b')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomInstitutionClassBExport::make()
