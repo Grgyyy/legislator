@@ -302,7 +302,7 @@ class AllocationResource extends Resource
                             if ($municipalityName) {
                                 $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
                             } else {
-                                $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
+                                $formattedName = "{$subParticular} - {$districtName}, {$provinceName}";
                             }
                         } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
                             $formattedName = "{$subParticular} - {$regionName}";

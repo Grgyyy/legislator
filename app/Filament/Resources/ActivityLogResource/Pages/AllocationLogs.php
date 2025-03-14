@@ -104,6 +104,15 @@ class AllocationLogs extends ListRecords
                         elseif ($particular->subParticular->name === 'Senator' || $particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
                             return $particular ? "{$particular->subParticular->name}" : '-';
                         }
+                        elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
+                            return $particular ? "{$particular->subParticular->name} - {$particular->district->province->region->name}" : '-';
+                        }
+                        elseif ($particular->subParticular->name === 'Party-list') {
+                            return $particular ? "{$particular->subParticular->name} - {$particular->partylist->name}" : '-';
+                        }
+                        else {
+                            return $particular ? "{$particular->subParticular->name}" : '-';
+                        }
 
                     }),
 
@@ -127,13 +136,22 @@ class AllocationLogs extends ListRecords
                 
                         if ($particular->subParticular->name === 'District') {
                             if ($particular->district->underMunicipality) {
-                                return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->underMunicipality->name},  {$particular->district->province->name}" : '-';
+                                return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->underMunicipality->name}, {$particular->district->province->name}" : '-';
                             }
                             else {
                                 return $particular ? "{$particular->subParticular->name} - {$particular->district->name}, {$particular->district->province->name}" : '-';
                             }
                         }
                         elseif ($particular->subParticular->name === 'Senator' || $particular->subParticular->name === 'House Speaker' || $particular->subParticular->name === 'House Speaker (LAKAS)') {
+                            return $particular ? "{$particular->subParticular->name}" : '-';
+                        }
+                        elseif ($particular->subParticular->name === 'RO Regular' || $particular->subParticular->name === 'CO Regular') {
+                            return $particular ? "{$particular->subParticular->name} - {$particular->district->province->region->name}" : '-';
+                        }
+                        elseif ($particular->subParticular->name === 'Party-list') {
+                            return $particular ? "{$particular->subParticular->name} - {$particular->partylist->name}" : '-';
+                        }
+                        else {
                             return $particular ? "{$particular->subParticular->name}" : '-';
                         }
 
