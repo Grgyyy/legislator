@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\InstitutionClassResource\Pages;
 
-use App\Models\InstitutionClass;
 use App\Filament\Resources\InstitutionClassResource;
+use App\Helpers\Helper;
+use App\Models\InstitutionClass;
 use App\Services\NotificationHandler;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -17,12 +17,11 @@ class CreateInstitutionClass extends CreateRecord
     {
         return $this->getResource()::getUrl('index');
     }
-    
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
     }
-
 
     protected function getFormActions(): array
     {
@@ -38,7 +37,9 @@ class CreateInstitutionClass extends CreateRecord
 
     protected function handleRecordCreation(array $data): InstitutionClass
     {
-        $this->validateUniqueInstitutionClass($data['name']);
+        $this->validateUniqueInstitutionClass($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $institutionClass = DB::transaction(fn() => InstitutionClass::create([
             'name' => $data['name'],
@@ -49,17 +50,17 @@ class CreateInstitutionClass extends CreateRecord
         return $institutionClass;
     }
 
-    protected function validateUniqueInstitutionClass($name)
+    protected function validateUniqueInstitutionClass($data)
     {
         $institutionClass = InstitutionClass::withTrashed()
-            ->where('name', $name)
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->first();
 
         if ($institutionClass) {
-            $message = $institutionClass->deleted_at 
-                ? 'This institution class has been deleted and must be restored before reuse.' 
+            $message = $institutionClass->deleted_at
+                ? 'An institution class with this name has been deleted and must be restored before reuse.'
                 : 'An institution class with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

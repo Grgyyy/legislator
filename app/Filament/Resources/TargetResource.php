@@ -836,7 +836,9 @@ class TargetResource extends Resource
                         }
 
                         return $institutionName;
-                    }),
+                    })
+                    ->limit(50)
+                    ->tooltip(fn($state): ?string => strlen($state) > 50 ? $state : null),
 
                 TextColumn::make('tvi.tviClass.name')
                     ->label('Institution Class')
@@ -863,16 +865,16 @@ class TargetResource extends Resource
                     ->sortable()
                     ->searchable(query: function ($query, $search) {
                         return $query->whereHas('tvi.district', function ($q) use ($search) {
-                            $q->where('name', 'like', "%{$search}%")
-                                ->orWhereHas('province', function ($q) use ($search) {
-                                    $q->where('name', 'like', "%{$search}%")
-                                        ->orWhereHas('region', function ($q) use ($search) {
-                                            $q->where('name', 'like', "%{$search}%");
-                                        });
-                                })
-                                ->orWhereHas('underMunicipality', function ($q) use ($search) {
-                                    $q->where('name', 'like', "%{$search}%");
-                                });
+                            $q->whereRaw("LOWER(name) LIKE ?", ["%".strtolower($search)."%"])
+                              ->orWhereRaw("LOWER(name) = ?", [strtolower($search)]);
+                        })
+                        ->orWhereHas('tvi.district.province', function ($q) use ($search) {
+                            $q->whereRaw("LOWER(name) LIKE ?", ["%".strtolower($search)."%"])
+                              ->orWhereRaw("LOWER(name) = ?", [strtolower($search)]);
+                        })
+                        ->orWhereHas('tvi.district.underMunicipality', function ($q) use ($search) {
+                            $q->whereRaw("LOWER(name) LIKE ?", ["%".strtolower($search)."%"])
+                              ->orWhereRaw("LOWER(name) = ?", [strtolower($search)]);
                         });
                     })
                     ->toggleable()

@@ -2,8 +2,9 @@
 
 namespace App\Filament\Resources\TviClassResource\Pages;
 
-use App\Models\TviClass;
 use App\Filament\Resources\TviClassResource;
+use App\Helpers\Helper;
+use App\Models\TviClass;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ class CreateTviClass extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvi-classes' => 'Institution Classes',
+            '/institution-classes' => 'Institution Classes',
             'Create'
         ];
     }
@@ -26,7 +27,7 @@ class CreateTviClass extends CreateRecord
     {
         return null;
     }
-    
+
     protected function getFormActions(): array
     {
         return [
@@ -46,28 +47,30 @@ class CreateTviClass extends CreateRecord
 
     protected function handleRecordCreation(array $data): TviClass
     {
-        $this->validateUniqueTviClass($data['name']);
+        $this->validateUniqueTviClass($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $tviClass = DB::transaction(fn() => TviClass::create([
             'name' => $data['name'],
         ]));
 
-        NotificationHandler::sendSuccessNotification('Created', 'Institution type has been created successfully.');
+        NotificationHandler::sendSuccessNotification('Created', 'Institution class has been created successfully.');
 
         return $tviClass;
     }
 
-    protected function validateUniqueTviClass($name)
+    protected function validateUniqueTviClass($data)
     {
         $tviClass = TviClass::withTrashed()
-            ->where('name', $name)
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->first();
 
         if ($tviClass) {
-            $message = $tviClass->deleted_at 
-                ? 'This institution class has been deleted and must be restored before reuse.' 
+            $message = $tviClass->deleted_at
+                ? 'An institution class with this name has been deleted and must be restored before reuse.'
                 : 'An institution class with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

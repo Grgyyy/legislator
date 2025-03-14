@@ -2,8 +2,9 @@
 
 namespace App\Filament\Resources\TviTypeResource\Pages;
 
-use App\Models\TviType;
 use App\Filament\Resources\TviTypeResource;
+use App\Helpers\Helper;
+use App\Models\TviType;
 use App\Services\NotificationHandler;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
@@ -17,7 +18,7 @@ class CreateTviType extends CreateRecord
     public function getBreadcrumbs(): array
     {
         return [
-            '/tvi-types' => 'Institution Types',
+            '/institution-types' => 'Institution Types',
             'Create',
         ];
     }
@@ -38,7 +39,7 @@ class CreateTviType extends CreateRecord
                 ->label('Exit'),
         ];
     }
-    
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
@@ -46,7 +47,9 @@ class CreateTviType extends CreateRecord
 
     protected function handleRecordCreation(array $data): TviType
     {
-        $this->validateUniqueTviType($data['name']);
+        $this->validateUniqueTviType($data);
+
+        $data['name'] = Helper::capitalizeWords($data['name']);
 
         $tviType = DB::transaction(fn() => TviType::create([
             'name' => $data['name']
@@ -57,17 +60,17 @@ class CreateTviType extends CreateRecord
         return $tviType;
     }
 
-    protected function validateUniqueTviType($name)
+    protected function validateUniqueTviType($data)
     {
         $tviType = TviType::withTrashed()
-            ->where('name', $name)
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->first();
 
         if ($tviType) {
-            $message = $tviType->deleted_at 
-                ? 'This institution type has been deleted and must be restored before reuse.' 
+            $message = $tviType->deleted_at
+                ? 'An institution type with this name has been deleted and must be restored before reuse.'
                 : 'An institution type with this name already exists.';
-            
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }

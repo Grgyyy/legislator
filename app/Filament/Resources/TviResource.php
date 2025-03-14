@@ -427,9 +427,14 @@ class TviResource extends Resource
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
 
+                    Action::make('showPrograms')
+                        ->label('View Qualification Titles')
+                        ->icon('heroicon-o-book-open')
+                        ->url(fn($record) => route('filament.admin.resources.institution-programs.showPrograms', ['record' => $record->id])),
+
                     Action::make('showRecognitions')
                         ->label('View Recognition')
-                        ->icon('heroicon-o-magnifying-glass')
+                        ->icon('heroicon-o-star')
                         ->url(fn($record) => route('filament.admin.resources.institution-recognitions.showRecognition', ['record' => $record->id])),
 
                     DeleteAction::make()

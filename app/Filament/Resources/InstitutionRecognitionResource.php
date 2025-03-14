@@ -9,13 +9,10 @@ use App\Models\Recognition;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Carbon\Carbon;
-use Date;
-use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -29,11 +26,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class InstitutionRecognitionResource extends Resource
 {
@@ -58,30 +53,40 @@ class InstitutionRecognitionResource extends Resource
                     ->label('Institution')
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->default(fn($get) => request()->get('tvi_id'))
                     ->options(function () {
-                        return Tvi::whereNot('name', 'Not Applicable')
-                            ->pluck('name', 'id')
-                            ->toArray() ?: ['no_tvi' => 'No institution available'];
+                        return TVI::whereNot('name', 'Not Applicable')
+                            ->orderBy('name')
+                            ->get()
+                            ->mapWithKeys(function ($tvi) {
+                                $schoolId = $tvi->school_id;
+                                $formattedName = $schoolId ? "{$schoolId} - {$tvi->name}" : $tvi->name;
+
+                                return [$tvi->id => $formattedName];
+                            })
+                            ->toArray() ?: ['no_tvi' => 'No institutions available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_tvi'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_tvi')
+                    ->validationAttribute('institution'),
 
                 Select::make('recognition_id')
                     ->label('Recognition Title')
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function () {
                         return Recognition::all()
+                            ->sortBy('name')
                             ->pluck('name', 'id')
-                            ->toArray() ?: ['no_recognition' => 'No recognition available'];
+                            ->toArray() ?: ['no_recognition' => 'No recognition titles available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_recognition'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_recognition')
+                    ->validationAttribute('recognition title'),
 
                 DatePicker::make('accreditation_date')
                     ->label('Accreditation Date')
@@ -106,40 +111,61 @@ class InstitutionRecognitionResource extends Resource
                         : today()->addDay()
                         : today()->addDay())
                     ->rules(['after:today', 'after:accreditation_date']),
-
-
-
-
-
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('accreditation_date')
+            ->emptyStateHeading('No institution recognitions available')
             ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('tvi.name')
                     ->label('Institution')
-                    ->searchable()
-                    ->toggleable(),
+                    ->sortable()
+                    ->searchable(query: function ($query, $search) {
+                        return $query->whereHas('tvi', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%")
+                                ->orWhere('school_id', 'like', "%{$search}%");
+                        });
+                    })
+                    ->toggleable()
+                    ->formatStateUsing(function ($state, $record) {
+                        $schoolId = $record->tvi->school_id ?? '';
+                        $institutionName = $record->tvi->name ?? '';
+
+                        if ($schoolId) {
+                            return "{$schoolId} - {$institutionName}";
+                        }
+
+                        return $institutionName;
+                    })
+                    ->limit(50)
+                    ->tooltip(fn($state): ?string => strlen($state) > 50 ? $state : null),
+
                 TextColumn::make('recognition.name')
                     ->label('Recognition Title')
+                    ->sortable()
                     ->searchable()
                     ->toggleable(),
+
                 TextColumn::make('accreditation_date')
                     ->label('Accreditation Date')
+                    ->sortable()
+                    ->toggleable()
                     ->formatStateUsing(fn($state) => Carbon::parse($state)->format('F j, Y')),
 
                 TextColumn::make('expiration_date')
                     ->label('Expiration Date')
+                    ->sortable()
+                    ->toggleable()
                     ->formatStateUsing(fn($state) => Carbon::parse($state)->format('F j, Y')),
-
             ])
             ->filters([
                 TrashedFilter::make()
                     ->label('Records')
-                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter institution recognition')),
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter institution recognitions')),
             ])
             ->actions([
                 ActionGroup::make([
@@ -149,19 +175,21 @@ class InstitutionRecognitionResource extends Resource
                         ->action(function ($record, $data) {
                             $record->delete();
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Allocation has been deleted successfully.');
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Recognition has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Allocation has been restored successfully.');
+                            NotificationHandler::sendSuccessNotification('Restored', 'Recognition has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
 
-                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Allocation has been deleted permanently.');
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Recognition has been deleted permanently.');
                         }),
                 ])
             ])
@@ -173,32 +201,42 @@ class InstitutionRecognitionResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected institution recognition have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution recognition')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution recognitions')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected institution recognition have been restored successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution recognition')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution recognitions')),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institution recognition have been deleted permanently.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution recognition')),
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution recognitions')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomInstitutionRecognitionExport::make()
                                 ->withColumns([
+                                    Column::make('school_id')
+                                        ->heading('School ID')
+                                        ->getStateUsing(fn($record) => $record->school_id ?? '-'),
+
                                     Column::make('tvi.name')
                                         ->heading('Institution'),
+
                                     Column::make('recognition.name')
                                         ->heading('Recognition Title'),
+
                                     Column::make('accreditation_date')
                                         ->heading('Accreditation Date')
                                         ->formatStateUsing(fn($state) => Carbon::parse($state)->format('F j, Y')),
+
                                     Column::make('expiration_date')
                                         ->heading('Expiration Date')
                                         ->formatStateUsing(fn($state) => Carbon::parse($state)->format('F j, Y')),
@@ -210,11 +248,16 @@ class InstitutionRecognitionResource extends Resource
             ]);
     }
 
-    public static function getRelations(): array
+    public static function getEloquentQuery(): Builder
     {
-        return [
-            //
-        ];
+        $query = parent::getEloquentQuery();
+        $routeParameter = request()->route('record');
+
+        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
+            $query->where('tvi_id', (int) $routeParameter);
+        }
+
+        return $query;
     }
 
     public static function getPages(): array
@@ -225,19 +268,5 @@ class InstitutionRecognitionResource extends Resource
             'edit' => Pages\EditInstitutionRecognition::route('/{record}/edit'),
             'showRecognition' => Pages\ShowInstitutionRecognition::route('/{record}/recognitions')
         ];
-    }
-
-    public static function getEloquentQuery(): Builder
-    {
-        $query = parent::getEloquentQuery();
-        $routeParameter = request()->route('record');
-
-        if (!request()->is('*/edit') && $routeParameter && is_numeric($routeParameter)) {
-            $query->where('tvi_id', (int) $routeParameter);
-        }
-
-        $query->orderBy('accreditation_date', 'desc');
-
-        return $query;
     }
 }

@@ -5,9 +5,7 @@ namespace App\Filament\Resources;
 use App\Exports\CustomExport\CustomInstitutionClassAExport;
 use App\Filament\Resources\TviClassResource\Pages;
 use App\Models\TviClass;
-use App\Models\TviType;
 use App\Services\NotificationHandler;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -21,7 +19,6 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -29,7 +26,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class TviClassResource extends Resource
 {
@@ -43,32 +39,33 @@ class TviClassResource extends Resource
 
     protected static ?int $navigationSort = 2;
 
+    protected static ?string $slug = 'institution-classes';
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 TextInput::make('name')
                     ->label('Institution Class (A)')
-                    ->placeholder(placeholder: 'Enter institution class')
+                    ->placeholder('Enter institution class')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
-                    ->validationAttribute('Institution Class (A)'),
+                    ->validationAttribute('institution class (A)'),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
-            ->emptyStateHeading('no institution classes available')
+            ->defaultSort('name')
+            ->emptyStateHeading('No institution classes available')
             ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name')
-                    ->Label('Institution Class (A)')
+                    ->label('Institution Class (A)')
                     ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-
+                    ->searchable(),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -79,18 +76,21 @@ class TviClassResource extends Resource
                 ActionGroup::make([
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Institution class has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Institution class has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
@@ -107,7 +107,8 @@ class TviClassResource extends Resource
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected institution classes have been deleted successfully.');
                         })
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution class b')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete institution class a')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
@@ -115,6 +116,7 @@ class TviClassResource extends Resource
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected institution classes have been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore institution class a')),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
@@ -122,6 +124,7 @@ class TviClassResource extends Resource
                             NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected institution classes have been deleted permanently.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete institution class a')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomInstitutionClassAExport::make()

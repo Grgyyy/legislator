@@ -32,9 +32,10 @@ class ListRecognitions extends ListRecords
 
             Action::make('RecognitionImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -47,7 +48,7 @@ class ListRecognitions extends ListRecords
 
                         try {
                             Excel::import(new RecognitionImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Recognitions have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The recognitions have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the recognitions: ' . $e->getMessage());
                         } finally {
@@ -60,7 +61,7 @@ class ListRecognitions extends ListRecords
 
             Action::make('RecognitionExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new RecognitionExport, now()->format('m-d-Y') . ' - ' . 'Recognition Titles.xlsx');

@@ -3,10 +3,9 @@
 namespace App\Filament\Resources\RecognitionResource\Pages;
 
 use App\Filament\Resources\RecognitionResource;
+use App\Helpers\Helper;
 use App\Models\Recognition;
 use App\Services\NotificationHandler;
-use Filament\Actions;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 
@@ -35,31 +34,33 @@ class CreateRecognition extends CreateRecord
                 ->label('Exit'),
         ];
     }
-    
+
     protected function handleRecordCreation(array $data): Recognition
     {
-        $this->validateUniqueAbdd($data['name']);
+        $this->validateUniqueAbdd($data);
 
-        $abdd = DB::transaction(fn () => Recognition::create([
-                'name' => $data['name'],
+        $data['name'] = Helper::capitalizeWords($data['name']);
+
+        $recognition = DB::transaction(fn() => Recognition::create([
+            'name' => $data['name'],
         ]));
 
-        NotificationHandler::sendSuccessNotification('Created', 'ABDD sector has been created successfully.');
+        NotificationHandler::sendSuccessNotification('Created', 'Recognition has been created successfully.');
 
-        return $abdd;
+        return $recognition;
     }
 
-    protected function validateUniqueAbdd($name)
+    protected function validateUniqueAbdd($data)
     {
-        $abdd = Recognition::withTrashed()
-            ->where('name', $name)
+        $recognition = Recognition::withTrashed()
+            ->whereRaw('TRIM(name) = ?', trim($data['name']))
             ->first();
 
-        if ($abdd) {
-            $message = $abdd->deleted_at 
-                ? 'This Recognition Title has been deleted and must be restored before reuse.'
-                : 'An Recognition Title with this name already exists.';
-            
+        if ($recognition) {
+            $message = $recognition->deleted_at
+                ? 'A recognition title with this name has been deleted and must be restored before reuse.'
+                : 'A recognition title with this name already exists.';
+
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
     }
