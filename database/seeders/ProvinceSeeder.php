@@ -117,7 +117,7 @@ class ProvinceSeeder extends Seeder
             ['1108600000', 'Davao Occidental'],
             ['1100000000', 'Not Applicable'],
 
-            ['1204700000', 'Cotabato'],
+            ['1204700000', 'North Cotabato'],
             ['1206300000', 'South Cotabato'],
             ['1206500000', 'Sultan Kudarat'],
             ['1208000000', 'Sarangani'],
