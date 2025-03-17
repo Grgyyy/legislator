@@ -24,6 +24,7 @@ class TviClassSeeder extends Seeder
             ['name' => 'NGO'],
             ['name' => 'Farm School'],
             ['name' => 'Enterprise'],
+            ['name' => 'GOCC/GFI'],
         ];
 
         foreach ($classes as $class) {

@@ -197,6 +197,11 @@ class AllocationLogs extends ListRecords
 
                         return $user->name;
                     }),
+
+                TextColumn::make('event')
+                    ->label('Event')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => ucfirst($state)),
                     
                 TextColumn::make('updated_at')
                     ->label('Date Encoded')
