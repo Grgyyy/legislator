@@ -42,12 +42,11 @@ class AppServiceProvider extends ServiceProvider
         }, 'A province with this name and region already exists.');
 
         if (env('APP_ENV') !== 'local') {
-            // $url->forceHttps(true);
             $url->forceScheme('https');
         }
 
-        Route::get('/who-made-this', function () {
-            return view('devs');
+        Route::get('/john-1-3', function () {
+            return view('vendor.filament.components.grid.system_helper');
         });
     }
 }

@@ -68,12 +68,12 @@ class AllocationResource extends Resource
 
                 Select::make('attributor_id')
                     ->label('Attributor')
-                    ->searchable()
                     ->required(function ($get) {
                         return $get('soft_or_commitment') === 'Commitment';
                     })
                     ->markAsRequired(false)
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function () {
                         $activeStatusId = Status::where('desc', 'Active')->value('id');
