@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use App\Models\Region;
 use App\Models\TargetRemark;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -78,8 +77,6 @@ class TargetRemarksExport implements FromQuery, WithMapping, WithStyles, WithHea
             'A' => 120,
         ];
     }
-
-
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);

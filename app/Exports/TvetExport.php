@@ -76,8 +76,6 @@ class TvetExport implements FromQuery, WithMapping, WithStyles, WithHeadings, Wi
             'A' => 120,
         ];
     }
-
-
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);

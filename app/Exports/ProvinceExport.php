@@ -77,9 +77,6 @@ class ProvinceExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 
         return [$tesda_logo, $tuv_logo];
     }
-
-
-
     public function columnWidths(): array
     {
         return [
@@ -88,7 +85,6 @@ class ProvinceExport implements FromQuery, WithMapping, WithStyles, WithHeadings
             'C' => 50,
         ];
     }
-
 
     public function styles(Worksheet $sheet)
     {

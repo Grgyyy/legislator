@@ -4,9 +4,6 @@ namespace App\Exports;
 
 use App\Models\NonCompliantRemark;
 use App\Models\Target;
-use App\Models\TargetRemark;
-use App\Models\TargetStatus;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
@@ -328,8 +325,6 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
                 return "{$particular->subParticular->name} - {$districtName}, {$municipalityName}, {$provinceName}";
             }
         }
-
-
     }
     private function getFundSource($record)
     {
@@ -420,7 +415,6 @@ class NonCompliantExport implements FromQuery, WithHeadings, WithStyles, WithMap
             'AX' => 30,
         ];
     }
-
 
     public function styles(Worksheet $sheet)
     {

@@ -2,7 +2,6 @@
 
 namespace App\Exports;
 
-use App\Models\Allocation;
 use App\Models\Target;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -268,8 +267,6 @@ class AttributionProjectProposalExport implements FromQuery, WithHeadings, WithS
 
         return "{$qualificationCode} - {$qualificationName}";
     }
-
-
     private function getFundSource($record)
     {
         $legislator = $record->allocation->legislator;

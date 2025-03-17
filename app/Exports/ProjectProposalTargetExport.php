@@ -18,9 +18,6 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-
-
-
 class ProjectProposalTargetExport implements FromQuery, WithHeadings, WithStyles, WithMapping, WithDrawings, WithColumnWidths
 {
     private $columns = [

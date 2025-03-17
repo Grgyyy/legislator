@@ -83,7 +83,6 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         return empty($qualificationTitles) ? '-' : implode(', ', $qualificationTitles);
     }
 
-
     public function drawings()
     {
         $tesda_logo = new Drawing();
@@ -106,7 +105,6 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
 
         return [$tesda_logo, $tuv_logo];
     }
-
 
     public function columnWidths(): array
     {

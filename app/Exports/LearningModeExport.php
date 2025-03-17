@@ -50,7 +50,6 @@ class LearningModeExport implements FromQuery, WithHeadings, WithStyles, WithMap
         ];
     }
 
-
     public function drawings()
     {
         $tesda_logo = new Drawing();
@@ -82,7 +81,6 @@ class LearningModeExport implements FromQuery, WithHeadings, WithStyles, WithMap
             'B' => 70,
         ];
     }
-
 
     public function styles(Worksheet $sheet)
     {

@@ -2,11 +2,10 @@
 
 namespace App\Imports;
 
-use App\Helpers\Helper; // Import the Helper class
+use App\Helpers\Helper;
 use App\Models\DeliveryMode;
 use App\Models\LearningMode;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -39,7 +38,6 @@ class LearningModeImport implements ToModel, WithHeadingRow
 
                 return $learningMode;
             } catch (Throwable $e) {
-                Log::error('Failed to import Learning Modes: ' . $e->getMessage());
                 DB::rollBack();
                 throw $e;
             }

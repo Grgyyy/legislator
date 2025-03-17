@@ -48,7 +48,6 @@ class ScheduleOfCostExport implements FromQuery, WithMapping, WithStyles, WithHe
             ->whereNot('qualification_titles.soc', 0);
 
     }
-
     public function map($record): array
     {
         return [

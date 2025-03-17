@@ -3,14 +3,13 @@
 namespace App\Imports;
 
 use App\Models\Abdd;
-use App\Models\Region;
 use App\Models\Province;
 use App\Models\ProvinceAbdd;
+use App\Models\Region;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
-use Maatwebsite\Excel\Concerns\Importable;
 use Throwable;
 
 class ProvinceAbddImport implements ToModel, WithHeadingRow
@@ -45,7 +44,6 @@ class ProvinceAbddImport implements ToModel, WithHeadingRow
                 }
 
             } catch (Throwable $e) {
-                Log::error('Failed to import province: ' . $e->getMessage());
                 throw $e;
             }
         });

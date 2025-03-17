@@ -8,12 +8,12 @@ use App\Models\Recognition;
 use App\Models\Tvi;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Imports\HeadingRowFormatter;
-use Throwable;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+
 
 HeadingRowFormatter::default('none');
 
@@ -23,10 +23,7 @@ class InstitutionRecognitionImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
-        Log::info('Raw Row Data from Excel: ' . json_encode($row));
-
         if (empty(array_filter($row))) {
-            Log::warning('Empty row detected, skipping: ' . json_encode($row));
             return null;
         }
 
@@ -80,7 +77,7 @@ class InstitutionRecognitionImport implements ToModel, WithHeadingRow
     protected function convertExcelDate($value)
     {
         if (is_numeric($value)) {
-            return Carbon::instance(\PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value))->format('Y-m-d');
+            return Carbon::instance(Date::excelToDateTimeObject($value))->format('Y-m-d');
         }
 
         return Carbon::parse($value)->format('Y-m-d');

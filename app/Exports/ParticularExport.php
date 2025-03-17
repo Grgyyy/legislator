@@ -99,8 +99,6 @@ class ParticularExport implements FromQuery, WithMapping, WithStyles, WithHeadin
             'G' => 30,
         ];
     }
-
-
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);

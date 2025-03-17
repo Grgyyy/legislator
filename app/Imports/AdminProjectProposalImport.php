@@ -7,12 +7,11 @@ use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
 use App\Models\Tvet;
-use Throwable;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class AdminProjectProposalImport implements ToModel, WithHeadingRow
 {
@@ -57,7 +56,6 @@ class AdminProjectProposalImport implements ToModel, WithHeadingRow
                 return null;
             });
         } catch (Throwable $e) {
-            Log::error("Import failed: " . $e->getMessage());
             throw $e;
         }
     }

@@ -6,7 +6,6 @@ use App\Helpers\Helper;
 use App\Models\FundSource;
 use App\Models\SubParticular;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -42,8 +41,6 @@ class ParticularTypesImport implements ToModel, WithHeadingRow
                     ]);
                 }
             } catch (Throwable $e) {
-                Log::error('Failed to import SubParticular: ' . $e->getMessage());
-
                 throw $e;
             }
         });

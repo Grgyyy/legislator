@@ -5,7 +5,6 @@ namespace App\Imports;
 use App\Helpers\Helper;
 use App\Models\TviClass;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -32,7 +31,6 @@ class TviClassImport implements ToModel, WithHeadingRow
                 }
 
             } catch (Throwable $e) {
-                Log::error('Failed to import Institution Class(A): ' . $e->getMessage());
                 throw $e;
             }
         });

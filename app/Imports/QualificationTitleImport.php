@@ -6,7 +6,6 @@ use App\Helpers\Helper;
 use App\Models\QualificationTitle;
 use App\Models\TrainingProgram;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -66,8 +65,6 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
                 return $qualificationTitle;
             } catch (Throwable $e) {
-                Log::error('Failed to import Qualification Title: ' . $e->getMessage());
-
                 throw $e;
             }
         });

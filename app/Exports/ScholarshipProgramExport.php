@@ -39,7 +39,6 @@ class ScholarshipProgramExport implements FromQuery, WithMapping, WithStyles, Wi
             $record->desc,
         ];
     }
-
     public function headings(): array
     {
         $customHeadings = [
@@ -85,8 +84,6 @@ class ScholarshipProgramExport implements FromQuery, WithMapping, WithStyles, Wi
             'C' => 100,
         ];
     }
-
-
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);

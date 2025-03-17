@@ -102,7 +102,6 @@ class InstitutionRecognitionExport implements FromQuery, WithHeadings, WithStyle
         ];
     }
 
-
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);
