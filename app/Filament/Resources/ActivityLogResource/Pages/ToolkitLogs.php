@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ActivityLogResource\Pages;
 
 use App\Filament\Resources\ActivityLogResource;
 use App\Models\SkillPriority;
+use App\Models\Toolkit;
 use App\Models\User;
 use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Pages\ListRecords;
@@ -11,7 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Spatie\Activitylog\Models\Activity;
 
-class SkillPriorityLogs extends ListRecords
+class ToolkitLogs extends ListRecords
 {
     use ExposesTableToWidgets;
 
@@ -19,35 +20,35 @@ class SkillPriorityLogs extends ListRecords
     
     public function getTitle(): string
     {
-        $skillPrioId = request()->route('record');
-        $skillPrio = SkillPriority::withTrashed()
-            ->where('id', $skillPrioId)
+        $toolkitId = request()->route('record');
+        $toolkit = Toolkit::withTrashed()
+            ->where('id', $toolkitId)
             ->first();
         
-        return $skillPrio->qualification_title ?? 'Unknown Skill Priority';
+        return $toolkit->lot_name ?? 'Unknown Tookit';
     }
 
     public function getBreadcrumbs(): array
     {
-        $skillPrioId = request()->route('record');
-        $skillPrio = SkillPriority::withTrashed()
-            ->where('id', $skillPrioId)
+        $toolkitId = request()->route('record');
+        $toolkit = Toolkit::withTrashed()
+            ->where('id', $toolkitId)
             ->first();
 
         return [
-            route('filament.admin.resources.skill-priorities.index') => $skillPrio ? $skillPrio->qualification_title : 'Qualification Title',
-            'Skill Priority',
+            route('filament.admin.resources.toolkits.index') => $toolkit ? $toolkit->lot_name : 'Toolkit',
+            'Toolkit',
             'Logs'
         ];
     }
 
     protected function getTableQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        $skillPrioId = request()->route('record');
+        $toolkitId = request()->route('record');
 
         return Activity::query()
-            ->where('subject_type', SkillPriority::class)
-            ->where('subject_id', $skillPrioId)
+            ->where('subject_type', Toolkit::class)
+            ->where('subject_id', $toolkitId)
             ->orderBy('created_at', 'desc');
     }
 
@@ -56,46 +57,46 @@ class SkillPriorityLogs extends ListRecords
         return $table
             ->columns([
 
-                TextColumn::make('province')
-                    ->label('Province')
-                    ->getStateUsing(fn ($record) => 
-                        optional(json_decode($record->properties, true))['province']
-                    ),
-
-                TextColumn::make('district')
-                    ->label('District')
-                    ->getStateUsing(fn ($record) => 
-                        optional(json_decode($record->properties, true))['district'] ?? '-'
-                    ),
-
-                TextColumn::make('lot_name')
-                    ->label('Lot Name')
-                    ->getStateUsing(fn ($record) => 
-                        optional(json_decode($record->properties, true))['lot_name'] ?? '-'
-                    ),
-
                 TextColumn::make('qualification_title')
-                    ->label('SOC Titles')
+                    ->label('Qualification Title')
                     ->getStateUsing(fn ($record) => 
-                        optional(json_decode($record->properties, true))['qualification_title']
+                        optional(json_decode($record->properties, true))['qualification_title'] ?? '-'
                     ),
 
-                TextColumn::make('available_slots')
-                    ->label('Available Slots')
+                TextColumn::make('available_number_of_toolkits')
+                    ->label('Available No. of Toolkits')
                     ->getStateUsing(fn ($record) => 
-                        optional(json_decode($record->properties, true))['available_slots']
+                        optional(json_decode($record->properties, true))['available_number_of_toolkits'] ?? '-'
                     ),
 
-                TextColumn::make('total_slots')
-                    ->label('Total Slots')
+                TextColumn::make('number_of_toolkits')
+                    ->label('No. of Toolkits')
                     ->getStateUsing(fn ($record) => 
-                        optional(json_decode($record->properties, true))['total_slots']
+                        optional(json_decode($record->properties, true))['number_of_toolkits'] ?? '-'
                     ),
 
-                TextColumn::make('status')
-                    ->label('Status')
+                TextColumn::make('price_per_toolkit')
+                    ->label('Price per Toolkit')
                     ->getStateUsing(fn ($record) => 
-                        optional(json_decode($record->properties, true))['status']
+                        optional(json_decode($record->properties, true))['price_per_toolkit'] ?? '-'
+                    ),
+
+                TextColumn::make('total_abc_per_lot')
+                    ->label('Total ABC per lot')
+                    ->getStateUsing(fn ($record) => 
+                        optional(json_decode($record->properties, true))['total_abc_per_lot']
+                    ),
+
+                TextColumn::make('number_of_items_per_toolkit')
+                    ->label('No. of Items per Toolkit')
+                    ->getStateUsing(fn ($record) => 
+                        optional(json_decode($record->properties, true))['number_of_items_per_toolkit']
+                    ),
+
+                TextColumn::make('year')
+                    ->label('Year')
+                    ->getStateUsing(fn ($record) => 
+                        optional(json_decode($record->properties, true))['year']
                     ),
 
                 TextColumn::make('causer_id')

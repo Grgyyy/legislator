@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\ActivityLogResource\Pages;
 
-use App\Filament\Resources\LegislativeTargetsResource;
+use App\Filament\Resources\ActivityLogResource;
 use App\Models\Allocation;
 use App\Models\Particular;
 use App\Models\User;

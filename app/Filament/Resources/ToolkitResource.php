@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -130,8 +131,8 @@ class ToolkitResource extends Resource
                     ->minValue(1)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                     ->validationMessages([
-                        'min' => 'The allocation must be at least ₱1.00',
-                        'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                        'min' => 'The price per toolkit must be at least ₱1.00',
+                        'max' => 'The price per toolkit cannot exceed ₱999,999,999,999.99.'
                     ])
                     ->validationAttribute('price per toolkit'),
 
@@ -285,6 +286,10 @@ class ToolkitResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
+                    Action::make('viewLogs')
+                        ->label('View Logs')
+                        ->url(fn($record) => route('filament.admin.resources.activity-logs.toolkitLogs', ['record' => $record->id]))
+                        ->icon('heroicon-o-document-text'),
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make()
