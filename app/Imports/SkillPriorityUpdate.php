@@ -67,7 +67,7 @@ class SkillPriorityUpdate implements ToModel, WithHeadingRow
                     'year' => $skillPriority->year,
                     'status' => $skillPriority->status->desc,
                 ])
-                ->log("An Skill Priority for '{$skillPriority->qualification_title}' has been created.");
+                ->log("An Skill Priority for '{$skillPriority->qualification_title}' has been updated.");
 
 
                 return $skillPriority;

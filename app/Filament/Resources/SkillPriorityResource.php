@@ -278,11 +278,43 @@ class SkillPriorityResource extends Resource
                         ->action(function ($record, $data) {
                             $record->delete();
 
+                            activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->event('Deleted')
+                            ->withProperties([
+                                'province' => $record->provinces->name,
+                                'district' => $record->district->name ?? null,
+                                'lot_name' => $record->qualification_title,
+                                'qualification_title' => $record->trainingProgram->implode('title', ', '),
+                                'available_slots' => $record->available_slots,
+                                'total_slots' => $record->total_slots,
+                                'year' => $record->year,
+                                'status' => $record->status->desc,
+                            ])
+                            ->log("An Skill Priority for '{$record->qualification_title}' has been deleted.");
+
                             NotificationHandler::sendSuccessNotification('Deleted', 'Allocation has been deleted successfully.');
                         }),
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
+
+                            activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->event('Restored')
+                            ->withProperties([
+                                'province' => $record->provinces->name,
+                                'district' => $record->district->name ?? null,
+                                'lot_name' => $record->qualification_title,
+                                'qualification_title' => $record->trainingProgram->implode('title', ', '),
+                                'available_slots' => $record->available_slots,
+                                'total_slots' => $record->total_slots,
+                                'year' => $record->year,
+                                'status' => $record->status->desc,
+                            ])
+                            ->log("An Skill Priority for '{$record->qualification_title}' has been restored.");
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Allocation has been restored successfully.');
                         }),

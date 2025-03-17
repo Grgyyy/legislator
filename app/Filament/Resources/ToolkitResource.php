@@ -296,11 +296,43 @@ class ToolkitResource extends Resource
                         ->action(function ($record, $data) {
                             $record->delete();
 
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Deleted')
+                                ->withProperties([
+                                    'lot_name' => $record->lot_name,
+                                    'price_per_toolkit' => $record->price_per_toolkit ?? null,
+                                    'qualification_title' => $record->qualificationTitles->implode('trainingProgram.title', ', '),
+                                    'available_number_of_toolkits' => $record->available_number_of_toolkits,
+                                    'number_of_toolkits' => $record->number_of_toolkits,
+                                    'total_abc_per_lot' => $record->total_abc_per_lot,
+                                    'number_of_items_per_toolkit' => $record->number_of_items_per_toolkit,
+                                    'year' => $record->year,
+                                ])
+                                ->log("An Tookit for '{$record->lot_name}' has been deleted.");
+
                             NotificationHandler::sendSuccessNotification('Deleted', 'Training program has been deleted successfully.');
                         }),
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
+
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Restored')
+                                ->withProperties([
+                                    'lot_name' => $record->lot_name,
+                                    'price_per_toolkit' => $record->price_per_toolkit ?? null,
+                                    'qualification_title' => $record->qualificationTitles->implode('trainingProgram.title', ', '),
+                                    'available_number_of_toolkits' => $record->available_number_of_toolkits,
+                                    'number_of_toolkits' => $record->number_of_toolkits,
+                                    'total_abc_per_lot' => $record->total_abc_per_lot,
+                                    'number_of_items_per_toolkit' => $record->number_of_items_per_toolkit,
+                                    'year' => $record->year,
+                                ])
+                                ->log("An Tookit for '{$record->lot_name}' has been restored.");
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Training program has been restored successfully.');
                         }),

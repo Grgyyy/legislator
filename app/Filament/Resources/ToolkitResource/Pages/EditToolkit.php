@@ -83,7 +83,7 @@ class EditToolkit extends EditRecord
                 'number_of_items_per_toolkit' => $this->record->number_of_items_per_toolkit,
                 'year' => $this->record->year,
             ])
-            ->log("An Tookit for '{$this->record->lot_name}' has been created.");
+            ->log("An Tookit for '{$this->record->lot_name}' has been updated.");
     }
 
 

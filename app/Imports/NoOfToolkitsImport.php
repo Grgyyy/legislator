@@ -52,7 +52,7 @@ class NoOfToolkitsImport implements ToModel, WithHeadingRow
                     'number_of_items_per_toolkit' => $toolkit->number_of_items_per_toolkit,
                     'year' => $toolkit->year,
                 ])
-                ->log("An Tookit for '{$toolkit->lot_name}' has been created.");
+                ->log("An Tookit for '{$toolkit->lot_name}' has been updated.");
 
                 return $toolkit;
 
