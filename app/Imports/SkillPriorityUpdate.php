@@ -53,6 +53,22 @@ class SkillPriorityUpdate implements ToModel, WithHeadingRow
                     'status_id' => $status->id,
                 ]);
 
+                activity()
+                ->causedBy(auth()->user())
+                ->performedOn($skillPriority)
+                ->event('Updated')
+                ->withProperties([
+                    'province' => $skillPriority->provinces->name,
+                    'district' => $skillPriority->district->name ?? null, 
+                    'lot_name' => $skillPriority->qualification_title,
+                    'qualification_title' => $skillPriority->trainingProgram->implode('title', ', '),
+                    'available_slots' => $skillPriority->available_slots,
+                    'total_slots' => $skillPriority->total_slots,
+                    'year' => $skillPriority->year,
+                    'status' => $skillPriority->status->desc,
+                ])
+                ->log("An Skill Priority for '{$skillPriority->qualification_title}' has been created.");
+
 
                 return $skillPriority;
             });

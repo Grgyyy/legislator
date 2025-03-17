@@ -25,6 +25,7 @@ class ActivityLogResource extends Resource
     {
         return [
             'allocationLogs' => Pages\AllocationLogs::route('/{record}/allocation'),
+            'skillPrioLogs' => Pages\SkillPriorityLogs::route('/{record}/skillPriority'),
         ];
     }
 }

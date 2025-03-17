@@ -268,6 +268,10 @@ class SkillPriorityResource extends Resource
                     //         $record->save();
                     //         NotificationHandler::sendSuccessNotification('Saved', 'Skill priority slots have been added successfully.');
                     //     }),
+                    Action::make('viewLogs')
+                        ->label('View Logs')
+                        ->url(fn($record) => route('filament.admin.resources.activity-logs.skillPrioLogs', ['record' => $record->id]))
+                        ->icon('heroicon-o-document-text'),
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make()
