@@ -42,7 +42,7 @@ class SkillPriorityResource extends Resource
 
     protected static ?string $navigationGroup = "TARGET DATA INPUT";
 
-    protected static ?string $navigationLabel = "Skill Priorities";
+    protected static ?string $navigationLabel = "Skills Priorities";
 
     protected static ?int $navigationSort = 7;
 
@@ -54,23 +54,26 @@ class SkillPriorityResource extends Resource
                     ->label('Province')
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function () {
                         return Province::whereNot('name', 'Not Applicable')
+                            ->groupBy('name')
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_province' => 'No provinces available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_province')
+                    ->validationAttribute('province'),
 
                 Select::make('district_id')
                     ->label('District')
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function ($get) {
                         $provinceId = $get('province_id');
+
                         if ($provinceId) {
                             $districts = District::whereNot('name', 'Not Applicable')
                                 ->where('province_id', $provinceId)
@@ -80,28 +83,31 @@ class SkillPriorityResource extends Resource
                                 $municipalityName = $district->underMunicipality->name ?? '';
                                 $concatenatedName = $district->name . ($municipalityName ? " - $municipalityName" : '');
                                 return [$district->id => $concatenatedName];
-                            })->toArray() ?: ['no_district' => 'No district available'];
+                            })->toArray() ?: ['no_district' => 'No districts available'];
                         }
-                        return ['no_district' => 'No distict available. Select a province first.'];
+                        return ['no_district' => 'No districts available. Select a province first.'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_district'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_district')
+                    ->validationAttribute('district'),
 
                 Select::make('qualification_title_id')
                     ->label('Qualification Titles')
                     ->required()
                     ->relationship('trainingProgram')
                     ->markAsRequired(false)
+                    ->preload()
                     ->searchable()
                     ->multiple()
-                    ->preload()
                     ->native(false)
                     ->options(function () {
                         $qualificationTitles = TrainingProgram::all();
 
-                        return $qualificationTitles->mapWithKeys(function ($title) {
-                            $concatenatedName = $title->soc_code . " - " . $title->title;
-                            return [$title->id => $concatenatedName];
-                        })->toArray() ?: ['no_qualification_title' => 'No qualification title available'];
+                        return $qualificationTitles
+                            ->mapWithKeys(function ($title) {
+                                $concatenatedName = $title->soc_code . " - " . $title->title;
+                                return [$title->id => $concatenatedName];
+                            })
+                            ->toArray() ?: ['no_qualification_title' => 'No qualification titles available'];
                     })
                     ->disableOptionWhen(fn($value) => $value === 'no_qualification_title')
                     ->afterStateUpdated(function ($state, $set) {
@@ -121,14 +127,19 @@ class SkillPriorityResource extends Resource
 
                 TextInput::make('qualification_title')
                     ->label('Lot Name')
+                    ->placeholder('Enter lot name')
                     ->required()
-                    ->markAsRequired(false),
+                    ->markAsRequired(false)
+                    ->autocomplete(false)
+                    ->validationAttribute('lot name'),
 
                 TextInput::make('available_slots')
                     ->label('Available Slots')
                     ->required()
                     ->markAsRequired(false)
-                    ->integer()
+                    ->autocomplete(false)
+                    ->numeric()
+                    ->currencyMask(precision: 0)
                     ->disabled(fn($livewire) => $livewire->isEdit())
                     ->hidden(fn($livewire) => !$livewire->isEdit()),
 
@@ -137,14 +148,16 @@ class SkillPriorityResource extends Resource
                     ->placeholder('Enter number of slots')
                     ->required()
                     ->markAsRequired(false)
+                    ->autocomplete(false)
                     ->numeric()
                     ->default(0)
                     ->minValue(0)
-                    ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 0)
+                    ->currencyMask(precision: 0)
                     ->dehydrated(),
 
                 TextInput::make('year')
                     ->label('Year')
+                    ->placeholder('Enter year')
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
@@ -175,16 +188,23 @@ class SkillPriorityResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->emptyStateHeading('No skills priorities available')
             ->paginated([5, 10, 25, 50])
             ->columns([
-                TextColumn::make('provinces.name')
-                    ->label('Province')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-
                 TextColumn::make('district.name')
                     ->label('District')
+                    ->sortable()
+                    ->searchable(query: function ($query, $search) {
+                        return $query->whereHas('district', function ($q) use ($search) {
+                            $q->whereRaw("LOWER(name) LIKE ?", ["%" . strtolower($search) . "%"])
+                                ->orWhereRaw("LOWER(name) = ?", [strtolower($search)]);
+                        })
+                            ->orWhereHas('district.underMunicipality', function ($q) use ($search) {
+                                $q->whereRaw("LOWER(name) LIKE ?", ["%" . strtolower($search) . "%"])
+                                    ->orWhereRaw("LOWER(name) = ?", [strtolower($search)]);
+                            });
+                    })
+                    ->toggleable()
                     ->getStateUsing(function ($record) {
                         if ($record->district) {
                             if ($record->district->underMunicipality) {
@@ -197,25 +217,53 @@ class SkillPriorityResource extends Resource
                         }
                     }),
 
+                TextColumn::make('provinces.name')
+                    ->label('Province')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('qualification_title')
                     ->label('Lot Name')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable()
+                    ->limit(50)
+                    ->tooltip(fn($state): ?string => strlen($state) > 50 ? $state : null),
 
                 TextColumn::make('trainingProgram.title')
-                    ->searchable()
-                    ->label('SOC Title')
+                    ->label('Qualification Title')
+                    ->searchable(query: function ($query, $search) {
+                        $query->orWhereHas('trainingProgram', function ($q) use ($search) {
+                            $q->where('title', 'like', "%{$search}%")
+                                ->orWhere('soc_code', 'like', "%{$search}%");
+                        });
+                    })
+                    ->toggleable()
                     ->getStateUsing(function ($record) {
-                        return $record->trainingProgram->implode('title', ', ');
-                    }),
+                        if ($record->trainingProgram && $record->trainingProgram->isNotEmpty()) {
+                            return $record->trainingProgram
+                                ->filter(fn($program) => $program !== null)
+                                ->map(fn($program) => "{$program->soc_code} - {$program->title}")
+                                ->implode(', <br>');
+                        }
+                    })
+                    ->html(),
 
                 TextColumn::make('total_slots')
-                    ->label('Total Target Beneficiaries'),
+                    ->label('Total Target Beneficiaries')
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('available_slots')
-                    ->label('Available Target Beneficiaries'),
+                    ->label('Available Target Beneficiaries')
+                    ->sortable()
+                    ->toggleable(),
 
                 TextColumn::make('year')
-                    ->label('Year'),
+                    ->label('Year')
+                    ->sortable()
+                    ->toggleable(),
 
                 SelectColumn::make('status_id')
                     ->label('Status')
@@ -225,6 +273,8 @@ class SkillPriorityResource extends Resource
                     ])
                     ->disablePlaceholderSelection()
                     ->extraAttributes(['style' => 'width: 125px;'])
+                    ->sortable()
+                    ->toggleable(),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -274,6 +324,7 @@ class SkillPriorityResource extends Resource
                         ->icon('heroicon-o-document-text'),
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
+
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
@@ -292,10 +343,27 @@ class SkillPriorityResource extends Resource
                                 'year' => $record->year,
                                 'status' => $record->status->desc,
                             ])
-                            ->log("An Skill Priority for '{$record->qualification_title}' has been deleted.");
+                            ->log("A Skills Priority for '{$record->qualification_title}' has been deleted.");
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Allocation has been deleted successfully.');
+                            activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->event('Deleted')
+                            ->withProperties([
+                                'province' => $record->provinces->name,
+                                'district' => $record->district->name ?? null,
+                                'lot_name' => $record->qualification_title,
+                                'qualification_title' => $record->trainingProgram->implode('title', ', '),
+                                'available_slots' => $record->available_slots,
+                                'total_slots' => $record->total_slots,
+                                'year' => $record->year,
+                                'status' => $record->status->desc,
+                            ])
+                            ->log("A Skills Priority for '{$record->qualification_title}' has been deleted.");
+
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Skills priority has been deleted successfully.');
                         }),
+
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
@@ -314,15 +382,32 @@ class SkillPriorityResource extends Resource
                                 'year' => $record->year,
                                 'status' => $record->status->desc,
                             ])
-                            ->log("An Skill Priority for '{$record->qualification_title}' has been restored.");
+                            ->log("A Skills Priority for '{$record->qualification_title}' has been restored.");
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Allocation has been restored successfully.');
+                            activity()
+                            ->causedBy(auth()->user())
+                            ->performedOn($record)
+                            ->event('Restored')
+                            ->withProperties([
+                                'province' => $record->provinces->name,
+                                'district' => $record->district->name ?? null,
+                                'lot_name' => $record->qualification_title,
+                                'qualification_title' => $record->trainingProgram->implode('title', ', '),
+                                'available_slots' => $record->available_slots,
+                                'total_slots' => $record->total_slots,
+                                'year' => $record->year,
+                                'status' => $record->status->desc,
+                            ])
+                            ->log("A Skills Priority for '{$record->qualification_title}' has been restored.");
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Skills priority has been restored successfully.');
                         }),
+
                     ForceDeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->forceDelete();
 
-                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Allocation has been deleted permanently.');
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Skills priority has been deleted permanently.');
                         }),
                 ])
             ])
@@ -332,31 +417,30 @@ class SkillPriorityResource extends Resource
                         ->action(function ($records) {
                             $records->each->delete();
 
-                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected Skills Priority have been deleted successfully.');
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Selected skills priorities have been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete skills priority')),
+
                     RestoreBulkAction::make()
                         ->action(function ($records) {
                             $records->each->restore();
 
-                            NotificationHandler::sendSuccessNotification('Restored', 'Selected Skills Priority have been restored successfully.');
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected skills priorities have been restored successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore skills priority')),
+
                     ForceDeleteBulkAction::make()
                         ->action(function ($records) {
                             $records->each->forceDelete();
 
-                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected Skills Priority have been deleted permanently.');
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected skills priorities have been deleted permanently.');
                         })
                         ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete skills priority')),
+
                     ExportBulkAction::make()
                         ->exports([
                             CustomSkillsPriorityExport::make()
                                 ->withColumns([
-                                    Column::make('provinces.name')
-                                        ->heading('Province')
-                                        ->formatStateUsing(fn($record) => $record->provinces->name ?? '-'),
-
                                     Column::make('district.name')
                                         ->heading('District')
                                         ->formatStateUsing(fn($record) => $record->district->name ?? '-'),
@@ -365,27 +449,31 @@ class SkillPriorityResource extends Resource
                                         ->heading('Municipality')
                                         ->formatStateUsing(fn($record) => $record->district->underMunicipality->name ?? '-'),
 
+                                    Column::make('provinces.name')
+                                        ->heading('Province'),
+
                                     Column::make('qualification_title')
-                                        ->heading('LOT Name')
-                                        ->formatStateUsing(fn($record) => $record->qualification_title ?? '-'),
+                                        ->heading('Lot Name'),
 
                                     Column::make('trainingPrograms.title')
-                                        ->heading('SOC Title')
+                                        ->heading('Qualifications Title')
                                         ->getStateUsing(function ($record) {
-                                            return $record->trainingProgram->implode('title', ', ');
+                                            if ($record->trainingProgram && $record->trainingProgram->isNotEmpty()) {
+                                                return $record->trainingProgram
+                                                    ->filter(fn($program) => $program !== null)
+                                                    ->map(fn($program) => "{$program->soc_code} - {$program->title}")
+                                                    ->implode(', <br>');
+                                            }
                                         }),
 
                                     Column::make('total_slots')
-                                        ->heading('Total Target Beneficiaries')
-                                        ->formatStateUsing(fn($record) => $record->total_slots ?? 0),
+                                        ->heading('Total Target Beneficiaries'),
 
                                     Column::make('available_slots')
-                                        ->heading('Available Target Beneficiaries')
-                                        ->formatStateUsing(fn($record) => $record->available_slots ?? 0),
+                                        ->heading('Available Target Beneficiaries'),
 
                                     Column::make('year')
-                                        ->heading('Year')
-                                        ->formatStateUsing(fn($record) => $record->year ?? '-'),
+                                        ->heading('Year'),
                                 ])
                                 ->withFilename(date('Y-m-d') . ' - Skills Priorities.xlsx'),
                         ])
@@ -409,5 +497,4 @@ class SkillPriorityResource extends Resource
             'edit' => Pages\EditSkillPriority::route('/{record}/edit'),
         ];
     }
-
 }

@@ -37,6 +37,7 @@ class ListProvinces extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -63,7 +64,7 @@ class ListProvinces extends ListRecords
 
             Action::make('ProvinceExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new ProvinceExport, now()->format('m-d-Y') . ' - ' . 'Provinces.xlsx');

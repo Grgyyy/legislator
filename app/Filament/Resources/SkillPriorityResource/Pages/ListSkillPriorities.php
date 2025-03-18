@@ -20,6 +20,9 @@ class ListSkillPriorities extends ListRecords
 {
     protected static string $resource = SkillPriorityResource::class;
 
+    protected static ?string $title = 'Skills Priorities';
+
+
     protected function getCreatedNotificationTitle(): ?string
     {
         return null;
@@ -34,9 +37,10 @@ class ListSkillPriorities extends ListRecords
 
             Action::make('SkillPriorityUpdate')
                 ->label('Update')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -49,9 +53,9 @@ class ListSkillPriorities extends ListRecords
 
                         try {
                             Excel::import(new SkillPriorityUpdate, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Skill Priorities have been successfully updated from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The skills priorities have been successfully updated from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue updating the skill priorities: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue updating the skills priorities: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);
@@ -63,9 +67,10 @@ class ListSkillPriorities extends ListRecords
 
             Action::make('SkillPriorityImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -78,9 +83,9 @@ class ListSkillPriorities extends ListRecords
 
                         try {
                             Excel::import(new SkillsPriorityImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Skill Priorities have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The skills priorities have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the skill priorities: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the skills priorities: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);
@@ -92,7 +97,7 @@ class ListSkillPriorities extends ListRecords
 
             Action::make('SkillsPriorityExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new SkillsPriorityExport, now()->format('m-d-Y') . ' - ' . 'Skills Priorities.xlsx');

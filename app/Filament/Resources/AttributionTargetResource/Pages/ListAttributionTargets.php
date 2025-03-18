@@ -34,12 +34,13 @@ class ListAttributionTargets extends ListRecords
                 ->label('New')
                 ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
-
             Action::make('AttributionTargetImport')
+                ->label('')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -52,7 +53,7 @@ class ListAttributionTargets extends ListRecords
 
                         try {
                             Excel::import(new AttributionTargetImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Attribution Targets have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The attribution targets have been successfully imported from the file.');
                         } catch (Exception $e) {
                             NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the attribution targets: ' . $e->getMessage());
                         } finally {
@@ -64,29 +65,9 @@ class ListAttributionTargets extends ListRecords
                 })
                 ->visible(fn() => !Auth::user()->hasRole(['SMD Focal', 'RO'])),
 
-            Action::make('AdminAttributionTargetImport')
-                ->label('Admin Import')
-                ->icon('heroicon-o-document-arrow-up')
-                ->form([
-                    FileUpload::make('attachment')
-                        ->required(),
-                ])
-                ->action(function (array $data) {
-                    $file = public_path('storage/' . $data['attachment']);
-
-                    try {
-                        Excel::import(new AdminAttributionTargetImport, $file);
-                        NotificationHandler::sendSuccessNotification('Import Successful', 'Target data have been successfully imported from the file.');
-                    } catch (Exception $e) {
-                        NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the Target data: ' . $e->getMessage());
-                    }
-                })
-                // ->visible(fn() => Auth::user()->hasRole('Super Admin')),
-                ->visible(false),
-
             Action::make('AttributionTargetExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new AttributionTargetExport, now()->format('m-d-Y') . ' - ' . 'Pending Attribution Targets.xlsx');

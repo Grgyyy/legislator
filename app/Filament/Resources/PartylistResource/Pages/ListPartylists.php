@@ -46,6 +46,7 @@ class ListPartylists extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -72,7 +73,7 @@ class ListPartylists extends ListRecords
 
             Action::make('PartylistExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new PartylistExport, now()->format('m-d-Y') . ' - ' . 'Party-lists.xlsx');

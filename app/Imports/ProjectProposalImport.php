@@ -116,7 +116,7 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
                 ];
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
-                    $message = "Insufficient available slots in Skill Priorities to create the target.";
+                    $message = "Insufficient available slots in Skills Priorities to create the target.";
                     NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
 
