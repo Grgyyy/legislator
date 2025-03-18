@@ -102,6 +102,25 @@ class EditSkillPriority extends EditRecord
         });
     }
 
+    protected function afterSave(): void
+    {
+        activity()
+        ->causedBy(auth()->user())
+        ->performedOn($this->record)
+        ->event('Updated')
+        ->withProperties([
+            'province' => $this->record->provinces->name,
+            'district' => $this->record->district->name,
+            'lot_name' => $this->record->qualification_title,
+            'qualification_title' => $this->record->trainingProgram->implode('title', ', '),
+            'available_slots' => $this->record->available_slots,
+            'total_slots' => $this->record->total_slots,
+            'year' => $this->record->year,
+            'status' => $this->record->status->desc,
+        ])
+        ->log("An Skill Priority for '{$this->record->qualification_title}' has been updated.");
+    }
+
     protected function validateUpdateData(array $data): void
     {
         $validator = Validator::make($data, [

@@ -48,6 +48,22 @@ class ToolkitImport implements ToModel, WithHeadingRow
 
                 if ($toolkitRecord->exists) {
                     $toolkitRecord->qualificationTitles()->syncWithoutDetaching([$qualificationTitle->id]);
+
+                    activity()
+                    ->causedBy(auth()->user())
+                    ->performedOn($toolkitRecord)
+                    ->event('Created')
+                    ->withProperties([
+                        'lot_name' => $toolkitRecord->lot_name,
+                        'price_per_toolkit' => $toolkitRecord->price_per_toolkit ?? null,
+                        'qualification_title' => $toolkitRecord->qualificationTitles->implode('trainingProgram.title', ', '),
+                        'available_number_of_toolkits' => $toolkitRecord->available_number_of_toolkits,
+                        'number_of_toolkits' => $toolkitRecord->number_of_toolkits,
+                        'total_abc_per_lot' => $toolkitRecord->total_abc_per_lot,
+                        'number_of_items_per_toolkit' => $toolkitRecord->number_of_items_per_toolkit,
+                        'year' => $toolkitRecord->year,
+                    ])
+                    ->log("An Tookit for '{$toolkitRecord->lot_name}' has been created.");
                 }
 
                 return $toolkitRecord;

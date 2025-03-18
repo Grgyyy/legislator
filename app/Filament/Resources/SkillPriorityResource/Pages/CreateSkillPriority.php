@@ -87,6 +87,25 @@ class CreateSkillPriority extends CreateRecord
         });
     }
 
+    protected function afterCreate(): void
+    {
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($this->record)
+            ->event('Created')
+            ->withProperties([
+                'province' => $this->record->provinces->name,
+                'district' => $this->record->district->name ?? null,
+                'lot_name' => $this->record->qualification_title,
+                'qualification_title' => $this->record->trainingProgram->implode('title', ', '),
+                'available_slots' => $this->record->available_slots,
+                'total_slots' => $this->record->total_slots,
+                'year' => $this->record->year,
+                'status' => $this->record->status->desc,
+            ])
+            ->log("An Skill Priority for '{$this->record->qualification_title}' has been created.");
+    }
+
     protected function validateCreateData(array $data): void
     {
         $validator = Validator::make($data, [

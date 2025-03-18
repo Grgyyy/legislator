@@ -70,6 +70,8 @@ class DistrictResource extends Resource
                     ->placeholder('Enter PSG code')
                     ->autocomplete(false)
                     ->numeric()
+                    ->minLength(10)
+                    ->maxLength(10)
                     ->currencyMask(thousandSeparator: '', precision: 0)
                     ->validationAttribute('PSG code'),
 

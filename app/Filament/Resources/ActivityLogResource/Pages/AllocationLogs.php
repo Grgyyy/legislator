@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\ActivityLogResource\Pages;
 
-use App\Filament\Resources\LegislativeTargetsResource;
+use App\Filament\Resources\ActivityLogResource;
 use App\Models\Allocation;
 use App\Models\Particular;
 use App\Models\User;
@@ -16,21 +16,8 @@ class AllocationLogs extends ListRecords
 {
     use ExposesTableToWidgets;
 
-    protected static string $resource = LegislativeTargetsResource::class;
-
-    protected function getLegislatorName(): string
-    {
-        $allocationId = request()->route('record');
-        $allocation = Allocation::find($allocationId);
-
-        if (!$allocation) {
-            abort(404, 'Allocation not found.');
-        }
-
-        return $allocation->legislator->name ?? 'Unknown Legislator';
-    }
-
-
+    protected static string $resource = ActivityLogResource::class;
+    
     public function getTitle(): string
     {
         $allocationId = request()->route('record');
@@ -44,7 +31,9 @@ class AllocationLogs extends ListRecords
     public function getBreadcrumbs(): array
     {
         $allocationId = request()->route('record');
-        $allocation = Allocation::find($allocationId);
+        $allocation = Allocation::withTrashed()
+            ->where('id', $allocationId)
+            ->first();
 
         return [
             route('filament.admin.resources.allocations.index') => $allocation ? $allocation->legislator->name : 'Legislator',
@@ -59,7 +48,8 @@ class AllocationLogs extends ListRecords
 
         return Activity::query()
             ->where('subject_type', Allocation::class)
-            ->where('subject_id', $allocationId);
+            ->where('subject_id', $allocationId)
+            ->orderBy('created_at', 'desc');
     }
 
     public function table(Tables\Table $table): Tables\Table
@@ -211,8 +201,16 @@ class AllocationLogs extends ListRecords
                 TextColumn::make('event')
                     ->label('Event')
                     ->badge()
-                    ->formatStateUsing(fn($state) => ucfirst($state)),
-
+                    ->formatStateUsing(fn ($state) => ucfirst($state)),
+                    
+                TextColumn::make('updated_at')
+                    ->label('Date Encoded')
+                    ->formatStateUsing(fn ($state) => 
+                        \Carbon\Carbon::parse($state)->format('M j, Y') . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' . 
+                        \Carbon\Carbon::parse($state)->format('h:i A')
+                    )
+                    ->html()
+                
             ])
             ->filters([
                 ]);

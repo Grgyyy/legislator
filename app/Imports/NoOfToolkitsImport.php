@@ -38,6 +38,22 @@ class NoOfToolkitsImport implements ToModel, WithHeadingRow
                     'total_abc_per_lot' => $toolkit->price_per_toolkit * $row['no_of_toolkits'],
                 ]);
 
+                activity()
+                ->causedBy(auth()->user())
+                ->performedOn($toolkit)
+                ->event('Updated')
+                ->withProperties([
+                    'lot_name' => $toolkit->lot_name,
+                    'price_per_toolkit' => $toolkit->price_per_toolkit ?? null,
+                    'qualification_title' => $toolkit->qualificationTitles->implode('trainingProgram.title', ', '),
+                    'available_number_of_toolkits' => $toolkit->available_number_of_toolkits,
+                    'number_of_toolkits' => $toolkit->number_of_toolkits,
+                    'total_abc_per_lot' => $toolkit->total_abc_per_lot,
+                    'number_of_items_per_toolkit' => $toolkit->number_of_items_per_toolkit,
+                    'year' => $toolkit->year,
+                ])
+                ->log("An Tookit for '{$toolkit->lot_name}' has been updated.");
+
                 return $toolkit;
 
             });

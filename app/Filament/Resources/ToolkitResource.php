@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -130,8 +131,8 @@ class ToolkitResource extends Resource
                     ->minValue(1)
                     ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                     ->validationMessages([
-                        'min' => 'The allocation must be at least ₱1.00',
-                        'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                        'min' => 'The price per toolkit must be at least ₱1.00',
+                        'max' => 'The price per toolkit cannot exceed ₱999,999,999,999.99.'
                     ])
                     ->validationAttribute('price per toolkit'),
 
@@ -285,17 +286,53 @@ class ToolkitResource extends Resource
             ])
             ->actions([
                 ActionGroup::make([
+                    Action::make('viewLogs')
+                        ->label('View Logs')
+                        ->url(fn($record) => route('filament.admin.resources.activity-logs.toolkitLogs', ['record' => $record->id]))
+                        ->icon('heroicon-o-document-text'),
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make()
                         ->action(function ($record, $data) {
                             $record->delete();
 
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Deleted')
+                                ->withProperties([
+                                    'lot_name' => $record->lot_name,
+                                    'price_per_toolkit' => $record->price_per_toolkit ?? null,
+                                    'qualification_title' => $record->qualificationTitles->implode('trainingProgram.title', ', '),
+                                    'available_number_of_toolkits' => $record->available_number_of_toolkits,
+                                    'number_of_toolkits' => $record->number_of_toolkits,
+                                    'total_abc_per_lot' => $record->total_abc_per_lot,
+                                    'number_of_items_per_toolkit' => $record->number_of_items_per_toolkit,
+                                    'year' => $record->year,
+                                ])
+                                ->log("An Tookit for '{$record->lot_name}' has been deleted.");
+
                             NotificationHandler::sendSuccessNotification('Deleted', 'Training program has been deleted successfully.');
                         }),
                     RestoreAction::make()
                         ->action(function ($record, $data) {
                             $record->restore();
+
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Restored')
+                                ->withProperties([
+                                    'lot_name' => $record->lot_name,
+                                    'price_per_toolkit' => $record->price_per_toolkit ?? null,
+                                    'qualification_title' => $record->qualificationTitles->implode('trainingProgram.title', ', '),
+                                    'available_number_of_toolkits' => $record->available_number_of_toolkits,
+                                    'number_of_toolkits' => $record->number_of_toolkits,
+                                    'total_abc_per_lot' => $record->total_abc_per_lot,
+                                    'number_of_items_per_toolkit' => $record->number_of_items_per_toolkit,
+                                    'year' => $record->year,
+                                ])
+                                ->log("An Tookit for '{$record->lot_name}' has been restored.");
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Training program has been restored successfully.');
                         }),

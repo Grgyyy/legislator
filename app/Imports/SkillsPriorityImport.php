@@ -62,6 +62,22 @@ class SkillsPriorityImport implements ToModel, WithHeadingRow
                 $qualificationTitle = $this->getTrainingProgram($qualificationTitle, $row['soc_code']);
                 $skillPriority->trainingProgram()->syncWithoutDetaching([$qualificationTitle->id]);
 
+                activity()
+                ->causedBy(auth()->user())
+                ->performedOn($skillPriority)
+                ->event('Created')
+                ->withProperties([
+                    'province' => $skillPriority->provinces->name,
+                    'district' => $skillPriority->district->name ?? null, 
+                    'lot_name' => $skillPriority->qualification_title,
+                    'qualification_title' => $skillPriority->trainingProgram->implode('title', ', '),
+                    'available_slots' => $skillPriority->available_slots,
+                    'total_slots' => $skillPriority->total_slots,
+                    'year' => $skillPriority->year,
+                    'status' => $skillPriority->status->desc,
+                ])
+                ->log("An Skill Priority for '{$skillPriority->qualification_title}' has been created.");
+
                 return $skillPriority;
             });
         } catch (\Throwable $e) {

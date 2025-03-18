@@ -224,8 +224,8 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        }    
-        
+        }
+
         $lagunaProvince = DB::table('provinces')
             ->where('name', 'Laguna')
             ->first();
@@ -278,7 +278,7 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        }        
+        }
 
         $iloiloProvince = DB::table('provinces')
             ->where('name', 'Iloilo')
@@ -304,7 +304,7 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        }        
+        }
 
         $negrosOccidentalProvince = DB::table('provinces')
         ->where('name', 'Negros Occidental')
@@ -330,7 +330,7 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        } 
+        }
 
 
 
@@ -360,7 +360,7 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        }   
+        }
 
 
         $zamboangaProvince = DB::table('provinces')
@@ -387,11 +387,11 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        }   
+        }
 
 
         $zamboangaSibugayProvince = DB::table('provinces')
-            ->where('name', 'Zamboanga Sibugay')
+            ->where('name', 'Basilan')
             ->first();
 
         if ($zamboangaSibugayProvince) {
@@ -414,7 +414,7 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        }   
+        }
 
         $lanaoProvince = DB::table('provinces')
             ->where('name', 'Lanao del Norte')
@@ -440,7 +440,7 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        }   
+        }
 
         $misamisOrientalProvince = DB::table('provinces')
             ->where('name', 'Misamis Oriental')
@@ -466,7 +466,7 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        }   
+        }
 
 
         $davaoDelSurProvince = DB::table('provinces')
@@ -493,10 +493,10 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        } 
+        }
 
         $southCotabatoProvince = DB::table('provinces')
-            ->where('name', 'South Cotabato')
+            ->where('name', 'Sarangani')
             ->first();
 
         if ($southCotabatoProvince) {
@@ -519,7 +519,7 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        } 
+        }
 
 
         $agusanDelNorteProvince = DB::table('provinces')
@@ -546,7 +546,7 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        } 
+        }
 
 
         $benguetProvince = DB::table('provinces')
@@ -573,7 +573,7 @@ class MunicipalitySeeder extends Seeder
                     ]);
                 }
             }
-        } 
-        
+        }
+
     }
 }

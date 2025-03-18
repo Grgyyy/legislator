@@ -34,7 +34,6 @@ class DistrictImport implements ToModel, WithHeadingRow
                 $municipality_id = null;
 
                 $districtIsExist = District::where('name', $districtName)
-                    ->where('code', $row['code'])
                     ->where('municipality_id', $municipality_id)
                     ->where('province_id', $province_id)
                     ->exists();

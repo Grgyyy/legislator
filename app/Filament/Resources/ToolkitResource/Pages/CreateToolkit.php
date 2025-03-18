@@ -76,6 +76,26 @@ class CreateToolkit extends CreateRecord
         });
     }
 
+    protected function afterCreate(): void
+    {
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($this->record)
+            ->event('Created')
+            ->withProperties([
+                'lot_name' => $this->record->lot_name,
+                'price_per_toolkit' => $this->record->price_per_toolkit ?? null,
+                'qualification_title' => $this->record->qualificationTitles->implode('trainingProgram.title', ', '),
+                'available_number_of_toolkits' => $this->record->available_number_of_toolkits,
+                'number_of_toolkits' => $this->record->number_of_toolkits,
+                'total_abc_per_lot' => $this->record->total_abc_per_lot,
+                'number_of_items_per_toolkit' => $this->record->number_of_items_per_toolkit,
+                'year' => $this->record->year,
+            ])
+            ->log("An Tookit for '{$this->record->lot_name}' has been created.");
+    }
+
+
     protected function validateUniqueToolkit($data)
     {
         $toolkit = Toolkit::withTrashed()
