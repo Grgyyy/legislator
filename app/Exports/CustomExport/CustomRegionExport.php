@@ -8,7 +8,6 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class CustomRegionExport extends ExcelExport implements WithDrawings

@@ -3,8 +3,6 @@
 namespace App\Filament\Resources\LegislativeTargetsResource\Pages;
 
 use App\Filament\Resources\LegislativeTargetsResource;
-use Filament\Actions;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateLegislativeTargets extends CreateRecord

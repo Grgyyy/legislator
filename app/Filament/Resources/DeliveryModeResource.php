@@ -4,16 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Exports\CustomExport\CustomDeliveryModeExport;
 use App\Filament\Resources\DeliveryModeResource\Pages;
-use App\Filament\Resources\DeliveryModeResource\RelationManagers;
 use App\Models\DeliveryMode;
-use App\Models\LearningMode;
 use App\Services\NotificationHandler;
-use Filament\Forms;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -24,12 +19,9 @@ use Filament\Tables\Actions\RestoreAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class DeliveryModeResource extends Resource
 {

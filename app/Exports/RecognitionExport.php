@@ -48,7 +48,6 @@ class RecognitionExport implements FromQuery, WithHeadings, WithStyles, WithMapp
         ];
     }
 
-
     public function drawings()
     {
         $tesda_logo = new Drawing();

@@ -6,7 +6,6 @@ use App\Exports\CustomExport\CustomSkillsPriorityExport;
 use App\Filament\Resources\SkillPriorityResource\Pages;
 use App\Models\District;
 use App\Models\Province;
-use App\Models\QualificationTitle;
 use App\Models\SkillPriority;
 use App\Models\Status;
 use App\Models\TrainingProgram;
@@ -16,9 +15,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Resources\Resource;
-use Filament\Support\Enums\MaxWidth;
-use Filament\Tables;
-use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -35,13 +31,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\HtmlString;
-use PhpParser\Node\Stmt\Label;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class SkillPriorityResource extends Resource
 {

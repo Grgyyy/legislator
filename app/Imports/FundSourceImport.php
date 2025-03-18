@@ -4,7 +4,6 @@ namespace App\Imports;
 use App\Helpers\Helper;
 use App\Models\FundSource;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -30,8 +29,6 @@ class FundSourceImport implements ToModel, WithHeadingRow
                     ]);
                 }
             } catch (Throwable $e) {
-                Log::error('Failed to import Fund Source: ' . $e->getMessage());
-
                 throw $e;
             }
         });

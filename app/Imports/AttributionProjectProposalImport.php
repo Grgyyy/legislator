@@ -28,7 +28,6 @@ use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -147,7 +146,6 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
 
             });
         } catch (Throwable $e) {
-            Log::error("Import failed: " . $e->getMessage());
             throw $e;
         }
     }
@@ -203,20 +201,21 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
     }
 
 
-    protected function validateInstitutionProgram(int $tviId, int $qualiId) {
+    protected function validateInstitutionProgram(int $tviId, int $qualiId)
+    {
         $institution = Tvi::find($tviId);
         $quali = TrainingProgram::find($qualiId);
-    
+
         if (!$institution) {
             $message = "Institution with ID {$tviId} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-    
+
         if (!$quali) {
             $message = "Qualification with ID {$qualiId} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
-        
+
         $instiPrograms = $institution->trainingPrograms()->pluck('training_programs.id');
 
         if (!$instiPrograms->contains($qualiId)) {
@@ -452,7 +451,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
 
     protected function getQualificationTitle(string $qualificationTitleName, string $socCode, string $qualCodeSchoPro, $scholarshipProgram)
     {
-        
+
         $scholarship = ScholarshipProgram::where('name', $qualCodeSchoPro)
             ->first();
 
@@ -467,8 +466,8 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
         }
 
         $qualSchoPro = ScholarshipProgram::where('name', $qualCodeSchoPro)
-                        ->where('code', $scholarshipProgram->name)
-                        ->first();
+            ->where('code', $scholarshipProgram->name)
+            ->first();
 
         if (!$qualSchoPro) {
             $message = "Scholarship Program named '{$qualCodeSchoPro}' with a code of '{$scholarshipProgram->name}' not found.";
@@ -478,7 +477,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
         $qualificationTitle = QualificationTitle::where('scholarship_program_id', $qualSchoPro->id)
             ->whereHas('trainingProgram', function ($query) use ($qualificationTitleName, $socCode) {
                 $query->where('title', $qualificationTitleName)
-                ->where('soc_code', $socCode);
+                    ->where('soc_code', $socCode);
             })
             ->whereNull('deleted_at')
             ->first();
@@ -529,23 +528,23 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                 })
                 ->first();
         }
-        
+
         if (!$skillPrograms) {
             NotificationHandler::handleValidationException('Something went wrong', 'Skill Priority does not exists.');
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

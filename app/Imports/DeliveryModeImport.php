@@ -2,10 +2,9 @@
 
 namespace App\Imports;
 
-use App\Helpers\Helper; // Import the Helper class
+use App\Helpers\Helper;
 use App\Models\DeliveryMode;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -35,7 +34,6 @@ class DeliveryModeImport implements ToModel, WithHeadingRow
                 }
 
             } catch (Throwable $e) {
-                Log::error('Failed to import Delivery Mode: ' . $e->getMessage());
                 throw $e;
             }
         });

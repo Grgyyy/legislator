@@ -10,8 +10,6 @@ use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
 use App\Services\NotificationHandler;
-use Exception;
-use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -99,7 +97,7 @@ class CreateCompliantTargets extends CreateRecord
             ->body($message)
             ->send();
     }
-    
+
     private function findTarget($targetId): Target
     {
         return Target::findOrFail($targetId);
@@ -111,13 +109,13 @@ class CreateCompliantTargets extends CreateRecord
             ->where('particular_id', $data['attribution_receiver_particular'])
             ->where('scholarship_program_id', $data['attribution_scholarship_program'])
             ->where('year', $data['allocation_year']);
-    
+
         // Apply attributor conditions if they are provided
         if (!empty($data['attributor_id'])) {
             $query->where('attributor_id', $data['attribution_sender'] ?? null)
-                  ->where('attributor_particular_id', $data['attribution_sender_particular'] ?? null);
+                ->where('attributor_particular_id', $data['attribution_sender_particular'] ?? null);
         }
-    
+
         return $query->first();
     }
 

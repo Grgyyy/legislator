@@ -6,7 +6,6 @@ use App\Filament\Resources\TargetResource;
 use App\Models\Allocation;
 use App\Models\District;
 use App\Models\Province;
-use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
@@ -14,12 +13,9 @@ use App\Models\SkillPrograms;
 use App\Models\Status;
 use App\Models\Target;
 use App\Models\TargetHistory;
-use App\Models\Toolkit;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
-use Exception;
-use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
@@ -99,7 +95,7 @@ class CreateTarget extends CreateRecord
                 $allocation->decrement('balance', $totals['total_amount']);
                 $skillPriority->decrement('available_slots', $numberOfSlots);
 
-              
+
                 $this->logTargetHistory($targetData, $target, $allocation, $totals);
 
                 $lastCreatedTarget = $target;
@@ -185,19 +181,19 @@ class CreateTarget extends CreateRecord
                 })
                 ->first();
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
@@ -313,5 +309,5 @@ class CreateTarget extends CreateRecord
         ]);
     }
 
-    
+
 }

@@ -3,9 +3,6 @@
 namespace App\Filament\Resources\TargetResource\Pages;
 
 use App\Filament\Resources\TargetCommentResource;
-use App\Filament\Resources\TargetHistoryResource;
-use App\Models\Province;
-use App\Models\Region;
 use App\Models\TargetComment;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
@@ -16,7 +13,7 @@ class ShowComments extends ListRecords
 
     protected ?string $heading = 'Target Comments';
 
-     protected function getFormActions(): array
+    protected function getFormActions(): array
     {
         return [
             $this->getCreateFormAction()
@@ -27,7 +24,7 @@ class ShowComments extends ListRecords
                 ->label('Exit'),
         ];
     }
-    
+
     public function mount(): void
     {
         $targetId = $this->getTargetId();

@@ -3,7 +3,6 @@
 
 namespace App\Exports;
 
-use App\Exports\RegionExport;
 use App\Models\SubParticular;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -74,7 +73,6 @@ class ParticularTypesExport implements FromQuery, WithMapping, WithStyles, WithH
 
         return [$tesda_logo, $tuv_logo];
     }
-
 
     public function columnWidths(): array
     {

@@ -412,7 +412,7 @@ class NonCompliantTargetResource extends Resource
                                 ->hidden(function ($get) {
                                     $id = $get('qualification_title_id');
                                     $qualificationTitle = QualificationTitle::find($id)?->soc; // Safe retrieval
-                                
+                
                                     return $qualificationTitle; // Show when soc = 1, hide otherwise
                                 })
                                 ->reactive()

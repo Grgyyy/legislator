@@ -100,8 +100,6 @@ class LegislatorExport implements FromQuery, WithMapping, WithStyles, WithHeadin
         return [$tesda_logo, $tuv_logo];
     }
 
-
-
     public function columnWidths(): array
     {
         return [

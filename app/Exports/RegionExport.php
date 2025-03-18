@@ -82,7 +82,6 @@ class RegionExport implements FromQuery, WithMapping, WithStyles, WithHeadings, 
         ];
     }
 
-
     public function styles(Worksheet $sheet)
     {
         $columnCount = count($this->columns);

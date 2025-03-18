@@ -2,31 +2,30 @@
 
 namespace App\Imports;
 
-use App\Models\DeliveryMode;
-use App\Models\LearningMode;
-use App\Models\Particular;
-use App\Models\SkillPriority;
-use App\Models\SubParticular;
-use App\Models\TargetStatus;
-use Throwable;
-use App\Models\Tvi;
 use App\Models\Abdd;
-use App\Models\Region;
-use App\Models\Target;
-use App\Models\District;
-use App\Models\Province;
-use App\Models\Partylist;
 use App\Models\Allocation;
+use App\Models\DeliveryMode;
+use App\Models\District;
+use App\Models\LearningMode;
 use App\Models\Legislator;
 use App\Models\Municipality;
-use App\Models\TargetHistory;
+use App\Models\Particular;
+use App\Models\Partylist;
+use App\Models\Province;
 use App\Models\QualificationTitle;
+use App\Models\Region;
 use App\Models\ScholarshipProgram;
+use App\Models\SkillPriority;
+use App\Models\SubParticular;
+use App\Models\Target;
+use App\Models\TargetHistory;
+use App\Models\TargetStatus;
+use App\Models\Tvi;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class AdminAttributionTargetImport implements ToModel, WithHeadingRow
 {
@@ -51,7 +50,7 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
                 $attribution_sub_particular = $this->getSubParticular($row['attributor_particular']);
                 $attribution_particular = $this->getParticular($attribution_sub_particular->id, $attribution_partylist->id, $attribution_district->id);
                 $scholarship_program = $this->getScholarshipProgram($row['scholarship_program']);
-                $attributor_allocation = $this->getAllocation($attributor->id, $attribution_particular->id, $scholarship_program->id,  $row['appropriation_year']);
+                $attributor_allocation = $this->getAllocation($attributor->id, $attribution_particular->id, $scholarship_program->id, $row['appropriation_year']);
 
 
                 // Receiver
@@ -59,7 +58,7 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
                 $region = $this->getRegion($row['region']);
                 $province = $this->getProvince($row['province'], $region->id);
                 $district = $this->getDistrict($row['district'], $province->id);
-                $municipality = $this->getMunicipality($row['municipality'],  $province->id);
+                $municipality = $this->getMunicipality($row['municipality'], $province->id);
                 $partylist = $this->getPartylist($row['partylist']);
                 $sub_particular = $this->getSubParticular($row['particular']);
                 $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
@@ -73,7 +72,7 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
 
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $scholarship_program->id);
                 $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots);
-                
+
                 $skillPriority = $this->getSkillPriority(
                     $qualificationTitle->training_program_id,
                     $tvi->district->province_id,
@@ -88,7 +87,7 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
                     'allocation_id' => $allocation->id,
                     'district_id' => $tvi->district_id,
                     'municipality_id' => $tvi->municipality_id,
-                    'tvi_id'  => $tvi->id,
+                    'tvi_id' => $tvi->id,
                     'tvi_name' => $tvi->name,
                     'abdd_id' => $abddSector->id,
                     'qualification_title_id' => $qualificationTitle->id,
@@ -111,7 +110,7 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
                     'appropriation_type' => $row['appropriation_type'],
                     'target_status_id' => $pendingStatus->id,
                 ];
-                
+
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
                     throw new \Exception("Insufficient available slots in Skill Priorities to create the target.");
@@ -130,10 +129,9 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
                 // $allocation->increment('attribution_received', $totals['total_amount']);
 
                 $this->logTargetHistory($target, $allocation, $totals);
-             
+
             });
         } catch (Throwable $e) {
-            Log::error("Import failed: " . $e->getMessage());
             throw $e;
         }
     }
@@ -190,9 +188,9 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
     {
         $legislator = Legislator::where('name', $legislatorName)
             ->whereNull('deleted_at')
-            ->has('allocation') 
+            ->has('allocation')
             ->first();
-    
+
         if (!$legislator) {
             throw new \Exception("No active legislator with an allocation found for name: {$legislatorName}");
         }
@@ -205,7 +203,7 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
         $region = Region::where('name', $regionName)
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$region) {
             throw new \Exception("Region with name '{$regionName}' not found.");
         }
@@ -219,7 +217,7 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
             ->where('region_id', $regionId)
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$province) {
             throw new \Exception("Province with name '{$provinceName}' not found.");
         }
@@ -233,7 +231,7 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
             ->where('province_id', $provinceId)
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$district) {
             throw new \Exception("District with name '{$districtName}' not found.");
         }
@@ -247,7 +245,7 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
             ->where('province_id', $provinceId)
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$municipality) {
             throw new \Exception("Municipality with name '{$municipalityName}' not found.");
         }
@@ -318,14 +316,14 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
             ->where('year', $appropriationYear)
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$allocation) {
             throw new \Exception("No allocation found matching the provided legislator, particular, scholarship program, and year.");
         }
-    
+
         return $allocation;
     }
-    
+
     protected function getAbddSector(string $abddSectorName)
     {
         $abddSector = Abdd::where('name', $abddSectorName)
@@ -389,13 +387,13 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
             })
             ->whereNull('deleted_at')
             ->first();
-    
+
         if (!$qualificationTitle) {
             throw new \Exception("Qualification Title with name '{$qualificationTitleName}' not found.");
         }
-    
+
         return $qualificationTitle;
-    }    
+    }
 
     private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots): array
     {
@@ -414,7 +412,7 @@ class AdminAttributionTargetImport implements ToModel, WithHeadingRow
         ];
     }
 
-    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority 
+    private function getSkillPriority(int $trainingProgram, int $provinceId, int $appropriationYear): SkillPriority
     {
         $skillPriority = SkillPriority::where([
             'training_program_id' => $trainingProgram,

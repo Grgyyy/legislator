@@ -127,8 +127,8 @@ class EditParticular extends EditRecord
             ->first();
 
         if ($existingParticular) {
-            $message = $existingParticular->deleted_at 
-                ? 'A particular with the specified type, party-list, and district has been deleted and must be restored before reuse.' 
+            $message = $existingParticular->deleted_at
+                ? 'A particular with the specified type, party-list, and district has been deleted and must be restored before reuse.'
                 : 'A particular with the specified type, party-list, and district already exists.';
 
             NotificationHandler::handleValidationException('Validation Error', $message);

@@ -8,7 +8,6 @@ use App\Models\ScholarshipProgram;
 use App\Models\TrainingProgram;
 use App\Models\Tvet;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -63,8 +62,6 @@ class TrainingProgramsImport implements ToModel, WithHeadingRow
 
                 return $trainingProgram;
             } catch (Throwable $e) {
-                Log::error('Failed to import training program: ' . $e->getMessage());
-
                 throw $e;
             }
         });

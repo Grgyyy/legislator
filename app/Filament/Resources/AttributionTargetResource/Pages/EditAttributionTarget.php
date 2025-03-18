@@ -6,7 +6,6 @@ use App\Filament\Resources\AttributionTargetResource;
 use App\Models\Allocation;
 use App\Models\District;
 use App\Models\Province;
-use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
@@ -16,8 +15,6 @@ use App\Models\TargetHistory;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
-use Exception;
-use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -76,9 +73,17 @@ class EditAttributionTarget extends EditRecord
     {
         return DB::transaction(function () use ($record, $data) {
             $requiredFields = [
-                'attribution_sender', 'attribution_sender_particular', 'attribution_scholarship_program',
-                'allocation_year', 'attribution_appropriation_type', 'attribution_receiver', 'attribution_receiver_particular',
-                'tvi_id', 'qualification_title_id', 'abdd_id', 'number_of_slots',
+                'attribution_sender',
+                'attribution_sender_particular',
+                'attribution_scholarship_program',
+                'allocation_year',
+                'attribution_appropriation_type',
+                'attribution_receiver',
+                'attribution_receiver_particular',
+                'tvi_id',
+                'qualification_title_id',
+                'abdd_id',
+                'number_of_slots',
             ];
 
             foreach ($requiredFields as $field) {
@@ -146,7 +151,7 @@ class EditAttributionTarget extends EditRecord
 
 
             if ($qualificationTitle->scholarship_program_id === $step->id) {
-                
+
                 if (!$costOfToolkitPcc) {
                     $message = "STEP Toolkits are required before proceeding. Please add them first";
                     NotificationHandler::handleValidationException('Something went wrong', $message);
@@ -191,7 +196,7 @@ class EditAttributionTarget extends EditRecord
             if (!$previousSkillPrio) {
                 $message = "Previous Skill Priority not found.";
                 NotificationHandler::handleValidationException('Something went wrong', $message);
-                    
+
             }
 
             $skillPriority = $this->getSkillPriority(
@@ -309,19 +314,19 @@ class EditAttributionTarget extends EditRecord
                 })
                 ->first();
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

@@ -28,7 +28,6 @@ use App\Services\NotificationHandler;
 use Auth;
 use Exception;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -133,8 +132,6 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
                 $this->logTargetHistory($target, $allocation, $totals);
             });
         } catch (Throwable $e) {
-            Log::error("Import failed: " . $e->getMessage());
-
             throw $e;
         }
     }
@@ -189,18 +186,19 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function validateInstitutionProgram(int $tviId, int $qualiId) {
+    protected function validateInstitutionProgram(int $tviId, int $qualiId)
+    {
         $institution = Tvi::find($tviId);
         $quali = TrainingProgram::find($qualiId);
-    
+
         if (!$institution) {
             throw new Exception("Institution with ID {$tviId} not found.");
         }
-    
+
         if (!$quali) {
             throw new Exception("Qualification with ID {$qualiId} not found.");
         }
-        
+
         $instiPrograms = $institution->trainingPrograms()->pluck('training_programs.id');
 
         if (!$instiPrograms->contains($qualiId)) {
@@ -502,7 +500,7 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
                 })
                 ->first();
         }
-        
+
         if (!$skillPrograms) {
             NotificationHandler::handleValidationException('Something went wrong', 'Skill Priority does not exists.');
         }
@@ -513,12 +511,12 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

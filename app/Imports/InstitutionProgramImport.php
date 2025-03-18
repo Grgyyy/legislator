@@ -7,7 +7,6 @@ use App\Models\InstitutionProgram;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -36,19 +35,16 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
                         throw new \Exception("Training program '{$row['training_program']}' was not found.");
                     }
 
-                    // Ensure valid institution ID
                     if (!isset($institution->id)) {
                         throw new \Exception("Missing necessary ID for institution.");
                     }
 
-                    // Process each matching training program
                     $createdRecords = [];
                     foreach ($trainingPrograms as $trainingProgram) {
                         if (!isset($trainingProgram->id)) {
                             throw new \Exception("Missing necessary ID for training program.");
                         }
 
-                        // Check if the institution-training program pair already exists
                         $exists = InstitutionProgram::where('tvi_id', $institution->id)
                             ->where('training_program_id', $trainingProgram->id)
                             ->exists();
@@ -61,16 +57,14 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
                         }
                     }
 
-                    return !empty($createdRecords) ? $createdRecords : null; // Return created records or null
+                    return !empty($createdRecords) ? $createdRecords : null;
 
                 } catch (Throwable $e) {
-                    Log::error("Transaction failed for row: " . json_encode($row) . ". Error: " . $e->getMessage());
                     throw new \Exception("Error processing the row: " . $e->getMessage());
                 }
             });
 
         } catch (Throwable $e) {
-            Log::error("Import Error: " . $e->getMessage());
             throw new \Exception("There was an issue importing the institution qualification titles: " . $e->getMessage());
         }
     }

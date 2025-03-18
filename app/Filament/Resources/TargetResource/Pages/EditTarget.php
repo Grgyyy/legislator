@@ -6,7 +6,6 @@ use App\Filament\Resources\TargetResource;
 use App\Models\Allocation;
 use App\Models\District;
 use App\Models\Province;
-use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\SkillPriority;
@@ -17,7 +16,6 @@ use App\Models\TargetHistory;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
-use Exception;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -156,9 +154,14 @@ class EditTarget extends EditRecord
     private function validateTargetData(array $data): void
     {
         $requiredFields = [
-            'legislator_id', 'particular_id', 'scholarship_program_id',
-            'qualification_title_id', 'number_of_slots', 'tvi_id',
-            'appropriation_type', 'abdd_id'
+            'legislator_id',
+            'particular_id',
+            'scholarship_program_id',
+            'qualification_title_id',
+            'number_of_slots',
+            'tvi_id',
+            'appropriation_type',
+            'abdd_id'
         ];
 
         foreach ($requiredFields as $field) {
@@ -220,19 +223,19 @@ class EditTarget extends EditRecord
                 })
                 ->first();
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
@@ -271,7 +274,7 @@ class EditTarget extends EditRecord
                 $message = "STEP Toolkits are required before proceeding. Please add them first";
                 NotificationHandler::handleValidationException('Something went wrong', $message);
             }
-            
+
             $totalCostOfToolkit = $costOfToolkitPcc->price_per_toolkit * $numberOfSlots;
             $totalAmount += $totalCostOfToolkit;
         }

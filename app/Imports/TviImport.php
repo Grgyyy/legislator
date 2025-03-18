@@ -12,7 +12,6 @@ use App\Models\Tvi;
 use App\Models\TviClass;
 use App\Models\TviType;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -66,7 +65,6 @@ class TviImport implements ToModel, WithHeadingRow
 
             } catch (Throwable $e) {
                 DB::rollBack();
-                Log::error("An error occurred while importing row: " . json_encode($row) . " Error: " . $e->getMessage());
                 throw $e;
             }
         });
@@ -156,11 +154,6 @@ class TviImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$municipality) {
-            Log::warning("Municipality not found. Using default ID.", [
-                'municipality_name' => $municipalityName,
-                'province_id' => $provinceId,
-            ]);
-
             return null;
         }
 

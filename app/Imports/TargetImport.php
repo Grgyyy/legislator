@@ -27,7 +27,6 @@ use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Auth;
 use Exception;
-use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -44,7 +43,7 @@ class TargetImport implements ToModel, WithHeadingRow
             $this->validateRow($row);
             $this->validateNumberOfSlots($row['number_of_slots']);
             $this->validateYear($row['appropriation_year']);
-            
+
 
             DB::transaction(function () use ($row) {
                 $legislator = $this->getLegislatorId($row['legislator']);
@@ -178,18 +177,19 @@ class TargetImport implements ToModel, WithHeadingRow
         }
     }
 
-    protected function validateInstitutionProgram(int $tviId, int $qualiId) {
+    protected function validateInstitutionProgram(int $tviId, int $qualiId)
+    {
         $institution = Tvi::find($tviId);
         $quali = TrainingProgram::find($qualiId);
-    
+
         if (!$institution) {
             throw new Exception("Institution with ID {$tviId} not found.");
         }
-    
+
         if (!$quali) {
             throw new Exception("Qualification with ID {$qualiId} not found.");
         }
-        
+
         $instiPrograms = $institution->trainingPrograms()->pluck('training_programs.id');
 
         if (!$instiPrograms->contains($qualiId)) {
@@ -347,7 +347,7 @@ class TargetImport implements ToModel, WithHeadingRow
 
         return $deliveryMode;
     }
-    
+
     protected function getLearningMode(string $learningModeName, int $deliveryModeId)
     {
         $learningMode = LearningMode::where('name', $learningModeName)
@@ -463,19 +463,19 @@ class TargetImport implements ToModel, WithHeadingRow
         if (!$skillPrograms) {
             NotificationHandler::handleValidationException('Something went wrong', 'Skill Priority does not exists.');
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

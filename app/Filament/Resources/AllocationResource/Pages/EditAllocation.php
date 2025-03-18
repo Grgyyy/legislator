@@ -6,11 +6,8 @@ use App\Filament\Resources\AllocationResource;
 use App\Models\Allocation;
 use App\Models\Particular;
 use App\Services\NotificationHandler;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\EditRecord;
-use function PHPUnit\Framework\isEmpty;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 
 class EditAllocation extends EditRecord
 {
@@ -34,10 +31,10 @@ class EditAllocation extends EditRecord
     {
         return null;
     }
-    
+
     public function isEdit(): bool
     {
-        return true; // Edit mode
+        return true;
     }
 
     protected function handleRecordUpdate($record, array $data): Allocation
@@ -45,7 +42,7 @@ class EditAllocation extends EditRecord
         $this->validateUniqueAllocation($data, $record->id);
 
         $allocation = DB::transaction(function () use ($record, $data) {
-            
+
             // $previousAllocation = (float) $record['allocation'];
             // $newAllocation = (float) $data['allocation'];
             // $newAllowableAllocation = (float) $data['allocation'] - ($data['allocation'] * 0.02);
@@ -74,9 +71,9 @@ class EditAllocation extends EditRecord
                 'particular_id' => $data['particular_id'],
                 'attributor_particular_id' => $data['attributor_particular_id'] ?? null,
                 'scholarship_program_id' => $data['scholarship_program_id'],
-                'allocation' => $newAllocation, 
-                'admin_cost' => $newAdminCost, 
-                'balance' => $newBalance, 
+                'allocation' => $newAllocation,
+                'admin_cost' => $newAdminCost,
+                'balance' => $newBalance,
                 'year' => $data['year'],
             ]);
 
@@ -93,7 +90,7 @@ class EditAllocation extends EditRecord
         activity()
             ->causedBy(auth()->user())
             ->performedOn($this->record)
-            ->event('Updated') 
+            ->event('Updated')
             ->withProperties([
                 'soft_or_commitment' => $this->record->soft_or_commitment,
                 'legislator' => $this->record->legislator->name,
@@ -108,8 +105,8 @@ class EditAllocation extends EditRecord
             ])
             ->log(
                 $this->record->attributor
-                    ? "An Attribution Allocation for '{$this->record->legislator->name}' has been updated, attributed by '{$this->record->attributor->name}'."
-                    : "An Allocation for '{$this->record->legislator->name}' has been successfully updated."
+                ? "An Attribution Allocation for '{$this->record->legislator->name}' has been updated, attributed by '{$this->record->attributor->name}'."
+                : "An Allocation for '{$this->record->legislator->name}' has been successfully updated."
             );
     }
 
@@ -130,7 +127,7 @@ class EditAllocation extends EditRecord
             ->where('particular_id', $data['particular_id'])
             ->where('scholarship_program_id', $data['scholarship_program_id'])
             ->where('year', $data['year'])
-            ->where('id', '!=', $currentId) 
+            ->where('id', '!=', $currentId)
             ->first();
 
         if ($allocation) {

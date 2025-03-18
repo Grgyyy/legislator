@@ -81,7 +81,7 @@ class EditDistrict extends EditRecord
     {
         try {
             $record->municipality()->sync($municipalityIds);
-            
+
             NotificationHandler::sendSuccessNotification('Saved', 'Municipality has been updated for the district.');
         } catch (Exception $e) {
             NotificationHandler::sendErrorNotification('Unexpected Error', 'An unexpected issue occurred during the municipality update for the district: ' . $e->getMessage() . ' Please try again or contact support if the problem persists.');
@@ -117,15 +117,15 @@ class EditDistrict extends EditRecord
 
         if (!empty($data['code'])) {
             $code = District::withTrashed()
-                ->whereRaw('CAST(code AS UNSIGNED) = ?', [(int)$data['code']])
+                ->whereRaw('CAST(code AS UNSIGNED) = ?', [(int) $data['code']])
                 ->whereNot('id', $currentId)
                 ->first();
 
             if ($code) {
-                $message = $code->deleted_at 
-                    ? 'A district with the provided PSG code already exists and has been deleted.' 
+                $message = $code->deleted_at
+                    ? 'A district with the provided PSG code already exists and has been deleted.'
                     : 'A district with the provided PSG code already exists.';
-            
+
                 NotificationHandler::handleValidationException('Invalid Code', $message);
             }
         }

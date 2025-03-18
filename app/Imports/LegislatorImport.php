@@ -12,7 +12,6 @@ use App\Models\Province;
 use App\Models\Region;
 use App\Models\SubParticular;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -40,7 +39,6 @@ class LegislatorImport implements ToModel, WithHeadingRow
                 }
 
             } catch (Throwable $e) {
-                Log::error('Failed to import legislators: ' . $e->getMessage());
                 throw $e;
             }
         });

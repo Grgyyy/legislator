@@ -4,16 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Exports\CustomExport\CustomLearningModeExport;
 use App\Filament\Resources\LearningModeResource\Pages;
-use App\Filament\Resources\LearningModeResource\RelationManagers;
 use App\Models\DeliveryMode;
 use App\Models\LearningMode;
 use App\Services\NotificationHandler;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Tables;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -27,7 +24,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
-use League\CommonMark\Extension\CommonMark\Node\Block\Heading;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
 use pxlrbt\FilamentExcel\Exports\ExcelExport;
@@ -71,7 +67,6 @@ class LearningModeResource extends Resource
                     ->label('Learning Mode'),
                 TextColumn::make('deliveryMode.acronym')
                     ->label('Delivery Mode Acronym'),
-                // TextColumn::make('deliveryMode.name'),
             ])
             ->filters([
                 TrashedFilter::make()
@@ -145,26 +140,6 @@ class LearningModeResource extends Resource
             'showLearningMode' => Pages\ShowLearningMode::route('/{record}/learningMode')
         ];
     }
-
-    // public static function getEloquentQuery(): Builder
-    // {
-    //     $query = parent::getEloquentQuery();
-
-    //     // Remove global soft delete scope to include trashed records
-    //     $query->withoutGlobalScopes([SoftDeletingScope::class]);
-
-    //     $routeParameter = request()->route('record');
-
-    //     // Apply filter only if a valid delivery_mode_id is present in the route
-    //     if ($routeParameter && is_numeric($routeParameter)) {
-    //         $query->whereHas('deliveryMode', function ($subQuery) use ($routeParameter) {
-    //             $subQuery->where('delivery_modes.id', (int) $routeParameter);
-    //         });
-    //     }
-
-    //     return $query;
-    // }
-
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()->withoutGlobalScopes([SoftDeletingScope::class]);

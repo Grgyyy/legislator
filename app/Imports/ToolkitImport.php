@@ -1,13 +1,12 @@
 <?php
 namespace App\Imports;
 
-use App\Helpers\Helper;  // Import the Helper class
+use App\Helpers\Helper;
 use App\Models\QualificationTitle;
 use App\Models\ScholarshipProgram;
 use App\Models\Toolkit;
 use App\Models\TrainingProgram;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -54,7 +53,6 @@ class ToolkitImport implements ToModel, WithHeadingRow
                 return $toolkitRecord;
             });
         } catch (Throwable $e) {
-            Log::error("Import failed: " . $e->getMessage());
             throw $e;
         }
     }

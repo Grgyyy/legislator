@@ -39,9 +39,6 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
                 'institution_programs.*'
             ]);
     }
-
-
-
     public function headings(): array
     {
         $customHeadings = [
@@ -69,7 +66,6 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
 
         ];
     }
-
 
     public function drawings()
     {

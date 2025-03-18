@@ -3,12 +3,9 @@
 namespace App\Filament\Resources\LegislativeTargetsResource\Pages;
 
 use App\Filament\Resources\LegislativeTargetsResource;
-use App\Models\Allocation;
 use App\Models\Legislator;
-use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables;
-use Filament\Tables\Actions\EditAction;
 
 class ListLegislativeTargets extends ListRecords
 {
@@ -35,7 +32,7 @@ class ListLegislativeTargets extends ListRecords
                 fn($record) => route('filament.admin.resources.legislative-targets.listAllocation', ['record' => $record->id]),
             )
             ->filters([
-                // Define your filters here
+
             ]);
     }
 }

@@ -6,15 +6,11 @@ use App\Filament\Resources\NonCompliantTargetResource;
 use App\Models\Allocation;
 use App\Models\District;
 use App\Models\Province;
-use App\Models\ProvinceAbdd;
-use App\Models\QualificationScholarship;
 use App\Models\QualificationTitle;
 use App\Models\SkillPriority;
 use App\Models\SkillPrograms;
 use App\Models\Status;
-use App\Models\Target;
 use App\Models\TargetHistory;
-use App\Models\TargetStatus;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
@@ -22,7 +18,6 @@ use Filament\Resources\Pages\EditRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class EditNonCompliantTarget extends EditRecord
 {
@@ -61,15 +56,13 @@ class EditNonCompliantTarget extends EditRecord
         if ($attributionAllocation) {
             if ($program === 1) {
                 return route('filament.admin.resources.attribution-targets.index');
-            }
-            else {
+            } else {
                 return route('filament.admin.resources.attribution-project-proposals.index');
             }
         } else {
             if ($program === 1) {
                 return route('filament.admin.resources.targets.index');
-            }
-            else {
+            } else {
                 return route('filament.admin.resources.project-proposal-targets.index');
             }
         }
@@ -142,20 +135,20 @@ class EditNonCompliantTarget extends EditRecord
                 }
 
                 $numberOfSlots = $data['number_of_slots'] ?? 0;
-                
+
                 if ($qualificationTitle->soc) {
                     $totalAmount = $qualificationTitle->pcc * $numberOfSlots;
                 } else {
                     $totalAmount = $data['per_capita_cost'] * $numberOfSlots;
                 }
-                
+
 
                 if ($allocation->balance < $totalAmount) {
                     $message = "Insufficient balance to process the transfer.";
                     NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
                 $allocation->balance -= $totalAmount;
-                $allocation->save();  
+                $allocation->save();
 
                 $skillPriority->available_slots -= $numberOfSlots;
                 $skillPriority->save();
@@ -247,19 +240,19 @@ class EditNonCompliantTarget extends EditRecord
                 })
                 ->first();
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

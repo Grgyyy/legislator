@@ -16,9 +16,6 @@ use App\Models\TargetHistory;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
-use Exception;
-use Filament\Actions;
-use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
@@ -50,7 +47,7 @@ class CreateProjectProposalTarget extends CreateRecord
                 ->label('Exit'),
         ];
     }
-    
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
@@ -109,7 +106,7 @@ class CreateProjectProposalTarget extends CreateRecord
                 NotificationHandler::handleValidationException('Something went wrong', $message);
             }
 
-            // Send success notification
+
             $this->sendSuccessNotification('Targets created successfully.');
 
             return $lastCreatedTarget;
@@ -128,9 +125,15 @@ class CreateProjectProposalTarget extends CreateRecord
     private function validateTargetData(array $targetData): void
     {
         $requiredFields = [
-            'legislator_id', 'particular_id', 'scholarship_program_id',
-            'qualification_title_id', 'number_of_slots', 'tvi_id',
-            'appropriation_type', 'abdd_id', 'delivery_mode_id'
+            'legislator_id',
+            'particular_id',
+            'scholarship_program_id',
+            'qualification_title_id',
+            'number_of_slots',
+            'tvi_id',
+            'appropriation_type',
+            'abdd_id',
+            'delivery_mode_id'
         ];
 
         foreach ($requiredFields as $field) {
@@ -150,8 +153,8 @@ class CreateProjectProposalTarget extends CreateRecord
             'soft_or_commitment' => 'Soft',
             'year' => $targetData['allocation_year']
         ])
-        ->whereNull('attributor_id')
-        ->first();
+            ->whereNull('attributor_id')
+            ->first();
 
         if (!$allocation) {
             $message = "Allocation not found.";
@@ -194,19 +197,19 @@ class CreateProjectProposalTarget extends CreateRecord
                 })
                 ->first();
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
@@ -242,7 +245,7 @@ class CreateProjectProposalTarget extends CreateRecord
         $totalCostOfToolkit = 0;
         $totalAmount = $perCapitaCost * $numberOfSlots;
         if ($quali->scholarship_program_id === $step->id) {
-            
+
             if (!$costOfToolkitPcc) {
                 $message = "STEP Toolkits are required before proceeding. Please add them first";
                 NotificationHandler::handleValidationException('Something went wrong', $message);

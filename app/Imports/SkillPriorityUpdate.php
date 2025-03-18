@@ -10,7 +10,6 @@ use App\Models\Region;
 use App\Models\SkillPriority;
 use App\Models\Status;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -58,7 +57,6 @@ class SkillPriorityUpdate implements ToModel, WithHeadingRow
                 return $skillPriority;
             });
         } catch (\Throwable $e) {
-            Log::error("Import failed: " . $e->getMessage(), ['row' => $row]);
             throw new \Exception("An error occurred while processing the import: " . $e->getMessage());
         }
     }
@@ -89,7 +87,8 @@ class SkillPriorityUpdate implements ToModel, WithHeadingRow
 
     protected function getMunicipality(?string $municipalityName, Province $province)
     {
-        if (!$municipalityName) return null;
+        if (!$municipalityName)
+            return null;
 
         return Municipality::where('name', Helper::capitalizeWords(trim($municipalityName)))
             ->where('province_id', $province->id)
@@ -98,7 +97,8 @@ class SkillPriorityUpdate implements ToModel, WithHeadingRow
 
     protected function getDistrict(?string $districtName, Province $province, ?Municipality $municipality)
     {
-        if (!$districtName) return null;
+        if (!$districtName)
+            return null;
 
         return District::where('name', Helper::capitalizeWords(trim($districtName)))
             ->where('province_id', $province->id)

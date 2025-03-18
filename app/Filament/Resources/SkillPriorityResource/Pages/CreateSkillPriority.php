@@ -4,15 +4,11 @@ namespace App\Filament\Resources\SkillPriorityResource\Pages;
 
 use App\Filament\Resources\SkillPriorityResource;
 use App\Models\SkillPriority;
-use App\Models\SkillPrograms;
 use App\Models\Status;
 use App\Services\NotificationHandler;
-use Exception;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 class CreateSkillPriority extends CreateRecord
 {
@@ -20,7 +16,7 @@ class CreateSkillPriority extends CreateRecord
 
     public function isEdit(): bool
     {
-        return false; // Edit mode
+        return false;
     }
 
     protected function getFormActions(): array

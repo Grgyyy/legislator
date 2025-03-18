@@ -5,7 +5,6 @@ namespace App\Imports;
 use App\Helpers\Helper;
 use App\Models\Abdd;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -30,11 +29,7 @@ class AbddImport implements ToModel, WithHeadingRow
                         'name' => $sectorName,
                     ]);
                 }
-
-                Log::info("Abdd with name '{$sectorName}' already exists. No new record created.");
             } catch (Throwable $e) {
-                Log::error("Failed to import Abdd: " . $e->getMessage(), ['row' => $row]);
-
                 throw $e;
             }
         });

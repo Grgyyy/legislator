@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\CompliantTargetsResource\Pages;
 
 use App\Exports\CompliantTargetExport;
-use App\Exports\NonCompliantExport;
 use App\Filament\Resources\CompliantTargetsResource;
 use App\Services\NotificationHandler;
 use Exception;

@@ -39,7 +39,7 @@ class EditSkillPriority extends EditRecord
 
     public function isEdit(): bool
     {
-        return true; // Edit mode
+        return true;
     }
 
     protected function getRedirectUrl(): string
@@ -47,13 +47,6 @@ class EditSkillPriority extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
-    /**
-     * Handle record update logic with validation.
-     *
-     * @param \Illuminate\Database\Eloquent\Model $record
-     * @param array $data
-     * @return \Illuminate\Database\Eloquent\Model
-     */
     protected function handleRecordUpdate($record, array $data): \Illuminate\Database\Eloquent\Model
     {
         $this->validateUpdateData($data);
@@ -71,29 +64,29 @@ class EditSkillPriority extends EditRecord
                 ->where('year', $data['year'])
                 ->where('status_id', $status->id)
                 ->where('id', '!=', $record->id);
-            
+
             if ($data['district_id'] !== null) {
                 $exists->where('district_id', $data['district_id']);
             }
-            
+
             $existingRecord = $exists->first();
-            
+
             if ($existingRecord) {
                 NotificationHandler::sendErrorNotification('Record Exists', 'A record for this Province, Training Program, and Year already exists.');
                 return response()->json(['error' => 'Record already exists'], 422);
             }
-        
 
-            $difference = $data['total_slots'] - $record['total_slots']; 
+
+            $difference = $data['total_slots'] - $record['total_slots'];
             $used_slots = $record['total_slots'] - $record['available_slots'];
-            
+
             $new_available_slots = max(0, $data['total_slots'] - $used_slots);
-            
+
             $record->update([
                 'province_id' => $data['province_id'],
                 'district_id' => $data['district_id'] ?? null,
                 'qualification_title' => $data['qualification_title'],
-                'available_slots' => $new_available_slots, 
+                'available_slots' => $new_available_slots,
                 'total_slots' => $data['total_slots'],
                 'year' => $data['year'],
                 'status_id' => $status->id,
@@ -109,12 +102,6 @@ class EditSkillPriority extends EditRecord
         });
     }
 
-    /**
-     * Validate the update data
-     *
-     * @param array $data
-     * @throws ValidationException
-     */
     protected function validateUpdateData(array $data): void
     {
         $validator = Validator::make($data, [

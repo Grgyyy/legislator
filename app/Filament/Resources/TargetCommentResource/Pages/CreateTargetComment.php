@@ -3,12 +3,9 @@ namespace App\Filament\Resources\TargetCommentResource\Pages;
 
 use App\Filament\Resources\TargetCommentResource;
 use App\Models\TargetComment;
-use Filament\Actions;
-use Filament\Actions\Action;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Request;  // Ensure this is imported
 
 class CreateTargetComment extends CreateRecord
 {
@@ -30,8 +27,6 @@ class CreateTargetComment extends CreateRecord
         return [
             $this->getCreateFormAction()
                 ->label('Save & Exit'),
-            // $this->getCreateAnotherFormAction()
-            //     ->label('Save & Create Another'),
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
@@ -58,7 +53,7 @@ class CreateTargetComment extends CreateRecord
 
             // Create the TargetComment with the target_id from the URL
             $targetComment = TargetComment::create([
-                'target_id' => $data['target_id'],  // Use the target_id from the URL
+                'target_id' => $data['target_id'],
                 'user_id' => Auth::id(),
                 'content' => $data['content'],
             ]);

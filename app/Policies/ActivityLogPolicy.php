@@ -4,9 +4,8 @@ namespace App\Policies;
 
 use App\Models\Allocation;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
-class AllocationPolicy
+class ActivityLogPolicy
 {
     public function viewAny(User $user): bool
     {
@@ -27,6 +26,7 @@ class AllocationPolicy
     {
         return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
     }
+
     public function delete(User $user, Allocation $allocation): bool
     {
         return $user->hasRole(['Super Admin', 'Admin']);

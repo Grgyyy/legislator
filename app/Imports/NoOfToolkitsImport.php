@@ -3,18 +3,12 @@
 namespace App\Imports;
 
 
-use App\Models\SkillPriority;
 use App\Models\Toolkit;
-use App\Models\TrainingProgram;
-use App\Services\NotificationHandler;
-use Throwable;
-use App\Models\QualificationTitle;
-use App\Models\ScholarshipProgram;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Throwable;
 
 class NoOfToolkitsImport implements ToModel, WithHeadingRow
 {
@@ -39,16 +33,15 @@ class NoOfToolkitsImport implements ToModel, WithHeadingRow
                 }
 
                 $toolkit->update([
-                    'available_number_of_toolkits' => $row['no_of_toolkits'],    
+                    'available_number_of_toolkits' => $row['no_of_toolkits'],
                     'number_of_toolkits' => $row['no_of_toolkits'],
                     'total_abc_per_lot' => $toolkit->price_per_toolkit * $row['no_of_toolkits'],
                 ]);
 
                 return $toolkit;
-                
+
             });
         } catch (Throwable $e) {
-            Log::error("Import failed: " . $e->getMessage());
             throw $e;
         }
     }

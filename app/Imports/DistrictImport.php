@@ -8,7 +8,6 @@ use App\Models\Municipality;
 use App\Models\Province;
 use App\Models\Region;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -57,8 +56,6 @@ class DistrictImport implements ToModel, WithHeadingRow
                     return $district;
                 }
             } catch (Throwable $e) {
-                Log::error('Failed to import district: ' . $e->getMessage());
-
                 throw $e;
             }
         });
@@ -82,8 +79,6 @@ class DistrictImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$region) {
-            Log::error("Region not found: Name = '{$regionName}'");
-
             throw new \Exception("Region not found: Name = '{$regionName}'. No changes were saved.");
         }
 

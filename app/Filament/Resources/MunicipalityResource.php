@@ -29,7 +29,6 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
 use pxlrbt\FilamentExcel\Columns\Column;
-use pxlrbt\FilamentExcel\Exports\ExcelExport;
 
 class MunicipalityResource extends Resource
 {
@@ -66,7 +65,7 @@ class MunicipalityResource extends Resource
                     ->placeholder('Enter municipality class')
                     ->required()
                     ->markAsRequired(false)
-                    // ->autocomplete(false)
+                    ->autocomplete(false)
                     ->validationAttribute('municipality class')
                     ->options([
                         '1st' => '1st',

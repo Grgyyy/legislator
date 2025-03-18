@@ -5,7 +5,6 @@ namespace App\Imports;
 use App\Helpers\Helper;
 use App\Models\Partylist;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -31,8 +30,6 @@ class PartylistImport implements ToModel, WithHeadingRow
                     ]);
                 }
             } catch (Throwable $e) {
-                Log::error('Failed to import partylist: ' . $e->getMessage());
-
                 throw $e;
             }
         });

@@ -29,8 +29,6 @@ class SkillsPriorityExport implements FromQuery, WithMapping, WithStyles, WithHe
         'available_slots' => 'Available Target Beneficiaries',
         'year' => 'Year',
     ];
-
-
     public function query(): Builder
     {
         return SkillPriority::query()
@@ -45,9 +43,6 @@ class SkillsPriorityExport implements FromQuery, WithMapping, WithStyles, WithHe
                 'year',
             ]);
     }
-
-
-
     public function map($record): array
     {
         return [

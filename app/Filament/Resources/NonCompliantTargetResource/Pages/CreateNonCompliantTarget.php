@@ -7,7 +7,6 @@ use App\Models\Allocation;
 use App\Models\District;
 use App\Models\NonCompliantRemark;
 use App\Models\Province;
-use App\Models\ProvinceAbdd;
 use App\Models\QualificationTitle;
 use App\Models\SkillPriority;
 use App\Models\SkillPrograms;
@@ -17,14 +16,11 @@ use App\Models\TargetHistory;
 use App\Models\TargetStatus;
 use App\Models\TrainingProgram;
 use App\Services\NotificationHandler;
-use Filament\Actions;
-use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Log;
 
 class CreateNonCompliantTarget extends CreateRecord
 {
@@ -38,7 +34,7 @@ class CreateNonCompliantTarget extends CreateRecord
     {
         return null;
     }
-    
+
     protected function getFormActions(): array
     {
         return [
@@ -48,7 +44,7 @@ class CreateNonCompliantTarget extends CreateRecord
                 ->label('Exit'),
         ];
     }
-    
+
     public function getBreadcrumbs(): array
     {
         return [
@@ -125,7 +121,7 @@ class CreateNonCompliantTarget extends CreateRecord
             $targetRecord->qualification_title->training_program_id,
             $targetRecord->tvi->district_id ?? null,
             $targetRecord->tvi->district->province_id,
-           $targetRecord->allocation->year,
+            $targetRecord->allocation->year,
         );
 
         if (!$allocation) {
@@ -206,19 +202,19 @@ class CreateNonCompliantTarget extends CreateRecord
                 })
                 ->first();
         }
-        
+
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
             $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
             $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
-        
+
             if (!$trainingProgram || !$province || !$district) {
                 NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
                 return;
             }
-        
+
             $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }

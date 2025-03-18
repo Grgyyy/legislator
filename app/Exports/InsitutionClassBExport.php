@@ -48,9 +48,6 @@ class InsitutionClassBExport implements FromQuery, WithHeadings, WithStyles, Wit
         ];
     }
 
-
-
-
     public function drawings()
     {
         $tesda_logo = new Drawing();
@@ -80,7 +77,6 @@ class InsitutionClassBExport implements FromQuery, WithHeadings, WithStyles, Wit
             'A' => 120,
         ];
     }
-
 
     public function styles(Worksheet $sheet)
     {
