@@ -129,7 +129,7 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
                 ];
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
-                    throw new Exception("Insufficient available slots in Skill Priorities to create the target.");
+                    throw new Exception("Insufficient available slots in Skills Priorities to create the target.");
                 }
 
                 if ($allocation->balance < $totals['total_amount']) {

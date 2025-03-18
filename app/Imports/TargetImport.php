@@ -108,7 +108,7 @@ class TargetImport implements ToModel, WithHeadingRow
                 ];
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
-                    throw new Exception("Insufficient target benificiaries in Skill Priorities of the {$qualificationTitle->trainingProgram->title} under the under District {$tvi->district->name} in {$tvi->district->province->name} to create the target.");
+                    throw new Exception("Insufficient target benificiaries in Skills Priorities of the {$qualificationTitle->trainingProgram->title} under the under District {$tvi->district->name} in {$tvi->district->province->name} to create the target.");
                 }
 
                 if ($allocation->balance < $totals['total_amount']) {

@@ -8,6 +8,7 @@ use App\Models\DeliveryMode;
 use App\Models\District;
 use App\Models\LearningMode;
 use App\Models\Legislator;
+use App\Models\Municipality;
 use App\Models\Particular;
 use App\Models\Partylist;
 use App\Models\Province;
@@ -22,6 +23,7 @@ use App\Models\TargetStatus;
 use App\Models\Tvi;
 use Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -96,7 +98,7 @@ class AdminTargetImport implements ToModel, WithHeadingRow
                 ];
 
                 if ($skillPriority->available_slots < $numberOfSlots) {
-                    throw new \Exception("Insufficient available slots in Skill Priorities to create the target.");
+                    throw new \Exception("Insufficient available slots in Skills Priorities to create the target.");
                 }
 
                 if ($allocation->balance < $totals['total_amount']) {

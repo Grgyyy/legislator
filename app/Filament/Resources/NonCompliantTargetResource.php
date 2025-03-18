@@ -1260,7 +1260,7 @@ class NonCompliantTargetResource extends Resource
             ->get();
 
         if ($skillPriorities->isEmpty()) {
-            return ['no_qualification_title' => 'No qualification titles available. No skill priorities with sufficient target beneficiaries in the selected province.'];
+            return ['no_qualification_title' => 'No qualification titles available. No skills priorities with sufficient target beneficiaries in the selected province.'];
         }
 
         $qualifiedProgramIds = $skillPriorities->pluck('trainingProgram.*.id')

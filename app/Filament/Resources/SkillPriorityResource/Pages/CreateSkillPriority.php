@@ -14,6 +14,8 @@ class CreateSkillPriority extends CreateRecord
 {
     protected static string $resource = SkillPriorityResource::class;
 
+    protected static ?string $title = 'Create Skills Priority';
+
     public function isEdit(): bool
     {
         return false;

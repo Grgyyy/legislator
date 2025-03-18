@@ -16,6 +16,8 @@ class EditSkillPriority extends EditRecord
 {
     protected static string $resource = SkillPriorityResource::class;
 
+    protected static ?string $title = 'Edit Skills Priority';
+
     protected function getHeaderActions(): array
     {
         return [
