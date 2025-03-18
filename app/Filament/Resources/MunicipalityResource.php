@@ -65,7 +65,6 @@ class MunicipalityResource extends Resource
                     ->placeholder('Enter municipality class')
                     ->required()
                     ->markAsRequired(false)
-                    ->autocomplete(false)
                     ->validationAttribute('municipality class')
                     ->options([
                         '1st' => '1st',
