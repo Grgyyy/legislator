@@ -18,6 +18,11 @@ class PermissionResource extends Resource
 
     protected static ?string $navigationGroup = "USER MANAGEMENT";
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
