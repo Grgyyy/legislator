@@ -44,8 +44,6 @@ class RegionResource extends Resource
                 TextInput::make("name")
                     ->label('Region')
                     ->placeholder('Enter region name')
-                    ->minLength(10)
-                    ->maxLength(10)
                     ->required()
                     ->markAsRequired(false)
                     ->autocomplete(false)
@@ -56,9 +54,9 @@ class RegionResource extends Resource
                     ->placeholder('Enter PSG code')
                     ->autocomplete(false)
                     ->numeric()
-                    ->minLength(2)
-                    ->maxLength(2)
-                    ->currencyMask(precision: 0)
+                    ->minLength(10)
+                    ->maxLength(10)
+                    ->currencyMask(thousandSeparator: '', precision: 0)
                     ->validationAttribute('PSG code'),
             ]);
     }

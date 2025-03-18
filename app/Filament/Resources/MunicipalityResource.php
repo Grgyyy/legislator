@@ -57,6 +57,8 @@ class MunicipalityResource extends Resource
                     ->placeholder('Enter PSG code')
                     ->autocomplete(false)
                     ->numeric()
+                    ->minLength(10)
+                    ->maxLength(10)
                     ->currencyMask(thousandSeparator: '', precision: 0)
                     ->validationAttribute('PSG code'),
 
@@ -119,8 +121,7 @@ class MunicipalityResource extends Resource
                             return ['no_district' => 'No districts available. Select a province first.'];
                         }
 
-                        return District::with('municipality')
-                            ->where('province_id', $selectedProvince)
+                        return District::where('province_id', $selectedProvince)
                             ->whereNot('name', 'Not Applicable')
                             ->get()
                             ->mapWithKeys(function ($district) {
