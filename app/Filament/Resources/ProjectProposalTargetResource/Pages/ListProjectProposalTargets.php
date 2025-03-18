@@ -41,9 +41,10 @@ class ListProjectProposalTargets extends ListRecords
 
             Action::make('TargetImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -70,7 +71,7 @@ class ListProjectProposalTargets extends ListRecords
 
             Action::make('ProjectProposalTargetExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new ProjectProposalTargetExport, now()->format('m-d-Y') . ' - ' . 'Pending Project Proposal Targets.xlsx');

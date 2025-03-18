@@ -23,7 +23,7 @@ class ListNonCompliantTargets extends ListRecords
         return [
             Action::make('NonCompliantExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new NonCompliantExport, now()->format('m-d-Y') . ' - ' . 'Non-compliant Targets.xlsx');

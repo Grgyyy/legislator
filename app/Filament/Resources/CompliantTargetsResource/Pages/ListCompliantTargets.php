@@ -21,7 +21,7 @@ class ListCompliantTargets extends ListRecords
         return [
             Action::make('CompliantTargetExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new CompliantTargetExport, now()->format('m-d-Y') . ' - ' . 'Compliant Targets.xlsx');

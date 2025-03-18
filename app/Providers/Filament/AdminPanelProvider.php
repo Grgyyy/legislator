@@ -130,6 +130,7 @@ class AdminPanelProvider extends PanelProvider
                 'TARGET DATA INPUT',
                 'SECTORS',
                 'MANAGE TARGET',
+                'GENERAL REPORTS',
                 'USER MANAGEMENT',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

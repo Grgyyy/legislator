@@ -33,9 +33,10 @@ class ListAttributionProjectProposals extends ListRecords
 
             Action::make('TargetImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -48,9 +49,9 @@ class ListAttributionProjectProposals extends ListRecords
 
                         try {
                             Excel::import(new AttributionProjectProposalImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Attribution Targets have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The attribution project proposal targets have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the attribution targets: ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the attribution project proposal targets: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);
@@ -62,7 +63,7 @@ class ListAttributionProjectProposals extends ListRecords
 
             Action::make('AttributionProjectProposalExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new AttributionProjectProposalExport, now()->format('m-d-Y') . ' - ' . 'Pending Attribution Project Proposal Targets.xlsx');

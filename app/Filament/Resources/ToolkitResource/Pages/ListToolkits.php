@@ -36,6 +36,7 @@ class ListToolkits extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -62,7 +63,7 @@ class ListToolkits extends ListRecords
 
             Action::make('NoOfToolkitsImport')
                 ->label('Import No. of Toolkits')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->form([
                     FileUpload::make('file')
                         ->required()

@@ -37,9 +37,10 @@ class ListAllocations extends ListRecords
 
             Action::make('AllocationImport')
                 ->label('Import')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -53,9 +54,9 @@ class ListAllocations extends ListRecords
 
                         try {
                             Excel::import(new AllocationImport, $filePath);
-                            NotificationHandler::sendSuccessNotification('Import Successful', 'The Allocations have been successfully imported from the file.');
+                            NotificationHandler::sendSuccessNotification('Import Successful', 'The allocations have been successfully imported from the file.');
                         } catch (Exception $e) {
-                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the allocation. ' . $e->getMessage());
+                            NotificationHandler::sendErrorNotification('Import Failed', 'There was an issue importing the allocations: ' . $e->getMessage());
                         } finally {
                             if (file_exists($filePath)) {
                                 unlink($filePath);
@@ -67,7 +68,7 @@ class ListAllocations extends ListRecords
 
             Action::make('AllocationExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new AllocationExport, now()->format('m-d-Y') . ' - ' . 'Allocations.xlsx');

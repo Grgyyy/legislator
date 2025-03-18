@@ -54,23 +54,25 @@ class SkillPriorityResource extends Resource
                     ->label('Province')
                     ->required()
                     ->markAsRequired(false)
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function () {
                         return Province::whereNot('name', 'Not Applicable')
                             ->pluck('name', 'id')
                             ->toArray() ?: ['no_province' => 'No provinces available'];
                     })
-                    ->disableOptionWhen(fn($value) => $value === 'no_province'),
+                    ->disableOptionWhen(fn($value) => $value === 'no_province')
+                    ->validationAttribute('province'),
 
                 Select::make('district_id')
                     ->label('District')
-                    ->searchable()
                     ->preload()
+                    ->searchable()
                     ->native(false)
                     ->options(function ($get) {
                         $provinceId = $get('province_id');
+
                         if ($provinceId) {
                             $districts = District::whereNot('name', 'Not Applicable')
                                 ->where('province_id', $provinceId)
@@ -177,12 +179,6 @@ class SkillPriorityResource extends Resource
         return $table
             ->paginated([5, 10, 25, 50])
             ->columns([
-                TextColumn::make('provinces.name')
-                    ->label('Province')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-
                 TextColumn::make('district.name')
                     ->label('District')
                     ->getStateUsing(function ($record) {
@@ -197,13 +193,19 @@ class SkillPriorityResource extends Resource
                         }
                     }),
 
+                TextColumn::make('provinces.name')
+                    ->label('Province')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('qualification_title')
                     ->label('Lot Name')
                     ->searchable(),
 
                 TextColumn::make('trainingProgram.title')
                     ->searchable()
-                    ->label('SOC Title')
+                    ->label('Qualification Title')
                     ->getStateUsing(function ($record) {
                         return $record->trainingProgram->implode('title', ', ');
                     }),

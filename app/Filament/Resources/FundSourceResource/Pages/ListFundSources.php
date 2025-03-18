@@ -35,7 +35,7 @@ class ListFundSources extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
-                        ->label('Import')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')

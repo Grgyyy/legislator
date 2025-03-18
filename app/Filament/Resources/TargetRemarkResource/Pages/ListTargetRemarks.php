@@ -35,7 +35,7 @@ class ListTargetRemarks extends ListRecords
 
             Action::make('TargetRemarksExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new TargetRemarksExport, now()->format('m-d-Y') . ' - ' . 'Target Remarks.xlsx');

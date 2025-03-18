@@ -34,9 +34,10 @@ class ListSkillPriorities extends ListRecords
 
             Action::make('SkillPriorityUpdate')
                 ->label('Update')
-                ->icon('heroicon-o-document-arrow-up')
+                ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')

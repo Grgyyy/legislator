@@ -45,6 +45,7 @@ class ListSubParticulars extends ListRecords
                 ->icon('heroicon-o-document-arrow-down')
                 ->form([
                     FileUpload::make('file')
+                        ->label('')
                         ->required()
                         ->markAsRequired(false)
                         ->disk('local')
@@ -71,7 +72,7 @@ class ListSubParticulars extends ListRecords
 
             Action::make('ParticularTypesExport')
                 ->label('Export')
-                ->icon('heroicon-o-document-arrow-down')
+                ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
                         return Excel::download(new ParticularTypesExport, now()->format('m-d-Y') . ' - ' . 'Particular Types.xlsx');
