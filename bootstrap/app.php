@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\Request;
@@ -28,6 +29,17 @@ return Application::configure(basePath: dirname(__DIR__))
             '192.168.1.1',
             '10.0.0.0/8',
         ]);
+
+        $middleware->use([
+            \App\Http\Middleware\TrustProxies::class,
+            \Illuminate\Http\Middleware\HandleCors::class,
+            \App\Http\Middleware\PreventRequestsDuringMaintenance::class,
+            \Illuminate\Foundation\Http\Middleware\ValidatePostSize::class,
+            \App\Http\Middleware\TrimStrings::class,
+            \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+        ]);
+
+        $middleware->append(PreventRequestsDuringMaintenance::class);
 
         $middleware->trustProxies(
             headers: Request::HEADER_X_FORWARDED_FOR |
