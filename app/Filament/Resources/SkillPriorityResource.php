@@ -15,6 +15,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ActionGroup;
 use Filament\Tables\Actions\BulkActionGroup;
 use Filament\Tables\Actions\DeleteAction;
@@ -321,7 +322,9 @@ class SkillPriorityResource extends Resource
                     Action::make('viewLogs')
                         ->label('View Logs')
                         ->url(fn($record) => route('filament.admin.resources.activity-logs.skillPrioLogs', ['record' => $record->id]))
-                        ->icon('heroicon-o-document-text'),
+                        ->icon('heroicon-o-document-text')
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('view activity log')),
+
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
 
@@ -330,36 +333,36 @@ class SkillPriorityResource extends Resource
                             $record->delete();
 
                             activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->event('Deleted')
-                            ->withProperties([
-                                'province' => $record->provinces->name,
-                                'district' => $record->district->name ?? null,
-                                'lot_name' => $record->qualification_title,
-                                'qualification_title' => $record->trainingProgram->implode('title', ', '),
-                                'available_slots' => $record->available_slots,
-                                'total_slots' => $record->total_slots,
-                                'year' => $record->year,
-                                'status' => $record->status->desc,
-                            ])
-                            ->log("A Skills Priority for '{$record->qualification_title}' has been deleted.");
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Deleted')
+                                ->withProperties([
+                                    'province' => $record->provinces->name,
+                                    'district' => $record->district->name ?? null,
+                                    'lot_name' => $record->qualification_title,
+                                    'qualification_title' => $record->trainingProgram->implode('title', ', '),
+                                    'available_slots' => $record->available_slots,
+                                    'total_slots' => $record->total_slots,
+                                    'year' => $record->year,
+                                    'status' => $record->status->desc,
+                                ])
+                                ->log("A Skills Priority for '{$record->qualification_title}' has been deleted.");
 
                             activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->event('Deleted')
-                            ->withProperties([
-                                'province' => $record->provinces->name,
-                                'district' => $record->district->name ?? null,
-                                'lot_name' => $record->qualification_title,
-                                'qualification_title' => $record->trainingProgram->implode('title', ', '),
-                                'available_slots' => $record->available_slots,
-                                'total_slots' => $record->total_slots,
-                                'year' => $record->year,
-                                'status' => $record->status->desc,
-                            ])
-                            ->log("A Skills Priority for '{$record->qualification_title}' has been deleted.");
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Deleted')
+                                ->withProperties([
+                                    'province' => $record->provinces->name,
+                                    'district' => $record->district->name ?? null,
+                                    'lot_name' => $record->qualification_title,
+                                    'qualification_title' => $record->trainingProgram->implode('title', ', '),
+                                    'available_slots' => $record->available_slots,
+                                    'total_slots' => $record->total_slots,
+                                    'year' => $record->year,
+                                    'status' => $record->status->desc,
+                                ])
+                                ->log("A Skills Priority for '{$record->qualification_title}' has been deleted.");
 
                             NotificationHandler::sendSuccessNotification('Deleted', 'Skills priority has been deleted successfully.');
                         }),
@@ -369,36 +372,36 @@ class SkillPriorityResource extends Resource
                             $record->restore();
 
                             activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->event('Restored')
-                            ->withProperties([
-                                'province' => $record->provinces->name,
-                                'district' => $record->district->name ?? null,
-                                'lot_name' => $record->qualification_title,
-                                'qualification_title' => $record->trainingProgram->implode('title', ', '),
-                                'available_slots' => $record->available_slots,
-                                'total_slots' => $record->total_slots,
-                                'year' => $record->year,
-                                'status' => $record->status->desc,
-                            ])
-                            ->log("A Skills Priority for '{$record->qualification_title}' has been restored.");
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Restored')
+                                ->withProperties([
+                                    'province' => $record->provinces->name,
+                                    'district' => $record->district->name ?? null,
+                                    'lot_name' => $record->qualification_title,
+                                    'qualification_title' => $record->trainingProgram->implode('title', ', '),
+                                    'available_slots' => $record->available_slots,
+                                    'total_slots' => $record->total_slots,
+                                    'year' => $record->year,
+                                    'status' => $record->status->desc,
+                                ])
+                                ->log("A Skills Priority for '{$record->qualification_title}' has been restored.");
 
                             activity()
-                            ->causedBy(auth()->user())
-                            ->performedOn($record)
-                            ->event('Restored')
-                            ->withProperties([
-                                'province' => $record->provinces->name,
-                                'district' => $record->district->name ?? null,
-                                'lot_name' => $record->qualification_title,
-                                'qualification_title' => $record->trainingProgram->implode('title', ', '),
-                                'available_slots' => $record->available_slots,
-                                'total_slots' => $record->total_slots,
-                                'year' => $record->year,
-                                'status' => $record->status->desc,
-                            ])
-                            ->log("A Skills Priority for '{$record->qualification_title}' has been restored.");
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Restored')
+                                ->withProperties([
+                                    'province' => $record->provinces->name,
+                                    'district' => $record->district->name ?? null,
+                                    'lot_name' => $record->qualification_title,
+                                    'qualification_title' => $record->trainingProgram->implode('title', ', '),
+                                    'available_slots' => $record->available_slots,
+                                    'total_slots' => $record->total_slots,
+                                    'year' => $record->year,
+                                    'status' => $record->status->desc,
+                                ])
+                                ->log("A Skills Priority for '{$record->qualification_title}' has been restored.");
 
                             NotificationHandler::sendSuccessNotification('Restored', 'Skills priority has been restored successfully.');
                         }),

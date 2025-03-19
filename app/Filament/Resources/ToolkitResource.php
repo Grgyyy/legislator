@@ -289,7 +289,10 @@ class ToolkitResource extends Resource
                     Action::make('viewLogs')
                         ->label('View Logs')
                         ->url(fn($record) => route('filament.admin.resources.activity-logs.toolkitLogs', ['record' => $record->id]))
-                        ->icon('heroicon-o-document-text'),
+                        ->icon('heroicon-o-document-text')
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('view activity log')),
+
+
                     EditAction::make()
                         ->hidden(fn($record) => $record->trashed()),
                     DeleteAction::make()

@@ -452,7 +452,7 @@ class AllocationResource extends Resource
                         ->label('View Logs')
                         ->url(fn($record) => route('filament.admin.resources.activity-logs.allocationLogs', ['record' => $record->id]))
                         ->icon('heroicon-o-document-text')
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('filter allocation')),
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('view activity log')),
 
 
                     DeleteAction::make()
