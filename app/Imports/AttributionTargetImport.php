@@ -50,9 +50,6 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
                 // Attributor
                 $attributor = $this->getAttributorId($row['attributor']);
                 $attribution_region = $this->getRegion($row['attributor_region']);
-                $attribution_province = $this->getProvince('Not Applicable', $attribution_region->id);
-                $attribution_district = $this->getDistrict('Not Applicable', $attribution_province->id);
-                $attribution_partylist = $this->getPartylist('Not Applicable');
                 $attribution_sub_particular = $this->getSubParticular($row['attributor_particular']);
                 $attribution_particular = $this->getAttributorParticularRecord($attribution_sub_particular->id, $attribution_region->name);
 
@@ -60,7 +57,7 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
                 $legislator = $this->getLegislatorId($row['legislator']);
                 $region = $this->getRegion($row['region']);
                 $province = $this->getProvince($row['province'], $region->id);
-                $district = $this->getDistrict($row['district'], $province->id);
+                $district = $this->getDistrict($row['district'], $row['municipality'], $province->id);
                 $partylist = $this->getPartylist($row['partylist']);
                 $sub_particular = $this->getSubParticular($row['particular']);
                 $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
@@ -275,16 +272,35 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
         return $province;
     }
 
-    protected function getDistrict(string $districtName, int $provinceId)
+    protected function getDistrict(string $districtName, string $municipalityName, int $provinceId)
     {
-        $district = District::where('name', $districtName)
+        $province = Province::find($provinceId);
+
+        $districtQuery = District::where('name', $districtName)
             ->where('province_id', $provinceId)
-            ->whereNull('deleted_at')
-            ->first();
+            ->whereNull('deleted_at');
+
+        if ($municipalityName !== 'Not Applicable') {
+            $municipality = Municipality::where('name', $municipalityName)
+                ->where('province_id', $provinceId)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if (!$municipality) {
+                throw new Exception("The Municipality named '{$municipalityName}' is not existing.");
+            }
+
+            $districtQuery->where('municipality_id', $municipality->id);
+        } else {
+            $districtQuery->where('municipality_id', null);
+        }
+
+        $district = $districtQuery->first();
 
         if (!$district) {
-            throw new Exception("District with name '{$districtName}' not found.");
+            throw new Exception("The District named '{$districtName}' under Province named '{$province->name}' is not existing.");
         }
+
         return $district;
     }
 

@@ -1134,8 +1134,8 @@ class AttributionTargetResource extends Resource
                     ->toggleable()
                     ->getStateUsing(function ($record) {
 
-                        $particularType = $record->allocation->attributorParticular->subParticular;
-                        $particular = $record->allocation->attributorParticular;
+                        $particularType = $record->allocation->particular->subParticular;
+                        $particular = $record->allocation->particular;
                         $district = $particular->district ?? null;
                         $municipalityName = $district->underMunicipality->name ?? null;
 
