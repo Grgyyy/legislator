@@ -112,7 +112,7 @@ class EditSkillPriority extends EditRecord
         ->event('Updated')
         ->withProperties([
             'province' => $this->record->provinces->name,
-            'district' => $this->record->district->name,
+            'district' => $this->record->district->name ?? null,
             'lot_name' => $this->record->qualification_title,
             'qualification_title' => $this->record->trainingProgram->implode('title', ', '),
             'available_slots' => $this->record->available_slots,
