@@ -21,6 +21,11 @@ class RoleResource extends Resource
 
     protected static ?string $navigationGroup = "USER MANAGEMENT";
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -28,10 +33,10 @@ class RoleResource extends Resource
                 TextInput::make('name')
                     ->required(),
                 // ->unique(),
-                Select::make('permissions')
-                    ->multiple()
-                    ->relationship('permissions', 'name')
-                    ->preload()
+                // Select::make('permissions')
+                //     ->multiple()
+                //     ->relationship('permissions', 'name')
+                //     ->preload()
             ]);
     }
 
@@ -41,7 +46,6 @@ class RoleResource extends Resource
             ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name'),
-                TextColumn::make('permissions.name'),
 
             ])
             ->filters([
