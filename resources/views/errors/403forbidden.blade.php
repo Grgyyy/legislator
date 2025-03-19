@@ -35,7 +35,7 @@
     <div class="mx-auto w-full max-w-screen-lg flex flex-col items-center justify-center gap-5 md:gap-10">
         <div class="relative w-full max-w-md">
             <div class="w-2/3 mx-auto overflow-hidden rounded-xl">
-                <img src="images/forbidden.png" alt="403 Forbidden" class="w-full">
+                <img src="/images/forbidden.png" alt="403 Forbidden" class="w-full">
             </div>
         </div>
 

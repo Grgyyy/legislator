@@ -61,7 +61,7 @@ class RecognitionResource extends Resource
             ->paginated([5, 10, 25, 50])
             ->columns([
                 TextColumn::make('name')
-                    ->label("Recoginition Title")
+                    ->label("Recognition Title")
                     ->sortable()
                     ->searchable()
             ])

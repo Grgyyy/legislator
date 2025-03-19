@@ -67,7 +67,6 @@ class InstitutionProgramResource extends Resource
                     ->default(fn($get) => request()->get('tvi_id'))
                     ->options(function () {
                         return TVI::whereNot('name', 'Not Applicable')
-                            ->has('trainingPrograms')
                             ->orderBy('name')
                             ->get()
                             ->mapWithKeys(function ($tvi) {
