@@ -9,22 +9,22 @@ class ActivityLogPolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO', 'SMD Focal']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
 
     public function view(User $user, Allocation $allocation): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO', 'SMD Focal']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
 
     public function create(User $user): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
 
     public function update(User $user, Allocation $allocation): bool
     {
-        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head', 'TESDO']);
+        return $user->hasRole(['Super Admin', 'Admin', 'SMD Head']);
     }
 
     public function delete(User $user, Allocation $allocation): bool

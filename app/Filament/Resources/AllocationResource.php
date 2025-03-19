@@ -210,9 +210,9 @@ class AllocationResource extends Resource
                     ->dehydrated()
                     ->validationAttribute('Allocation')
                     ->validationMessages([
-                            'min' => 'The allocation must be at least ₱1.00',
-                            'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
-                        ]),
+                        'min' => 'The allocation must be at least ₱1.00',
+                        'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                    ]),
 
                 TextInput::make('year')
                     ->label('Year')
@@ -224,8 +224,8 @@ class AllocationResource extends Resource
                     ->rules(['min:' . date('Y'), 'digits: 4'])
                     ->validationAttribute('year')
                     ->validationMessages([
-                            'min' => 'The allocation year must be at least ' . date('Y') . '.',
-                        ]),
+                        'min' => 'The allocation year must be at least ' . date('Y') . '.',
+                    ]),
             ]);
     }
 
@@ -236,523 +236,526 @@ class AllocationResource extends Resource
             ->emptyStateHeading('No allocations available')
             ->paginated([5, 10, 25, 50])
             ->columns([
-                    TextColumn::make('soft_or_commitment')
-                        ->label('Source of Fund')
-                        ->searchable()
-                        ->toggleable(),
+                TextColumn::make('soft_or_commitment')
+                    ->label('Source of Fund')
+                    ->searchable()
+                    ->toggleable(),
 
-                    TextColumn::make('attributor.name')
-                        ->label('Attributor')
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable()
-                        ->getStateUsing(function ($record) {
-                            $attributor = $record->attributor->name ?? "-";
+                TextColumn::make('attributor.name')
+                    ->label('Attributor')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $attributor = $record->attributor->name ?? "-";
 
-                            return $attributor;
-                        }),
+                        return $attributor;
+                    }),
 
-                    TextColumn::make('attributorParticular.subParticular.name')
-                        ->label('Attributor Particular')
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable()
-                        ->getStateUsing(function ($record) {
-                            $particularName = $record->attributorParticular->subParticular->name ?? "-";
-                            $regionName = $record->attributorParticular->district->province->region->name ?? "-";
+                TextColumn::make('attributorParticular.subParticular.name')
+                    ->label('Attributor Particular')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $particularName = $record->attributorParticular->subParticular->name ?? "-";
+                        $regionName = $record->attributorParticular->district->province->region->name ?? "-";
 
-                            if ($particularName === 'RO Regular' || $particularName === 'CO Regular') {
-                                return $particularName . ' - ' . $regionName;
+                        if ($particularName === 'RO Regular' || $particularName === 'CO Regular') {
+                            return $particularName . ' - ' . $regionName;
+                        } else {
+                            return $particularName;
+                        }
+                    }),
+
+                TextColumn::make("legislator.name")
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+
+                TextColumn::make("particular.name")
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $particular = $record->particular;
+
+                        if (!$particular) {
+                            return ['no_particular' => 'No particulars available'];
+                        }
+
+                        $district = $particular->district;
+                        $municipality = $district ? $district->underMunicipality : null;
+                        $districtName = $district ? $district->name : 'Unknown District';
+                        $municipalityName = $municipality ? $municipality->name : '';
+                        $provinceName = $district ? $district->province->name : 'Unknown Province';
+                        $regionName = $district ? $district->province->region->name : 'Unknown Region';
+
+                        $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+
+                        $formattedName = '';
+
+                        if ($subParticular === 'Party-list') {
+                            $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                            $formattedName = "{$subParticular} - {$partylistName}";
+                        } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                            $formattedName = "{$subParticular}";
+                        } elseif ($subParticular === 'District') {
+                            if ($municipalityName) {
+                                $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
                             } else {
-                                return $particularName;
+                                $formattedName = "{$subParticular} - {$districtName}, {$provinceName}";
                             }
-                        }),
+                        } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                            $formattedName = "{$subParticular} - {$regionName}";
+                        } else {
+                            $formattedName = "{$subParticular} - {$regionName}";
+                        }
 
-                    TextColumn::make("legislator.name")
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable(),
+                        return $formattedName;
+                    }),
 
-                    TextColumn::make("particular.name")
-                        ->toggleable()
-                        ->getStateUsing(function ($record) {
-                            $particular = $record->particular;
+                TextColumn::make("scholarship_program.name")
+                    ->label('Scholarship Program')
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
 
-                            if (!$particular) {
-                                return ['no_particular' => 'No particulars available'];
-                            }
+                TextColumn::make("allocation")
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                            $district = $particular->district;
-                            $municipality = $district ? $district->underMunicipality : null;
-                            $districtName = $district ? $district->name : 'Unknown District';
-                            $municipalityName = $municipality ? $municipality->name : '';
-                            $provinceName = $district ? $district->province->name : 'Unknown Province';
-                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
+                TextColumn::make("admin_cost")
+                    ->label('Admin Cost')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                            $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+                TextColumn::make('admin_cost_difference')
+                    ->label('Allocation - Admin Cost')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->getStateUsing(function ($record) {
+                        $allocation = $record->allocation ?? 0;
+                        $adminCost = $record->admin_cost ?? 0;
 
-                            $formattedName = '';
+                        $difference = $allocation - $adminCost;
 
-                            if ($subParticular === 'Party-list') {
-                                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
-                                $formattedName = "{$subParticular} - {$partylistName}";
-                            } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                                $formattedName = "{$subParticular}";
-                            } elseif ($subParticular === 'District') {
-                                if ($municipalityName) {
-                                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
-                                } else {
-                                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}";
-                                }
-                            } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
-                                $formattedName = "{$subParticular} - {$regionName}";
-                            } else {
-                                $formattedName = "{$subParticular} - {$regionName}";
-                            }
+                        return number_format($difference, 2);
+                    }),
 
-                            return $formattedName;
-                        }),
+                // TextColumn::make("attribution_sent")
+                //     ->label('Attribution Sent')
+                //     ->sortable()
+                //     ->toggleable()
+                //     ->prefix('₱')
+                //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                    TextColumn::make("scholarship_program.name")
-                        ->label('Scholarship Program')
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable(),
+                // TextColumn::make("attribution_received")
+                //     ->label('Attribution Received')
+                //     ->sortable()
+                //     ->toggleable()
+                //     ->prefix('₱')
+                //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                    TextColumn::make("allocation")
-                        ->sortable()
-                        ->toggleable()
-                        ->prefix('₱')
-                        ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                TextColumn::make("expended_funds")
+                    ->label('Funds Expended')
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->getStateUsing(function ($record) {
+                        $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
+                        $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
 
-                    TextColumn::make("admin_cost")
-                        ->label('Admin Cost')
-                        ->sortable()
-                        ->toggleable()
-                        ->prefix('₱')
-                        ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
+                        return number_format($fundsExpended, 2);
+                    }),
 
-                    TextColumn::make('admin_cost_difference')
-                        ->label('Allocation - Admin Cost')
-                        ->sortable()
-                        ->toggleable()
-                        ->prefix('₱')
-                        ->getStateUsing(function ($record) {
-                            $allocation = $record->allocation ?? 0;
-                            $adminCost = $record->admin_cost ?? 0;
+                TextColumn::make("balance")
+                    ->sortable()
+                    ->toggleable()
+                    ->prefix('₱')
+                    ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
 
-                            $difference = $allocation - $adminCost;
-
-                            return number_format($difference, 2);
-                        }),
-
-                    // TextColumn::make("attribution_sent")
-                    //     ->label('Attribution Sent')
-                    //     ->sortable()
-                    //     ->toggleable()
-                    //     ->prefix('₱')
-                    //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-
-                    // TextColumn::make("attribution_received")
-                    //     ->label('Attribution Received')
-                    //     ->sortable()
-                    //     ->toggleable()
-                    //     ->prefix('₱')
-                    //     ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-
-                    TextColumn::make("expended_funds")
-                        ->label('Funds Expended')
-                        ->sortable()
-                        ->toggleable()
-                        ->prefix('₱')
-                        ->getStateUsing(function ($record) {
-                            $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
-                            $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
-
-                            return number_format($fundsExpended, 2);
-                        }),
-
-                    TextColumn::make("balance")
-                        ->sortable()
-                        ->toggleable()
-                        ->prefix('₱')
-                        ->formatStateUsing(fn($state) => number_format($state, 2, '.', ',')),
-
-                    TextColumn::make("year")
-                        ->sortable()
-                        ->searchable()
-                        ->toggleable(),
-                ])
+                TextColumn::make("year")
+                    ->sortable()
+                    ->searchable()
+                    ->toggleable(),
+            ])
             ->filters([
-                    TrashedFilter::make()
-                        ->label('Records')
-                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter allocation')),
+                TrashedFilter::make()
+                    ->label('Records')
+                    ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('filter allocation')),
 
-                    Filter::make('allocation')
-                        ->form([
-                                Select::make('source_of_fund')
-                                    ->label('Source of Fund')
-                                    ->placeholder('All')
-                                    ->options([
-                                            'Soft' => 'Soft',
-                                            'Commitment' => 'Commitment'
-                                        ])
-                                    ->reactive(),
-
-                                Select::make('scholarship_program')
-                                    ->label('Scholarship Program')
-                                    ->placeholder('All')
-                                    ->relationship('scholarship_program', 'name')
-                                    ->reactive(),
-
-                                TextInput::make('year')
-                                    ->label('Allocation Year')
-                                    ->placeholder('Enter allocation year')
-                                    ->integer()
-                                    ->reactive(),
+                Filter::make('allocation')
+                    ->form([
+                        Select::make('source_of_fund')
+                            ->label('Source of Fund')
+                            ->placeholder('All')
+                            ->options([
+                                'Soft' => 'Soft',
+                                'Commitment' => 'Commitment'
                             ])
-                        ->query(function (Builder $query, array $data): Builder {
-                            return $query
-                                ->when(
-                                    $data['source_of_fund'] ?? null,
-                                    fn(Builder $query, $source_of_fund) => $query->where('soft_or_commitment', $source_of_fund)
-                                )
-                                ->when(
-                                    $data['scholarship_program_id'] ?? null,
-                                    fn(Builder $query, $scholarship_program_id) => $query->where('scholarship_program_id', $scholarship_program_id)
-                                )
-                                ->when(
-                                    $data['year'] ?? null,
-                                    fn(Builder $query, $year) => $query->where('year', $year)
-                                );
-                        })
-                        ->indicateUsing(function (array $data): array {
-                            $indicators = [];
+                            ->reactive(),
 
-                            if (!empty($data['year'])) {
-                                $indicators[] = 'Allocation Year: ' . $data['year'];
-                            }
+                        Select::make('scholarship_program')
+                            ->label('Scholarship Program')
+                            ->placeholder('All')
+                            ->relationship('scholarship_program', 'name')
+                            ->reactive(),
 
-                            if (!empty($data['scholarship_program'])) {
-                                $indicators[] = 'Scholarship Program: ' . Optional(ScholarshipProgram::find($data['scholarship_program']))->name;
-                            }
+                        TextInput::make('year')
+                            ->label('Allocation Year')
+                            ->placeholder('Enter allocation year')
+                            ->integer()
+                            ->reactive(),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['source_of_fund'] ?? null,
+                                fn(Builder $query, $source_of_fund) => $query->where('soft_or_commitment', $source_of_fund)
+                            )
+                            ->when(
+                                $data['scholarship_program_id'] ?? null,
+                                fn(Builder $query, $scholarship_program_id) => $query->where('scholarship_program_id', $scholarship_program_id)
+                            )
+                            ->when(
+                                $data['year'] ?? null,
+                                fn(Builder $query, $year) => $query->where('year', $year)
+                            );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
 
-                            if (!empty($data['source_of_fund'])) {
-                                $indicators[] = 'Source of Fund: ' . $data['source_of_fund'];
-                            }
+                        if (!empty($data['year'])) {
+                            $indicators[] = 'Allocation Year: ' . $data['year'];
+                        }
 
-                            return $indicators;
-                        })
-                ])
+                        if (!empty($data['scholarship_program'])) {
+                            $indicators[] = 'Scholarship Program: ' . Optional(ScholarshipProgram::find($data['scholarship_program']))->name;
+                        }
+
+                        if (!empty($data['source_of_fund'])) {
+                            $indicators[] = 'Source of Fund: ' . $data['source_of_fund'];
+                        }
+
+                        return $indicators;
+                    })
+            ])
             ->actions([
-                    ActionGroup::make([
-                        EditAction::make()
-                            ->hidden(fn($record) => $record->trashed()),
-                        Action::make('viewLogs')
-                            ->label('View Logs')
-                            ->url(fn($record) => route('filament.admin.resources.activity-logs.allocationLogs', ['record' => $record->id]))
-                            ->icon('heroicon-o-document-text'),
-                        DeleteAction::make()
-                            ->action(function ($record, $data) {
-                                $record->delete();
+                ActionGroup::make([
+                    EditAction::make()
+                        ->hidden(fn($record) => $record->trashed()),
+                    Action::make('viewLogs')
+                        ->label('View Logs')
+                        ->url(fn($record) => route('filament.admin.resources.activity-logs.allocationLogs', ['record' => $record->id]))
+                        ->icon('heroicon-o-document-text')
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('view activity log')),
 
-                                activity()
-                                    ->causedBy(auth()->user())
-                                    ->performedOn($record)
-                                    ->event('Deleted')
-                                    ->withProperties([
-                                            'soft_or_commitment' => $record->soft_or_commitment,
-                                            'legislator' => $record->legislator->name,
-                                            'attributor' => $record->attributor->name ?? null,
-                                            'particular' => $record->particular_id,
-                                            'attributor_particular' => $record->attributor_particular_id,
-                                            'scholarship_program' => $record->scholarship_program->name,
-                                            'allocation' => ltrim($record->allocation, '0'),
-                                            'admin_cost' => ltrim($record->admin_cost, '0'),
-                                            'balance' => ltrim($record->balance, '0'),
-                                            'year' => $record->year,
-                                        ])
-                                    ->log(
-                                        $record->attributor
-                                        ? "An Attribution Allocation for '{$record->legislator->name}' has been deleted, attributed by '{$record->attributor->name}'."
-                                        : "An Allocation for '{$record->legislator->name}' has been successfully deleted."
-                                    );
 
-                                NotificationHandler::sendSuccessNotification('Deleted', 'Allocation has been deleted successfully.');
-                            }),
-                        RestoreAction::make()
-                            ->action(function ($record, $data) {
-                                $record->restore();
+                    DeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->delete();
 
-                                activity()
-                                    ->causedBy(auth()->user())
-                                    ->performedOn($record)
-                                    ->event('Restored')
-                                    ->withProperties([
-                                            'soft_or_commitment' => $record->soft_or_commitment,
-                                            'legislator' => $record->legislator->name,
-                                            'attributor' => $record->attributor->name ?? null,
-                                            'particular' => $record->particular_id,
-                                            'attributor_particular' => $record->attributor_particular_id,
-                                            'scholarship_program' => $record->scholarship_program->name,
-                                            'allocation' => ltrim($record->allocation, '0'),
-                                            'admin_cost' => ltrim($record->admin_cost, '0'),
-                                            'balance' => ltrim($record->balance, '0'),
-                                            'year' => $record->year,
-                                        ])
-                                    ->log(
-                                        $record->attributor
-                                        ? "An Attribution Allocation for '{$record->legislator->name}' has been restored, attributed by '{$record->attributor->name}'."
-                                        : "An Allocation for '{$record->legislator->name}' has been successfully restored."
-                                    );
-
-                                NotificationHandler::sendSuccessNotification('Restored', 'Allocation has been restored successfully.');
-                            }),
-                        ForceDeleteAction::make()
-                            ->action(function ($record, $data) {
-                                $record->forceDelete();
-
-                                NotificationHandler::sendSuccessNotification('Force Deleted', 'Allocation has been deleted permanently.');
-                            }),
-                        // WAG TANGGALIN, FOR REFERENCE KASIIIII
-                        // Action::make('addAllocation')
-                        //     ->modalContent(function (Allocation $record): HtmlString {
-                        //         $particular = $record->particular;
-
-                        //         if (!$particular) {
-                        //             $formattedName = 'No particulars available';
-                        //         } else {
-                        //             $district = $particular->district;
-                        //             $municipality = $district ? $district->underMunicipality : null;
-                        //             $districtName = $district ? $district->name : 'Unknown District';
-                        //             $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
-                        //             $provinceName = $district ? $district->province->name : 'Unknown Province';
-                        //             $regionName = $district ? $district->province->region->name : 'Unknown Region';
-
-                        //             $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
-
-                        //             if ($subParticular === 'Party-list') {
-                        //                 $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
-                        //                 $formattedName = "{$subParticular} - {$partylistName}";
-                        //             } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                        //                 $formattedName = "{$subParticular}";
-                        //             } elseif ($subParticular === 'District') {
-                        //                 if ($municipalityName) {
-                        //                     $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
-                        //                 } else {
-                        //                     $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
-                        //                 }
-                        //             } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
-                        //                 $formattedName = "{$subParticular} - {$regionName}";
-                        //             } else {
-                        //                 $formattedName = "{$subParticular} - {$regionName}";
-                        //             }
-                        //         }
-
-                        //         $allocationFormatted = '₱ ' . number_format($record->allocation, 2, '.', ',');
-                        //         $adminCostFormatted = '₱ ' . number_format($record->admin_cost, 2, '.', ',');
-                        //         $balanceFormatted = '₱' . number_format($record->balance, 2, '.', ',');
-
-                        //         return new HtmlString("
-                        //             <div style='margin-bottom: 1rem; margin-top: 1rem; font-size: .9rem; display: grid; grid-template-columns: 1fr 2fr; gap: 10px;'>
-                        //                 <div style='font-weight: bold;'>Legislator:</div>
-                        //                 <div>{$record->legislator->name} <em>({$formattedName})</em></div>
-
-                        //                 <div style='font-weight: bold;'>Balance:</div>
-                        //                 <div>{$balanceFormatted}</div>
-
-                        //                 <div style='font-weight: bold;'>Allocation:</div>
-                        //                 <div>{$allocationFormatted}</div>
-
-                        //                 <div style='font-weight: bold;'>Admin Cost:</div>
-                        //                 <div>{$adminCostFormatted}</div>
-
-                        //                 <div style='font-weight: bold;'>Allocation Year:</div>
-                        //                 <div>{$record->year}</div>
-
-                        //                 <div style='font-weight: bold;'>Scholarship Program:</div>
-                        //                 <div>{$record->scholarship_program->name}</div>
-
-                        //                 <div style='font-weight: bold;'>Source of Fund:</div>
-                        //                 <div>{$record->soft_or_commitment}</div>
-                        //             </div>
-
-                        //         ");
-                        //     })
-                        //     ->modalHeading('Add Allocation')
-                        //     ->modalWidth(MaxWidth::TwoExtraLarge)
-                        //     ->icon('heroicon-o-plus')
-                        //     ->label('Add Allocation')
-                        //     ->form([
-                        //         TextInput::make('allocation')
-                        //             ->label('Add Allocation')
-                        //             ->autocomplete(false)
-                        //             ->numeric()
-                        //             ->prefix('₱')
-                        //             ->default(0)
-                        //             ->minValue(0)
-                        //             ->maxValue(function (Allocation $record) {
-                        //                 return 999999999999.99 - $record->allocation;
-                        //             })
-                        //             ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
-                        //             ->validationMessages([
-                        //                 'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
-                        //             ]),
-                        //     ])
-                        //     ->action(function (array $data, Allocation $record): void {
-                        //         $record->allocation += $data['allocation'];
-
-                        //         $adminCost = $record->allocation * 0.02;
-
-                        //         $record->admin_cost = $adminCost;
-
-                        //         $record->balance = $record->allocation - $record->admin_cost;
-
-                        //         $record->save();
-
-                        //         NotificationHandler::sendSuccessNotification('Saved', 'Allocation has been added successfully.');
-                        //     })
-                        //     ->hidden(function (Allocation $record): bool {
-                        //         $currentYear = Carbon::now()->year;
-
-                        //         return $record->year < $currentYear;
-                        //     })
-                    ])
-                ])
-            ->bulkActions([
-                    BulkActionGroup::make([
-                        DeleteBulkAction::make()
-                            ->action(function ($records) {
-                                $records->each->delete();
-
-                                NotificationHandler::sendSuccessNotification(
-                                    'Deleted',
-                                    'Selected allocations have been deleted successfully.'
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Deleted')
+                                ->withProperties([
+                                    'soft_or_commitment' => $record->soft_or_commitment,
+                                    'legislator' => $record->legislator->name,
+                                    'attributor' => $record->attributor->name ?? null,
+                                    'particular' => $record->particular_id,
+                                    'attributor_particular' => $record->attributor_particular_id,
+                                    'scholarship_program' => $record->scholarship_program->name,
+                                    'allocation' => ltrim($record->allocation, '0'),
+                                    'admin_cost' => ltrim($record->admin_cost, '0'),
+                                    'balance' => ltrim($record->balance, '0'),
+                                    'year' => $record->year,
+                                ])
+                                ->log(
+                                    $record->attributor
+                                    ? "An Attribution Allocation for '{$record->legislator->name}' has been deleted, attributed by '{$record->attributor->name}'."
+                                    : "An Allocation for '{$record->legislator->name}' has been successfully deleted."
                                 );
-                            })
-                            ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
 
-                        RestoreBulkAction::make()
-                            ->action(function ($records) {
-                                $records->each->restore();
+                            NotificationHandler::sendSuccessNotification('Deleted', 'Allocation has been deleted successfully.');
+                        }),
+                    RestoreAction::make()
+                        ->action(function ($record, $data) {
+                            $record->restore();
 
-                                NotificationHandler::sendSuccessNotification('Restored', 'Selected allocations have been restored successfully.');
-                            })
-                            ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore allocation')),
-                        ForceDeleteBulkAction::make()
-                            ->action(function ($records) {
-                                $records->each->forceDelete();
+                            activity()
+                                ->causedBy(auth()->user())
+                                ->performedOn($record)
+                                ->event('Restored')
+                                ->withProperties([
+                                    'soft_or_commitment' => $record->soft_or_commitment,
+                                    'legislator' => $record->legislator->name,
+                                    'attributor' => $record->attributor->name ?? null,
+                                    'particular' => $record->particular_id,
+                                    'attributor_particular' => $record->attributor_particular_id,
+                                    'scholarship_program' => $record->scholarship_program->name,
+                                    'allocation' => ltrim($record->allocation, '0'),
+                                    'admin_cost' => ltrim($record->admin_cost, '0'),
+                                    'balance' => ltrim($record->balance, '0'),
+                                    'year' => $record->year,
+                                ])
+                                ->log(
+                                    $record->attributor
+                                    ? "An Attribution Allocation for '{$record->legislator->name}' has been restored, attributed by '{$record->attributor->name}'."
+                                    : "An Allocation for '{$record->legislator->name}' has been successfully restored."
+                                );
 
-                                NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected allocations have been deleted permanently.');
-                            })
-                            ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete allocation')),
-                        ExportBulkAction::make()
-                            ->exports([
-                                    CustomAllocationExport::make()
-                                        ->withColumns([
-                                                Column::make('soft_or_commitment')
-                                                    ->heading('Source of Fund'),
-                                                Column::make('attributor.name')
-                                                    ->heading('Attributor')
-                                                    ->getStateUsing(function ($record) {
-                                                        $attributor = $record->attributor->name ?? "-";
+                            NotificationHandler::sendSuccessNotification('Restored', 'Allocation has been restored successfully.');
+                        }),
+                    ForceDeleteAction::make()
+                        ->action(function ($record, $data) {
+                            $record->forceDelete();
 
-                                                        return $attributor;
-                                                    }),
-                                                Column::make('attributorParticular.subParticular.name')
-                                                    ->heading('Attributor Particular')
-                                                    ->getStateUsing(function ($record) {
-                                                        $particularName = $record->attributorParticular->subParticular->name ?? "-";
-                                                        $regionName = $record->attributorParticular->district->province->region->name ?? "-";
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Allocation has been deleted permanently.');
+                        }),
+                    // WAG TANGGALIN, FOR REFERENCE KASIIIII
+                    // Action::make('addAllocation')
+                    //     ->modalContent(function (Allocation $record): HtmlString {
+                    //         $particular = $record->particular;
 
-                                                        if ($particularName === 'RO Regular' || $particularName === 'CO Regular') {
-                                                            return $particularName . ' - ' . $regionName;
-                                                        } else {
-                                                            return $particularName;
-                                                        }
-                                                    }),
-                                                Column::make('legislator.name')
-                                                    ->heading('Legislator'),
+                    //         if (!$particular) {
+                    //             $formattedName = 'No particulars available';
+                    //         } else {
+                    //             $district = $particular->district;
+                    //             $municipality = $district ? $district->underMunicipality : null;
+                    //             $districtName = $district ? $district->name : 'Unknown District';
+                    //             $municipalityName = $municipality ? $municipality->name : 'Unknown Municipality';
+                    //             $provinceName = $district ? $district->province->name : 'Unknown Province';
+                    //             $regionName = $district ? $district->province->region->name : 'Unknown Region';
 
-                                                Column::make('particular.name')
-                                                    ->heading('Particular')
-                                                    ->getStateUsing(function ($record) {
-                                                        $particular = $record->particular;
+                    //             $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
 
-                                                        if (!$particular) {
-                                                            return ['no_particular' => 'No particulars available'];
-                                                        }
+                    //             if ($subParticular === 'Party-list') {
+                    //                 $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                    //                 $formattedName = "{$subParticular} - {$partylistName}";
+                    //             } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                    //                 $formattedName = "{$subParticular}";
+                    //             } elseif ($subParticular === 'District') {
+                    //                 if ($municipalityName) {
+                    //                     $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                    //                 } else {
+                    //                     $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
+                    //                 }
+                    //             } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                    //                 $formattedName = "{$subParticular} - {$regionName}";
+                    //             } else {
+                    //                 $formattedName = "{$subParticular} - {$regionName}";
+                    //             }
+                    //         }
 
-                                                        $district = $particular->district;
-                                                        $municipality = $district ? $district->underMunicipality : null;
-                                                        $districtName = $district ? $district->name : 'Unknown District';
-                                                        $municipalityName = $municipality ? $municipality->name : '';
-                                                        $provinceName = $district ? $district->province->name : 'Unknown Province';
-                                                        $regionName = $district ? $district->province->region->name : 'Unknown Region';
+                    //         $allocationFormatted = '₱ ' . number_format($record->allocation, 2, '.', ',');
+                    //         $adminCostFormatted = '₱ ' . number_format($record->admin_cost, 2, '.', ',');
+                    //         $balanceFormatted = '₱' . number_format($record->balance, 2, '.', ',');
 
-                                                        $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+                    //         return new HtmlString("
+                    //             <div style='margin-bottom: 1rem; margin-top: 1rem; font-size: .9rem; display: grid; grid-template-columns: 1fr 2fr; gap: 10px;'>
+                    //                 <div style='font-weight: bold;'>Legislator:</div>
+                    //                 <div>{$record->legislator->name} <em>({$formattedName})</em></div>
 
-                                                        $formattedName = '';
+                    //                 <div style='font-weight: bold;'>Balance:</div>
+                    //                 <div>{$balanceFormatted}</div>
 
-                                                        if ($subParticular === 'Party-list') {
-                                                            $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
-                                                            $formattedName = "{$subParticular} - {$partylistName}";
-                                                        } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
-                                                            $formattedName = "{$subParticular}";
-                                                        } elseif ($subParticular === 'District') {
-                                                            if ($municipalityName) {
-                                                                $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
-                                                            } else {
-                                                                $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
-                                                            }
-                                                        } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
-                                                            $formattedName = "{$subParticular} - {$regionName}";
-                                                        } else {
-                                                            $formattedName = "{$subParticular} - {$regionName}";
-                                                        }
+                    //                 <div style='font-weight: bold;'>Allocation:</div>
+                    //                 <div>{$allocationFormatted}</div>
 
-                                                        return $formattedName;
-                                                    }),
-                                                Column::make('scholarship_program.name')
-                                                    ->heading('Scholarship Program'),
-                                                Column::make('allocation')
-                                                    ->heading('Allocation')
-                                                    ->format('"₱ "#,##0.00'),
-                                                Column::make('admin_cost')
-                                                    ->heading('Admin Cost')
-                                                    ->format('"₱ "#,##0.00'),
-                                                Column::make('admin_cost_difference')
-                                                    ->heading('Allocation - Admin Cost')
-                                                    ->getStateUsing(function ($record) {
-                                                        $allocation = $record->allocation ?? 0;
-                                                        $adminCost = $record->admin_cost ?? 0;
+                    //                 <div style='font-weight: bold;'>Admin Cost:</div>
+                    //                 <div>{$adminCostFormatted}</div>
 
-                                                        $difference = $allocation - $adminCost;
+                    //                 <div style='font-weight: bold;'>Allocation Year:</div>
+                    //                 <div>{$record->year}</div>
 
-                                                        return $difference;
-                                                    })
-                                                    ->format('"₱ "#,##0.00'),
-                                                Column::make('expended_funds')
-                                                    ->heading('Funds Expended')
-                                                    ->getStateUsing(function ($record) {
-                                                        $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
-                                                        $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
+                    //                 <div style='font-weight: bold;'>Scholarship Program:</div>
+                    //                 <div>{$record->scholarship_program->name}</div>
 
-                                                        return $fundsExpended;
-                                                    })
-                                                    ->format('"₱ "#,##0.00'),
+                    //                 <div style='font-weight: bold;'>Source of Fund:</div>
+                    //                 <div>{$record->soft_or_commitment}</div>
+                    //             </div>
 
-                                                Column::make('balance')
-                                                    ->heading('Balance')
-                                                    ->format('"₱ "#,##0.00'),
-                                                Column::make('year')
-                                                    ->heading('Year'),
-                                            ])
-                                        ->withFilename(date('m-d-Y') . ' - Allocations')
-                                ]),
-                    ])
-                        ->label('Select Action'),
-                ]);
+                    //         ");
+                    //     })
+                    //     ->modalHeading('Add Allocation')
+                    //     ->modalWidth(MaxWidth::TwoExtraLarge)
+                    //     ->icon('heroicon-o-plus')
+                    //     ->label('Add Allocation')
+                    //     ->form([
+                    //         TextInput::make('allocation')
+                    //             ->label('Add Allocation')
+                    //             ->autocomplete(false)
+                    //             ->numeric()
+                    //             ->prefix('₱')
+                    //             ->default(0)
+                    //             ->minValue(0)
+                    //             ->maxValue(function (Allocation $record) {
+                    //                 return 999999999999.99 - $record->allocation;
+                    //             })
+                    //             ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
+                    //             ->validationMessages([
+                    //                 'max' => 'The allocation cannot exceed ₱999,999,999,999.99.'
+                    //             ]),
+                    //     ])
+                    //     ->action(function (array $data, Allocation $record): void {
+                    //         $record->allocation += $data['allocation'];
+
+                    //         $adminCost = $record->allocation * 0.02;
+
+                    //         $record->admin_cost = $adminCost;
+
+                    //         $record->balance = $record->allocation - $record->admin_cost;
+
+                    //         $record->save();
+
+                    //         NotificationHandler::sendSuccessNotification('Saved', 'Allocation has been added successfully.');
+                    //     })
+                    //     ->hidden(function (Allocation $record): bool {
+                    //         $currentYear = Carbon::now()->year;
+
+                    //         return $record->year < $currentYear;
+                    //     })
+                ])
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->delete();
+
+                            NotificationHandler::sendSuccessNotification(
+                                'Deleted',
+                                'Selected allocations have been deleted successfully.'
+                            );
+                        })
+                        ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete allocation ')),
+
+                    RestoreBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->restore();
+
+                            NotificationHandler::sendSuccessNotification('Restored', 'Selected allocations have been restored successfully.');
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('restore allocation')),
+                    ForceDeleteBulkAction::make()
+                        ->action(function ($records) {
+                            $records->each->forceDelete();
+
+                            NotificationHandler::sendSuccessNotification('Force Deleted', 'Selected allocations have been deleted permanently.');
+                        })
+                        ->visible(fn() => Auth::user()->hasRole('Super Admin') || Auth::user()->can('force delete allocation')),
+                    ExportBulkAction::make()
+                        ->exports([
+                            CustomAllocationExport::make()
+                                ->withColumns([
+                                    Column::make('soft_or_commitment')
+                                        ->heading('Source of Fund'),
+                                    Column::make('attributor.name')
+                                        ->heading('Attributor')
+                                        ->getStateUsing(function ($record) {
+                                            $attributor = $record->attributor->name ?? "-";
+
+                                            return $attributor;
+                                        }),
+                                    Column::make('attributorParticular.subParticular.name')
+                                        ->heading('Attributor Particular')
+                                        ->getStateUsing(function ($record) {
+                                            $particularName = $record->attributorParticular->subParticular->name ?? "-";
+                                            $regionName = $record->attributorParticular->district->province->region->name ?? "-";
+
+                                            if ($particularName === 'RO Regular' || $particularName === 'CO Regular') {
+                                                return $particularName . ' - ' . $regionName;
+                                            } else {
+                                                return $particularName;
+                                            }
+                                        }),
+                                    Column::make('legislator.name')
+                                        ->heading('Legislator'),
+
+                                    Column::make('particular.name')
+                                        ->heading('Particular')
+                                        ->getStateUsing(function ($record) {
+                                            $particular = $record->particular;
+
+                                            if (!$particular) {
+                                                return ['no_particular' => 'No particulars available'];
+                                            }
+
+                                            $district = $particular->district;
+                                            $municipality = $district ? $district->underMunicipality : null;
+                                            $districtName = $district ? $district->name : 'Unknown District';
+                                            $municipalityName = $municipality ? $municipality->name : '';
+                                            $provinceName = $district ? $district->province->name : 'Unknown Province';
+                                            $regionName = $district ? $district->province->region->name : 'Unknown Region';
+
+                                            $subParticular = $particular->subParticular->name ?? 'Unknown SubParticular';
+
+                                            $formattedName = '';
+
+                                            if ($subParticular === 'Party-list') {
+                                                $partylistName = $particular->partylist->name ?? 'Unknown Party-list';
+                                                $formattedName = "{$subParticular} - {$partylistName}";
+                                            } elseif (in_array($subParticular, ['Senator', 'House Speaker', 'House Speaker (LAKAS)'])) {
+                                                $formattedName = "{$subParticular}";
+                                            } elseif ($subParticular === 'District') {
+                                                if ($municipalityName) {
+                                                    $formattedName = "{$subParticular} - {$districtName}, {$municipalityName}, {$provinceName}";
+                                                } else {
+                                                    $formattedName = "{$subParticular} - {$districtName}, {$provinceName}, {$regionName}";
+                                                }
+                                            } elseif ($subParticular === 'RO Regular' || $subParticular === 'CO Regular') {
+                                                $formattedName = "{$subParticular} - {$regionName}";
+                                            } else {
+                                                $formattedName = "{$subParticular} - {$regionName}";
+                                            }
+
+                                            return $formattedName;
+                                        }),
+                                    Column::make('scholarship_program.name')
+                                        ->heading('Scholarship Program'),
+                                    Column::make('allocation')
+                                        ->heading('Allocation')
+                                        ->format('"₱ "#,##0.00'),
+                                    Column::make('admin_cost')
+                                        ->heading('Admin Cost')
+                                        ->format('"₱ "#,##0.00'),
+                                    Column::make('admin_cost_difference')
+                                        ->heading('Allocation - Admin Cost')
+                                        ->getStateUsing(function ($record) {
+                                            $allocation = $record->allocation ?? 0;
+                                            $adminCost = $record->admin_cost ?? 0;
+
+                                            $difference = $allocation - $adminCost;
+
+                                            return $difference;
+                                        })
+                                        ->format('"₱ "#,##0.00'),
+                                    Column::make('expended_funds')
+                                        ->heading('Funds Expended')
+                                        ->getStateUsing(function ($record) {
+                                            $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
+                                            $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
+
+                                            return $fundsExpended;
+                                        })
+                                        ->format('"₱ "#,##0.00'),
+
+                                    Column::make('balance')
+                                        ->heading('Balance')
+                                        ->format('"₱ "#,##0.00'),
+                                    Column::make('year')
+                                        ->heading('Year'),
+                                ])
+                                ->withFilename(date('m-d-Y') . ' - Allocations')
+                        ]),
+                ])
+                    ->label('Select Action'),
+            ]);
     }
 
     private static function getParticularOptions($legislatorId, $isAttributor)
