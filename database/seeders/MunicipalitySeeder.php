@@ -45,20 +45,22 @@ class MunicipalitySeeder extends Seeder
 
         if ($camanavaProvince) {
             $camanavaMunicipalities = [
-                ['name' => 'Caloocan City', 'class' => '1st'],
-                ['name' => 'Malabon City', 'class' => '1st'],
-                ['name' => 'Navotas City', 'class' => '1st'],
-                ['name' => 'Valenzuela City', 'class' => '1st']
+                ['code' => '1380100000', 'name' => 'Caloocan City', 'class' => '1st'],
+                ['code' => '1380400000', 'name' => 'Malabon City', 'class' => '1st'],
+                ['code' => '1380900000','name' => 'Navotas City', 'class' => '1st'],
+                ['code' => '1381600000', 'name' => 'Valenzuela City', 'class' => '1st']
             ];
 
             foreach ($camanavaMunicipalities as $municipality) {
                 $municipalityExists = DB::table('municipalities')
+                    ->where('code', $municipality['code'])
                     ->where('name', $municipality['name'])
                     ->where('province_id', $camanavaProvince->id)
                     ->exists();
 
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
                         'name' => $municipality['name'],
                         'class' => $municipality['class'],
                         'province_id' => $camanavaProvince->id,
@@ -73,21 +75,23 @@ class MunicipalitySeeder extends Seeder
 
         if ($muntiparlastapatProvince) {
             $muntiparlastapatMunicipalities = [
-                ['name' => 'Muntinlupa City', 'class' => '1st'],
-                ['name' => 'Parañaque City', 'class' => '1st'],
-                ['name' => 'Las Piñas City', 'class' => '1st'],
-                ['name' => 'Taguig City', 'class' => '1st'],
-                ['name' => 'Pateros City', 'class' => '1st']
+                ['code' => '1380800000', 'name' => 'Muntinlupa City', 'class' => '1st'],
+                ['code' => '1381000000', 'name' => 'Parañaque City', 'class' => '1st'],
+                ['code' => '1380200000', 'name' => 'Las Piñas City', 'class' => '1st'],
+                ['code' => '1381500000', 'name' => 'Taguig City', 'class' => '1st'],
+                ['code' => '1381701000', 'name' => 'Pateros City', 'class' => '1st']
             ];
 
             foreach ($muntiparlastapatMunicipalities as $municipality) {
                 $municipalityExists = DB::table('municipalities')
+                    ->where('code', $municipality['code'])
                     ->where('name', $municipality['name'])
                     ->where('province_id', $muntiparlastapatProvince->id)
                     ->exists();
 
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
                         'name' => $municipality['name'],
                         'class' => $municipality['class'],
                         'province_id' => $muntiparlastapatProvince->id,
@@ -102,18 +106,20 @@ class MunicipalitySeeder extends Seeder
 
         if ($pasmakProvince) {
             $pasmakMunicipalities = [
-                ['name' => 'Pasay City', 'class' => '1st'],
-                ['name' => 'Makati City', 'class' => '1st'],
+                ['code' => '1381100000', 'name' => 'Pasay City', 'class' => '1st'],
+                ['code' => '1380300000', 'name' => 'Makati City', 'class' => '1st'],
             ];
 
             foreach ($pasmakMunicipalities as $municipality) {
                 $municipalityExists = DB::table('municipalities')
+                    ->where('code', $municipality['code'])
                     ->where('name', $municipality['name'])
                     ->where('province_id', $pasmakProvince->id)
                     ->exists();
 
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
                         'name' => $municipality['name'],
                         'class' => $municipality['class'],
                         'province_id' => $pasmakProvince->id,
@@ -128,20 +134,22 @@ class MunicipalitySeeder extends Seeder
 
         if ($pamamarisanProvince) {
             $pamamarisanMunicipalities = [
-                ['name' => 'Pasig City', 'class' => '1st'],
-                ['name' => 'Mandaluyong City', 'class' => '1st'],
-                ['name' => 'Marikina City', 'class' => '1st'],
-                ['name' => 'San Juan City', 'class' => '1st'],
+                ['code' => '1381200000', 'name' => 'Pasig City', 'class' => '1st'],
+                ['code' => '1380500000', 'name' => 'Mandaluyong City', 'class' => '1st'],
+                ['code' => '1380700000', 'name' => 'Marikina City', 'class' => '1st'],
+                ['code' => '1381400000', 'name' => 'San Juan City', 'class' => '1st'],
             ];
 
             foreach ($pamamarisanMunicipalities as $municipality) {
                 $municipalityExists = DB::table('municipalities')
+                    ->where('code', $municipality['code'])
                     ->where('name', $municipality['name'])
                     ->where('province_id', $pamamarisanProvince->id)
                     ->exists();
 
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
                         'name' => $municipality['name'],
                         'class' => $municipality['class'],
                         'province_id' => $pamamarisanProvince->id,
@@ -156,17 +164,19 @@ class MunicipalitySeeder extends Seeder
 
         if ($manilaProvince) {
             $manilaMunicipalities = [
-                ['name' => 'Manila City', 'class' => '1st'],
+                ['code' => '1380600000', 'name' => 'Manila City', 'class' => '1st'],
             ];
 
             foreach ($manilaMunicipalities as $municipality) {
                 $municipalityExists = DB::table('municipalities')
+                    ->where('code', $municipality['code'])
                     ->where('name', $municipality['name'])
                     ->where('province_id', $manilaProvince->id)
                     ->exists();
 
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
                         'name' => $municipality['name'],
                         'class' => $municipality['class'],
                         'province_id' => $manilaProvince->id,
@@ -181,17 +191,19 @@ class MunicipalitySeeder extends Seeder
 
         if ($quezoncityProvince) {
             $quezoncityMunicipalities = [
-                ['name' => 'Quezon City', 'class' => '1st'],
+                ['code' => '1381300000', 'name' => 'Quezon City', 'class' => '1st'],
             ];
 
             foreach ($quezoncityMunicipalities as $municipality) {
                 $municipalityExists = DB::table('municipalities')
+                    ->where('code', $municipality['code'])
                     ->where('name', $municipality['name'])
                     ->where('province_id', $quezoncityProvince->id)
                     ->exists();
 
                 if (!$municipalityExists) {
                     DB::table('municipalities')->insert([
+                        'code' => $municipality['code'],
                         'name' => $municipality['name'],
                         'class' => $municipality['class'],
                         'province_id' => $quezoncityProvince->id,
