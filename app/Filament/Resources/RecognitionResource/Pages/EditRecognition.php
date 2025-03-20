@@ -54,10 +54,11 @@ class EditRecognition extends EditRecord
         return $record;
     }
 
-    protected function validateUniqueAbdd($data)
+    protected function validateUniqueInstitution($data, $id)
     {
         $recognition = Recognition::withTrashed()
             ->whereRaw('TRIM(name) = ?', trim($data['name']))
+            ->whereNot('id', $id)
             ->first();
 
         if ($recognition) {

@@ -70,7 +70,7 @@ class ListInstitutionPrograms extends ListRecords
                 }),
 
             Action::make('InsitutionQualificationTitleExport')
-                ->label('Export All')
+                ->label('Export')
                 ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
