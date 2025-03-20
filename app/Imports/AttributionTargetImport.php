@@ -25,7 +25,6 @@ use App\Models\TargetHistory;
 use App\Models\TargetStatus;
 use App\Models\TrainingProgram;
 use App\Models\Tvi;
-use App\Services\NotificationHandler;
 use Auth;
 use Exception;
 use Illuminate\Support\Facades\DB;
@@ -512,7 +511,7 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
         }
 
         if (!$skillPrograms) {
-            NotificationHandler::handleValidationException('Something went wrong', 'Skill Priority does not exists.');
+            throw new Exception("Skill Priority does not exists.");
         }
 
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
@@ -523,12 +522,10 @@ class AttributionTargetImport implements ToModel, WithHeadingRow
             $district = District::where('id', $districtId)->first();
 
             if (!$trainingProgram || !$province || !$district) {
-                NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
-                return;
+                throw new Exception("Invalid training program, province, or district.");
             }
 
-            $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.");
         }
 
         return $skillsPriority;

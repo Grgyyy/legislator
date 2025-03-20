@@ -25,7 +25,7 @@ class TvetExport implements FromQuery, WithMapping, WithStyles, WithHeadings, Wi
 
     public function query(): Builder
     {
-        return Tvet::query();
+        return Tvet::query()->where('name', '!=', 'Not Applicable');
     }
 
     public function map($record): array

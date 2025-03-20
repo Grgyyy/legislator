@@ -25,7 +25,7 @@ class AbddExport implements FromQuery, WithMapping, WithStyles, WithHeadings, Wi
 
     public function query(): Builder
     {
-        return Abdd::query();
+        return Abdd::query()->where('name', '!=', 'Not Applicable');
     }
 
     public function map($record): array

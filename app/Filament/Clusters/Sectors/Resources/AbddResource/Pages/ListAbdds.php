@@ -71,7 +71,7 @@ class ListAbdds extends ListRecords
                 }),
 
             Action::make('AbddExport')
-                ->label('Export All')
+                ->label('Export')
                 ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {
