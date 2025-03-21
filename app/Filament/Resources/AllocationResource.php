@@ -764,7 +764,7 @@ class AllocationResource extends Resource
             return;
         }
 
-        $particulars = ['RO Regular', 'CO Regular', 'House Speaker', 'House Speaker (LAKAS)'];
+        $particulars = ['RO Regular', 'CO Regular', 'House Speaker', 'House Speaker (LAKAS)', 'Senator'];
 
         if ($isAttributor) {
             $legislator = Legislator::with([

@@ -459,8 +459,6 @@ class NonCompliantTargetResource extends Resource
 
                         Textarea::make('other_remarks')
                             ->label('Specify the remarks...')
-                            ->required()
-                            ->markAsRequired(false)
                             ->reactive()
                             ->validationAttribute('remarks'),
                     ]),
