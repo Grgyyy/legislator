@@ -48,7 +48,7 @@ class InstitutionRecognitionExport implements FromQuery, WithHeadings, WithStyle
     public function map($record): array
     {
         return [
-            $record->tvi->name,
+            $this->getSchool($record),
             $record->recognition->name,
             $record->accreditation_date,
             $record->expiration_date,
@@ -180,5 +180,17 @@ class InstitutionRecognitionExport implements FromQuery, WithHeadings, WithStyle
             $row++;
         }
 
+    }
+
+    protected static function getSchool($record)
+    {
+        $schoolId = $record->tvi->school_id ?? '';
+        $institutionName = $record->tvi->name ?? '';
+
+        if ($schoolId) {
+            return "{$schoolId} - {$institutionName}";
+        }
+
+        return $institutionName;
     }
 }

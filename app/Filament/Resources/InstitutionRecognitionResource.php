@@ -222,11 +222,17 @@ class InstitutionRecognitionResource extends Resource
                             CustomInstitutionRecognitionExport::make()
                                 ->withColumns([
                                     Column::make('school_id')
-                                        ->heading('School ID')
-                                        ->getStateUsing(fn($record) => $record->school_id ?? '-'),
+                                        ->heading('Institution')
+                                        ->getStateUsing(function ($record) {
+                                            $schoolId = $record->tvi->school_id ?? '';
+                                            $institutionName = $record->tvi->name ?? '';
 
-                                    Column::make('tvi.name')
-                                        ->heading('Institution'),
+                                            if ($schoolId) {
+                                                return "{$schoolId} - {$institutionName}";
+                                            }
+
+                                            return $institutionName;
+                                        }),
 
                                     Column::make('recognition.name')
                                         ->heading('Recognition Title'),
