@@ -58,7 +58,7 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
                 $abddSector = $this->getAbddSector(Helper::capitalizeWords($row['abdd_sector']));
                 $delivery_mode = $this->getDeliveryMode(Helper::capitalizeWords($row['delivery_mode']));
                 $learning_mode = $this->getLearningMode(Helper::capitalizeWords($row['learning_mode']), $delivery_mode->id);
-                $tvi = $this->getTvi(Helper::capitalizeWords($row['institution']));
+                $tvi = $this->getTvi(Helper::capitalizeWords($row['institution']), $row['school_id']);
                 $numberOfSlots = $row['number_of_slots'];
 
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $row['soc_code'], $row['qualification_title_scholarship_program'], $scholarship_program);
@@ -143,11 +143,13 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
             'particular',
             'scholarship_program',
             'district',
+            'municipality',
             'province',
             'region',
             'partylist',
             'appropriation_year',
             'appropriation_type',
+            'school_id',
             'institution',
             'soc_code',
             'qualification_title',
@@ -391,9 +393,10 @@ class ProjectProposalImport implements ToModel, WithHeadingRow
         return $learningMode;
     }
 
-    protected function getTvi(string $tviName)
+    protected function getTvi(string $tviName, string $schoolId)
     {
         $tvi = Tvi::where('name', $tviName)
+            ->where('school_id', $schoolId)
             ->whereNull('deleted_at')
             ->first();
 
