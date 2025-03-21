@@ -21,7 +21,7 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
         return DB::transaction(function () use ($row) {
             try {
-                $trainingProgramName = Helper::capitalizeWords($row['training_program']);
+                $trainingProgramName = Helper::capitalizeWords($row['qualification_title']);
                 $scholarshipProgramName = Helper::capitalizeWords($row['scholarship_program']);
 
                 $trainingProgramId = $this->getTrainingProgramId($trainingProgramName, $row['soc_code']);
@@ -72,7 +72,7 @@ class QualificationTitleImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['soc_code', 'training_program', 'scholarship_program', 'training_cost_pcc', 'no_of_training_hours', 'no_of_training_days'];
+        $requiredFields = ['soc_code', 'qualification_title', 'scholarship_program', 'training_cost_pcc', 'no_of_training_hours', 'no_of_training_days'];
 
         foreach ($requiredFields as $field) {
             if (!isset($row[$field]) || trim($row[$field]) === '') {
