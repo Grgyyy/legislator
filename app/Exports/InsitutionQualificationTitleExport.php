@@ -20,13 +20,10 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, WithStyles, WithMapping, WithDrawings, WithColumnWidths
 {
     private $columns = [
+        'tvi.name' => 'Institution',
         'trainingProgram.soc_code' => 'SOC Code',
         'trainingProgram.title' => 'Qualification Title',
-        'tvi.name' => 'Institution',
         'tvi.district.name' => 'District',
-        'tvi.municipality.name' => 'Municipality',
-        'tvi.district.province.name' => 'Province',
-        'tvi.district.province.region.name' => 'Region',
         'tvi.address' => 'Address',
         'status_id' => 'Status',
     ];
@@ -54,13 +51,11 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
     public function map($record): array
     {
         return [
-            $record->trainingProgram?->soc_code ?? '-',
+
+            $this->getSchool($record),
+            $this->getSOC($record),
             $record->trainingProgram?->title ?? '-',
-            $record->tvi?->name ?? '-',
-            $record->tvi?->district?->name ?? '-',
-            $record->tvi?->municipality?->name ?? '-',
-            $record->tvi?->district?->province?->name ?? '-',
-            $record->tvi?->district?->province?->region?->name ?? '-',
+            $this->getLocationNames($record),
             $record->tvi?->address ?? '-',
             $record->status->desc ?? '-',
 
@@ -74,8 +69,8 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
         $tesda_logo->setDescription('TESDA Logo');
         $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
         $tesda_logo->setHeight(70);
-        $tesda_logo->setCoordinates('D1');
-        $tesda_logo->setOffsetX(-50);
+        $tesda_logo->setCoordinates('C1');
+        $tesda_logo->setOffsetX(0);
         $tesda_logo->setOffsetY(0);
 
         $tuv_logo = new Drawing();
@@ -83,28 +78,25 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
         $tuv_logo->setDescription('TUV Logo');
         $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
         $tuv_logo->setHeight(55);
-        $tuv_logo->setCoordinates('G1');
-        $tuv_logo->setOffsetX(0);
+        $tuv_logo->setCoordinates('E1');
+        $tuv_logo->setOffsetX(-50);
         $tuv_logo->setOffsetY(8);
 
         return [$tesda_logo, $tuv_logo];
     }
 
+
     public function columnWidths(): array
     {
         return [
-            'A' => 20,
-            'B' => 50,
+            'A' => 50,
+            'B' => 20,
             'C' => 50,
-            'D' => 30,
-            'E' => 30,
-            'F' => 30,
-            'G' => 30,
-            'H' => 70,
-            'I' => 20,
+            'D' => 50,
+            'E' => 50,
+            'F' => 20,
         ];
     }
-
 
     public function styles(Worksheet $sheet)
     {
@@ -185,4 +177,45 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
         }
 
     }
+
+
+
+    protected static function getSchool($record)
+    {
+
+        $schoolId = $record->tvi->school_id ?? '';
+        $institutionName = $record->tvi->name ?? '';
+
+        if ($schoolId) {
+            return "{$schoolId} - {$institutionName}";
+        }
+
+        return $institutionName;
+    }
+    protected static function getSOC($record)
+    {
+
+        $record->trainingProgram->soc_code ?? '-';
+    }
+
+    protected static function getLocationNames($record): string
+    {
+        $tvi = $record->tvi;
+
+        if ($tvi) {
+            $districtName = $tvi->district->name ?? '';
+            $provinceName = $tvi->district->province->name ?? '';
+            $municipalityName = $tvi->municipality->name ?? '';
+
+            if ($municipalityName) {
+                return "{$districtName}, {$municipalityName}, {$provinceName}";
+            } else {
+                return "{$districtName}, {$provinceName}";
+            }
+        }
+
+        return 'Location information not available';
+    }
+
+
 }
