@@ -820,6 +820,10 @@ class AllocationResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class]);
+
+        if (!$user->hasRole(['Super Admin', 'Admin'])) {
+            $query->whereNull('deleted_at');
+        }
     }
 
     public static function getPages(): array
