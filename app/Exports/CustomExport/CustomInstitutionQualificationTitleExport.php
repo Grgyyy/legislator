@@ -22,7 +22,7 @@ class CustomInstitutionQualificationTitleExport extends ExcelExport implements W
             ['Central Office (CO)'],
             ['INSTITUTION QUALIFICATION TITLE'],
             [''],
-            ['SOC Code', 'Qualification Title', 'Institution', 'District', 'Municipality', 'Province', 'Region', 'Address', 'Status'],
+            ['Institution', 'SOC Code', 'Qualification Title', 'District', 'Address', 'Status'],
         ];
     }
 
@@ -33,8 +33,8 @@ class CustomInstitutionQualificationTitleExport extends ExcelExport implements W
         $tesda_logo->setDescription('TESDA Logo');
         $tesda_logo->setPath(public_path('images/TESDA_logo.png'));
         $tesda_logo->setHeight(70);
-        $tesda_logo->setCoordinates('D1');
-        $tesda_logo->setOffsetX(-50);
+        $tesda_logo->setCoordinates('C1');
+        $tesda_logo->setOffsetX(0);
         $tesda_logo->setOffsetY(0);
 
         $tuv_logo = new Drawing();
@@ -42,8 +42,8 @@ class CustomInstitutionQualificationTitleExport extends ExcelExport implements W
         $tuv_logo->setDescription('TUV Logo');
         $tuv_logo->setPath(public_path('images/TUV_Sud_logo.svg.png'));
         $tuv_logo->setHeight(55);
-        $tuv_logo->setCoordinates('G1');
-        $tuv_logo->setOffsetX(0);
+        $tuv_logo->setCoordinates('E1');
+        $tuv_logo->setOffsetX(-50);
         $tuv_logo->setOffsetY(8);
 
         return [$tesda_logo, $tuv_logo];
@@ -52,15 +52,12 @@ class CustomInstitutionQualificationTitleExport extends ExcelExport implements W
     public function columnWidths(): array
     {
         return [
-            'A' => 20,
-            'B' => 50,
+            'A' => 50,
+            'B' => 20,
             'C' => 50,
-            'D' => 30,
-            'E' => 30,
-            'F' => 30,
-            'G' => 30,
-            'H' => 70,
-            'I' => 20,
+            'D' => 50,
+            'E' => 50,
+            'F' => 20,
         ];
     }
 

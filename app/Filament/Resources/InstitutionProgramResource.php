@@ -474,12 +474,18 @@ class InstitutionProgramResource extends Resource
                         ->exports([
                             CustomInstitutionQualificationTitleExport::make()
                                 ->withColumns([
-                                    Column::make('school_id')
-                                        ->heading('School ID')
-                                        ->getStateUsing(fn($record) => $record->school_id ?? '-'),
-
                                     Column::make('tvi.name')
-                                        ->heading('Institution'),
+                                        ->heading('School ID')
+                                        ->getStateUsing(function ($record) {
+                                            $schoolId = $record->tvi->school_id ?? '';
+                                            $institutionName = $record->tvi->name ?? '';
+
+                                            if ($schoolId) {
+                                                return "{$schoolId} - {$institutionName}";
+                                            }
+
+                                            return $institutionName;
+                                        }),
 
                                     Column::make('trainingProgram.soc_code')
                                         ->heading('SOC Code')
@@ -489,16 +495,7 @@ class InstitutionProgramResource extends Resource
                                         ->heading('Qualification Title'),
 
                                     Column::make('tvi.district.name')
-                                        ->heading('District'),
-
-                                    Column::make('tvi.municipality.name')
-                                        ->heading('Municipality'),
-
-                                    Column::make('tvi.district.province.name')
-                                        ->heading('Province'),
-
-                                    Column::make('tvi.district.province.region.name')
-                                        ->heading('Region'),
+                                        ->getStateUsing(fn($record) => self::getLocationNames($record)),
 
                                     Column::make('tvi.address')
                                         ->heading('Address'),
