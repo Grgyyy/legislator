@@ -17,6 +17,7 @@ use App\Models\Status;
 use App\Models\SubParticular;
 use App\Models\Target;
 use App\Models\TargetComment;
+use App\Models\TargetHistory;
 use App\Models\TargetStatus;
 use App\Models\Tvi;
 use App\Policies\TargetPolicy;
@@ -1455,8 +1456,8 @@ class AttributionProjectProposalResource extends Resource
                             $qualificationTitleId = $record->qualification_title_id;
                             $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
 
-                            $provinceId = $record->tvi->district->province_id;
-                            $districtId = $record->tvi->district_id;
+                            $provinceId = $record->district->province_id;
+                            $districtId = $record->district_id;
 
                             $quali = QualificationTitle::find($qualificationTitleId);
                             $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
@@ -1486,7 +1487,7 @@ class AttributionProjectProposalResource extends Resource
                             if (!$skillPrograms) {
                                 $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                                     ->whereHas('skillPriority', function ($query) use ($record) {
-                                        $query->where('province_id', $record->tvi->district->province_id)
+                                        $query->where('province_id', $record->district->province_id)
                                             ->where('year', $record->allocation->year);
                                     })
                                     ->first();
@@ -1502,6 +1503,38 @@ class AttributionProjectProposalResource extends Resource
 
                             $record->delete();
 
+                            TargetHistory::create([
+                                // 'abscap_id' => $target->abscap_id,
+                                'target_id' => $record->id,
+                                'allocation_id' => $record->allocation_id,
+                                'district_id' => $record->district_id,
+                                'municipality_id' => $record->municipality_id,
+                                'tvi_id' => $record->tvi_id,
+                                'tvi_name' => $record->tvi_name,
+                                'qualification_title_id' => $record->qualification_title_id,
+                                'qualification_title_code' => $record->qualification_title_code,
+                                'qualification_title_soc_code' => $record->qualification_title_soc_code,
+                                'qualification_title_name' => $record->qualification_title_name,
+                                'abdd_id' => $record->abdd_id,
+                                'delivery_mode_id' => $record->delivery_mode_id,
+                                'learning_mode_id' => $record->learning_mode_id ?? null,
+                                'number_of_slots' => $record->number_of_slots,
+                                'total_training_cost_pcc' => $record->total_training_cost_pcc,
+                                'total_cost_of_toolkit_pcc' => $record->total_cost_of_toolkit_pcc,
+                                'total_training_support_fund' => $record->total_training_support_fund,
+                                'total_assessment_fee' => $record->total_assessment_fee,
+                                'total_entrepreneurship_fee' => $record->total_entrepreneurship_fee,
+                                'total_new_normal_assisstance' => $record->total_new_normal_assisstance,
+                                'total_accident_insurance' => $record->total_accident_insurance,
+                                'total_book_allowance' => $record->total_book_allowance,
+                                'total_uniform_allowance' => $record->total_uniform_allowance,
+                                'total_misc_fee' => $record->total_misc_fee,
+                                'total_amount' => $record->total_amount,
+                                'appropriation_type' => $record->appropriation_type,
+                                'description' => 'Target Deleted',
+                                'user_id' => Auth::user()->id,
+                            ]);
+
                             NotificationHandler::sendSuccessNotification('Deleted', 'Target has been deleted successfully.');
                         })
                         ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin']) || Auth::user()->can('delete attribution project proposal target')),
@@ -1514,8 +1547,8 @@ class AttributionProjectProposalResource extends Resource
                             $qualificationTitleId = $record->qualification_title_id;
                             $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
 
-                            $provinceId = $record->tvi->district->province_id;
-                            $districtId = $record->tvi->district_id;
+                            $provinceId = $record->district->province_id;
+                            $districtId = $record->district_id;
 
                             $quali = QualificationTitle::find($qualificationTitleId);
                             $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
@@ -1545,7 +1578,7 @@ class AttributionProjectProposalResource extends Resource
                             if (!$skillPrograms) {
                                 $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                                     ->whereHas('skillPriority', function ($query) use ($record) {
-                                        $query->where('province_id', $record->tvi->district->province_id)
+                                        $query->where('province_id', $record->district->province_id)
                                             ->where('year', $record->allocation->year);
                                     })
                                     ->first();
@@ -1582,6 +1615,38 @@ class AttributionProjectProposalResource extends Resource
                             $record->deleted_at = null;
                             $record->save();
 
+                            TargetHistory::create([
+                                // 'abscap_id' => $target->abscap_id,
+                                'target_id' => $record->id,
+                                'allocation_id' => $record->allocation_id,
+                                'district_id' => $record->district_id,
+                                'municipality_id' => $record->municipality_id,
+                                'tvi_id' => $record->tvi_id,
+                                'tvi_name' => $record->tvi_name,
+                                'qualification_title_id' => $record->qualification_title_id,
+                                'qualification_title_code' => $record->qualification_title_code,
+                                'qualification_title_soc_code' => $record->qualification_title_soc_code,
+                                'qualification_title_name' => $record->qualification_title_name,
+                                'abdd_id' => $record->abdd_id,
+                                'delivery_mode_id' => $record->delivery_mode_id,
+                                'learning_mode_id' => $record->learning_mode_id ?? null,
+                                'number_of_slots' => $record->number_of_slots,
+                                'total_training_cost_pcc' => $record->total_training_cost_pcc,
+                                'total_cost_of_toolkit_pcc' => $record->total_cost_of_toolkit_pcc,
+                                'total_training_support_fund' => $record->total_training_support_fund,
+                                'total_assessment_fee' => $record->total_assessment_fee,
+                                'total_entrepreneurship_fee' => $record->total_entrepreneurship_fee,
+                                'total_new_normal_assisstance' => $record->total_new_normal_assisstance,
+                                'total_accident_insurance' => $record->total_accident_insurance,
+                                'total_book_allowance' => $record->total_book_allowance,
+                                'total_uniform_allowance' => $record->total_uniform_allowance,
+                                'total_misc_fee' => $record->total_misc_fee,
+                                'total_amount' => $record->total_amount,
+                                'appropriation_type' => $record->appropriation_type,
+                                'description' => 'Target Restored',
+                                'user_id' => Auth::user()->id,
+                            ]);
+                            
                             NotificationHandler::sendSuccessNotification('Restored', 'Target has been restored successfully.');
                         }),
 
@@ -1604,8 +1669,8 @@ class AttributionProjectProposalResource extends Resource
                                 $qualificationTitleId = $record->qualification_title_id;
                                 $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
 
-                                $provinceId = $record->tvi->district->province_id;
-                                $districtId = $record->tvi->district_id;
+                                $provinceId = $record->district->province_id;
+                                $districtId = $record->district_id;
 
                                 $quali = QualificationTitle::find($qualificationTitleId);
                                 $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
@@ -1635,7 +1700,7 @@ class AttributionProjectProposalResource extends Resource
                                 if (!$skillPrograms) {
                                     $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                                         ->whereHas('skillPriority', function ($query) use ($record) {
-                                            $query->where('province_id', $record->tvi->district->province_id)
+                                            $query->where('province_id', $record->district->province_id)
                                                 ->where('year', $record->allocation->year);
                                         })
                                         ->first();
@@ -1650,6 +1715,38 @@ class AttributionProjectProposalResource extends Resource
                                 $allocation->save();
 
                                 $record->delete();
+
+                                TargetHistory::create([
+                                    // 'abscap_id' => $target->abscap_id,
+                                    'target_id' => $record->id,
+                                    'allocation_id' => $record->allocation_id,
+                                    'district_id' => $record->district_id,
+                                    'municipality_id' => $record->municipality_id,
+                                    'tvi_id' => $record->tvi_id,
+                                    'tvi_name' => $record->tvi_name,
+                                    'qualification_title_id' => $record->qualification_title_id,
+                                    'qualification_title_code' => $record->qualification_title_code,
+                                    'qualification_title_soc_code' => $record->qualification_title_soc_code,
+                                    'qualification_title_name' => $record->qualification_title_name,
+                                    'abdd_id' => $record->abdd_id,
+                                    'delivery_mode_id' => $record->delivery_mode_id,
+                                    'learning_mode_id' => $record->learning_mode_id ?? null,
+                                    'number_of_slots' => $record->number_of_slots,
+                                    'total_training_cost_pcc' => $record->total_training_cost_pcc,
+                                    'total_cost_of_toolkit_pcc' => $record->total_cost_of_toolkit_pcc,
+                                    'total_training_support_fund' => $record->total_training_support_fund,
+                                    'total_assessment_fee' => $record->total_assessment_fee,
+                                    'total_entrepreneurship_fee' => $record->total_entrepreneurship_fee,
+                                    'total_new_normal_assisstance' => $record->total_new_normal_assisstance,
+                                    'total_accident_insurance' => $record->total_accident_insurance,
+                                    'total_book_allowance' => $record->total_book_allowance,
+                                    'total_uniform_allowance' => $record->total_uniform_allowance,
+                                    'total_misc_fee' => $record->total_misc_fee,
+                                    'total_amount' => $record->total_amount,
+                                    'appropriation_type' => $record->appropriation_type,
+                                    'description' => 'Target Deleted',
+                                    'user_id' => Auth::user()->id,
+                                ]);
                             });
                             NotificationHandler::sendSuccessNotification('Deleted', 'Selected targets have been deleted successfully.');
                         })
@@ -1664,8 +1761,8 @@ class AttributionProjectProposalResource extends Resource
                                 $qualificationTitleId = $record->qualification_title_id;
                                 $trainingProgramId = QualificationTitle::find($qualificationTitleId)->training_program_id;
 
-                                $provinceId = $record->tvi->district->province_id;
-                                $districtId = $record->tvi->district_id;
+                                $provinceId = $record->district->province_id;
+                                $districtId = $record->district_id;
 
                                 $quali = QualificationTitle::find($qualificationTitleId);
                                 $toolkit = $quali->toolkits()->where('year', $allocation->year)->first();
@@ -1695,7 +1792,7 @@ class AttributionProjectProposalResource extends Resource
                                 if (!$skillPrograms) {
                                     $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                                         ->whereHas('skillPriority', function ($query) use ($record) {
-                                            $query->where('province_id', $record->tvi->district->province_id)
+                                            $query->where('province_id', $record->district->province_id)
                                                 ->where('year', $record->allocation->year);
                                         })
                                         ->first();
@@ -1721,6 +1818,38 @@ class AttributionProjectProposalResource extends Resource
 
                                 $record->deleted_at = null;
                                 $record->save();
+
+                                TargetHistory::create([
+                                    // 'abscap_id' => $target->abscap_id,
+                                    'target_id' => $record->id,
+                                    'allocation_id' => $record->allocation_id,
+                                    'district_id' => $record->district_id,
+                                    'municipality_id' => $record->municipality_id,
+                                    'tvi_id' => $record->tvi_id,
+                                    'tvi_name' => $record->tvi_name,
+                                    'qualification_title_id' => $record->qualification_title_id,
+                                    'qualification_title_code' => $record->qualification_title_code,
+                                    'qualification_title_soc_code' => $record->qualification_title_soc_code,
+                                    'qualification_title_name' => $record->qualification_title_name,
+                                    'abdd_id' => $record->abdd_id,
+                                    'delivery_mode_id' => $record->delivery_mode_id,
+                                    'learning_mode_id' => $record->learning_mode_id ?? null,
+                                    'number_of_slots' => $record->number_of_slots,
+                                    'total_training_cost_pcc' => $record->total_training_cost_pcc,
+                                    'total_cost_of_toolkit_pcc' => $record->total_cost_of_toolkit_pcc,
+                                    'total_training_support_fund' => $record->total_training_support_fund,
+                                    'total_assessment_fee' => $record->total_assessment_fee,
+                                    'total_entrepreneurship_fee' => $record->total_entrepreneurship_fee,
+                                    'total_new_normal_assisstance' => $record->total_new_normal_assisstance,
+                                    'total_accident_insurance' => $record->total_accident_insurance,
+                                    'total_book_allowance' => $record->total_book_allowance,
+                                    'total_uniform_allowance' => $record->total_uniform_allowance,
+                                    'total_misc_fee' => $record->total_misc_fee,
+                                    'total_amount' => $record->total_amount,
+                                    'appropriation_type' => $record->appropriation_type,
+                                    'description' => 'Target Restored',
+                                    'user_id' => Auth::user()->id,
+                                ]);
                             });
                             NotificationHandler::sendSuccessNotification('Restored', 'Selected targets have been restored successfully.');
                         })
