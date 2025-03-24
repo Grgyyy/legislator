@@ -57,7 +57,7 @@ class Tvi extends Model
 
     public function targetHistory()
     {
-        return $this->hasMany(targetHistory::class);
+        return $this->hasMany(TargetHistory::class, 'tvi_id', 'id');
     }
 
     public function recognitions()

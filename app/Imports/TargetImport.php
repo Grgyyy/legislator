@@ -9,6 +9,7 @@ use App\Models\DeliveryMode;
 use App\Models\District;
 use App\Models\LearningMode;
 use App\Models\Legislator;
+use App\Models\Municipality;
 use App\Models\Particular;
 use App\Models\Partylist;
 use App\Models\Province;
@@ -49,7 +50,7 @@ class TargetImport implements ToModel, WithHeadingRow
                 $legislator = $this->getLegislatorId($row['legislator']);
                 $region = $this->getRegion($row['region']);
                 $province = $this->getProvince($row['province'], $region->id);
-                $district = $this->getDistrict($row['district'], $province->id);
+                $district = $this->getDistrict($row['district'], $row['municipality'], $province->id);
                 $partylist = $this->getPartylist($row['partylist']);
                 $sub_particular = $this->getSubParticular($row['particular']);
                 $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
@@ -58,7 +59,7 @@ class TargetImport implements ToModel, WithHeadingRow
                 $abddSector = $this->getAbddSector($row['abdd_sector']);
                 $delivery_mode = $this->getDeliveryMode($row['delivery_mode']);
                 $learning_mode = $this->getLearningMode($row['learning_mode'], $delivery_mode->id);
-                $tvi = $this->getTvi($row['institution']);
+                $tvi = $this->getTvi($row['institution'], $row['school_id']);
                 $numberOfSlots = $row['number_of_slots'];
 
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $row['soc_code'], $row['qualification_title_scholarship_program'], $scholarship_program);
@@ -139,11 +140,13 @@ class TargetImport implements ToModel, WithHeadingRow
             'particular',
             'scholarship_program',
             'district',
+            'municipality',
             'province',
             'region',
             'partylist',
             'appropriation_year',
             'appropriation_type',
+            'school_id',
             'institution',
             'soc_code',
             'qualification_title',
@@ -239,16 +242,36 @@ class TargetImport implements ToModel, WithHeadingRow
 
         return $province;
     }
-    protected function getDistrict(string $districtName, int $provinceId)
+    
+    protected function getDistrict(string $districtName, string $municipalityName, int $provinceId)
     {
-        $district = District::where('name', $districtName)
+        $province = Province::find($provinceId);
+
+        $districtQuery = District::where('name', $districtName)
             ->where('province_id', $provinceId)
-            ->whereNull('deleted_at')
-            ->first();
+            ->whereNull('deleted_at');
+
+        if ($municipalityName !== 'Not Applicable') {
+            $municipality = Municipality::where('name', $municipalityName)
+                ->where('province_id', $provinceId)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if (!$municipality) {
+                throw new Exception("The Municipality named '{$municipalityName}' is not existing.");
+            }
+
+            $districtQuery->where('municipality_id', $municipality->id);
+        } else {
+            $districtQuery->where('municipality_id', null);
+        }
+
+        $district = $districtQuery->first();
 
         if (!$district) {
-            throw new Exception("District with name '{$districtName}' not found.");
+            throw new Exception("The District named '{$districtName}' under Province named '{$province->name}' is not existing.");
         }
+
         return $district;
     }
     protected function getPartylist(string $partylistName)
@@ -363,9 +386,10 @@ class TargetImport implements ToModel, WithHeadingRow
 
         return $learningMode;
     }
-    protected function getTvi(string $tviName)
+    protected function getTvi(string $tviName, string $schoolId)
     {
         $tvi = Tvi::where('name', $tviName)
+            ->where('school_id', $schoolId)
             ->whereNull('deleted_at')
             ->first();
 
@@ -461,7 +485,7 @@ class TargetImport implements ToModel, WithHeadingRow
         }
 
         if (!$skillPrograms) {
-            NotificationHandler::handleValidationException('Something went wrong', 'Skill Priority does not exists.');
+            throw new Exception("Skill Priority does not exists.");
         }
 
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
@@ -472,12 +496,10 @@ class TargetImport implements ToModel, WithHeadingRow
             $district = District::where('id', $districtId)->first();
 
             if (!$trainingProgram || !$province || !$district) {
-                NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
-                return;
+                throw new Exception("Invalid training program, province, or district.");
             }
 
-            $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.");
         }
 
         return $skillsPriority;

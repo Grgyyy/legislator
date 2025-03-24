@@ -764,7 +764,7 @@ class AllocationResource extends Resource
             return;
         }
 
-        $particulars = ['RO Regular', 'CO Regular', 'House Speaker', 'House Speaker (LAKAS)'];
+        $particulars = ['RO Regular', 'CO Regular', 'House Speaker', 'House Speaker (LAKAS)', 'Senator'];
 
         if ($isAttributor) {
             $legislator = Legislator::with([
@@ -820,6 +820,10 @@ class AllocationResource extends Resource
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([SoftDeletingScope::class]);
+
+        if (!$user->hasRole(['Super Admin', 'Admin'])) {
+            $query->whereNull('deleted_at');
+        }
     }
 
     public static function getPages(): array

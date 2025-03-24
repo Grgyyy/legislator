@@ -61,8 +61,9 @@ class TargetHistory extends Model
 
     public function tvi()
     {
-        return $this->belongsTo(Tvi::class);
+        return $this->belongsTo(Tvi::class, 'tvi_id', 'id');
     }
+
 
     public function municipality()
     {

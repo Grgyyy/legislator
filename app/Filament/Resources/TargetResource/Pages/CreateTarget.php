@@ -130,7 +130,7 @@ class CreateTarget extends CreateRecord
             ->send();
     }
 
-    private function getAllocation(array $targetData): Allocation
+    private function getAllocation(array $targetData)
     {
         $allocation = Allocation::where([
             'legislator_id' => $targetData['legislator_id'],
@@ -148,7 +148,7 @@ class CreateTarget extends CreateRecord
         return $allocation;
     }
 
-    private function getInstitution(int $tviId): Tvi
+    private function getInstitution(int $tviId)
     {
         $institution = Tvi::find($tviId);
 
@@ -202,7 +202,7 @@ class CreateTarget extends CreateRecord
     }
 
 
-    private function getQualificationTitle(int $qualificationTitleId): QualificationTitle
+    private function getQualificationTitle(int $qualificationTitleId)
     {
         $qualificationTitle = QualificationTitle::find($qualificationTitleId);
 
@@ -214,7 +214,7 @@ class CreateTarget extends CreateRecord
         return $qualificationTitle;
     }
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, int $year): array
+    private function calculateTotals($qualificationTitle, int $numberOfSlots, int $year): array
     {
         $quali = QualificationTitle::find($qualificationTitle->id);
         $costOfToolkitPcc = $quali->toolkits()->where('year', $year)->first();
@@ -255,7 +255,7 @@ class CreateTarget extends CreateRecord
         ];
     }
 
-    private function createTarget(array $targetData, Allocation $allocation, Tvi $institution, QualificationTitle $qualificationTitle, array $totals): Target
+    private function createTarget(array $targetData, $allocation, $institution, $qualificationTitle, array $totals): Target
     {
         return Target::create(array_merge($targetData, [
             // 'abscap_id' => $targetData['abscap_id'] ??  null,

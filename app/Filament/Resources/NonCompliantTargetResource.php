@@ -408,12 +408,13 @@ class NonCompliantTargetResource extends Resource
                                 ->placeholder('Enter per capita cost amount')
                                 ->markAsRequired(false) // Optional: no validation enforced
                                 ->autocomplete(false)
-                                ->currencyMask(precision: 0) // Formats as currency
+                                ->default($record ? $record->total_amount / $record->number_of_slots : null)
+                                ->currencyMask(precision: 0)
                                 ->hidden(function ($get) {
                                     $id = $get('qualification_title_id');
-                                    $qualificationTitle = QualificationTitle::find($id)?->soc; // Safe retrieval
+                                    $qualificationTitle = QualificationTitle::find($id)?->soc; 
                 
-                                    return $qualificationTitle; // Show when soc = 1, hide otherwise
+                                    return $qualificationTitle;
                                 })
                                 ->reactive()
                                 ->live()
@@ -459,8 +460,6 @@ class NonCompliantTargetResource extends Resource
 
                         Textarea::make('other_remarks')
                             ->label('Specify the remarks...')
-                            ->required()
-                            ->markAsRequired(false)
                             ->reactive()
                             ->validationAttribute('remarks'),
                     ]),

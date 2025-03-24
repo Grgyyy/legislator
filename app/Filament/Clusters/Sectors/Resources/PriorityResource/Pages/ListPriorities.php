@@ -73,7 +73,7 @@ class ListPriorities extends ListRecords
                 ->visible(fn() => Auth::user()->hasRole(['Super Admin', 'Admin', 'SMD Head']) || Auth::user()->can('import top ten priority sectors')),
 
             Action::make('PriorityExport')
-                ->label('Export All')
+                ->label('Export')
                 ->icon('heroicon-o-document-arrow-up')
                 ->action(function (array $data) {
                     try {

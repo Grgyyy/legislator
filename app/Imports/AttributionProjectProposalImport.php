@@ -48,9 +48,6 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
 
                 $attributor = $this->getAttributorId($row['attributor']);
                 $attribution_region = $this->getRegion($row['attributor_region']);
-                $attribution_province = $this->getProvince('Not Applicable', $attribution_region->id);
-                $attribution_district = $this->getDistrict('Not Applicable', $attribution_province->id);
-                $attribution_partylist = $this->getPartylist('Not Applicable');
                 $attribution_sub_particular = $this->getSubParticular($row['attributor_particular']);
                 $attribution_particular = $this->getAttributorParticularRecord($attribution_sub_particular->id, $attribution_region->name);
 
@@ -58,7 +55,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                 $legislator = $this->getLegislatorId($row['legislator']);
                 $region = $this->getRegion($row['region']);
                 $province = $this->getProvince($row['province'], $region->id);
-                $district = $this->getDistrict($row['district'], $province->id);
+                $district = $this->getDistrict($row['district'], $row['municipality'], $province->id);
                 $partylist = $this->getPartylist($row['partylist']);
                 $sub_particular = $this->getSubParticular($row['particular']);
                 $particular = $this->getParticular($sub_particular->id, $partylist->id, $district->id);
@@ -70,7 +67,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                 $abddSector = $this->getAbddSector($row['abdd_sector']);
                 $delivery_mode = $this->getDeliveryMode($row['delivery_mode']);
                 $learning_mode = $this->getLearningMode($row['learning_mode'], $delivery_mode->id);
-                $tvi = $this->getTvi($row['institution']);
+                $tvi = $this->getTvi(Helper::capitalizeWords($row['institution']), $row['school_id']);
                 $numberOfSlots = $row['number_of_slots'];
 
                 $qualificationTitle = $this->getQualificationTitle($row['qualification_title'], $row['soc_code'], $row['qualification_title_scholarship_program'], $scholarship_program);
@@ -146,6 +143,8 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
 
             });
         } catch (Throwable $e) {
+            $message = "Import failed: " . $e->getMessage();
+            NotificationHandler::handleValidationException('Something went wrong', $message);
             throw $e;
         }
     }
@@ -283,17 +282,37 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
         return $province;
     }
 
-    protected function getDistrict(string $districtName, int $provinceId)
+    protected function getDistrict(string $districtName, string $municipalityName, int $provinceId)
     {
-        $district = District::where('name', $districtName)
+        $province = Province::find($provinceId);
+
+        $districtQuery = District::where('name', $districtName)
             ->where('province_id', $provinceId)
-            ->whereNull('deleted_at')
-            ->first();
+            ->whereNull('deleted_at');
+
+        if ($municipalityName !== 'Not Applicable') {
+            $municipality = Municipality::where('name', $municipalityName)
+                ->where('province_id', $provinceId)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if (!$municipality) {
+                $message = "The Municipality named '{$municipalityName}' is not existing.";
+                NotificationHandler::handleValidationException('Something went wrong', $message);
+            }
+
+            $districtQuery->where('municipality_id', $municipality->id);
+        } else {
+            $districtQuery->where('municipality_id', null);
+        }
+
+        $district = $districtQuery->first();
 
         if (!$district) {
-            $message = "District with name '{$districtName}' not found.";
+            $message = "The District named '{$districtName}' under Province named '{$province->name}' is not existing.";
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
+
         return $district;
     }
 
@@ -435,9 +454,10 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
         return $learningMode;
     }
 
-    protected function getTvi(string $tviName)
+    protected function getTvi(string $tviName, string $schoolId)
     {
         $tvi = Tvi::where('name', $tviName)
+            ->where('school_id', $schoolId)
             ->whereNull('deleted_at')
             ->first();
 

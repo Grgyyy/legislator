@@ -25,7 +25,7 @@ class PriorityExport implements FromQuery, WithMapping, WithStyles, WithHeadings
 
     public function query(): Builder
     {
-        return Priority::query();
+        return Priority::query()->where('name', '!=', 'Not Applicable');
     }
 
     public function map($record): array

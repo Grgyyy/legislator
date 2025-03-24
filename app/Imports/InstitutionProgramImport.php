@@ -25,14 +25,14 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
                 try {
                     $institutionName = Helper::capitalizeWords($row['institution']);
                     $institution = $this->getInstitution($institutionName, $row['full_address']);
-                    $trainingPrograms = $this->getTrainingPrograms($row['training_program']);
+                    $trainingPrograms = $this->getTrainingPrograms($row['qualification_title']);
 
                     if (!$institution) {
                         throw new \Exception("Institution '{$institutionName}' was not found.");
                     }
 
                     if ($trainingPrograms->isEmpty()) {
-                        throw new \Exception("Training program '{$row['training_program']}' was not found.");
+                        throw new \Exception("Training program '{$row['qualification_title']}' was not found.");
                     }
 
                     if (!isset($institution->id)) {
@@ -71,7 +71,7 @@ class InstitutionProgramImport implements ToModel, WithHeadingRow
 
     protected function validateRow(array $row)
     {
-        $requiredFields = ['institution', 'training_program'];
+        $requiredFields = ['institution', 'qualification_title'];
 
         foreach ($requiredFields as $field) {
             if (empty($row[$field])) {

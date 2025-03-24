@@ -6,6 +6,7 @@ use App\Filament\Resources\TargetHistoryResource\Pages;
 use App\Models\Target;
 use App\Models\TargetHistory;
 use App\Models\TargetStatus;
+use App\Models\Tvi;
 use DB;
 use Filament\Facades\Filament;
 use Filament\Forms\Form;
@@ -122,29 +123,37 @@ class TargetHistoryResource extends Resource
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('tvi.district.municipality.province.name')
+                TextColumn::make('district.province.name')
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('tvi.district.municipality.province.region.name')
+                TextColumn::make('district.province.region.name')
                     ->searchable()
                     ->toggleable(),
 
-                TextColumn::make('tvi.name')
+                TextColumn::make('tvi_name')
                     ->label('Institution')
                     ->searchable()
                     ->toggleable()
                     ->formatStateUsing(fn($state) => preg_replace_callback('/(\d)([a-zA-Z])/', fn($matches) => $matches[1] . strtoupper($matches[2]), ucwords($state))),
 
-                TextColumn::make('tvi.tviType.name')
-                    ->label('Institution Type')
-                    ->searchable()
-                    ->toggleable(),
+                // TextColumn::make('tvi.tviType.name')
+                //     ->label('Institution Type')
+                //     ->searchable()
+                //     ->toggleable()
+                //     ->getStateUsing(function ($record) {
+                //         $tvi = Tvi::withTrashed()->where('id', $record->tvi_id)->first();
+                //         return $tvi->tviType->name;
+                //     }),
 
                 TextColumn::make('tvi.tviClass.name')
                     ->label('Institution Class')
                     ->searchable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->getStateUsing(function ($record) {
+                        $tvi = Tvi::withTrashed()->where('id', $record->tvi_id)->first();
+                        return "{$tvi->tviType->name} - {$tvi->tviClass->name}";
+                    }),
 
                 TextColumn::make('qualification_title_code')
                     ->label('Qualification Code')
