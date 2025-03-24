@@ -392,6 +392,12 @@ class CompliantTargetsResource extends Resource
                                 ->currencyMask(thousandSeparator: ',', decimalSeparator: '.', precision: 2)
                                 ->disabled()
                                 ->dehydrated()
+                                ->hidden(function ($get) {
+                                    $id = $get('qualification_title_id');
+                                    $qualificationTitle = QualificationTitle::find($id)?->soc; 
+                
+                                    return $qualificationTitle;
+                                })
                                 ->validationMessages([
                                     'max' => 'The PCC cannot exceed ₱999,999,999,999.99.'
                                 ])
@@ -1444,7 +1450,6 @@ class CompliantTargetsResource extends Resource
 
         $qualificationTitlesQuery = QualificationTitle::whereIn('scholarship_program_id', $scholarshipPrograms)
             ->where('status_id', 1)
-            ->where('soc', 1)
             ->whereNull('deleted_at')
             ->with('trainingProgram')
             ->get();
