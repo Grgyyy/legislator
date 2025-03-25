@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LegislativeTargetsResource\Widgets;
 use App\Models\Allocation;
 use App\Models\Target;
+use App\Models\TargetStatus;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Log;
@@ -35,9 +36,13 @@ class LegislativeTargetStatsOverview_ extends BaseWidget
                 ->color('warning'),
         ];
     }
+
     protected function getTotalAmount($allocationId): float
     {
+        $compliantStatus = TargetStatus::where('desc', 'Compliant')->value('id');
+
         return Target::where('allocation_id', $allocationId)
+            ->where('target_status_id', '=', $compliantStatus)
             ->sum('total_amount');
     }
 
