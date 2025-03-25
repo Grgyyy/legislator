@@ -28,10 +28,10 @@ class LegislativeTargetStatsOverview_ extends BaseWidget
         Log::info('Legislator ID: ' . $this->legislatorId);
 
         return [
-            Stat::make('Total Amount', '₱ ' . number_format($totalAmount))
+            Stat::make('Total Amount', '₱ ' . number_format($totalAmount, 2))
                 ->description('Total amount')
                 ->color('warning'),
-            Stat::make('Total Balance', '₱ ' . number_format($totalBalance))
+            Stat::make('Total Balance', '₱ ' . number_format($totalBalance, 2 ))
                 ->description('Total balance')
                 ->color('warning'),
         ];
