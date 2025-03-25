@@ -32,13 +32,13 @@ class LegislativeTargetStatsOverview extends BaseWidget
         Log::info('Scholarship Program ID: ' . $this->scholarshipProgramId);
 
         return [
-            Stat::make('Total Allocation', '₱ ' . number_format($totalAllocation))
-                ->description('Admin Cost: ₱ ' . number_format($adminCost))
+            Stat::make('Total Allocation', '₱ ' . number_format($totalAllocation, 2))
+                ->description('Admin Cost: ₱ ' . number_format($adminCost, 2))
                 ->color('info'),
-            Stat::make('Training Cost', '₱ ' . number_format($trainingCost))
+            Stat::make('Training Cost', '₱ ' . number_format($trainingCost, 2))
                 ->description('Total training cost')
                 ->color('warning'),
-            Stat::make('Cost of Toolkits', '₱ ' . number_format($costOfToolkits))
+            Stat::make('Cost of Toolkits', '₱ ' . number_format($costOfToolkits, 2))
                 ->description('Total cost of toolkits')
                 ->color('warning'),
         ];
