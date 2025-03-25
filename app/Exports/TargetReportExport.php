@@ -4,6 +4,8 @@ namespace App\Exports;
 
 use App\Models\Allocation;
 use App\Models\QualificationTitle;
+use App\Models\Target;
+use App\Models\TargetStatus;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
@@ -40,7 +42,7 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
 
         $sumTotalTrainingCost = $this->getSumTotalTrainingCost($this->allocationId);
         $sumTotalCostOfToolkit = $this->getSumTotalCostOfToolkit($this->allocationId);
-        $balance = $this->getBalance($this->allocationId);
+        $balance = $allocation - $adminCost - $SumTotal;
 
         $data = [
             ['Technical Education And Skills Development Authority (TESDA)'],
@@ -53,8 +55,8 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
             ['Admin Cost' => 'Admin Cost:', $adminCost],
             ['Sum of Total Training Cost' => 'Total Training Cost:', $sumTotalTrainingCost],
             ['Sum of Total Cost of Toolkit' => 'Total Cost of Toolkit:', $sumTotalCostOfToolkit],
-            ['Sum of Total' => 'Total:', $SumTotal],
-            ['Balance' => 'Balance:', $balance],
+            ['Sum of Total' => 'Total Amount:', $SumTotal],
+            ['Balance' => 'Total Balance:', $balance],
             [''],
             ['Region', 'Province', 'Municipality', 'Name of Institution', 'Qualification Title', 'Number of Slots', 'Training Cost PCC', 'Cost of Toolkit PCC', 'Total Training Cost', 'Total Cost of Toolkit', 'Total Amount', 'Status'],
             [''],
@@ -71,16 +73,16 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
                 'Training Cost PCC' => $target->number_of_slots > 0
                     ?
                     ($target->total_training_cost_pcc + $target->total_assessment_fee + $target->total_training_support_fund + $target->total_entrepreneurship_fee) / $target->number_of_slots
-
                     : 0,
+
                 'Cost of Toolkits PCC' => $target->number_of_slots > 0
                     ? $target->total_cost_of_toolkit_pcc / $target->number_of_slots
                     : 0,
+
                 'Total Training Cost' =>
-                    ($target->total_training_cost_pcc + $target->total_assessment_fee + $target->total_training_support_fund + $target->total_entrepreneurship_fee) ?? 0
-                ,
+                    ($target->total_training_cost_pcc + $target->total_assessment_fee + $target->total_training_support_fund + $target->total_entrepreneurship_fee) ?? 0,
                 'Total Cost of Toolkits' => $target->total_cost_of_toolkit_pcc ?? 0,
-                'Total Amount' => $target->total_amount,
+                'Total Amount' => $target->total_amount ?? 0,
 
                 'Status' => $target->targetStatus->desc,
             ];
@@ -144,14 +146,17 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
             ->get() : collect();
     }
 
+
+
     // private function targetData($id)
     // {
     //     $allocation = Allocation::find($id);
 
     //     return $allocation ? $allocation
     //         ->target()
-    //         ->with('targetStatus')
-    //         ->orderByRaw("FIELD(status, 'Pending', 'Compliant', 'Non-Compliant')")
+    //         ->whereHas('targetStatus', function ($query) {
+    //             $query->where('desc', 'Compliant');
+    //         })
     //         ->get() : collect();
     // }
 
@@ -174,9 +179,8 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
 
     private function getAllocation($id)
     {
-        $allocation = Allocation::find($id);
-
-        return $allocation ? $allocation->allocation : 0;
+        return Allocation::where('id', $id)
+            ->sum('allocation');
     }
 
     private function getAdminCost($id)
@@ -193,59 +197,37 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
 
     private function getSumTotal($allocationId)
     {
-        $sum = DB::table('targets')
-            ->join('allocations', 'targets.allocation_id', '=', 'allocations.id')
-            ->select(
-                DB::raw('(
-                    (allocations.allocation * 0.02) +
-                    SUM(targets.total_training_cost_pcc + targets.total_assessment_fee + targets.total_training_support_fund + targets.total_entrepreneurship_fee) + SUM(targets.total_cost_of_toolkit_pcc)
-                ) as sum_of_total_amount')
-            )
-            ->where('targets.allocation_id', $allocationId)
-            ->groupBy('allocations.allocation')
-            ->value('sum_of_total_amount');
 
-        return $sum ?? 0;
-    }
+        $compliantStatus = TargetStatus::where('desc', 'Compliant')->value('id');
 
-    private function getBalance($allocationId)
-    {
-        $sum = DB::table('targets')
-            ->join('allocations', 'targets.allocation_id', '=', 'allocations.id')
-            ->select(
-                DB::raw('(allocations.allocation - (
-                (allocations.allocation * 0.02) +
-                SUM(targets.total_training_cost_pcc + targets.total_assessment_fee + targets.total_training_support_fund + targets.total_entrepreneurship_fee) +
-                SUM(targets.total_cost_of_toolkit_pcc)
-            )) as balance')
-            )
-            ->where('targets.allocation_id', $allocationId)
-            ->groupBy('allocations.allocation')
-            ->value('sum_of_total_amount');
-
-        return $sum ?? 0;
+        return Target::where('allocation_id', $allocationId)
+            ->where('target_status_id', '=', $compliantStatus)
+            ->sum('total_amount');
     }
 
     private function getSumTotalTrainingCost($allocationId)
     {
-        $sum = DB::table('targets')
-            ->select(
-                DB::raw('SUM(targets.total_training_cost_pcc + targets.total_assessment_fee + targets.total_training_support_fund + targets.total_entrepreneurship_fee)')
-            )
-            ->where('allocation_id', $allocationId)
-            ->value('sum_of_total_training_cost');
+        $sum = Target::where('allocation_id', $allocationId)
+            ->whereHas('targetStatus', function ($query) {
+                $query->where('desc', 'Compliant');
+            })
+            ->sum(DB::raw(
+                'total_training_cost_pcc + total_assessment_fee + total_training_support_fund + total_entrepreneurship_fee'
+            ));
 
         return $sum ?? 0;
     }
 
     private function getSumTotalCostOfToolkit($allocationId)
     {
-        $sum = DB::table('targets')
-            ->select(
-                DB::raw('SUM(targets.total_cost_of_toolkit_pcc)')
-            )
-            ->where('allocation_id', $allocationId)
-            ->value('sum_of_total_cost_of_toolkits');
+
+        $sum = Target::where('allocation_id', $allocationId)
+            ->whereHas('targetStatus', function ($query) {
+                $query->where('desc', 'Compliant');
+            })
+            ->sum(DB::raw(
+                'targets.total_cost_of_toolkit_pcc'
+            ));
 
         return $sum ?? 0;
     }

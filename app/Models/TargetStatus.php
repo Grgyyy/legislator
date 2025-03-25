@@ -9,7 +9,8 @@ class TargetStatus extends Model
 {
     use HasFactory;
 
-    public function target() {
+    public function target()
+    {
         return $this->hasMany(related: Target::class);
     }
 
