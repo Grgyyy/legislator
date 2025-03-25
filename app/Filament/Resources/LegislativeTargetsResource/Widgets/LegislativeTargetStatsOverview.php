@@ -2,10 +2,12 @@
 namespace App\Filament\Resources\LegislativeTargetsResource\Widgets;
 use App\Models\Allocation;
 use App\Models\Target;
+use App\Models\TargetStatus;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+
 class LegislativeTargetStatsOverview extends BaseWidget
 {
     public ?int $legislatorId = null;
@@ -41,6 +43,7 @@ class LegislativeTargetStatsOverview extends BaseWidget
                 ->color('warning'),
         ];
     }
+    
     protected function getTotalAllocation($legislatorId, $scholarshipProgramId): float
     {
         return Allocation::where('id', $legislatorId)
@@ -55,19 +58,19 @@ class LegislativeTargetStatsOverview extends BaseWidget
 
     protected function getTotalTrainingCost($allocationId): float
     {
+        $compliantStatus = TargetStatus::where('desc', 'Compliant')->value('id');
+
         return Target::where('allocation_id', $allocationId)
+            ->where('target_status_id', '=', $compliantStatus)
             ->sum(DB::raw('total_training_cost_pcc + total_training_support_fund + total_assessment_fee'));
     }
 
     protected function getTotalCostOfToolkits($allocationId): float
     {
+        $compliantStatus = TargetStatus::where('desc', 'Compliant')->value('id');
+        
         return Target::where('allocation_id', $allocationId)
-            ->sum(DB::raw('total_cost_of_toolkit_pcc'));
-    }
-
-    protected function getTotalAmount($allocationId): float
-    {
-        return Target::where('allocation_id', $allocationId)
+            ->where('target_status_id', '=', $compliantStatus)
             ->sum(DB::raw('total_cost_of_toolkit_pcc'));
     }
 }
