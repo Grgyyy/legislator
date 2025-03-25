@@ -28,6 +28,13 @@ class ListAllocations extends ListRecords
         return null;
     }
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            StatsOverview::class,
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -80,16 +87,7 @@ class ListAllocations extends ListRecords
                         NotificationHandler::sendErrorNotification('Export Failed', 'An unexpected error occurred: ' . $e->getMessage());
                     }
                 }),
-
         ];
 
-    }
-
-    protected function getHeaderWidgets(): array
-    {
-        return [
-            StatsOverview::class,
-        ];
     }
 }
-

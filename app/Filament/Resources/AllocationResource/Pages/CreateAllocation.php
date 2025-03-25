@@ -18,6 +18,11 @@ class CreateAllocation extends CreateRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -28,11 +33,6 @@ class CreateAllocation extends CreateRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
-    }
-
-    protected function getCreatedNotificationTitle(): ?string
-    {
-        return null;
     }
 
     public function isEdit(): bool
@@ -89,8 +89,8 @@ class CreateAllocation extends CreateRecord
             ])
             ->log(
                 $this->record->attributor
-                ? "An Attribution Allocation for '{$this->record->legislator->name}' has been created, attributed by '{$this->record->attributor->name}'."
-                : "An Allocation for '{$this->record->legislator->name}' has been successfully created."
+                ? "An attribution allocation for '{$this->record->legislator->name}' has been created, attributed by '{$this->record->attributor->name}'."
+                : "An allocation for '{$this->record->legislator->name}' has been successfully created."
             );
     }
 
@@ -105,7 +105,7 @@ class CreateAllocation extends CreateRecord
             $particular = Particular::find($attributorParticularId);
 
             if (!$particular) {
-                throw new \Exception("The 'attributor_particular_id' does not exist in the 'particulars' table.");
+                throw new \Exception("The 'attributor_particular_id does not exist in the 'particulars' table.");
             }
         }
     }
@@ -130,7 +130,7 @@ class CreateAllocation extends CreateRecord
 
         if ($allocation) {
             $message = $allocation->trashed()
-                ? 'This allocation with the provided details has been deleted. Please restore it before reuse.'
+                ? 'This allocation with the provided details has been deleted and must be restored before reuse.'
                 : 'This allocation with the provided details already exists.';
 
             $this->handleValidationException($message);

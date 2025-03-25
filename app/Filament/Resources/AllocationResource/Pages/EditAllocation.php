@@ -18,6 +18,11 @@ class EditAllocation extends EditRecord
         return $this->getResource()::getUrl('index');
     }
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return null;
+    }
+
     protected function getFormActions(): array
     {
         return [
@@ -25,11 +30,6 @@ class EditAllocation extends EditRecord
             $this->getCancelFormAction()
                 ->label('Exit'),
         ];
-    }
-
-    protected function getSavedNotificationTitle(): ?string
-    {
-        return null;
     }
 
     public function isEdit(): bool
@@ -105,8 +105,8 @@ class EditAllocation extends EditRecord
             ])
             ->log(
                 $this->record->attributor
-                ? "An Attribution Allocation for '{$this->record->legislator->name}' has been updated, attributed by '{$this->record->attributor->name}'."
-                : "An Allocation for '{$this->record->legislator->name}' has been successfully updated."
+                ? "An attribution allocation for '{$this->record->legislator->name}' has been updated, attributed by '{$this->record->attributor->name}'."
+                : "An allocation for '{$this->record->legislator->name}' has been successfully updated."
             );
     }
 
@@ -133,7 +133,7 @@ class EditAllocation extends EditRecord
         if ($allocation) {
             $message = $allocation->deleted_at
                 ? 'This allocation with the provided details has been deleted and must be restored before reuse.'
-                : 'This Allocation with the provided details already exists.';
+                : 'This allocation with the provided details already exists.';
 
             NotificationHandler::handleValidationException('Something went wrong', $message);
         }
