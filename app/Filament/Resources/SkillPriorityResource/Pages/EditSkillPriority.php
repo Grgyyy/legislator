@@ -98,7 +98,7 @@ class EditSkillPriority extends EditRecord
                 $record->trainingProgram()->sync($data['qualification_title_id']);
             }
 
-            NotificationHandler::sendSuccessNotification('Updated', 'Skill Priority has been updated successfully.');
+            NotificationHandler::sendSuccessNotification('Updated', 'Skills priority has been updated successfully.');
 
             return $record;
         });
@@ -120,7 +120,7 @@ class EditSkillPriority extends EditRecord
             'year' => $this->record->year,
             'status' => $this->record->status->desc,
         ])
-        ->log("An Skill Priority for '{$this->record->qualification_title}' has been updated.");
+        ->log("A skills priority for '{$this->record->qualification_title}' has been updated.");
     }
 
     protected function validateUpdateData(array $data): void
