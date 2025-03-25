@@ -68,7 +68,7 @@ class CustomParticularExport extends ExcelExport implements WithDrawings, WithCo
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
-                $columnCount = count($this->columns);
+                $columnCount = count($this->columnWidths());
                 $lastColumn = Coordinate::stringFromColumnIndex($columnCount);
 
                 $sheet->mergeCells("A1:{$lastColumn}1");
