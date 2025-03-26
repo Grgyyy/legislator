@@ -11,6 +11,7 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use NumberFormatter;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -63,29 +64,47 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
         ];
 
         foreach ($targets as $target) {
+
+            $trainingCostPcc = number_format(
+                (
+                    $target->total_training_cost_pcc +
+                    $target->total_assessment_fee +
+                    $target->total_training_support_fund +
+                    $target->total_entrepreneurship_fee
+                ) / $target->number_of_slots,
+                2
+            );
+            $costOfToolkit = number_format($target->total_cost_of_toolkit_pcc / $target->number_of_slots, 2);
+            $totalTrainingCost = number_format(
+                $target->total_training_cost_pcc +
+                $target->total_assessment_fee +
+                $target->total_training_support_fund +
+                $target->total_entrepreneurship_fee,
+                2
+            );
+
+            $totalCostOfToolkit = number_format($target->total_cost_of_toolkit_pcc, 2);
+            $totalAmount = number_format($target->total_amount, 2);
+
             $data[] = [
                 'Region' => $target->district->province->region->name,
                 'Province' => $target->district->province->name,
                 'Municipality' => $target->municipality->name,
                 'Name of Institution' => $target->tvi->name,
                 'Qualification Title' => $target->qualification_title->trainingProgram->title,
-                'Number of Slots' => $target->number_of_slots,
-                'Training Cost PCC' => $target->number_of_slots > 0
-                    ?
-                    ($target->total_training_cost_pcc + $target->total_assessment_fee + $target->total_training_support_fund + $target->total_entrepreneurship_fee) / $target->number_of_slots
-                    : 0,
+                'Number of Slots' => $target->number_of_slots ?? 0,
 
-                'Cost of Toolkits PCC' => $target->number_of_slots > 0
-                    ? $target->total_cost_of_toolkit_pcc / $target->number_of_slots
-                    : 0,
+                'Training Cost PCC' => $trainingCostPcc,
+                'Cost of Toolkits PCC' => $costOfToolkit,
 
-                'Total Training Cost' =>
-                    ($target->total_training_cost_pcc + $target->total_assessment_fee + $target->total_training_support_fund + $target->total_entrepreneurship_fee) ?? 0,
-                'Total Cost of Toolkits' => $target->total_cost_of_toolkit_pcc ?? 0,
-                'Total Amount' => $target->total_amount ?? 0,
+                'Total Training Cost' => $totalTrainingCost,
+                'Total Cost of Toolkits' => $totalCostOfToolkit,
 
-                'Status' => $target->targetStatus->desc,
+                'Total Amount' => $totalAmount,
+
+                'Status' => $target->targetStatus->desc ?? 'N/A',
             ];
+
         }
 
         return collect($data);
@@ -145,22 +164,6 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
             ->target()
             ->get() : collect();
     }
-
-
-
-    // private function targetData($id)
-    // {
-    //     $allocation = Allocation::find($id);
-
-    //     return $allocation ? $allocation
-    //         ->target()
-    //         ->whereHas('targetStatus', function ($query) {
-    //             $query->where('desc', 'Compliant');
-    //         })
-    //         ->get() : collect();
-    // }
-
-
     private function getAllocationYear($id)
     {
         $allocation = Allocation::find($id);
@@ -170,7 +173,9 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
 
     private function getScholarshipProgram($id)
     {
-        $qualification_title = QualificationTitle::find($id);
+        $allocation = Allocation::find($id);
+
+        $qualification_title = QualificationTitle::find($allocation->scholarship_program_id);
 
         return $qualification_title && $qualification_title->scholarshipProgram->name
             ? $qualification_title->scholarshipProgram->desc . ' (' . $qualification_title->scholarshipProgram->name . ')'
