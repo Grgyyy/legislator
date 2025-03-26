@@ -3,26 +3,18 @@
 namespace App\Filament\Resources\LegislativeTargetsResource\Pages;
 
 use App\Exports\TargetReportExport;
-use App\Filament\Resources\AllocationResource\Widgets\StatsOverview;
 use App\Filament\Resources\LegislativeTargetsResource;
 use App\Filament\Resources\LegislativeTargetsResource\Widgets\LegislativeTargetStatsOverview;
 use App\Filament\Resources\LegislativeTargetsResource\Widgets\LegislativeTargetStatsOverview_;
-use App\Filament\Resources\LegislativeTargetsResource\Widgets\StatsOverview as WidgetsStatsOverview;
 use App\Models\Allocation;
 use App\Models\Target;
-use App\Policies\LegislativeTargetPolicy;
 use App\Services\NotificationHandler;
 use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
 use Filament\Pages\Concerns\ExposesTableToWidgets;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use Maatwebsite\Excel\Validators\ValidationException;
-use PhpOffice\PhpSpreadsheet\Exception;
 
 class TargetReport extends ListRecords
 {
@@ -181,7 +173,7 @@ class TargetReport extends ListRecords
                     }),
 
                 TextColumn::make('total_training_cost')
-                    ->label('Total Training Cost (TC, AF, TSF, EF')
+                    ->label('Total Training Cost (TC, AF, TSF, EF)')
                     ->getStateUsing(function ($record) {
                         $trainingCost = ($record->total_training_cost_pcc + $record->total_assessment_fee + $record->total_training_support_fund + $record->total_entrepreneurship_fee);
 
@@ -189,7 +181,7 @@ class TargetReport extends ListRecords
                     }),
 
                 TextColumn::make('total_cost_of_toolkits')
-                    ->label('Cost of Toolkits PCC')
+                    ->label('Total Cost of Toolkit')
                     ->getStateUsing(function ($record) {
                         $oostOfToolkit = $record->total_cost_of_toolkit_pcc;
                         return '₱ ' . number_format($oostOfToolkit, 2);
