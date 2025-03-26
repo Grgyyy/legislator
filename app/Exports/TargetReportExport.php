@@ -11,7 +11,6 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithDrawings;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use NumberFormatter;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -65,7 +64,7 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
 
         foreach ($targets as $target) {
 
-            $trainingCostPcc = number_format(
+            $trainingCostPcc = '₱ ' . number_format(
                 (
                     $target->total_training_cost_pcc +
                     $target->total_assessment_fee +
@@ -74,8 +73,9 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
                 ) / $target->number_of_slots,
                 2
             );
-            $costOfToolkit = number_format($target->total_cost_of_toolkit_pcc / $target->number_of_slots, 2);
-            $totalTrainingCost = number_format(
+
+            $costOfToolkit = '₱ ' . number_format($target->total_cost_of_toolkit_pcc / $target->number_of_slots, 2);
+            $totalTrainingCost = '₱ ' . number_format(
                 $target->total_training_cost_pcc +
                 $target->total_assessment_fee +
                 $target->total_training_support_fund +
@@ -83,8 +83,8 @@ class TargetReportExport implements FromCollection, WithStyles, WithDrawings, Wi
                 2
             );
 
-            $totalCostOfToolkit = number_format($target->total_cost_of_toolkit_pcc, 2);
-            $totalAmount = number_format($target->total_amount, 2);
+            $totalCostOfToolkit = '₱ ' . number_format($target->total_cost_of_toolkit_pcc, 2);
+            $totalAmount = '₱ ' . number_format($target->total_amount, 2);
 
             $data[] = [
                 'Region' => $target->district->province->region->name,
