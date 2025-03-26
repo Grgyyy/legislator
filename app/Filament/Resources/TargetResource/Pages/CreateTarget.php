@@ -58,57 +58,61 @@ class CreateTarget extends CreateRecord
     protected function handleRecordCreation(array $data): Target
     {
         return DB::transaction(function () use ($data) {
-            if (empty($data['targets'])) {
-                $message = "No target data found.";
-                NotificationHandler::handleValidationException('Something went wrong', $message);
-            }
-
-            $lastCreatedTarget = null;
-
-            foreach ($data['targets'] as $targetData) {
-
-                $allocation = $this->getAllocation($targetData);
-                $institution = $this->getInstitution($targetData['tvi_id']);
-                $qualificationTitle = $this->getQualificationTitle($targetData['qualification_title_id']);
-
-                $skillPriority = $this->getSkillPriority(
-                    $qualificationTitle->trainingProgram->id,
-                    $institution->district_id,
-                    $institution->district->province_id,
-                    $targetData['allocation_year']
-                );
-
-                $numberOfSlots = $targetData['number_of_slots'] ?? 0;
-                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $targetData['allocation_year']);
-
-                if ($allocation->balance < $totals['total_amount']) {
-                    $message = "Insufficient allocation balance.";
+            try {
+                if (empty($data['targets'])) {
+                    $message = "No target data found.";
                     NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
-
-                if ($skillPriority->available_slots < $numberOfSlots) {
-                    $message = "Insufficient target beneficiaries available in Skill Priority.";
+    
+                $lastCreatedTarget = null;
+    
+                foreach ($data['targets'] as $targetData) {
+    
+                    $allocation = $this->getAllocation($targetData);
+                    $institution = $this->getInstitution($targetData['tvi_id']);
+                    $qualificationTitle = $this->getQualificationTitle($targetData['qualification_title_id']);
+    
+                    $skillPriority = $this->getSkillPriority(
+                        $qualificationTitle->trainingProgram->id,
+                        $institution->district_id,
+                        $institution->district->province_id,
+                        $targetData['allocation_year']
+                    );
+    
+                    $numberOfSlots = $targetData['number_of_slots'] ?? 0;
+                    $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $targetData['allocation_year']);
+    
+                    if ($allocation->balance < $totals['total_amount']) {
+                        $message = "Insufficient allocation balance.";
+                        NotificationHandler::handleValidationException('Something went wrong', $message);
+                    }
+    
+                    if ($skillPriority->available_slots < $numberOfSlots) {
+                        $message = "Insufficient target beneficiaries available in Skill Priority.";
+                        NotificationHandler::handleValidationException('Something went wrong', $message);
+                    }
+    
+                    $target = $this->createTarget($targetData, $allocation, $institution, $qualificationTitle, $totals);
+                    $allocation->decrement('balance', $totals['total_amount']);
+                    $skillPriority->decrement('available_slots', $numberOfSlots);
+    
+                    $this->logTargetHistory($targetData, $target, $allocation, $totals);
+    
+                    $lastCreatedTarget = $target;
+                }
+    
+                if (!$lastCreatedTarget) {
+                    $message = "No targets were created.";
                     NotificationHandler::handleValidationException('Something went wrong', $message);
                 }
-
-                $target = $this->createTarget($targetData, $allocation, $institution, $qualificationTitle, $totals);
-                $allocation->decrement('balance', $totals['total_amount']);
-                $skillPriority->decrement('available_slots', $numberOfSlots);
-
-
-                $this->logTargetHistory($targetData, $target, $allocation, $totals);
-
-                $lastCreatedTarget = $target;
+    
+                $this->sendSuccessNotification('Targets created successfully.');
+    
+                return $lastCreatedTarget;
+            } catch (\Exception $e) {
+                NotificationHandler::handleValidationException('An error occurred while creating the targets', $e->getMessage());
+                throw $e;
             }
-
-            if (!$lastCreatedTarget) {
-                $message = "No targets were created.";
-                NotificationHandler::handleValidationException('Something went wrong', $message);
-            }
-
-            $this->sendSuccessNotification('Targets created successfully.');
-
-            return $lastCreatedTarget;
         });
     }
 

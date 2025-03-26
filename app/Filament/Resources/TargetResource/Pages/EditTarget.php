@@ -72,75 +72,79 @@ class EditTarget extends EditRecord
     protected function handleRecordUpdate(Model $record, array $data): Model
     {
         return DB::transaction(function () use ($record, $data) {
-            $this->validateTargetData($data);
+            try {
+                $this->validateTargetData($data);
 
-            $allocation = $this->getAllocation($data);
-            $institution = $this->getInstitution($data['tvi_id']);
-            $qualificationTitle = $this->getQualificationTitle($data['qualification_title_id']);
-            $allocationYear = $allocation->year;
+                $allocation = $this->getAllocation($data);
+                $institution = $this->getInstitution($data['tvi_id']);
+                $qualificationTitle = $this->getQualificationTitle($data['qualification_title_id']);
+                $allocationYear = $allocation->year;
 
-            $skillPriority = $this->getSkillPriority(
-                $qualificationTitle->trainingProgram->id,
-                $institution->district,
-                $institution->district->province_id,
-                $data['allocation_year']
-            );
+                $skillPriority = $this->getSkillPriority(
+                    $qualificationTitle->trainingProgram->id,
+                    $institution->district,
+                    $institution->district->province_id,
+                    $data['allocation_year']
+                );
 
-            $numberOfSlots = $data['number_of_slots'] ?? 0;
-            $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $data);
+                $numberOfSlots = $data['number_of_slots'] ?? 0;
+                $totals = $this->calculateTotals($qualificationTitle, $numberOfSlots, $data);
 
-            $previousSlots = $record->number_of_slots;
-            $previousSkillPrio = $this->getSkillPriority(
-                $record->qualification_title->training_program_id,
-                $record->tvi->district,
-                $institution->district->province_id,
-                $data['allocation_year']
-            );
+                $previousSlots = $record->number_of_slots;
+                $previousSkillPrio = $this->getSkillPriority(
+                    $record->qualification_title->training_program_id,
+                    $record->tvi->district,
+                    $institution->district->province_id,
+                    $data['allocation_year']
+                );
 
-            if (!$previousSkillPrio) {
-                $message = "Previous Skill Priority not found.";
-                NotificationHandler::handleValidationException('Something went wrong', $message);
+                if (!$previousSkillPrio) {
+                    $message = "Previous Skill Priority not found.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                }
+
+                $allocation->increment('balance', $record->total_amount);
+                $previousSkillPrio->increment('available_slots', $previousSlots);
+
+                if ($allocation->balance < round($totals['total_amount'], 2)) {
+                    $message = "Insufficient allocation balance.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                }
+
+                if ($skillPriority->available_slots < $numberOfSlots) {
+                    $message = "Insufficient slots available in Skill Priority.";
+                    NotificationHandler::handleValidationException('Something went wrong', $message);
+                }
+
+                $record->update(array_merge($totals, [
+                    'abscap_id' => $data['abscap_id'] ?? null,
+                    'allocation_id' => $allocation->id,
+                    'district_id' => $institution->district_id,
+                    'municipality_id' => $institution->municipality_id,
+                    'qualification_title_id' => $qualificationTitle->id,
+                    'tvi_name' => $institution->name,
+                    'qualification_title_code' => $qualificationTitle->trainingProgram->code,
+                    'qualification_title_soc_code' => $qualificationTitle->trainingProgram->soc_code,
+                    'qualification_title_name' => $qualificationTitle->trainingProgram->title,
+                    'number_of_slots' => $data['number_of_slots'],
+                    'learning_mode_id' => $data['learning_mode_id'] ?? null,
+                    'delivery_mode_id' => $data['delivery_mode_id'],
+                    'target_status_id' => 1,
+                ]));
+
+                $allocation->decrement('balance', $totals['total_amount']);
+                $skillPriority->decrement('available_slots', $numberOfSlots);
+
+                $this->logTargetHistory($data, $record, $allocation, $totals);
+
+                return $record;
+            } catch (\Exception $e) {
+                NotificationHandler::handleValidationException('An error occurred while updating the target record.', $e->getMessage());
+                throw $e;
             }
-
-            $allocation->increment('balance', $record->total_amount);
-            $previousSkillPrio->increment('available_slots', $previousSlots);
-
-            if ($allocation->balance < round($totals['total_amount'], 2)) {
-                $message = "Insufficient allocation balance.";
-                NotificationHandler::handleValidationException('Something went wrong', $message);
-            }
-
-            if ($skillPriority->available_slots < $numberOfSlots) {
-                $message = "Insufficient slots available in Skill Priority.";
-                NotificationHandler::handleValidationException('Something went wrong', $message);
-            }
-
-            $record->update(array_merge($totals, [
-                'abscap_id' => $data['abscap_id'] ?? null,
-                'allocation_id' => $allocation->id,
-                'district_id' => $institution->district_id,
-                'municipality_id' => $institution->municipality_id,
-                'qualification_title_id' => $qualificationTitle->id,
-                'tvi_name' => $institution->name,
-                'qualification_title_code' => $qualificationTitle->trainingProgram->code,
-                'qualification_title_soc_code' => $qualificationTitle->trainingProgram->soc_code,
-                'qualification_title_name' => $qualificationTitle->trainingProgram->title,
-                'number_of_slots' => $data['number_of_slots'],
-                'learning_mode_id' => $data['learning_mode_id'] ?? null,
-                'delivery_mode_id' => $data['delivery_mode_id'],
-                'target_status_id' => 1,
-            ]));
-
-            $allocation->decrement('balance', $totals['total_amount']);
-            $skillPriority->decrement('available_slots', $numberOfSlots);
-
-            $this->logTargetHistory($data, $record, $allocation, $totals);
-
-
-            return $record;
-
         });
     }
+
 
     private function sendSuccessNotification(string $message): void
     {
@@ -190,7 +194,7 @@ class EditTarget extends EditRecord
         return $allocation;
     }
 
-    private function getInstitution(int $tviId): Tvi
+    private function getInstitution(int $tviId)
     {
         $institution = Tvi::find($tviId);
 
@@ -243,7 +247,7 @@ class EditTarget extends EditRecord
         return $skillsPriority;
     }
 
-    private function getQualificationTitle(int $qualificationTitleId): QualificationTitle
+    private function getQualificationTitle(int $qualificationTitleId)
     {
         $qualificationTitle = QualificationTitle::find($qualificationTitleId);
 
@@ -255,7 +259,7 @@ class EditTarget extends EditRecord
         return $qualificationTitle;
     }
 
-    private function calculateTotals(QualificationTitle $qualificationTitle, int $numberOfSlots, array $data): array
+    private function calculateTotals($qualificationTitle, int $numberOfSlots, array $data): array
     {
         $quali = QualificationTitle::find($qualificationTitle->id);
         $costOfToolkitPcc = $quali->toolkits()->where('year', $data['allocation_year'])->first();

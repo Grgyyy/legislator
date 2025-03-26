@@ -27,6 +27,7 @@ use App\Models\TrainingProgram;
 use App\Models\Tvi;
 use App\Services\NotificationHandler;
 use Auth;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -92,7 +93,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                         NotificationHandler::handleValidationException('Something went wrong', $message);
                     }
                 } else {
-                    throw new \Exception("The Per Capita Cost is required. No changes are saved.");
+                    throw new Exception("The Per Capita Cost is required. No changes are saved.");
                 }
 
                 $targetData = [
@@ -231,8 +232,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$legislator) {
-            $message = "No active legislator with an allocation found for name: {$legislatorName}.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("No active legislator with an allocation found for name: {$legislatorName}.");
         }
 
         return $legislator;
@@ -246,8 +246,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$legislator) {
-            $message = "No active legislator with an allocation found for name: {$legislatorName}.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("No active legislator with an allocation found for name: {$legislatorName}.");
         }
 
         return $legislator;
@@ -260,8 +259,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$region) {
-            $message = "Region with name '{$regionName}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Region with name '{$regionName}' not found.");
         }
 
         return $region;
@@ -269,14 +267,14 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
 
     protected function getProvince(string $provinceName, int $regionId)
     {
+        $region = Region::find($regionId);
         $province = Province::where('name', $provinceName)
             ->where('region_id', $regionId)
             ->whereNull('deleted_at')
             ->first();
 
         if (!$province) {
-            $message = "Province with name '{$provinceName}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Province with name '{$provinceName}' under the region named '{$region->name}' not found.");
         }
 
         return $province;
@@ -297,8 +295,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
                 ->first();
 
             if (!$municipality) {
-                $message = "The Municipality named '{$municipalityName}' is not existing.";
-                NotificationHandler::handleValidationException('Something went wrong', $message);
+                throw new Exception("The Municipality named '{$municipalityName}' is not existing.");
             }
 
             $districtQuery->where('municipality_id', $municipality->id);
@@ -309,8 +306,12 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
         $district = $districtQuery->first();
 
         if (!$district) {
-            $message = "The District named '{$districtName}' under Province named '{$province->name}' is not existing.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            if ($municipalityName === 'Not Applicable') {
+                throw new Exception("The District named '{$districtName}' under Province named '{$province->name}' is not existing.");
+            }
+            else {
+                throw new Exception("The District named '{$districtName}' under Municipality named '{$municipalityName}' and Province named '{$province->name}' is not existing.");
+            }
         }
 
         return $district;
@@ -324,8 +325,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$municipality) {
-            $message = "Municipality with name '{$municipalityName}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Municipality with name '{$municipalityName}' not found.");
         }
 
         return $municipality;
@@ -338,8 +338,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$partylist) {
-            $message = "Partylist with name '{$partylistName}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Partylist with name '{$partylistName}' not found.");
         }
 
         return $partylist;
@@ -352,8 +351,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$subParticular) {
-            $message = "Sub-Particular with name '{$subParticularName}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Sub-Particular with name '{$subParticularName}' not found.");
         }
 
         return $subParticular;
@@ -369,8 +367,24 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$particular) {
-            $message = "Particular with name '{$subParticular->name}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            $partylist = Partylist::find($partylist_id);
+            $district = District::find($district_id);
+            
+            if ($subParticular->name === 'Party-list') {
+                throw new Exception("Particular with name '{$subParticular->name}' under the Party-list named '{$partylist->name}' not found.");
+            }
+            elseif ($subParticular->name === 'RO Regular' || $subParticular->name === 'CO Regular') {
+                throw new Exception("Particular with name '{$subParticular->name}' under the Region named '{$district->province->region->name}' not found.");
+            }
+            elseif ($subParticular->name === 'District') {
+                throw new Exception("Particular with name '{$subParticular->name}' under the District named '{$district->name}' under the Province named '{$district->province->name}' not found.");
+            }
+            elseif ($subParticular->name === 'Senator' || $subParticular->name === 'House Speaker' || $subParticular->name === 'House Speaker (LAKAS)') {
+                throw new Exception("The particular with the name '{$subParticular->name}' was not found. Please set the District, Municipality, Province, and Region to 'Not Applicable'.");
+            }
+            else {
+                throw new Exception("Particular with name '{$subParticular->name}' not found.");
+            }
         }
 
         return $particular;
@@ -383,8 +397,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$scholarshipProgram) {
-            $message = "Scholarship Program with name '{$scholarshipProgramName}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Scholarship Program with name '{$scholarshipProgramName}' not found.");
         }
 
         return $scholarshipProgram;
@@ -392,9 +405,16 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
 
     protected function getAllocation(int $attributorId, int $attributorParticularId, int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
     {
+        $legislator = Legislator::find($legislatorId);
+        $particular = Particular::find($particularId);
+        $attributor = Legislator::find($attributorId);
+        $attributorParticular = Particular::find($attributorParticularId);
+        $schoPro = ScholarshipProgram::find($scholarshipProgramId);
+
+
         $allocation = Allocation::where('legislator_id', $legislatorId)
-            ->where('attributor_id', $attributorId)
             ->where('particular_id', $particularId)
+            ->where('attributor_id', $attributorId)
             ->where('attributor_particular_id', $attributorParticularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
             ->where('year', $appropriationYear)
@@ -402,8 +422,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$allocation) {
-            $message = "No allocation found matching the provided legislator, particular, scholarship program, and year.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("No allocation found for legislator '{$legislator->name}' under the particular '{$particular->subParticular->name}' for the scholarship program '{$schoPro->name}' in the year '{$appropriationYear}' that has been attributed by '{$attributor->name}' under the particular '{$attributorParticular->subParticular->name}'.");
         }
 
         return $allocation;
@@ -416,8 +435,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$abddSector) {
-            $message = "ABDD Sector with name '{$abddSectorName}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("ABDD Sector with name '{$abddSectorName}' not found.");
         }
 
         return $abddSector;
@@ -430,8 +448,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$deliveryMode) {
-            $message = "Delivery Mode with name '{$deliveryModeName}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Delivery Mode with name '{$deliveryModeName}' not found.");
         }
 
         return $deliveryMode;
@@ -447,8 +464,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$learningMode) {
-            $message = "Learning Mode with the specified name and associated Delivery Mode was not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Learning Mode with the specified name and associated Delivery Mode was not found.");
         }
 
         return $learningMode;
@@ -462,8 +478,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$tvi) {
-            $message = "Institution with name '{$tviName}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Institution '{$tviName}' with School ID '{$schoolId}' not found.");
         }
 
         return $tvi;
@@ -476,13 +491,11 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$scholarship) {
-            $message = "The scholarship program named'{$qualCodeSchoPro}' does not exists.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("The scholarship program named'{$qualCodeSchoPro}' does not exists.");
         }
 
         if ($scholarship->code !== 'TWSP' && $scholarship->code !== 'TTSP') {
-            $message = "The Project Proposal is permitted to use only TWSP and TTSP scholarship programs.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("The Project Proposal is permitted to use only TWSP and TTSP scholarship programs.");
         }
 
         $qualSchoPro = ScholarshipProgram::where('name', $qualCodeSchoPro)
@@ -490,8 +503,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$qualSchoPro) {
-            $message = "Scholarship Program named '{$qualCodeSchoPro}' with a code of '{$scholarshipProgram->name}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Scholarship Program named '{$qualCodeSchoPro}' with a code of '{$scholarshipProgram->name}' not found.");
         }
 
         $qualificationTitle = QualificationTitle::where('scholarship_program_id', $qualSchoPro->id)
@@ -503,8 +515,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$qualificationTitle) {
-            $message = "Qualification Title with name '{$qualificationTitleName}' not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Qualification Title with name '{$qualificationTitleName}' not found.");
         }
 
         return $qualificationTitle;
@@ -539,6 +550,9 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             })
             ->first();
 
+        $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
+        $province = Province::where('id', $provinceId)->first();
+        
         if (!$skillPrograms) {
             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                 ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
@@ -550,23 +564,19 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
         }
 
         if (!$skillPrograms) {
-            NotificationHandler::handleValidationException('Something went wrong', 'Skill Priority does not exists.');
+            throw new Exception("Skill Priority for the training program '{$trainingProgram->title}' in the province '{$province->name}' not found.");
         }
 
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
-            $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
-            $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
 
             if (!$trainingProgram || !$province || !$district) {
-                NotificationHandler::handleValidationException('Something went wrong', 'Invalid training program, province, or district.');
-                return;
+                throw new Exception("Invalid training program, province, or district.");
             }
 
-            $message = "Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("Skill Priority for the training program '{$trainingProgram->title}' in district '{$district->id}' within '{$province->name}' not found.");
         }
 
         return $skillsPriority;
@@ -579,8 +589,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$region) {
-            $message = "The Region named '{$regionName}' is not existing.";
-            NotificationHandler::handleValidationException('Something went wrong', $message);
+            throw new Exception("The Region named '{$regionName}' is not existing.");
         }
 
         $province = Province::where('name', 'Not Applicable')
@@ -602,7 +611,7 @@ class AttributionProjectProposalImport implements ToModel, WithHeadingRow
         $subParticular = SubParticular::find($subParticularId);
 
         if (!$particular) {
-            throw new \Exception("The Particular named '{$subParticular->name}' is not existing.");
+            throw new Exception("The Particular named '{$subParticular->name}' is not existing.");
         }
 
         return $particular;

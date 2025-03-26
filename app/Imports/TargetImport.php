@@ -216,6 +216,7 @@ class TargetImport implements ToModel, WithHeadingRow
 
         return $legislator;
     }
+
     protected function getRegion(string $regionName)
     {
         $region = Region::where('name', $regionName)
@@ -231,13 +232,14 @@ class TargetImport implements ToModel, WithHeadingRow
 
     protected function getProvince(string $provinceName, int $regionId)
     {
+        $region = Region::find($regionId);
         $province = Province::where('name', $provinceName)
             ->where('region_id', $regionId)
             ->whereNull('deleted_at')
             ->first();
 
         if (!$province) {
-            throw new Exception("Province with name '{$provinceName}' not found.");
+            throw new Exception("Province with name '{$provinceName}' under the region named '{$region->name}' not found.");
         }
 
         return $province;
@@ -269,11 +271,17 @@ class TargetImport implements ToModel, WithHeadingRow
         $district = $districtQuery->first();
 
         if (!$district) {
-            throw new Exception("The District named '{$districtName}' under Province named '{$province->name}' is not existing.");
+            if ($municipalityName === 'Not Applicable') {
+                throw new Exception("The District named '{$districtName}' under Province named '{$province->name}' is not existing.");
+            }
+            else {
+                throw new Exception("The District named '{$districtName}' under Municipality named '{$municipalityName}' and Province named '{$province->name}' is not existing.");
+            }
         }
 
         return $district;
     }
+    
     protected function getPartylist(string $partylistName)
     {
         $partylist = Partylist::where('name', $partylistName)
@@ -310,7 +318,24 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$particular) {
-            throw new Exception("Particular with name '{$subParticular->name}' not found.");
+            $partylist = Partylist::find($partylist_id);
+            $district = District::find($district_id);
+            
+            if ($subParticular->name === 'Party-list') {
+                throw new Exception("Particular with name '{$subParticular->name}' under the Party-list named '{$partylist->name}' not found.");
+            }
+            elseif ($subParticular->name === 'RO Regular' || $subParticular->name === 'CO Regular') {
+                throw new Exception("Particular with name '{$subParticular->name}' under the Region named '{$district->province->region->name}' not found.");
+            }
+            elseif ($subParticular->name === 'District') {
+                throw new Exception("Particular with name '{$subParticular->name}' under the District named '{$district->name}' under the Province named '{$district->province->name}' not found.");
+            }
+            elseif ($subParticular->name === 'Senator' || $subParticular->name === 'House Speaker' || $subParticular->name === 'House Speaker (LAKAS)') {
+                throw new Exception("The particular with the name '{$subParticular->name}' was not found. Please set the District, Municipality, Province, and Region to 'Not Applicable'.");
+            }
+            else {
+                throw new Exception("Particular with name '{$subParticular->name}' not found.");
+            }
         }
 
         return $particular;
@@ -331,6 +356,11 @@ class TargetImport implements ToModel, WithHeadingRow
 
     protected function getAllocation(int $legislatorId, int $particularId, int $scholarshipProgramId, int $appropriationYear)
     {
+        $legislator = Legislator::find($legislatorId);
+        $particular = Particular::find($particularId);
+        $schoPro = ScholarshipProgram::find($scholarshipProgramId);
+
+
         $allocation = Allocation::where('legislator_id', $legislatorId)
             ->where('particular_id', $particularId)
             ->where('scholarship_program_id', $scholarshipProgramId)
@@ -339,7 +369,7 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$allocation) {
-            throw new Exception("No allocation found matching the provided legislator, particular, scholarship program, and year.");
+            throw new Exception("No allocation found for legislator '{$legislator->name}' under the particular '{$particular->subParticular->name}' for the scholarship program '{$schoPro->name}' in the year '{$appropriationYear}'.");
         }
 
         return $allocation;
@@ -394,7 +424,7 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$tvi) {
-            throw new Exception("Institution with name '{$tviName}' not found.");
+            throw new Exception("Institution '{$tviName}' with School ID '{$schoolId}' not found.");
         }
 
         return $tvi;
@@ -420,7 +450,7 @@ class TargetImport implements ToModel, WithHeadingRow
             ->first();
 
         if (!$qualificationTitle) {
-            throw new Exception("Qualification Title with name '{$qualificationTitleName}' not found.");
+            throw new Exception("Qualification Title with name '{$qualificationTitleName}' under the Scholarship Program name '{$qualCodeSchoPro}' not found.");
         }
 
         return $qualificationTitle;
@@ -474,6 +504,9 @@ class TargetImport implements ToModel, WithHeadingRow
             })
             ->first();
 
+        $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
+        $province = Province::where('id', $provinceId)->first();
+        
         if (!$skillPrograms) {
             $skillPrograms = SkillPrograms::where('training_program_id', $trainingProgramId)
                 ->whereHas('skillPriority', function ($query) use ($provinceId, $appropriationYear) {
@@ -485,21 +518,19 @@ class TargetImport implements ToModel, WithHeadingRow
         }
 
         if (!$skillPrograms) {
-            throw new Exception("Skill Priority does not exists.");
+            throw new Exception("Skill Priority for the training program '{$trainingProgram->title}' in the province '{$province->name}' not found.");
         }
 
         $skillsPriority = SkillPriority::find($skillPrograms->skill_priority_id);
 
         if (!$skillsPriority) {
-            $trainingProgram = TrainingProgram::where('id', $trainingProgramId)->first();
-            $province = Province::where('id', $provinceId)->first();
             $district = District::where('id', $districtId)->first();
 
             if (!$trainingProgram || !$province || !$district) {
                 throw new Exception("Invalid training program, province, or district.");
             }
 
-            throw new Exception("Skill Priority for {$trainingProgram->title} under District {$district->id} in {$province->name} not found.");
+            throw new Exception("Skill Priority for the training program '{$trainingProgram->title}' in district '{$district->id}' within '{$province->name}' not found.");
         }
 
         return $skillsPriority;

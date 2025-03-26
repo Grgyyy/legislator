@@ -113,7 +113,7 @@ class CreateNonCompliantTarget extends CreateRecord
             ->send();
     }
 
-    private function adjustResources(Target $targetRecord, array $data): void
+    private function adjustResources($targetRecord, array $data): void
     {
         $allocation = Allocation::find($targetRecord->allocation_id);
 
@@ -148,7 +148,7 @@ class CreateNonCompliantTarget extends CreateRecord
         $previousSkillPrio->increment('available_slots', $targetRecord->number_of_slots);
     }
 
-    private function logTargetHistory(Target $targetRecord, array $data): void
+    private function logTargetHistory($targetRecord, array $data): void
     {
         TargetHistory::create([
             'target_id' => $targetRecord->id,
