@@ -53,7 +53,7 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
         return [
 
             $this->getSchool($record),
-            $this->getSOC($record),
+            $record->trainingProgram?->soc_code,
             $record->trainingProgram?->title ?? '-',
             $this->getLocationNames($record),
             $record->tvi?->address ?? '-',
@@ -191,11 +191,6 @@ class InsitutionQualificationTitleExport implements FromQuery, WithHeadings, Wit
         }
 
         return $institutionName;
-    }
-    protected static function getSOC($record)
-    {
-
-        $record->trainingProgram->soc_code ?? '-';
     }
 
     protected static function getLocationNames($record): string
