@@ -21,7 +21,7 @@ class CustomScheduleOfCostExport extends ExcelExport implements WithDrawings
             ['Central Office (CO)'],
             ['SCHEDULE OF COSTS'],
             [''],
-            ['Qualification Code', 'SOC Code', 'Qualification Title', 'Scholarship Program', 'Training Cost PCC', 'Training Support Fund', 'Assessment Fee', 'Entrepreneurship Fee', 'New Normal Assistance', 'Accidental Insurance', 'Book Allowance', 'Uniform Allowance', 'Miscellaneous Fee', 'Cost of Toolkits PCC', 'Total PCC (w/o Toolkits)', 'Training Days', 'Training Hours', 'Status'],
+            ['Qualification Code', 'SOC Code', 'Qualification Title', 'Scholarship Program', 'Training Cost PCC', 'Training Support Fund', 'Assessment Fee', 'Entrepreneurship Fee', 'New Normal Assistance', 'Accidental Insurance', 'Book Allowance', 'Uniform Allowance', 'Miscellaneous Fee', 'Total PCC (w/o Toolkits)', 'Training Days', 'Training Hours', 'Status'],
         ];
     }
 

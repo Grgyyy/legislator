@@ -563,13 +563,6 @@ class QualificationTitleResource extends Resource
                                         ->heading('Miscellaneous Fee')
                                         ->format('"₱ "#,##0.00'),
 
-                                    Column::make('toolkit.price_per_toolkit')
-                                        ->heading('Cost of Toolkits PCC')
-                                        ->getStateUsing(function ($record) {
-                                            return $record->toolkit && $record->toolkit->price_per_toolkit !== null
-                                                ? number_format($record->toolkit->price_per_toolkit, 2, '.', ',')
-                                                : '0.00';
-                                        }),
                                     Column::make('pcc')
                                         ->heading('Total PCC (w/o Toolkits)')
                                         ->format('"₱ "#,##0.00'),
