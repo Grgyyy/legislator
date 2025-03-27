@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\Allocation;
+use App\Models\TargetStatus;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithDrawings;
@@ -74,7 +75,7 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
             $record->allocation ?? '-',
             $record->admin_cost ?? '-',
             $record->allocation - $record->admin_cost ?? '-',
-            $this->getExpenses($record),
+            $this->getExpenses($record) ?? '-',
             $record->balance ?? '-',
             $record->year ?? '-',
         ];
@@ -82,9 +83,15 @@ class AllocationExport implements FromQuery, WithMapping, WithStyles, WithHeadin
 
     public function getExpenses($record)
     {
-        $fundsExpended = optional($record->target)->sum('total_amount');
+        $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
+        $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount') ?? 0;
 
-        return $fundsExpended !== null ? (float) $fundsExpended : '-';
+        if ($fundsExpended > 0) {
+            return $fundsExpended;
+        }
+        else {
+            return '0';
+        }
     }
 
     protected function getParticularName($record): string
