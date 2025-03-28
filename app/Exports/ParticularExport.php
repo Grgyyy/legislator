@@ -44,13 +44,20 @@ class ParticularExport implements FromQuery, WithMapping, WithStyles, WithHeadin
         return [
             $record->subParticular->name ?? '-',
             $record->subParticular->fundSource->name ?? '-',
-            $record->partylist->name ?? '-',
-            $record->district->name ?? '-',
-            $record->district->underMunicipality->name ?? '-',
-            $record->district->province->name ?? '-',
-            $record->district->province->region->name ?? '-',
+            $this->returnHypen($record->partylist->name),
+            $this->returnHypen($record->district->name),
+            $this->returnHypen($record->district->underMunicipality->name ?? null),
+            $this->returnHypen($record->district->province->name),
+            $this->returnHypen($record->district->province->region->name),
 
         ];
+    }
+
+    private function returnHypen($name) {
+        if (!$name || $name === 'Not Applicable') {
+            return '-';
+        }
+        return $name;
     }
 
     public function headings(): array
