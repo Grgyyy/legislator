@@ -155,7 +155,7 @@
                 </div>
             </div>
 
-            <div class="relative p-4 bg-gray-900 border-4 border-blue-500 rounded-lg text-center shadow-lg shadow-blue-500/50 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-400/50 min-h-[500px] flex flex-col justify-center" onclick="showStats('dev1')">
+            <div class="relative p-4 bg-gray-900 border-4 border-blue-500 rounded-lg text-center shadow-lg shadow-blue-500/50 cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-400/50 min-h-[500px] flex flex-col justify-center" onclick="showStats('dev3')">
                 <div class="relative w-24 h-24 mx-auto mb-3">
                     <img src="images/12e1ffc4e4a3e8330b657a92b03cea70924f74c2.jpg" alt="ceddie, Guardian of Restricted Scrolls" class="w-full h-full rounded-full border-4 border-blue-500 shadow-lg">
                     <div class="absolute inset-0 bg-blue-400 opacity-20 rounded-full animate-pulse"></div>
