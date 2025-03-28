@@ -218,12 +218,18 @@ class ParticularResource extends Resource
                                 Column::make('partylist.name')
                                     ->heading('Party-list')
                                     ->getStateUsing(function ($record) {
-                                        return $record->partylist ? $record->partylist->name : '-';
+                                        if (!$record->partylist || $record->partylist->name === 'Not Applicable') {
+                                            return '-';
+                                        }
+                                        return $record->partylist->name;
                                     }),
                                 Column::make('district.name')
                                     ->heading('District')
                                     ->getStateUsing(function ($record) {
-                                        return $record->district ? $record->district->name : '-';
+                                        if (!$record->district || $record->district->name === 'Not Applicable') {
+                                            return '-';
+                                        }
+                                        return $record->district->name;
                                     }),
                                 Column::make('district.underMunicipality.name')
                                     ->heading('Municipality')
@@ -233,12 +239,18 @@ class ParticularResource extends Resource
                                 Column::make('district.province.name')
                                     ->heading('Province')
                                     ->getStateUsing(function ($record) {
-                                        return $record->district->province ? $record->district->province->name : '-';
+                                        if (!$record->district->province || $record->district->province->name === 'Not Applicable') {
+                                            return '-';
+                                        }
+                                        return $record->district->province->name;
                                     }),
                                 Column::make('district.province.region.name')
                                     ->heading('Region')
                                     ->getStateUsing(function ($record) {
-                                        return $record->district->province->region ? $record->district->province->region->name : '-';
+                                        if (!$record->district->province->region || $record->district->province->region->name === 'Not Applicable') {
+                                            return '-';
+                                        }
+                                        return $record->district->province->region->name;
                                     }),
                             ])
                             ->withFilename(date('m-d-Y') . ' - Particulars')

@@ -23,7 +23,7 @@ class CustomInstitutionExport extends ExcelExport implements WithDrawings, WithC
             ['Central Office (CO)'],
             ['INSTITUTIONS'],
             [''],
-            ['School ID', 'Institution', 'Institution Class (A)', 'Institution Class (B)', 'Institution Type', 'District', 'Municipality', 'Province', 'Address'],
+            ['School ID', 'Institution', 'Institution Type', 'Institution Class (A)', 'Institution Class (B)', 'District', 'Municipality', 'Province', 'Address'],
         ];
     }
 

@@ -619,7 +619,7 @@ class AllocationResource extends Resource
                                                         $nonCompliantRecord = TargetStatus::where('desc', 'Non-Compliant')->first();
                                                         $fundsExpended = $record->target->where('target_status_id', '!=', $nonCompliantRecord->id)->sum('total_amount');
 
-                                                        return $fundsExpended;
+                                                        return $fundsExpended ?? 0;
                                                     })
                                                     ->format('"₱ "#,##0.00'),
 

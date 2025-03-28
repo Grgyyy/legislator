@@ -444,16 +444,16 @@ class SkillPriorityResource extends Resource
                         ->exports([
                             CustomSkillsPriorityExport::make()
                                 ->withColumns([
+                                    Column::make('provinces.name')
+                                        ->heading('Province'),
+                                    
                                     Column::make('district.name')
                                         ->heading('District')
-                                        ->formatStateUsing(fn($record) => $record->district->name ?? '-'),
+                                        ->getStateUsing(fn($record) => $record->district->name ?? '-'),
 
                                     Column::make('district.underMunicipality.name')
                                         ->heading('Municipality')
-                                        ->formatStateUsing(fn($record) => $record->district->underMunicipality->name ?? '-'),
-
-                                    Column::make('provinces.name')
-                                        ->heading('Province'),
+                                        ->getStateUsing(fn($record) => $record->district->underMunicipality->name ?? '-'),
 
                                     Column::make('qualification_title')
                                         ->heading('Lot Name'),
@@ -465,7 +465,7 @@ class SkillPriorityResource extends Resource
                                                 return $record->trainingProgram
                                                     ->filter(fn($program) => $program !== null)
                                                     ->map(fn($program) => "{$program->soc_code} - {$program->title}")
-                                                    ->implode(', <br>');
+                                                    ->implode(', ');
                                             }
                                         }),
 

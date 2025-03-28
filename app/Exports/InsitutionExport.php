@@ -22,9 +22,9 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
     private $columns = [
         'school_id' => 'School ID',
         'name' => 'Institution',
+        'tvi_type_id' => 'Institution Type',
         'institution_class_id' => 'Institution Class (A)',
         'tvi_class_id' => 'Institution Class (B)',
-        'tvi_type_id' => 'Institution Type',
         'district_id' => 'District',
         'municipality_id' => 'Municipality',
         'district.province' => 'Province',
@@ -54,9 +54,9 @@ class InsitutionExport implements FromQuery, WithHeadings, WithStyles, WithMappi
         return [
             $record->school_id,
             $record->name,
+            optional($record->tviType)->name ?? '-',
             optional($record->tviClass)->name ?? '-',
             optional($record->InstitutionClass)->name ?? '-',
-            optional($record->tviType)->name ?? '-',
             optional($record->district)->name ?? '-',
             optional($record->municipality)->name ?? '-',
             optional($record->district->province)->name ?? '-',
