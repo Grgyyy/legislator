@@ -64,9 +64,12 @@ class UserResource extends Resource
                     ->autocomplete(false)
                     ->dehydrateStateUsing(fn($state) => Hash::make($state))
                     ->dehydrated(fn($state) => filled($state))
-                    ->regex('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$/')
+                    ->regex('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/')
                     ->minLength(8)
-                    ->validationAttribute('Password'),
+                    ->validationMessages([
+                        'regex' => 'Password must have at least one uppercase, one lowercase, one number, and one special character.',
+                    ])
+                    ->validationAttribute('password'),
 
                 Select::make('roles')
                     ->multiple()
