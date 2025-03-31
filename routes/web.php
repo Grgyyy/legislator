@@ -35,8 +35,3 @@ Route::get('/export-targets/{allocationId}', function ($allocationId) {
 
     return Excel::download(new TargetReportExport($allocationId), $filename);
 })->name('export.targets');
-
-
-Route::get('/error404', function () {
-    abort(404);
-});
